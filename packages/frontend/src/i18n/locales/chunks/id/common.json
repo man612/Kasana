@@ -653,7 +653,12 @@
       "hideOneDay": "Selama 24 jam",
       "hideOneWeek": "Selama 7 hari",
       "resetPosition": "Reset posisi",
-      "hideExplanation": "Tombol akan muncul otomatis setelah waktunya habis. Kamu juga dapat menampilkannya lebih awal dari Pengaturan → Umum."
+      "hideExplanation": "Tombol akan muncul otomatis setelah waktunya habis. Kamu juga dapat menampilkannya lebih awal dari Pengaturan → Umum.",
+      "placeButton": "Atur posisi",
+      "topLeft": "Kiri atas",
+      "topRight": "Kanan atas",
+      "bottomLeft": "Kiri bawah",
+      "bottomRight": "Kanan bawah"
     }
   }
 }
