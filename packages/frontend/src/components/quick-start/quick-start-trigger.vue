@@ -58,7 +58,7 @@ const positionStyle = computed(() => {
 
 let activePointer: number | null = null;
 let longPressTimer: ReturnType<typeof setTimeout> | null = null;
-let dragging = false;
+const dragging = ref(false);
 let suppressClick = false;
 let originX = 0;
 let originY = 0;
@@ -80,18 +80,18 @@ function onPointerDown(event: PointerEvent) {
   originY = event.clientY;
   grabOffsetX = event.clientX - rect.left;
   grabOffsetY = event.clientY - rect.top;
-  dragging = false;
+  dragging.value = false;
   suppressClick = false;
   // Capture keeps pointerup/cancel reachable even if the finger leaves the icon.
   buttonRef.value?.setPointerCapture?.(event.pointerId);
   longPressTimer = setTimeout(() => {
-    if (activePointer === event.pointerId) dragging = true;
+    if (activePointer === event.pointerId) dragging.value = true;
   }, HOLD_MS);
 }
 
 function onPointerMove(event: PointerEvent) {
   if (activePointer !== event.pointerId) return;
-  if (!dragging) {
+  if (!dragging.value) {
     if (Math.hypot(event.clientX - originX, event.clientY - originY) > MOVE_TOLERANCE) {
       clearLongPressTimer();
       suppressClick = true;
@@ -110,9 +110,9 @@ function onPointerMove(event: PointerEvent) {
 
 function finishPointer(event: PointerEvent) {
   if (activePointer !== event.pointerId) return;
-  if (dragging) suppressClick = true;
+  if (dragging.value) suppressClick = true;
   clearLongPressTimer();
-  dragging = false;
+  dragging.value = false;
   activePointer = null;
   if (buttonRef.value?.hasPointerCapture?.(event.pointerId)) {
     buttonRef.value.releasePointerCapture(event.pointerId);
