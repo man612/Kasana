@@ -95,7 +95,12 @@
                 <p v-if="rawTransactionsList.length === 0" class="text-muted-foreground py-8 text-center text-sm">
                   {{ t('pages.account.rightPanel.noTransactions') }}
                 </p>
-                <ScrollArea v-else :scroll-area-id="SCROLL_AREA_IDS.accountTransactions" class="max-h-[min(60dvh,38rem)]">
+                <ScrollArea
+                  v-else
+                  :scroll-area-id="SCROLL_AREA_IDS.accountTransactions"
+                  class="max-h-[min(60dvh,38rem)]"
+                  viewport-class="max-h-[min(60dvh,38rem)] overflow-y-auto"
+                >
                   <TransactionsList
                     :hasNextPage="hasNextPage"
                     :transactions="rawTransactionsList"
