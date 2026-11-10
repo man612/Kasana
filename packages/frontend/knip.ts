@@ -43,7 +43,10 @@ const config: KnipConfig = {
     nsExports: 'warn',
     types: 'warn',
     nsTypes: 'warn',
-    // enumMembers: "off",
+    // International bank sync is intentionally hidden from the Indonesian-first
+    // interface, but its API models remain for existing connections. Their
+    // idle/completed statuses are expected to be unused by the visible UI.
+    enumMembers: 'warn',
   },
 };
 
