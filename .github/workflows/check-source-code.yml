@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # dorny/paths-filter reads pull-request changed files through the GitHub API.
-# On a private independent repository, the default GITHUB_TOKEN may lack that
+# On an independent repository, the default GITHUB_TOKEN may lack that
 # permission; explicitly grant read-only PR metadata access.
 permissions:
   contents: read

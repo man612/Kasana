@@ -1,4 +1,4 @@
-# Generate a localhost-only MoneyMatter environment. Existing secrets are never overwritten.
+# Generate a localhost-only Kasana environment. Existing secrets are never overwritten.
 # Run from any PowerShell working directory: .\scripts\setup-local-private.ps1
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot

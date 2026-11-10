@@ -1,4 +1,4 @@
-# Build and start this independent MoneyMatter copy using Docker Compose.
+# Build and start Kasana (independent MoneyMatter-based code) using Docker Compose.
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $selfHost = Join-Path $root 'self-hosting'
