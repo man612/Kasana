@@ -10,6 +10,12 @@ if (-not $dockerCommand -and (Test-Path 'F:\Applications\DockerDesktop\resources
 if (-not $dockerCommand) {
   throw 'Docker CLI not found. Install or start Docker Desktop with the WSL 2 backend.'
 }
+# Custom Docker Desktop installation on F: is not added to this PowerShell session's PATH.
+# Compose needs docker-credential-desktop and the CLI plugins from the same directory.
+$dockerBin = Split-Path -Parent $dockerCommand
+if (($env:PATH -split ';') -notcontains $dockerBin) {
+  $env:PATH = $dockerBin + ';' + $env:PATH
+}
 if (-not (Test-Path -LiteralPath (Join-Path $selfHost '.env'))) {
   throw 'Missing self-hosting/.env. Run .\scripts\setup-local-private.ps1 first.'
 }
