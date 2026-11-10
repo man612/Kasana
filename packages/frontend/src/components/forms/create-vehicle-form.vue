@@ -56,7 +56,7 @@ interface FormState {
   model: string;
   trim: string;
   year: number;
-  vehicleClass: VEHICLE_CLASS;
+  vehicleClass: VEHICLE_CLASS | null;
   purchasePrice: number;
   purchaseDate: Date;
   depreciationPreset: DEPRECIATION_PRESET;
@@ -72,7 +72,8 @@ const form = reactive<FormState>({
   model: '',
   trim: '',
   year: new Date().getFullYear(),
-  vehicleClass: VEHICLE_CLASS.sedan,
+  // Explicit choice: selecting Sedan by default silently applies the wrong depreciation to motorcycles and MPVs.
+  vehicleClass: null,
   purchasePrice: 0,
   purchaseDate: new Date(),
   depreciationPreset: DEPRECIATION_PRESET.classDefault,
@@ -110,6 +111,7 @@ const validationRules = {
   make: { required },
   model: { required },
   year: { required, between: between(MIN_YEAR, MAX_YEAR) },
+  vehicleClass: { required },
   purchasePrice: { positive: positiveNumber, maxValue: maxValue(Number.MAX_SAFE_INTEGER) },
   salvageFloorPct: { required, between: between(0, 100) },
   customAnnualRatePct: {
@@ -127,6 +129,8 @@ const submit = async () => {
   if (createVehicleMutation.isPending.value) return;
 
   if (!isFormValid()) return;
+  const selectedVehicleClass = form.vehicleClass;
+  if (selectedVehicleClass === null) return;
 
   try {
     await createVehicleMutation.mutateAsync({
@@ -136,7 +140,7 @@ const submit = async () => {
       model: form.model,
       trim: form.trim || null,
       year: form.year,
-      vehicleClass: form.vehicleClass,
+      vehicleClass: selectedVehicleClass,
       purchasePrice: form.purchasePrice,
       purchaseDate: format(form.purchaseDate, 'yyyy-MM-dd'),
       depreciationPreset: form.depreciationPreset,
@@ -266,10 +270,16 @@ const submit = async () => {
       label-key="label"
       value-key="value"
       :label="$t('forms.createVehicle.vehicleClassLabel')"
-      @update:model-value="(v) => v && (form.vehicleClass = v.value)"
+      :placeholder="$t('forms.createVehicle.vehicleClassPlaceholder')"
+      :error-message="getFieldErrorMessage('form.vehicleClass')"
+      required
+      @update:model-value="(v) => { if (v) { form.vehicleClass = v.value; touchField('form.vehicleClass'); } }"
     >
       <template #label-right><FormFieldHelp topic="vehicleClass" /></template>
     </SelectField>
+    <p class="text-muted-foreground -mt-3 text-xs leading-relaxed">
+      {{ $t('forms.createVehicle.vehicleClassHint') }}
+    </p>
 
     <FormattedAmountField
       v-model="form.purchasePrice"
