@@ -11,6 +11,12 @@ on:
   # enable manual triggers
   workflow_dispatch:
 
+# A fast sequence of commits should cancel the older PR build, not pay for
+# dozens of stale 17-job matrices. Preserve every main/manual run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 # dorny/paths-filter reads pull-request changed files through the GitHub API.
 # On a private independent repository, the default GITHUB_TOKEN may lack that
 # permission; explicitly grant read-only PR metadata access.

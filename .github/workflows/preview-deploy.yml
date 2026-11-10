@@ -23,7 +23,8 @@ jobs:
     # Keep the base.ref list in sync with preview-teardown.yml, or previews for
     # the missing branch deploy and never tear down.
     if: >-
-      contains(fromJSON('["main", "dev"]'), github.event.pull_request.base.ref)
+      github.repository == 'letehaha/moneymatter'
+      && contains(fromJSON('["main", "dev"]'), github.event.pull_request.base.ref)
       && github.event.pull_request.head.repo.full_name == github.repository
       && contains(github.event.pull_request.labels.*.name, 'preview')
 
