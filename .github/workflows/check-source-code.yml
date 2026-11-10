@@ -54,6 +54,10 @@ jobs:
     name: Frontend tasks
     needs: [prepare-dependencies, detect-changes]
     runs-on: ubuntu-latest
+    # The monorepo's vue-tsc + Vite build can exceed Node 24's default ~2GB
+    # V8 heap on GitHub runners. This raises only the frontend job's cap.
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
     strategy:
       matrix:
         task: [lint, test, build, knip]
