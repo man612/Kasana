@@ -263,8 +263,8 @@
       "minPaymentEstimateTooltip": "Diperkirakan dari pokok, suku bunga tahunan, dan jangka waktu menggunakan rumus amortisasi standar.",
       "minPaymentApplyEstimateAriaLabel": "Gunakan perkiraan pembayaran minimum",
       "termMonthsLabel": "Jangka waktu (bulan)",
-      "termPresetsAriaLabel": "Prasetel jangka waktu",
-      "termPresetsHeader": "Jangka waktu umum",
+      "termPresetsAriaLabel": "Pilih tenor cepat",
+      "termPresetsHeader": "Pilihan tenor cicilan",
       "termMonthsSuffix": "bln",
       "termPresetYears": "{count} tahun | {count} tahun",
       "termMonthsPlaceholder": "mis. 3, 6, 12, atau 180 bulan",
@@ -305,7 +305,8 @@
         "startDateInFuture": "Tanggal mulai tidak boleh di masa depan."
       },
       "balanceExceedsPrincipalWarning": "Saldo terutang lebih tinggi dari pokok awal – periksa kembali jumlah ini.",
-      "modelWarning": "Perhitungan otomatis mengasumsikan bunga menurun atas sisa pokok; cicilan paylater Indonesia dengan bunga flat atau biaya layanan mungkin berbeda. Cocokkan selalu dengan rincian tagihan resmi."
+      "modelWarning": "Perhitungan otomatis mengasumsikan bunga menurun atas sisa pokok; cicilan paylater Indonesia dengan bunga flat atau biaya layanan mungkin berbeda. Cocokkan selalu dengan rincian tagihan resmi.",
+      "termPresetMonths": "{count} bulan | {count} bulan"
     },
     "fieldHelp": {
       "open": "Jelaskan kolom {field}",
