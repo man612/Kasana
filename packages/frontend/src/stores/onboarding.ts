@@ -373,7 +373,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     isPanelOpen.value = false;
     expandedCategories.value = [];
     isInitialized.value = false;
-    showTriggerNow();
+    // Keep the per-device temporary hide preference across sign-out/sign-in.
   };
 
   return {
