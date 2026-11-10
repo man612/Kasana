@@ -157,7 +157,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
 </script>
 
 <template>
-  <WidgetWrapper class="max-md:max-h-96" :is-fetching="isFetching">
+  <WidgetWrapper class="max-h-[min(65dvh,26rem)]" :is-fetching="isFetching">
     <template #title>
       {{ $t('dashboard.widgets.latestTransactions.title') }}
     </template>
@@ -194,7 +194,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
         <ListIcon class="size-14" />
       </EmptyState>
     </template>
-    <ScrollArea v-else class="-mx-2 min-h-0 flex-1" viewport-class="px-2 md:overscroll-contain-if-scrollable">
+    <ScrollArea v-else class="-mx-2 min-h-0 flex-1 max-h-[min(55dvh,22rem)]" viewport-class="px-2 md:overscroll-contain-if-scrollable">
       <!-- Scheduled payment rows: one row per item, overdue first, sorted by dueDate -->
       <template v-if="includeScheduled && scheduledRows.length > 0">
         <div
