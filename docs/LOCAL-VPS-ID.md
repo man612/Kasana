@@ -10,6 +10,7 @@ This project is not represented as original software and must preserve upstream 
 
 - New-user onboarding prioritizes **IDR**, preselected when the currency catalogue is loaded; user can choose another currency.
 - First visit starts in **Bahasa Indonesia**; the language chosen later in Settings takes precedence. Missing translation keys still fall back to English.
+- Initial number formatting follows **id-ID** (thousands separated by dots, decimals by commas). Money amounts are not modified. The original application may show fractional rupiah depending on its currency display settings.
 - No DB-wide forced currency conversion or modification of existing user preferences.
 - Other currencies, investments, historical exchange rates and multicurrency features remain untouched.
 - This is an app UI default only; no claim of automatic sync support for Indonesian banks.

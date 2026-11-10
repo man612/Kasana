@@ -3,8 +3,12 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $selfHost = Join-Path $root 'self-hosting'
 
-if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-  throw 'Docker is not installed or not in PATH. Install Docker Desktop with WSL 2 backend first.'
+$dockerCommand = (Get-Command docker -ErrorAction SilentlyContinue).Source
+if (-not $dockerCommand -and (Test-Path 'F:\Applications\DockerDesktop\resources\bin\docker.exe')) {
+  $dockerCommand = 'F:\Applications\DockerDesktop\resources\bin\docker.exe'
+}
+if (-not $dockerCommand) {
+  throw 'Docker CLI not found. Install or start Docker Desktop with the WSL 2 backend.'
 }
 if (-not (Test-Path -LiteralPath (Join-Path $selfHost '.env'))) {
   throw 'Missing self-hosting/.env. Run .\scripts\setup-local-private.ps1 first.'
@@ -18,11 +22,11 @@ $files = @(
 
 Push-Location $selfHost
 try {
-  & docker compose @files config --quiet
+  & $dockerCommand compose @files config --quiet
   if ($LASTEXITCODE -ne 0) { throw 'Compose configuration validation failed.' }
-  & docker compose @files up -d --build
+  & $dockerCommand compose @files up -d --build
   if ($LASTEXITCODE -ne 0) { throw 'Docker Compose build/start failed. Inspect docker compose logs.' }
-  & docker compose @files ps
+  & $dockerCommand compose @files ps
   if ($LASTEXITCODE -ne 0) { throw 'Cannot read Docker Compose service status.' }
   Write-Host 'Open http://localhost:8080 after the frontend and backend are healthy.'
 }

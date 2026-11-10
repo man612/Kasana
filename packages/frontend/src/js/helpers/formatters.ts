@@ -5,7 +5,8 @@ export const formatFiat = (value: unknown): string => Number(value).toFixed(2);
 
 // Module-level so plain helpers, not just composables, follow the user's setting.
 export const currencyDisplayPreference = ref<CurrencyDisplayPreference>('symbol');
-export const numberFormatLocale = ref('en-US');
+// Indonesia-first defaults: use Indonesian digit grouping (1.000.000) and decimal separator (,).
+export const numberFormatLocale = ref('id-ID');
 
 export function toLocalNumber(
   value: string | number | undefined | null,
