@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type CreateLoanPayload, type LoanApi, type UpdateLoanPayload } from '@/api/loans';
 import HintIcon from '@/components/common/hint-icon.vue';
+import FormFieldHelp from '@/components/common/form-field-help.vue';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
@@ -100,7 +101,7 @@ const buildInitialState = (): FormState => {
     currencyCode: String(defaultCurrency.value),
     balance: null,
     balanceAsOf: format(new Date(), 'yyyy-MM-dd'),
-    loanType: LOAN_TYPE.mortgage,
+    loanType: LOAN_TYPE.personal,
     originalPrincipal: null,
     interestRate: null,
     termMonths: null,
@@ -303,13 +304,21 @@ const submit = () => {
 
 <template>
   <form :id="formId" class="@container/loan-form grid gap-6" @submit.prevent="submit">
+    <div class="border-border bg-muted/30 flex items-start justify-between gap-2 rounded-lg border p-3 text-xs leading-relaxed">
+      <p class="text-muted-foreground">{{ $t('forms.loan.modelWarning') }}</p>
+      <FormFieldHelp topic="loanOverview" />
+    </div>
     <InputField
       v-model="form.name"
       :label="$t('forms.loan.nameLabel')"
       :placeholder="$t('forms.loan.namePlaceholder')"
       :error-message="getFieldErrorMessage('form.name')"
       @blur="touchField('form.name')"
-    />
+    
+      non-label-wrapper
+    >
+      <template #label-right><FormFieldHelp topic="loanName" /></template>
+    </InputField>
 
     <SelectField
       v-if="!isEdit"
@@ -320,7 +329,10 @@ const submit = () => {
       :label="$t('forms.loan.loanTypeLabel')"
       :placeholder="$t('forms.loan.loanTypePlaceholder')"
       @update:model-value="(v) => v && (form.loanType = v.value)"
-    />
+    
+    >
+      <template #label-right><FormFieldHelp topic="loanType" /></template>
+    </SelectField>
 
     <SelectField
       v-if="!isEdit"
@@ -331,7 +343,10 @@ const submit = () => {
       :label="$t('forms.loan.currencyLabel')"
       :placeholder="$t('forms.loan.currencyPlaceholder')"
       @update:model-value="(v) => v && (form.currencyCode = v.code)"
-    />
+    
+    >
+      <template #label-right><FormFieldHelp topic="loanCurrency" /></template>
+    </SelectField>
 
     <div class="grid grid-cols-1 items-end gap-4 @sm/loan-form:grid-cols-2">
       <FormattedAmountField
@@ -341,14 +356,19 @@ const submit = () => {
         :placeholder="$t('forms.loan.originalPrincipalPlaceholder')"
         :error-message="getFieldErrorMessage('form.originalPrincipal')"
         @blur="touchField('form.originalPrincipal')"
-      />
+      
+      >
+        <template #label-right><FormFieldHelp topic="loanPrincipal" /></template>
+      </FormattedAmountField>
       <FormattedAmountField
         v-model="form.balance"
         :label="isEdit ? $t('forms.loan.currentBalanceLabel') : $t('forms.loan.initialBalanceLabel')"
         :placeholder="$t('forms.loan.initialBalancePlaceholder')"
         :error-message="getFieldErrorMessage('form.balance')"
         @blur="touchField('form.balance')"
-      />
+      >
+        <template #label-right><FormFieldHelp topic="loanBalance" /></template>
+      </FormattedAmountField>
       <p v-if="balanceExceedsPrincipal" class="text-warning-text -mt-2 text-xs @sm/loan-form:col-span-2">
         {{ $t('forms.loan.balanceExceedsPrincipalWarning') }}
       </p>
@@ -361,7 +381,9 @@ const submit = () => {
       :placeholder="$t('forms.loan.balanceAsOfPlaceholder')"
       :calendar-options="{ minDate: form.startDate, maxDate: new Date() }"
       :error-message="getFieldErrorMessage('form.balanceAsOf')"
-    />
+    >
+      <template #label-right><FormFieldHelp topic="loanBalanceDate" /></template>
+    </DateField>
 
     <div class="grid grid-cols-1 items-end gap-4 @sm/loan-form:grid-cols-2">
       <InputField
@@ -371,14 +393,20 @@ const submit = () => {
         :placeholder="$t('forms.loan.interestRatePlaceholder')"
         :error-message="getFieldErrorMessage('form.interestRate')"
         @blur="touchField('form.interestRate')"
-      />
+      
+        non-label-wrapper
+      >
+        <template #label-right><FormFieldHelp topic="loanAPR" /></template>
+      </InputField>
       <TermMonthsField
         v-model="form.termMonths"
         :label="$t('forms.loan.termMonthsLabel')"
         :placeholder="$t('forms.loan.termMonthsPlaceholder')"
         :error-message="getFieldErrorMessage('form.termMonths')"
         @blur="touchField('form.termMonths')"
-      />
+      >
+        <template #label-right><FormFieldHelp topic="loanTerm" /></template>
+      </TermMonthsField>
     </div>
 
     <DateField
@@ -391,6 +419,7 @@ const submit = () => {
       <template #label-after>
         <HintIcon :content="$t('forms.loan.startDateTooltip')" />
       </template>
+      <template #label-right><FormFieldHelp topic="loanStart" /></template>
     </DateField>
 
     <div class="grid grid-cols-1 items-end gap-4 @sm/loan-form:grid-cols-2">
@@ -401,16 +430,24 @@ const submit = () => {
         :placeholder="$t('forms.loan.plannedPaymentPlaceholder')"
         :error-message="getFieldErrorMessage('form.plannedPayment')"
         @blur="touchField('form.plannedPayment')"
-      />
+      
+        non-label-wrapper
+      >
+        <template #label-right><FormFieldHelp topic="loanPlanned" /></template>
+      </InputField>
       <InputField
         v-model="form.minPayment"
         type="number"
         :label="$t('forms.loan.minPaymentLabel')"
         :placeholder="$t('forms.loan.minPaymentPlaceholder')"
         :error-message="getFieldErrorMessage('form.minPayment')"
+        non-label-wrapper
         @blur="touchField('form.minPayment')"
       >
-        <template v-if="estimatedMinPaymentLabel" #label-right>
+        <template #label-right>
+          <div class="flex items-center gap-1">
+            <FormFieldHelp topic="loanMinimum" />
+            <template v-if="estimatedMinPaymentLabel">
           <DesktopOnlyTooltip :content="$t('forms.loan.minPaymentEstimateTooltip')" side="top">
             <UiButton
               type="button"
@@ -424,6 +461,8 @@ const submit = () => {
               <span class="truncate hover:underline">{{ estimatedMinPaymentLabel }}</span>
             </UiButton>
           </DesktopOnlyTooltip>
+            </template>
+          </div>
         </template>
       </InputField>
     </div>
@@ -435,7 +474,11 @@ const submit = () => {
       :placeholder="$t('forms.loan.paymentDayPlaceholder')"
       :error-message="getFieldErrorMessage('form.paymentDayOfMonth')"
       @blur="touchField('form.paymentDayOfMonth')"
-    />
+    
+      non-label-wrapper
+    >
+      <template #label-right><FormFieldHelp topic="loanPaymentDay" /></template>
+    </InputField>
 
     <div class="grid grid-cols-1 items-end gap-4 @sm/loan-form:grid-cols-2">
       <InputField
@@ -444,14 +487,22 @@ const submit = () => {
         :placeholder="$t('forms.loan.lenderNamePlaceholder')"
         :error-message="getFieldErrorMessage('form.lenderName')"
         @blur="touchField('form.lenderName')"
-      />
+      
+        non-label-wrapper
+      >
+        <template #label-right><FormFieldHelp topic="loanLender" /></template>
+      </InputField>
       <InputField
         v-model="form.accountNumber"
         :label="$t('forms.loan.accountNumberLabel')"
         :placeholder="$t('forms.loan.accountNumberPlaceholder')"
         :error-message="getFieldErrorMessage('form.accountNumber')"
         @blur="touchField('form.accountNumber')"
-      />
+      
+        non-label-wrapper
+      >
+        <template #label-right><FormFieldHelp topic="loanReference" /></template>
+      </InputField>
     </div>
   </form>
 </template>
