@@ -142,7 +142,8 @@
       "notifications": {
         "success": "Berhasil dibuat.",
         "error": "Kesalahan tak terduga."
-      }
+      },
+      "digitalWalletHint": "Untuk DANA, GoPay, OVO, atau ShopeePay, gunakan kategori Umum sementara. Kategori Dompet digital khusus belum tersedia; saldo tetap dicatat sesuai akun aslinya."
     },
     "directCashTransaction": {
       "methodTypes": {
