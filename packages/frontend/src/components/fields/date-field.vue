@@ -7,7 +7,8 @@
     class="relative w-full flex-1"
   >
     <Popover.Popover v-model:open="isPopoverOpen">
-      <FieldLabel :label="label">
+      <FieldLabel :label="label" :only-template="Boolean($slots['label-right'])">
+        <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
         <template v-if="$slots['label-after']" #label-after>
           <slot name="label-after" />
         </template>
