@@ -636,6 +636,9 @@
     }
   },
   "kasana": {
+    "navigation": {
+      "openMenu": "Buka menu navigasi"
+    },
     "settings": {
       "exit": "Tutup pengaturan"
     },

@@ -636,6 +636,9 @@
     }
   },
   "kasana": {
+    "navigation": {
+      "openMenu": "Open navigation menu"
+    },
     "settings": {
       "exit": "Close settings"
     },

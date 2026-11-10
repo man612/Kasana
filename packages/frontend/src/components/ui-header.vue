@@ -21,7 +21,7 @@
         <template v-if="isMobileView">
           <Sheet.Sheet :open="isMobileSheetOpen" @update:open="isMobileSheetOpen = $event">
             <Sheet.SheetTrigger as-child>
-              <Button size="icon-sm" variant="secondary" class="shrink-0">
+              <Button size="icon-sm" variant="secondary" class="shrink-0" :aria-label="t('kasana.navigation.openMenu')">
                 <MenuIcon class="size-4" />
               </Button>
             </Sheet.SheetTrigger>
@@ -170,6 +170,7 @@ const isSettingsRoute = computed(() => String(route.name ?? '').startsWith(ROUTE
 // Keep the fallback deterministic and safe when browser history has no prior app route.
 const detailParents: Record<string, string> = {
   [ROUTES_NAMES.account]: ROUTES_NAMES.accounts,
+  [ROUTES_NAMES.accountsVehicleDetails]: ROUTES_NAMES.accounts,
   [ROUTES_NAMES.investmentAccount]: ROUTES_NAMES.investments,
   [ROUTES_NAMES.budgetPlan]: ROUTES_NAMES.budget,
   [ROUTES_NAMES.plannedSubscriptionDetails]: ROUTES_NAMES.plannedSubscriptions,

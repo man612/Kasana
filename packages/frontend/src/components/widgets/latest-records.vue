@@ -21,7 +21,7 @@ import { differenceInCalendarDays, format, isAfter, parseISO } from 'date-fns';
 import { SUBSCRIPTION_PERIOD_STATUSES } from '@bt/shared/types';
 import { storeToRefs } from 'pinia';
 import type { Ref } from 'vue';
-import { computed, inject, ref } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 
 import EmptyState from './components/empty-state.vue';
 import LatestRecordsSettingsPopover from './components/latest-records-settings-popover.vue';
@@ -139,8 +139,13 @@ function formatDueDate({ dueDate }: { dueDate: string }): string {
 }
 
 const isFetching = computed(() => isTxFetching.value || (includeScheduled.value && isScheduledFetching.value));
-const isInitialLoading = computed(() => isTxFetching.value && (transactions.value?.length ?? 0) === 0);
-const isDataEmpty = computed(() => !isTxFetching.value && pastTransactions.value.length === 0);
+// Upcoming/overdue scheduled payments count as content even if there are no
+// recorded transactions. Wait until both requests settle before showing empty.
+const isInitialLoading = computed(() => isFetching.value && pastTransactions.value.length === 0 && scheduledRows.value.length === 0);
+const isDataEmpty = computed(() => !isFetching.value && pastTransactions.value.length === 0 && scheduledRows.value.length === 0);
+
+const reportDashboardEmpty = inject<((isEmpty: boolean) => void) | null>('dashboard-widget-empty-change', null);
+watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: true });
 </script>
 
 <template>
