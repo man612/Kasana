@@ -1,4 +1,7 @@
-# Self-host base stack for MoneyMatter — pull-based and reverse-proxy-agnostic.
+# Shared upstream-derived Compose base for Kasana (MoneyMatter origin).
+# IMPORTANT: This file alone pulls upstream MoneyMatter Docker images, not Kasana.
+# Always combine it with docker-compose.build.yml + docker-compose.private.yml
+# to run source code from https://github.com/man612/Kasana.
 #
 # Pulls the published images and exposes the whole app on ONE host port
 # (${HTTP_PORT:-8080}). The frontend container serves the SPA and reverse-proxies
@@ -9,14 +12,14 @@
 # Quickstart (from this folder):
 #   1. cd self-hosting
 #   2. cp .env.example .env   # then fill the REQUIRED section
-#   3. docker compose up -d
+#   3. docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml up -d --build
 #   4. open http://HOST:${HTTP_PORT:-8080}
 #
 # Optional overlays (compose merges them left-to-right):
 #   • Bundled Traefik + Let's Encrypt TLS:
 #       docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
 #   • Build the images from source instead of pulling:
-#       docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+#       docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml up -d --build
 
 # Pin the compose project name so resources are namespaced consistently
 # regardless of which directory `docker compose` is invoked from. Kept as
