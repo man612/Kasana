@@ -233,10 +233,13 @@ const submit = async () => {
     </div>
 
     <div class="grid grid-cols-2 gap-4">
-      <input-field v-model="form.trim" :label="$t('forms.createVehicle.trimLabel')" placeholder="G CVT / 160 CBS"
-      non-label-wrapper
-      :aria-label="$t('forms.createVehicle.trimLabel')"
-    >
+      <input-field
+        v-model="form.trim"
+        :label="$t('forms.createVehicle.trimLabel')"
+        placeholder="G CVT / 160 CBS"
+        non-label-wrapper
+        :aria-label="$t('forms.createVehicle.trimLabel')"
+      >
         <template #label-right>
           <FormFieldHelp topic="vehicleTrim" />
         </template>
@@ -281,10 +284,9 @@ const submit = async () => {
       </template>
     </input-field>
 
-    <div class="relative">
-      <DateField v-model="form.purchaseDate" :label="$t('forms.createVehicle.purchaseDateLabel')" />
-      <div class="absolute top-0 right-0"><FormFieldHelp topic="vehiclePurchaseDate" /></div>
-    </div>
+    <DateField v-model="form.purchaseDate" :label="$t('forms.createVehicle.purchaseDateLabel')">
+      <template #label-right><FormFieldHelp topic="vehiclePurchaseDate" /></template>
+    </DateField>
 
     <SelectField
       :model-value="selectedDepreciationPreset"
