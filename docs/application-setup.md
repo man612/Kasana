@@ -1,6 +1,6 @@
-# Panduan setup developer (turunan upstream)
+# Developer Setup Guide — Upstream-Derived Reference
 
-**Kasana:** clone `https://github.com/man612/Kasana.git` dan ikuti [panduan Kasana](LOCAL-VPS-ID.md) untuk build Docker dari source Kasana. Bagian selanjutnya adalah panduan teknis turunan MoneyMatter dan masih dapat memuat contoh upstream. Jangan gunakan konfigurasi development untuk produksi.
+**For Kasana:** clone `https://github.com/man612/Kasana.git` and follow the [Kasana setup notes](LOCAL-VPS-ID.md) to build the application from this repository's source. The remaining developer instructions originate from MoneyMatter and may still contain upstream-specific examples. Never use development credentials or a test database for production.
 
 This guide will walk you through setting up the inherited MoneyMatter codebase on your local machine.
 

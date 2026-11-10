@@ -1,4 +1,6 @@
-# MoneyMatter backend
+# Kasana Backend
+
+This package contains Kasana's backend code, adapted from MoneyMatter. The internal workspace name `budget-tracker-be` remains unchanged for compatibility. The setup information below largely originates from upstream development notes and should be cross-checked with the current [Kasana setup guide](../../self-hosting/README.md); do not use development credentials or databases for production.
 
 ## First run instructions
 

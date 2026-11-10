@@ -2,7 +2,7 @@
 
 > **Kasana:** This documentation package is inherited from MoneyMatter. Its URLs, subscriptions, screenshots, brand content, and hosted-service instructions have **not** all been adapted for Kasana. It is **not** a published Kasana documentation website. Use the [Kasana project README](../../README.md) and [self-hosting guide](../../self-hosting/README.md) for the active project.
 
-User documentation served at https://docs.moneymatter.app, built with [Astro Starlight](https://starlight.astro.build).
+MoneyMatter's original documentation is served at https://docs.moneymatter.app and built with [Astro Starlight](https://starlight.astro.build). That URL belongs to the upstream project; it is **not** an official Kasana documentation endpoint.
 
 This is a standalone npm project (not a root workspace), so install and run it from this directory:
 
