@@ -19,7 +19,7 @@ const props = defineProps<{
   /** Clear-button label. The default wording is only accurate for entities with auto-resolution. */
   resetLabel?: string;
   /** 'with-labeled-field' pushes the square down past a sibling field's caption so both line up on the input row. */
-  align?: 'default' | 'with-labeled-field';
+  align?: 'default' | 'with-labeled-field' | 'with-help-labeled-field';
   tabs?: LogoTab[];
 }>();
 
@@ -32,6 +32,8 @@ defineSlots<{ placeholder?: () => unknown }>();
 
 /** Height of a FieldLabel caption: a 16px line box plus its 5px bottom margin. */
 const LABELED_FIELD_OFFSET = 'mt-[21px]';
+// In account creation a 32px help trigger raises the label row height.
+const HELP_LABELED_FIELD_OFFSET = 'mt-[36px]';
 
 const isOpen = ref(false);
 
@@ -49,7 +51,7 @@ function handleReset() {
 </script>
 
 <template>
-  <div :class="cn('group relative shrink-0', align === 'with-labeled-field' && LABELED_FIELD_OFFSET)">
+  <div :class="cn('group relative shrink-0', align === 'with-labeled-field' && LABELED_FIELD_OFFSET, align === 'with-help-labeled-field' && HELP_LABELED_FIELD_OFFSET)">
     <slot v-if="!modelValue && $slots.placeholder" name="placeholder" />
     <BrandLogo v-else v-bind="logoDisplay" :name="nameForSearch" :class="cn('size-10 text-base', sizeClass)" />
     <Button
