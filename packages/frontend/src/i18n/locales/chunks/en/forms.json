@@ -304,7 +304,8 @@
         "asOfInFuture": "Date can't be in the future",
         "startDateInFuture": "Start date can't be in the future"
       },
-      "balanceExceedsPrincipalWarning": "Outstanding balance is higher than the original principal – double-check these amounts."
+      "balanceExceedsPrincipalWarning": "Outstanding balance is higher than the original principal – double-check these amounts.",
+      "modelWarning": "Automatic projections assume declining-balance interest. Indonesian paylater with flat charges or service fees may differ. Always reconcile with the lender's bill."
     },
     "fieldHelp": {
       "open": "Explain {field}",
@@ -424,6 +425,96 @@
         "meaning": "Enter the total distance shown on the vehicle odometer in kilometres, not today's trip.",
         "example": "If the dashboard reads 45,600 km, enter 45600.",
         "important": "Mileage is stored for reference but does NOT affect the current depreciation calculation."
+      },
+      "loanOverview": {
+        "title": "About recording loans",
+        "meaning": "The loan tool tracks outstanding debt and estimates payoff. Cash loans deposit actual funds into your account; purchase installments do not.",
+        "example": "For a 1,000,000 cash loan with up-front fees, record the net funds actually received separately from the contractual principal and fees.",
+        "important": "Warning: projections assume declining-balance annual interest, while recorded payments reduce principal. Flat-rate installments, service fees, and prepaid charges may not match the provider schedule."
+      },
+      "loanName": {
+        "title": "Loan name",
+        "meaning": "Identify a particular loan contract or installment. Avoid lumping unrelated purchases together when they have different repayment schedules.",
+        "example": "Kredivo – Phone, SPayLater – Shoes, or KrediFazz – November loan.",
+        "important": "Unused credit limits are not outstanding debt; do not double-count the same purchase as an expense."
+      },
+      "loanType": {
+        "title": "Loan type",
+        "meaning": "Mortgage, Auto, Student and Personal are primarily display groups, not specialized repayment engines.",
+        "example": "For Kredivo cash loans and paylater, Personal is the closest current type, but the amortization may not match.",
+        "important": "KrediFazz cash loans, Kredivo purchase installments, SPayLater, and SPinjam are different products."
+      },
+      "loanCurrency": {
+        "title": "Loan currency",
+        "meaning": "Choose the currency of the debt contract.",
+        "example": "For most Indonesian installment providers, choose IDR.",
+        "important": "Confirm the currency before creation."
+      },
+      "loanPrincipal": {
+        "title": "Original loan principal",
+        "meaning": "The original amount borrowed or financed, not the credit limit, future payments including fees, or net proceeds after deductions.",
+        "example": "If a 1,000,000 cash loan has 60,000 of upfront fees, the contractual principal may still be 1,000,000 while cash received is 940,000.",
+        "important": "Distinguish principal from total scheduled future payments with interest and service fees."
+      },
+      "loanBalance": {
+        "title": "Outstanding loan balance",
+        "meaning": "The amount still owed on the balance date. The app stores debt as a negative account balance.",
+        "example": "If the original principal was 1,000,000 and 750,000 remains, enter 750000.",
+        "important": "Recorded repayments currently reduce principal. For installments containing fees or interest, reconcile to the lender's official balance."
+      },
+      "loanAPR": {
+        "title": "Annual interest (APR)",
+        "meaning": "The interest rate used by the app's declining-balance model. Do not equate flat monthly loan charges directly to APR.",
+        "example": "A contract with 12% annual effective interest can use 12; 2.6% flat monthly is not simply an equivalent 31.2% APR.",
+        "important": "Never enter 0% just because the rate is unknown. A zero-interest promotion may still charge administration or service fees."
+      },
+      "loanTerm": {
+        "title": "Loan term",
+        "meaning": "The number of months stated by the contract.",
+        "example": "Six monthly installments means 6 months; a 15-year mortgage is 180 months.",
+        "important": "Short paylater terms such as 1, 3, 6, 9, or 12 months can be typed directly even if the quick menu lists years."
+      },
+      "loanStart": {
+        "title": "Loan start date",
+        "meaning": "The contractual disbursement or purchase date, not when you first entered the loan in Kasana.",
+        "example": "An installment purchase made on 10 November 2026 may start then even if the first payment is in December.",
+        "important": "This field does not itself record money received or correct the outstanding balance."
+      },
+      "loanPlanned": {
+        "title": "Planned monthly payment",
+        "meaning": "The actual amount you intend to pay each month. It informs payoff estimates; it does not send a payment.",
+        "example": "If the lender bills 380,000 monthly, enter 380000 and verify the provider schedule.",
+        "important": "For flat fees, payments include interest and charges; Kasana's projection does not automatically separate these."
+      },
+      "loanMinimum": {
+        "title": "Minimum required payment",
+        "meaning": "The minimum contractual payment to avoid missing obligations, which may differ from the usual installment.",
+        "example": "For a credit card it may differ from the total bill; for paylater use the amount shown on the actual schedule.",
+        "important": "The form's suggested payment uses standard amortization. Do not use it instead of the provider's bill."
+      },
+      "loanPaymentDay": {
+        "title": "Repayment due date",
+        "meaning": "Day of month on which repayment is due.",
+        "example": "If due on the 15th, enter 15; a rolling 30-day contract may shift.",
+        "important": "Day 29–31 can fall on the final day of a shorter month. Use the official schedule."
+      },
+      "loanLender": {
+        "title": "Lender / provider",
+        "meaning": "The institution actually financing or administering the loan, which may differ from the shopping platform.",
+        "example": "SPayLater financing may be from Commerce Finance; SPinjam is a separate provider. Check the contract.",
+        "important": "Do not assume all Shopee products are from the same lender."
+      },
+      "loanReference": {
+        "title": "Contract reference",
+        "meaning": "An identifier that links bills and payments to the contract.",
+        "example": "Use a recognizable agreement or transaction ID from the provider.",
+        "important": "Do not save passwords, PINs, OTPs or full identity documents here."
+      },
+      "loanBalanceDate": {
+        "title": "Balance effective date",
+        "meaning": "Date at which a corrected outstanding balance becomes valid.",
+        "example": "If official debt becomes 750,000 on 10 November, use that date when correcting it.",
+        "important": "Backdated edits can change historical charts."
       }
     }
   },
