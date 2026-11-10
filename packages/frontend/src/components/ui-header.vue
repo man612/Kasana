@@ -18,7 +18,7 @@
         >
           <ArrowLeftIcon class="size-4" />
         </Button>
-        <template v-if="isMobileView">
+        <template v-if="isMobileView && !backDestination">
           <Sheet.Sheet :open="isMobileSheetOpen" @update:open="isMobileSheetOpen = $event">
             <Sheet.SheetTrigger as-child>
               <Button size="icon-sm" variant="secondary" class="shrink-0">
