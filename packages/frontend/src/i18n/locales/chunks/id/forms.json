@@ -131,12 +131,12 @@
       "addCurrencyButton": "Tambah mata uang baru +",
       "initialBalanceLabel": "Saldo awal",
       "initialBalancePlaceholder": "Saldo awal",
-      "initialBalanceHelpLink": "What should I enter?",
-      "accountCategoryLabel": "Kategori Akun",
+      "initialBalanceHelpLink": "Cara mengisi saldo awal",
+      "accountCategoryLabel": "Jenis rekening / dompet",
       "accountCategoryPlaceholder": "Pilih kategori akun",
-      "creditLimitLabel": "Batas kredit",
+      "creditLimitLabel": "Batas kredit (jika ada)",
       "creditLimitPlaceholder": "Batas kredit",
-      "defaultPaymentTypeLabel": "Default payment type",
+      "defaultPaymentTypeLabel": "Metode pembayaran bawaan",
       "submitButton": "Buat",
       "submitButtonLoading": "Membuat...",
       "notifications": {
@@ -218,19 +218,19 @@
     },
     "createVehicle": {
       "nameLabel": "Nama kendaraan",
-      "namePlaceholder": "mis. Camry Saya",
+      "namePlaceholder": "mis. Vario Harian / Avanza Keluarga",
       "currencyLabel": "Mata Uang",
       "makeLabel": "Merek",
       "modelLabel": "Model",
-      "trimLabel": "Varian (opsional)",
+      "trimLabel": "Varian / tipe (opsional)",
       "yearLabel": "Tahun",
-      "vehicleClassLabel": "Kelas kendaraan",
+      "vehicleClassLabel": "Kategori kendaraan",
       "purchasePriceLabel": "Harga beli",
       "purchaseDateLabel": "Tanggal beli",
-      "depreciationPresetLabel": "Pola depresiasi",
-      "customAnnualRatePctLabel": "Tingkat depresiasi tahunan khusus (%)",
-      "salvageFloorPctLabel": "Batas sisa (% dari harga beli)",
-      "currentMileageLabel": "Kilometer saat ini (opsional)",
+      "depreciationPresetLabel": "Pola penurunan nilai",
+      "customAnnualRatePctLabel": "Penurunan nilai khusus per tahun (%)",
+      "salvageFloorPctLabel": "Batas nilai minimum (% harga beli)",
+      "currentMileageLabel": "Odometer saat ini (km, opsional)",
       "currentMileagePlaceholder": "mis. 45000",
       "submitButton": "Tambah kendaraan",
       "submitButtonLoading": "Menambahkan...",
@@ -305,6 +305,126 @@
         "startDateInFuture": "Start date can't be in the future"
       },
       "balanceExceedsPrincipalWarning": "Saldo terutang lebih tinggi dari pokok awal – periksa kembali jumlah ini."
+    },
+    "fieldHelp": {
+      "open": "Jelaskan kolom {field}",
+      "description": "Panduan untuk mengisi kolom dengan benar.",
+      "example": "Contoh penggunaan",
+      "important": "Yang perlu diperhatikan",
+      "accountName": {
+        "title": "Nama rekening atau dompet",
+        "meaning": "Nama ini digunakan untuk mengenali tempat uang disimpan atau utang dicatat. Akun bukan otomatis pos anggaran. Kalau uang makan tersebar di BCA, DANA, dan tunai, lebih tepat membuat akun sesuai ketiga tempat tersebut, lalu memakai kategori/anggaran Makan untuk tujuan penggunaannya.",
+        "example": "Buat ‘BCA Utama’, ‘DANA Pribadi’, dan ‘Uang Tunai’. Saat membeli makan pakai DANA, pilih akun DANA dan kategori pengeluaran Makan. Nama ‘Dana Makan’ cocok sebagai akun hanya jika memang ada saldo terpisah yang kamu catat dan cocokkan sendiri.",
+        "important": "Jangan membuat dua akun yang masing-masing mengklaim saldo uang fisik yang sama. Itu membuat total aset ganda. Logo di sebelah nama hanya penanda visual: klik ubin untuk memilih ikon, huruf, atau merek."
+      },
+      "accountCurrency": {
+        "title": "Mata uang rekening",
+        "meaning": "Ini mata uang saldo yang benar-benar dimiliki akun, bukan sekadar pilihan penulisan angka. BCA dan DANA Rupiah memakai IDR. Rekening USD sebaiknya memakai USD agar saldo dan konversi ke Rupiah tidak salah.",
+        "example": "Kalau saldo rekening BCA Rp1.250.000, pilih IDR. Kalau mempunyai saldo asli US$100 di rekening berbeda, buat akun terpisah dengan USD.",
+        "important": "Kode mata uang pada akun tidak bisa diganti setelah dibuat menurut dokumentasi asli. Pastikan benar sebelum menekan Buat. Nilai rekening mata uang asing dapat berubah dalam laporan Rupiah mengikuti kurs."
+      },
+      "accountInitialBalance": {
+        "title": "Saldo awal yang benar",
+        "meaning": "Saldo awal adalah uang yang ada SEBELUM transaksi pertama yang akan kamu catat di aplikasi. Saldo sekarang nantinya dihitung sebagai saldo awal + pemasukan − pengeluaran ± transfer/penyesuaian. Tidak selalu sama dengan saldo bank hari ini bila kamu berencana memasukkan transaksi lama.",
+        "example": "Saldo BCA hari ini Rp1.000.000. Kamu akan mencatat pengeluaran lama Rp150.000 dan belum mencatat pemasukan lain. Supaya hasil akhir tetap Rp1.000.000, isi saldo awal Rp1.150.000. Kalau mulai mencatat dari hari ini saja, boleh langsung memakai Rp1.000.000.",
+        "important": "Salah saldo awal membuat seluruh riwayat saldo bergeser. Saat impor mutasi, periksa pilihan pembaruan saldo: sejumlah mode impor bisa menyesuaikannya otomatis. Jangan memasukkan saldo yang sama lagi sebagai transaksi pemasukan."
+      },
+      "accountCategory": {
+        "title": "Kategori akun bukan kategori belanja",
+        "meaning": "Pilihan ini terutama untuk label, ikon, dan sebagian pengelompokan di laporan. Bukan tempat mengalokasikan uang untuk makan atau liburan. Memilih ‘Investasi’ tidak otomatis membuat portofolio saham, dan memilih ‘Kartu kredit’ tidak otomatis menciptakan fasilitas utang.",
+        "example": "Uang tunai fisik → Tunai. Rekening tabungan BRI → Rekening tabungan. Rekening transaksi/giro → Rekening giro bila memang jenis produknya sesuai. DANA/GoPay belum punya kategori khusus pada model saat ini; gunakan Umum sebagai klasifikasi sementara, dengan nama akun yang jelas.",
+        "important": "Ada kategori khusus investasi, pinjaman, dan kendaraan yang mempunyai alur tersendiri. Pilihan kategori umum tidak menggantikannya. Kategori kartu kredit juga bisa memengaruhi cara saldo negatif dikelompokkan pada laporan kekayaan bersih."
+      },
+      "accountPaymentType": {
+        "title": "Metode pembayaran bawaan",
+        "meaning": "Ini hanya pilihan metode yang disarankan saat kamu membuat transaksi baru dari rekening tersebut. Ini tidak menentukan di mana uang disimpan, tidak memindahkan saldo, dan tidak membuat pembayaran otomatis. Jika tidak yakin, pilih ‘Tidak ada’ lalu tentukan metode ketika benar-benar mencatat transaksi.",
+        "example": "Beli makan Rp35.000 memakai QRIS yang mengambil saldo BCA: akun = BCA; metode pembayaran = opsi pembayaran digital yang paling mendekati; kategori = Makan. Bila membayar dengan uang kertas, akun = Tunai dan metode = Tunai.",
+        "important": "Satu rekening bisa dipakai melalui banyak metode: transfer, kartu debit, QRIS, atau transaksi langsung. Jangan menyamakan QRIS dengan saldo dompet digital, karena QRIS juga bisa menarik dana dari rekening bank. Preferensi bawaan selalu dapat diganti pada transaksi."
+      },
+      "accountCreditLimit": {
+        "title": "Batas kredit dan saldo utang",
+        "meaning": "Batas kredit adalah plafon fasilitas pinjaman yang diberikan penyedia kartu kredit atau cerukan bank. Ini bukan uang tunai yang kamu miliki dan bukan target anggaran. Pada akun tabungan, DANA, atau dompet tunai, biasanya isi 0.",
+        "example": "Kartu kredit memiliki limit Rp10.000.000 dan sudah dipakai Rp2.000.000. Sisa limit Rp8.000.000, tetapi kewajibanmu tetap Rp2.000.000. Jika saldo akun sudah dicatat −Rp2.000.000, jangan mengurangkan limit Rp10.000.000 sekali lagi.",
+        "important": "MoneyMatter memiliki opsi ‘sertakan batas kredit dalam saldo’ untuk rekening tertentu yang laporannya sudah memasukkan limit. Aktifkan hanya bila benar-benar memahami format saldo dari bankmu; jika salah, total saldo bisa tampak jauh lebih negatif dari utang sebenarnya."
+      },
+      "vehicleName": {
+        "title": "Nama kendaraan",
+        "meaning": "Kendaraan adalah aset yang dinilainya diperkirakan berubah dari waktu ke waktu, bukan rekening yang bisa dipakai membayar. Nama ini hanya identitas kendaraanmu di daftar aset. Pilih nama yang bisa membedakannya dari kendaraan lain.",
+        "example": "‘Vario Harian’, ‘Avanza Keluarga’, atau ‘Beat Kantor’. Nilai kendaraan dimasukkan sebagai aset pada laporan kekayaan bersih, bukan saldo tunai yang bisa langsung dibelanjakan.",
+        "important": "Jangan membuat akun kas biasa dengan nilai kendaraan yang sama sekaligus menambahkan kendaraan sebagai aset; itu berisiko menghitung nilai yang sama dua kali."
+      },
+      "vehicleCurrency": {
+        "title": "Mata uang penilaian kendaraan",
+        "meaning": "Pilih mata uang harga beli kendaraan dan nilai estimasinya. Untuk kendaraan yang dibeli di Indonesia, biasanya gunakan IDR. Sistem akan menilai aset berdasarkan mata uang ini.",
+        "example": "Motor Honda Vario dibeli Rp26.000.000, maka mata uangnya IDR. Jangan memilih USD hanya karena mereknya berasal dari luar negeri.",
+        "important": "Dokumentasi asli menyatakan mata uang kendaraan tidak dapat diubah setelah dibuat. Periksa pilihan sebelum menyimpan."
+      },
+      "vehicleMake": {
+        "title": "Merek kendaraan",
+        "meaning": "Merek adalah nama pabrikan atau merek kendaraan, bukan nama model maupun tipe mesinnya. Informasi ini membantu membedakan kendaraan dan membuat daftar aset lebih mudah dipahami.",
+        "example": "Toyota, Daihatsu, Honda, Suzuki, Mitsubishi, Yamaha, atau Wuling. Untuk Honda Vario, mereknya Honda; untuk Toyota Avanza, mereknya Toyota.",
+        "important": "Merek belum otomatis mencocokkan harga pasar Indonesia atau data Samsat. Penilaian kendaraan tetap menggunakan rumus penyusutan internal."
+      },
+      "vehicleModel": {
+        "title": "Model kendaraan",
+        "meaning": "Model merupakan keluarga produk kendaraan di bawah mereknya. Model berbeda dari varian spesifik dan tahun keluaran.",
+        "example": "Merek Toyota, model Avanza; merek Honda, model Vario; merek Daihatsu, model Xenia. Varian seperti G CVT, CBS, atau ABS ditulis pada kolom Varian.",
+        "important": "Nama model tidak otomatis mengubah tarif penyusutan pada versi aplikasi saat ini. Penurunan nilai terutama mengikuti kategori kendaraan dan pola yang dipilih."
+      },
+      "vehicleTrim": {
+        "title": "Varian / tipe",
+        "meaning": "Varian adalah versi kendaraan dengan spesifikasi tertentu, misalnya pilihan transmisi, kapasitas mesin, atau paket fitur. Kolom ini opsional, tetapi berguna jika kelak membandingkan dengan harga mobil/motor bekas.",
+        "example": "Avanza 1.5 G CVT, Brio Satya E CVT, atau Vario 160 CBS. Cukup isi varian yang tercatat di dokumen pembelian kalau kamu mengetahuinya.",
+        "important": "Varian pada versi ini hanya disimpan sebagai detail. Aplikasi belum otomatis mengubah estimasi harga berdasarkan harga pasar khusus varian tersebut."
+      },
+      "vehicleYear": {
+        "title": "Tahun kendaraan",
+        "meaning": "Ini tahun produksi atau tahun model kendaraan, bukan tanggal kamu membelinya. Mobil tahun 2021 dapat saja baru kamu beli sebagai kendaraan bekas pada 2026.",
+        "example": "Kamu membeli Honda Brio produksi 2021 pada November 2026: Tahun = 2021; Tanggal beli = tanggal transaksi pembelian pada 2026.",
+        "important": "Kurva penyusutan MoneyMatter dihitung dari tanggal dan harga belimu, bukan dari tahun kendaraan atau riwayat harga jual barunya. Perlu kehati-hatian untuk kendaraan bekas."
+      },
+      "vehicleClass": {
+        "title": "Kategori kendaraan dan keterbatasannya",
+        "meaning": "Kategori ini sekarang digunakan sebagai input rumus penyusutan. Pilihan yang tersedia masih mengikuti kategori luar negeri: Sedan, SUV, Truk, Mewah, Kendaraan listrik, Motor, dan Lainnya. Kategorinya mencampur bentuk bodi, segmen harga, serta penggerak, sehingga belum ideal untuk Indonesia.",
+        "example": "Honda Vario → Motor. Toyota Fortuner → SUV. Avanza/Xenia tergolong MPV, tetapi kategori MPV khusus belum tersedia; ‘Lainnya’ dapat digunakan sementara, tanpa menganggap rumusnya sebagai harga pasar yang akurat.",
+        "important": "Jangan memilih ‘Kendaraan listrik’ hanya untuk menganggapnya tipe bodi; mobil listrik juga bisa SUV atau hatchback. Kategori Motor, SUV, Mewah, dan EV memakai kurva penyusutan berbeda, tetapi belum dikalibrasi untuk harga pasar Indonesia."
+      },
+      "vehiclePurchasePrice": {
+        "title": "Harga beli kendaraan",
+        "meaning": "Masukkan harga yang benar-benar dibayarkan untuk mendapatkan kendaraan, bukan estimasi harga pasar hari ini. Ini menjadi titik awal perhitungan nilai aset yang kemudian diturunkan memakai pola penyusutan.",
+        "example": "Motor dibeli tunai Rp28.000.000: harga beli = 28.000.000. Jika dibeli melalui kredit, pisahkan harga kendaraan dari bunga dan biaya pembiayaan; utang/cicilan sebaiknya dicatat tersendiri agar aset dan kewajiban tidak dicampur.",
+        "important": "Menurut dokumentasi aplikasi asli, harga beli tidak dapat diedit setelah kendaraan dibuat. Harga beli bukan jaminan nilai jual kembali, terutama untuk kendaraan bekas atau kendaraan yang dibeli di atas/bawah pasar."
+      },
+      "vehiclePurchaseDate": {
+        "title": "Tanggal kendaraan dibeli",
+        "meaning": "Tanggal ini menandai kapan kamu mulai memiliki kendaraan dan menjadi titik awal perhitungan penurunan nilainya di aplikasi. Bukan tanggal STNK, tahun model, atau tanggal cicilan pertama.",
+        "example": "Toyota Avanza tahun 2020 dibeli bekas pada 10 November 2026: tanggal beli = 10 November 2026. Tahun kendaraan tetap 2020.",
+        "important": "Tanggal beli tidak dapat diubah setelah kendaraan dibuat pada versi asli. Untuk pembelian bekas, pola tahun pertama sistem dimulai dari tanggal kamu membelinya, sehingga estimasi bisa berbeda jauh dari pasar nyata."
+      },
+      "vehicleDepreciation": {
+        "title": "Pola penurunan nilai kendaraan",
+        "meaning": "Penyusutan adalah perkiraan berkurangnya harga kendaraan dari waktu ke waktu. Pola bawaan memakai kurva per kategori, Lambat berarti persentase tahunan 30% lebih kecil, Cepat 30% lebih besar, dan Tentukan sendiri memakai persentase tetap setiap tahun. Nilai ini estimasi matematis, bukan harga jual pasar yang terverifikasi.",
+        "example": "Untuk sedan contoh Rp200.000.000, pola bawaan menurunkan nilai 20% pada tahun pertama menjadi Rp160.000.000, lalu 15% dari sisanya pada tahun kedua menjadi Rp136.000.000. Ini contoh rumus aplikasi, bukan patokan harga mobil bekas Indonesia.",
+        "important": "Kurva bawaan berasal dari referensi pasar luar negeri. Kondisi, pajak, lokasi, permintaan pasar, bekas banjir, riwayat servis, serta odometer tidak otomatis masuk rumus. Bandingkan dengan harga kendaraan bekas lokal dan gunakan pengaturan nilai manual jika diperlukan."
+      },
+      "vehicleCustomRate": {
+        "title": "Persentase penyusutan tahunan",
+        "meaning": "Kolom ini muncul jika kamu memilih pola khusus. Nilainya adalah persentase penurunan dari nilai kendaraan yang masih tersisa setiap tahun, bukan pengurangan nominal tetap. Penurunan bersifat majemuk dan dihitung sebagian untuk bulan yang belum genap setahun.",
+        "example": "Harga awal Rp100.000.000 dan tarif khusus 10%: setelah satu tahun estimasi menjadi Rp90.000.000, setelah dua tahun Rp81.000.000 (bukan Rp80.000.000).",
+        "important": "Angka 10% di sini bukan aturan resmi untuk semua mobil atau motor. Gunakan hanya jika kamu punya asumsi atau pembanding pasar yang masuk akal."
+      },
+      "vehicleFloor": {
+        "title": "Batas nilai minimum estimasi",
+        "meaning": "Batas sisa adalah lantai matematis: rumus penyusutan tidak akan menurunkan nilai kendaraan melewati persentase tertentu dari harga awal atau titik nilai yang pernah diperbarui secara manual. Ini bukan jaminan harga jual kembali.",
+        "example": "Harga beli Rp100.000.000, batas 10%: rumus berhenti menurunkan nilai di sekitar Rp10.000.000. Kendaraan rusak berat bisa bernilai lebih rendah, sedangkan motor/mobil terawat bisa bernilai jauh lebih tinggi.",
+        "important": "Untuk kebutuhan pribadi, lebih baik menganggapnya batas model perhitungan, bukan harga pasar. Tinjau secara berkala dan koreksi nilai bila punya pembanding yang valid."
+      },
+      "vehicleMileage": {
+        "title": "Jarak tempuh odometer",
+        "meaning": "Masukkan angka kilometer total pada odometer kendaraan saat ini, bukan jarak yang kamu tempuh hari ini. Kolom ini opsional dan terutama untuk catatan kondisi kendaraan.",
+        "example": "Odometer menunjukkan 45.600 km: isi 45600. Tidak perlu menambahkan ‘km’ karena satuannya sudah jelas.",
+        "important": "Pada kode MoneyMatter saat ini, odometer BELUM memengaruhi estimasi penyusutan. Jadi nilai aset tidak otomatis turun karena kilometernya tinggi. Anggap ini informasi pelengkap, bukan kalkulasi harga pasar."
+      }
     }
   },
   "fields": {

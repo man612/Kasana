@@ -305,6 +305,126 @@
         "startDateInFuture": "Start date can't be in the future"
       },
       "balanceExceedsPrincipalWarning": "Outstanding balance is higher than the original principal – double-check these amounts."
+    },
+    "fieldHelp": {
+      "open": "Explain {field}",
+      "description": "How to fill out this field accurately.",
+      "example": "Example",
+      "important": "Important",
+      "accountName": {
+        "title": "Account or wallet name",
+        "meaning": "Name the actual place that holds money or debt, not the purpose of your budget. A food budget can be spread across several accounts.",
+        "example": "Use BCA, DANA, and Cash as separate accounts, then classify food purchases under the Food category.",
+        "important": "Avoid adding the same real balance twice. Click the square logo tile to choose a brand, monogram, or icon."
+      },
+      "accountCurrency": {
+        "title": "Account currency",
+        "meaning": "Choose the actual currency held, such as IDR for a Rupiah bank account or wallet.",
+        "example": "BCA Rp1,250,000 uses IDR; a separate USD account should use USD.",
+        "important": "The account currency cannot be edited after creation in the current application."
+      },
+      "accountInitialBalance": {
+        "title": "Choosing your opening balance",
+        "meaning": "The balance before your first recorded transaction, not always today's balance if you plan to backfill earlier transactions.",
+        "example": "If today's balance is 1,000,000 and you will record a past expense of 150,000, begin with 1,150,000 to end at today's balance.",
+        "important": "Imports may adjust the opening balance. Do not double-count initial money as income."
+      },
+      "accountCategory": {
+        "title": "Account category vs. spending category",
+        "meaning": "Account category mainly changes the account's label and icon; it does not allocate money to a budget purpose or create an investment portfolio.",
+        "example": "Cash wallet → Cash, BCA savings → Savings account. There is no dedicated e-wallet enum yet; use General with a clear name temporarily.",
+        "important": "Credit card category can affect the classification of liabilities in net-worth reports."
+      },
+      "accountPaymentType": {
+        "title": "Default payment method",
+        "meaning": "This preselects how a transaction was paid, not which account holds the funds. Leave it as None if no method applies consistently.",
+        "example": "A QR payment using BCA has account BCA and a digital payment method; a bank transfer is not cash.",
+        "important": "You can change the method per transaction. A single bank account can support several methods."
+      },
+      "accountCreditLimit": {
+        "title": "Credit limit and debt",
+        "meaning": "Credit limit is the amount a lender authorizes for a card or overdraft. It is not cash, income, or your spending budget.",
+        "example": "Limit 10,000,000, spent 2,000,000: outstanding debt is 2,000,000, with 8,000,000 of limit remaining.",
+        "important": "Beware the Include credit limits in balance setting: subtracting the limit from an already negative card balance can double-count debt."
+      },
+      "vehicleName": {
+        "title": "Vehicle name",
+        "meaning": "A vehicle is a noncash asset whose estimated value changes over time. The name is for recognizing it in your records.",
+        "example": "Daily Vario, Family Avanza, or Office Beat.",
+        "important": "Avoid recording the same vehicle value as both a cash account and a vehicle asset."
+      },
+      "vehicleCurrency": {
+        "title": "Vehicle currency",
+        "meaning": "Use the currency of the vehicle's purchase price and ongoing valuation.",
+        "example": "An Indonesian motorcycle purchased for Rp26,000,000 uses IDR.",
+        "important": "The currency cannot be changed after vehicle creation."
+      },
+      "vehicleMake": {
+        "title": "Vehicle make",
+        "meaning": "The manufacturer's brand, rather than the model or trim.",
+        "example": "Toyota, Daihatsu, Honda, Yamaha, Suzuki, or Wuling.",
+        "important": "Make alone does not fetch Indonesian resale prices."
+      },
+      "vehicleModel": {
+        "title": "Vehicle model",
+        "meaning": "The product family under a brand, distinct from the year or trim.",
+        "example": "Toyota Avanza, Honda Vario, Daihatsu Xenia.",
+        "important": "The model name is currently informational and does not determine depreciation."
+      },
+      "vehicleTrim": {
+        "title": "Vehicle trim / variant",
+        "meaning": "An optional specific edition with transmission, engine, or feature details.",
+        "example": "Avanza G CVT, Brio Satya E, Vario 160 CBS.",
+        "important": "Trim does not currently adjust the vehicle's calculated value."
+      },
+      "vehicleYear": {
+        "title": "Model or manufacturing year",
+        "meaning": "Use the vehicle model/manufacturing year, not when you personally bought it.",
+        "example": "A 2021 Brio bought second-hand in 2026 has Year 2021 and Purchase date 2026.",
+        "important": "The app's depreciation curve starts from your purchase date, even for used vehicles."
+      },
+      "vehicleClass": {
+        "title": "Vehicle class and limitations",
+        "meaning": "The class drives the depreciation formula. Current classes mix body style, prestige, and powertrain, rather than a consistent Indonesian taxonomy.",
+        "example": "Vario → Motorcycle; Fortuner → SUV; MPV such as Avanza has no dedicated option, so Other is only a provisional choice.",
+        "important": "The curves have not been calibrated to Indonesian resale data. Electric and Luxury are not mutually exclusive with body style."
+      },
+      "vehiclePurchasePrice": {
+        "title": "Vehicle purchase price",
+        "meaning": "Enter the actual acquisition price, used as the initial valuation anchor.",
+        "example": "A motorcycle bought for 28,000,000 is entered as 28,000,000; record financing debt separately.",
+        "important": "Purchase price cannot be edited after creating the vehicle in the current app."
+      },
+      "vehiclePurchaseDate": {
+        "title": "Vehicle purchase date",
+        "meaning": "The date you acquired the vehicle, not the model year or first loan installment.",
+        "example": "A used 2020 Avanza purchased on 10 Nov 2026 has purchase date 10 Nov 2026.",
+        "important": "Purchase date cannot be edited after creation; it anchors the depreciation timeline."
+      },
+      "vehicleDepreciation": {
+        "title": "Depreciation pattern",
+        "meaning": "Class default uses a yearly value-loss curve; Slow is 30% lower rates, Fast 30% higher, and Custom applies a single annual rate.",
+        "example": "For a sample sedan purchased for 200,000,000: first-year value 160,000,000, second-year value 136,000,000 under the existing formula.",
+        "important": "These curves rely on foreign-market assumptions; condition, mileage and Indonesian resale market prices are not modeled."
+      },
+      "vehicleCustomRate": {
+        "title": "Custom yearly depreciation",
+        "meaning": "Percentage deducted from the remaining value each year, not a fixed nominal reduction.",
+        "example": "At 10% annual loss, a 100,000,000 value becomes 90,000,000 after one year and 81,000,000 after two.",
+        "important": "A user-chosen rate is an assumption, not an official resale valuation."
+      },
+      "vehicleFloor": {
+        "title": "Minimum residual value",
+        "meaning": "The mathematical minimum floor for the depreciation calculation, expressed as a share of the purchase price or latest override.",
+        "example": "With a purchase of 100,000,000 and floor 10%, the projection will not drop below 10,000,000.",
+        "important": "This is not a guaranteed resale price; severely damaged or well-kept vehicles can have much different market values."
+      },
+      "vehicleMileage": {
+        "title": "Odometer mileage",
+        "meaning": "Enter the total distance shown on the vehicle odometer in kilometres, not today's trip.",
+        "example": "If the dashboard reads 45,600 km, enter 45600.",
+        "important": "Mileage is stored for reference but does NOT affect the current depreciation calculation."
+      }
     }
   },
   "fields": {
