@@ -6,9 +6,11 @@
     :placeholder="placeholder"
     :disabled="disabled"
     :error-message="errorMessage"
+    :non-label-wrapper="Boolean($slots['label-right'])"
     @update:model-value="(value) => emit('update:modelValue', value === '' ? null : Number(value))"
     @blur="emit('blur')"
   >
+    <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
     <template #iconTrailing>
       <Popover.Popover>
         <Popover.PopoverTrigger as-child>
