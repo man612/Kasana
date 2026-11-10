@@ -636,6 +636,9 @@
     }
   },
   "kasana": {
+    "navigation": {
+      "openMenu": "Open navigation menu"
+    },
     "settings": {
       "exit": "Close settings"
     },
@@ -644,6 +647,21 @@
       "removeNamed": "Remove {name} field",
       "confirmTitle": "Remove {name}?",
       "confirmDescription": "Unsaved values in this field will be cleared. Previously saved attachments are never deleted by this action. Continue?"
+    },
+    "quickStart": {
+      "triggerLabel": "Quick Start, {count} tasks left. Long press and drag to move.",
+      "dragHint": "Tap to open. Long press and drag to move. Alt + arrow keys move it with a keyboard.",
+      "hideButton": "Hide",
+      "hideOneHour": "For 1 hour",
+      "hideOneDay": "For 24 hours",
+      "hideOneWeek": "For 7 days",
+      "resetPosition": "Reset position",
+      "hideExplanation": "The button returns automatically. You can restore it earlier in Settings → General.",
+      "placeButton": "Move to…",
+      "topLeft": "Top left",
+      "topRight": "Top right",
+      "bottomLeft": "Bottom left",
+      "bottomRight": "Bottom right"
     }
   }
 }

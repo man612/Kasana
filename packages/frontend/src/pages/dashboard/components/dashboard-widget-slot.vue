@@ -7,7 +7,7 @@ import type { WidgetConfigOption, WidgetSize } from '@/components/widgets/widget
 import { WIDGET_REGISTRY } from '@/components/widgets/widget-registry';
 import { cn } from '@/lib/utils';
 import { GripVerticalIcon, XIcon } from '@lucide/vue';
-import { computed, defineAsyncComponent, provide, toRef } from 'vue';
+import { computed, defineAsyncComponent, provide, ref, toRef, watch } from 'vue';
 
 import type { Period } from '../types';
 
@@ -26,6 +26,16 @@ const emit = defineEmits<{
 
 provide('dashboard-widget-stretch', true);
 provide('dashboard-widget-config', toRef(props, 'widgetConfig'));
+
+// A saved 1×2 Latest Transactions widget should not occupy two dashboard rows
+// when it has nothing to display. Keep the user's saved size in edit mode.
+const latestRecordsEmpty = ref(false);
+provide('dashboard-widget-empty-change', (isEmpty: boolean) => {
+  latestRecordsEmpty.value = isEmpty;
+});
+watch(() => props.widgetConfig.widgetId, () => {
+  latestRecordsEmpty.value = false;
+});
 
 const def = computed(() => WIDGET_REGISTRY[props.widgetConfig.widgetId]);
 
@@ -49,7 +59,12 @@ const ROW_SPAN_CLASSES: Record<number, string> = {
 };
 
 const colSpanClass = computed(() => COL_SPAN_CLASSES[props.widgetConfig.colSpan] ?? COL_SPAN_CLASSES[1]);
-const rowSpanClass = computed(() => ROW_SPAN_CLASSES[props.widgetConfig.rowSpan ?? 1] ?? '');
+const effectiveRowSpan = computed(() =>
+  props.widgetConfig.widgetId === 'latest-records' && !props.isEditMode && latestRecordsEmpty.value
+    ? 1
+    : (props.widgetConfig.rowSpan ?? 1),
+);
+const rowSpanClass = computed(() => ROW_SPAN_CLASSES[effectiveRowSpan.value] ?? '');
 
 const componentProps = computed(() => {
   if (!def.value) return {};

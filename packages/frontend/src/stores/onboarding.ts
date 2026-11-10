@@ -9,6 +9,49 @@ import { computed, ref } from 'vue';
 
 import { useUserStore } from './user';
 
+/** Ratio of the draggable guide button's left/top within its safe viewport. */
+export interface QuickStartPosition {
+  x: number;
+  y: number;
+}
+
+const POSITION_STORAGE_KEY = 'kasana.quick-start-position-v1';
+const HIDDEN_UNTIL_STORAGE_KEY = 'kasana.quick-start-hidden-until-v1';
+
+function readLocalSetting(key: string): string | null {
+  try {
+    return typeof window === 'undefined' ? null : window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function saveLocalSetting(key: string, value: string | null) {
+  try {
+    if (typeof window === 'undefined') return;
+    if (value === null) window.localStorage.removeItem(key);
+    else window.localStorage.setItem(key, value);
+  } catch {
+    // Private browsing or disabled storage: controls still work for this session.
+  }
+}
+
+function readQuickStartPosition(): QuickStartPosition | null {
+  const raw = readLocalSetting(POSITION_STORAGE_KEY);
+  if (!raw) return null;
+  try {
+    const data: unknown = JSON.parse(raw);
+    if (typeof data !== 'object' || data === null) return null;
+    const value = data as Record<string, unknown>;
+    if (typeof value.x !== 'number' || typeof value.y !== 'number') return null;
+    if (!Number.isFinite(value.x) || !Number.isFinite(value.y)) return null;
+    if (value.x < 0 || value.x > 1 || value.y < 0 || value.y > 1) return null;
+    return { x: value.x, y: value.y };
+  } catch {
+    return null;
+  }
+}
+
 export interface OnboardingTask {
   id: string;
   title: string;
@@ -76,7 +119,6 @@ const RAW_CATEGORIES: RawCategory[] = [
     id: 'bank-import',
     icon: 'link',
     tasks: [
-      { id: 'connect-bank', route: ROUTES_NAMES.accounts, demoHidden: true },
       { id: 'import-csv', route: ROUTES_NAMES.settingsDataManagement },
     ],
   },
@@ -141,6 +183,43 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   const isLoading = ref(false);
   const isInitialized = ref(false);
 
+  // Floating guide controls are *per-device* preferences; no finance data or
+  // onboarding progress is written to localStorage.
+  const triggerPosition = ref<QuickStartPosition | null>(readQuickStartPosition());
+  const hiddenUntil = ref(Number(readLocalSetting(HIDDEN_UNTIL_STORAGE_KEY) || 0) || 0);
+  const visibilityTick = ref(0);
+  const isAtDefaultPosition = computed(() => triggerPosition.value === null);
+  const isTemporarilyHidden = computed(() => {
+    void visibilityTick.value;
+    return hiddenUntil.value > Date.now();
+  });
+
+  const setTriggerPosition = (position: QuickStartPosition, persist = true) => {
+    if (!Number.isFinite(position.x) || !Number.isFinite(position.y)) return;
+    triggerPosition.value = {
+      x: Math.min(1, Math.max(0, position.x)),
+      y: Math.min(1, Math.max(0, position.y)),
+    };
+    // Dragging fires many pointermove events: avoid synchronous storage writes per frame.
+    if (persist) saveLocalSetting(POSITION_STORAGE_KEY, JSON.stringify(triggerPosition.value));
+  };
+  const resetTriggerPosition = () => {
+    triggerPosition.value = null;
+    saveLocalSetting(POSITION_STORAGE_KEY, null);
+  };
+  const hideTriggerFor = (minutes: number) => {
+    if (!Number.isFinite(minutes) || minutes <= 0) return;
+    hiddenUntil.value = Date.now() + minutes * 60_000;
+    visibilityTick.value++;
+    saveLocalSetting(HIDDEN_UNTIL_STORAGE_KEY, String(hiddenUntil.value));
+    isPanelOpen.value = false;
+  };
+  const showTriggerNow = () => {
+    hiddenUntil.value = 0;
+    visibilityTick.value++;
+    saveLocalSetting(HIDDEN_UNTIL_STORAGE_KEY, null);
+  };
+
   // Helper to get filtered categories (excludes demo-hidden tasks in demo mode)
   const getFilteredCategories = () =>
     RAW_CATEGORIES.map((raw) => translateCategory({ raw, isDemo: isDemo.value })).filter(
@@ -170,7 +249,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
   const remainingCount = computed(() => totalTasks.value - completedCount.value);
 
-  const shouldShowTrigger = computed(() => !isDismissed.value && isInitialized.value);
+  const shouldShowTrigger = computed(() => !isDismissed.value && isInitialized.value && !isTemporarilyHidden.value);
 
   const isTaskCompleted = (taskId: string): boolean => completedTasks.value.includes(taskId);
 
@@ -257,6 +336,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   };
 
   const reopen = async () => {
+    showTriggerNow();
     isDismissed.value = false;
     dismissedAt.value = null;
 
@@ -293,6 +373,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     isPanelOpen.value = false;
     expandedCategories.value = [];
     isInitialized.value = false;
+    // Keep the per-device temporary hide preference across sign-out/sign-in.
   };
 
   return {
@@ -314,6 +395,14 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     isAllComplete,
     remainingCount,
     shouldShowTrigger,
+    triggerPosition,
+    hiddenUntil,
+    isTemporarilyHidden,
+    isAtDefaultPosition,
+    setTriggerPosition,
+    resetTriggerPosition,
+    hideTriggerFor,
+    showTriggerNow,
     isTaskCompleted,
     getCategoryProgress,
     isCategoryExpanded,
