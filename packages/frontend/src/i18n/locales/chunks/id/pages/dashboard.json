@@ -4,7 +4,7 @@
       "customize": "Sesuaikan",
       "addWidgets": "Tambah widget",
       "emptyState": "Klik Sesuaikan untuk menambah widget",
-      "removeWidget": "Remove widget"
+      "removeWidget": "Hapus widget"
     },
     "widgets": {
       "common": {
@@ -81,17 +81,17 @@
       },
       "expensesStructure": {
         "title": "Struktur Pengeluaran",
-        "incomeTitle": "Income structure",
+        "incomeTitle": "Rincian pemasukan",
         "today": "Hari ini",
         "vsPreviousPeriod": "vs periode sebelumnya",
         "viewButton": "Lihat",
         "back": "Kembali",
-        "openInAnalytics": "Open in Analytics",
+        "openInAnalytics": "Buka di Analitik",
         "metric": {
           "expenses": "Pengeluaran",
           "income": "Pemasukan"
         },
-        "seeTransactions": "See transactions"
+        "seeTransactions": "Lihat transaksi"
       },
       "latestTransactions": {
         "title": "Transaksi Terbaru",
@@ -122,19 +122,19 @@
             "6": "6 bulan terakhir",
             "12": "12 bulan terakhir"
           },
-          "showStrip": "Show 30-day chart"
+          "showStrip": "Tampilkan grafik 30 hari"
         }
       },
       "categoryTracker": {
         "title": "Pantauan Kategori",
         "addCategory": "Tambah kategori",
         "selectCategories": "Pilih Kategori",
-        "showTrend": "Show 6-month trend",
+        "showTrend": "Lihat tren 6 bulan",
         "sort": {
           "title": "Urutkan berdasarkan",
-          "custom": "Custom order",
-          "spendDesc": "Highest spend first",
-          "spendAsc": "Lowest spend first"
+          "custom": "Urutan sendiri",
+          "spendDesc": "Pengeluaran terbesar dulu",
+          "spendAsc": "Pengeluaran terkecil dulu"
         }
       },
       "cashFlow": {
@@ -147,9 +147,9 @@
         "saved": "Ditabung",
         "previousPeriodsTrend": "Tren periode sebelumnya",
         "viewDetails": "Lihat detail",
-        "savingsRateLine": "Show savings rate line",
+        "savingsRateLine": "Tampilkan grafik rasio tabungan",
         "savingsRate": "Rasio Tabungan",
-        "noIncome": "no income"
+        "noIncome": "tanpa pemasukan"
       },
       "netWorth": {
         "title": "Kekayaan Bersih",
@@ -158,7 +158,7 @@
         "start": "Awal",
         "end": "Akhir",
         "growth": "Pertumbuhan",
-        "changeInPeriod": "Change in {period}",
+        "changeInPeriod": "Perubahan selama {period}",
         "previousPeriodsTrend": "Tren periode sebelumnya",
         "excludedTooltip": "Dikecualikan dari kekayaan bersih: {components}",
         "viewHistory": "Lihat riwayat",
@@ -187,72 +187,72 @@
         "noAccounts": "Tidak ada akun dengan batas kredit"
       },
       "cashAccounts": {
-        "vsLastMonth": "vs last month",
+        "vsLastMonth": "dibanding bulan lalu",
         "runwayUnit": "bln",
-        "runwayLabel": "of expenses",
-        "loadFailed": "Couldn't load your accounts",
+        "runwayLabel": "pengeluaran",
+        "loadFailed": "Gagal memuat rekening.",
         "runwayHint": {
-          "description": "It's generally recommended to keep an emergency fund that covers 3–6 months of your expenses.",
-          "critical": "Under 1 month: very little buffer",
-          "low": "1–3 months: below recommended",
-          "good": "3+ months: recommended range"
+          "description": "Sebaiknya siapkan dana darurat untuk menutup pengeluaran selama 3–6 bulan.",
+          "critical": "Kurang dari 1 bulan: dana cadangan sangat terbatas",
+          "low": "1–3 bulan: di bawah anjuran",
+          "good": "3 bulan atau lebih: dalam rentang yang dianjurkan"
         }
       },
       "assetsLiabilities": {
         "netWorth": "Kekayaan bersih",
-        "owesShare": "You owe {percent} of what you own",
-        "noDebt": "No debt",
+        "owesShare": "Utangmu setara {percent} dari total aset.",
+        "noDebt": "Tidak ada utang",
         "assets": "Aset",
         "liabilities": "Kewajiban",
-        "loadFailed": "Couldn't load your assets and liabilities",
+        "loadFailed": "Aset dan kewajiban gagal dimuat.",
         "buckets": {
           "cash": "Tunai",
           "investments": "Investasi",
           "ventures": "Ventura",
           "vehicles": "Kendaraan",
           "loans": "Pinjaman",
-          "creditAndOverdrafts": "Credit & overdrafts"
+          "creditAndOverdrafts": "Kredit dan cerukan"
         }
       },
       "spendingPace": {
         "tabs": {
-          "lastMonth": "vs last month",
+          "lastMonth": "dibanding bulan lalu",
           "average": "vs 3-mo avg"
         },
-        "spentIn": "Spent in {month}",
-        "onTrackFor": "On track for {amount}",
-        "vsComparison": "{percent} vs {name}",
+        "spentIn": "Dibelanjakan pada {month}",
+        "onTrackFor": "Sesuai target untuk {amount}",
+        "vsComparison": "{percent} dibanding {name}",
         "comparison": {
           "average": "{n}-mo avg"
         },
         "stats": {
-          "byToday": "{name} by today",
-          "total": "{name} total",
-          "daysLeft": "Days left"
+          "byToday": "{name} hingga hari ini",
+          "total": "Total {name}",
+          "daysLeft": "Sisa hari"
         },
         "chart": {
           "today": "Hari ini",
-          "ariaLabel": "Spending this month"
+          "ariaLabel": "Pengeluaran bulan ini"
         },
         "tooltip": {
-          "spent": "Spent",
-          "forecast": "Forecast",
-          "spikeFrom": "Spent on {date}"
+          "spent": "Sudah dibelanjakan",
+          "forecast": "Perkiraan",
+          "spikeFrom": "Pengeluaran pada {date}"
         },
         "legend": {
           "thisMonth": "Bulan ini",
-          "forecast": "Forecast",
-          "averageMonth": "Average month"
+          "forecast": "Perkiraan",
+          "averageMonth": "Rata-rata bulanan"
         },
         "hints": {
-          "noHistory": "The comparison appears after your first full month.",
-          "plannedFailed": "Couldn't load planned transactions. The forecast may not include them.",
-          "fewMonths": "Average of the {n} full month you have so far. | Average of the {n} full months you have so far."
+          "noHistory": "Perbandingan muncul setelah ada data satu bulan penuh.",
+          "plannedFailed": "Transaksi terjadwal gagal dimuat. Perkiraan mungkin belum mencakupnya.",
+          "fewMonths": "Rata-rata {n} bulan penuh yang tersedia."
         },
-        "loadFailed": "Couldn't load your spending.",
+        "loadFailed": "Pengeluaran gagal dimuat.",
         "settings": {
           "spikes": {
-            "title": "Spike marks",
+            "title": "Penanda lonjakan pengeluaran",
             "summary": "Days with ≥{percent}% of the month's spending",
             "inputLabel": "Mark a day when it reaches",
             "hint": "Share of last month's total spending, 1–100%. Marks show in “vs last month” mode."

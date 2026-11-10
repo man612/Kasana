@@ -128,13 +128,18 @@
 
         <NotificationsPopover />
 
-        <RouterLink :to="{ name: ROUTES_NAMES.settings }">
-          <DesktopOnlyTooltip :content="$t('header.settings')">
-            <Button variant="secondary" size="icon" :aria-label="$t('header.settings')">
-              <SettingsIcon class="size-4" />
-            </Button>
-          </DesktopOnlyTooltip>
-        </RouterLink>
+        <DesktopOnlyTooltip :content="isSettingsRoute ? t('kasana.settings.exit') : t('header.settings')">
+          <Button
+            :variant="isSettingsRoute ? 'ghost-primary' : 'secondary'"
+            size="icon"
+            :class="isSettingsRoute && 'bg-primary/15 text-primary-text ring-1 ring-primary/50'"
+            :aria-label="isSettingsRoute ? t('kasana.settings.exit') : t('header.settings')"
+            :aria-pressed="isSettingsRoute"
+            @click="toggleSettings"
+          >
+            <SettingsIcon class="size-4" />
+          </Button>
+        </DesktopOnlyTooltip>
       </div>
     </div>
   </div>
@@ -182,7 +187,7 @@ import {
 import { storeToRefs } from 'pinia';
 import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { RouterLink, useRoute } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 
 const AttachInvoiceDialog = defineAsyncComponent(() => import('@/components/dialogs/attach-invoice/index.vue'));
 
@@ -206,6 +211,23 @@ const { elementRef: headerRef } = useCssVarFromElementSize({
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
+const isSettingsRoute = computed(() => String(route.name ?? '').startsWith(ROUTES_NAMES.settings));
+const previousAppRoute = ref<string | null>(null);
+watch(
+  () => route.fullPath,
+  () => {
+    if (!isSettingsRoute.value) previousAppRoute.value = route.fullPath;
+  },
+  { immediate: true },
+);
+const toggleSettings = () => {
+  if (isSettingsRoute.value) {
+    void router.push(previousAppRoute.value ?? { name: ROUTES_NAMES.home });
+  } else {
+    void router.push({ name: ROUTES_NAMES.settings });
+  }
+};
 const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const showConfirmDialog = ref(false);
 const isPopoverOpen = ref(false);

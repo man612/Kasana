@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { caretOffsetAfterDigits, countDigitsBeforeCaret, parseAmountInput } from './formatted-amount';
+import { caretOffsetAfterDigits, countDigitsBeforeCaret, getAmountSeparators, parseAmountInput } from './formatted-amount';
 
 describe('parseAmountInput', () => {
   describe("decimalSeparator '.'", () => {
@@ -181,5 +181,26 @@ describe('caretOffsetAfterDigits', () => {
 
   it('clamps to the end when digit count exceeds available anchors', () => {
     expect(caretOffsetAfterDigits({ text: '12,345', digitCount: 99, decimalSeparator: '.' })).toBe(6);
+  });
+});
+
+
+describe('IDR live grouping', () => {
+  it('uses Indonesian separators', () => {
+    expect(getAmountSeparators('id-ID')).toEqual({ decimal: ',', group: '.' });
+  });
+  it('parses 20.000 as twenty thousand', () => {
+    expect(parseAmountInput({ raw: '20.000', decimalSeparator: ',', groupSeparator: '.' })).toEqual({
+      numeric: 20000, fragment: '',
+    });
+  });
+  it('parses decimal 20.000,50 without losing a trailing zero', () => {
+    expect(parseAmountInput({ raw: '20.000,50', decimalSeparator: ',', groupSeparator: '.' })).toEqual({
+      numeric: 20000.5, fragment: '0',
+    });
+  });
+  it('does not treat the thousands dot as a caret anchor', () => {
+    expect(countDigitsBeforeCaret({ text: '20.000', caret: 3, decimalSeparator: ',' })).toBe(2);
+    expect(caretOffsetAfterDigits({ text: '20.000', digitCount: 3, decimalSeparator: ',' })).toBe(4);
   });
 });

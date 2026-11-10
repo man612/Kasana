@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
-import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import { buildSelectSections } from '@/components/fields/utils/select-sections';
 import { Button } from '@/components/lib/ui/button';
 import * as Select from '@/components/lib/ui/select';
@@ -123,6 +123,10 @@ watch(
       </ResponsiveTooltip>
     </template>
 
+    <template v-if="$slots['label-right']" #label-right>
+      <slot name="label-right" />
+    </template>
+
     <div
       :class="
         cn(
@@ -132,10 +136,9 @@ watch(
       "
     >
       <div class="grid min-w-0 flex-1 items-center">
-        <InputField
+        <FormattedAmountField
           :model-value="amount"
-          type="number"
-          only-positive
+          embedded
           :placeholder="placeholder"
           :disabled="disabled"
           :aria-label="label"

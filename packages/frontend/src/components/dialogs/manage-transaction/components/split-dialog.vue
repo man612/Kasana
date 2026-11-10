@@ -2,7 +2,7 @@
 import type { FormattedCategory } from '@/common/types';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import CategorySelectField from '@/components/fields/category-select-field.vue';
-import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import { Button } from '@/components/lib/ui/button';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { formatUIAmount } from '@/js/helpers';
@@ -228,19 +228,17 @@ const handleClearAll = () => {
 
             <!-- Amount input -->
             <div class="border-input w-32 shrink-0 border-l">
-              <InputField
-                :model-value="split.amount"
-                type="number"
-                only-positive
+              <FormattedAmountField
+                :model-value="split.amount ?? null"
+                embedded
                 :placeholder="$t('dialogs.manageTransaction.splitDialog.amountPlaceholder')"
-                trailing-icon-css-class="px-3"
                 class="rounded-none border-0 bg-transparent tabular-nums focus-visible:ring-0 focus-visible:ring-offset-0"
                 @update:model-value="(val) => updateSplitAmount(index, val)"
               >
                 <template #iconTrailing>
                   <span class="text-muted-foreground text-xs">{{ currencyCode }}</span>
                 </template>
-              </InputField>
+              </FormattedAmountField>
             </div>
 
             <!-- Remove button -->

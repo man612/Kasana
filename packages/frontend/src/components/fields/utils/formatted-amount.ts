@@ -10,8 +10,8 @@ interface AmountSeparators {
 }
 
 /** Resolves the runtime locale's number separators so typing and display agree. */
-export const getAmountSeparators = (): AmountSeparators => {
-  const parts = new Intl.NumberFormat(undefined).formatToParts(12345.6);
+export const getAmountSeparators = (locale?: string): AmountSeparators => {
+  const parts = new Intl.NumberFormat(locale).formatToParts(12345.6);
   return {
     decimal: parts.find((part) => part.type === 'decimal')?.value ?? '.',
     group: parts.find((part) => part.type === 'group')?.value ?? ',',
@@ -74,7 +74,7 @@ export const parseAmountInput = ({
 };
 
 const isCaretAnchorChar = ({ char, decimalSeparator }: { char: string; decimalSeparator: string }): boolean =>
-  /\d/.test(char) || char === decimalSeparator || char === '.';
+  /\d/.test(char) || char === decimalSeparator;
 
 /**
  * Counts digits/decimal points at or before `caret`. Anchors the cursor after

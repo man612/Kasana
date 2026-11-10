@@ -634,5 +634,16 @@
       "label": "Imports and sharing",
       "description": "Import batches (list, undo) and bank connections (status, unlink an account); sharing is read only."
     }
+  },
+  "kasana": {
+    "settings": {
+      "exit": "Close settings"
+    },
+    "optionalFields": {
+      "remove": "Remove field",
+      "removeNamed": "Remove {name} field",
+      "confirmTitle": "Remove {name}?",
+      "confirmDescription": "Unsaved values in this field will be cleared. Previously saved attachments are never deleted by this action. Continue?"
+    }
   }
 }

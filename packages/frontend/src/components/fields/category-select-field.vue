@@ -134,7 +134,7 @@
                   :placeholder="$t('fields.categorySelect.searchPlaceholder')"
                   :aria-label="$t('fields.categorySelect.searchCategoryLabel')"
                 />
-                <div class="max-h-87.5 overflow-auto">
+                <div class="max-h-87.5 overflow-y-auto overscroll-contain" :style="{ maxHeight: 'min(20rem, calc(100dvh - 9rem))' }">
                   <CategoryListContent />
                 </div>
               </ListboxRoot>

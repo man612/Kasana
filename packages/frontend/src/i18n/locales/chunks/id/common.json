@@ -28,8 +28,8 @@
       "retry": "Coba lagi",
       "copyInviteLink": "Salin tautan undangan",
       "moveTo": "Pindahkan ke…",
-      "learnMore": "Learn more",
-      "undo": "Undo",
+      "learnMore": "Pelajari selengkapnya",
+      "undo": "Urungkan",
       "more": "Lainnya"
     },
     "ui": {
@@ -57,7 +57,7 @@
     },
     "errors": {
       "copyToClipboardFailed": "Gagal menyalin ke papan klip",
-      "settingsSaveFailed": "Couldn't save your settings. Please try again."
+      "settingsSaveFailed": "Pengaturan gagal disimpan. Silakan coba lagi."
     },
     "notifications": {
       "subscriptionCurrencyNotConnected": "Ringkasan langganan tidak dapat mengonversi {currencies} ke mata uang dasar Anda. Hubungkan mata uang tersebut di Pengaturan → Mata Uang.",
@@ -138,23 +138,23 @@
         "description": "Transaksi beli/jual yang diekstrak AI dari ekspor bursa, laporan broker, atau teks yang ditempel."
       },
       "receiptParsing": {
-        "name": "Invoice matching",
-        "description": "Reads an uploaded invoice or receipt and finds the transaction it belongs to."
+        "name": "Pencocokan faktur",
+        "description": "Membaca faktur atau struk yang diunggah dan mencari transaksi yang sesuai."
       },
       "trackerMatching": {
-        "name": "Tracker matching",
-        "description": "Scans new transactions and suggests the ones that belong to a smart tracker."
+        "name": "Pencocokan pelacak",
+        "description": "Memeriksa transaksi baru dan menyarankan transaksi yang cocok dengan pelacak otomatis."
       },
       "transferMatching": {
         "name": "Pencocokan transfer",
-        "description": "Checks transfer scan results and keeps the pairs that look like real transfers"
+        "description": "Memeriksa hasil pemindaian transfer dan menemukan pasangan transaksi yang sesuai."
       }
     },
     "transactions": {
       "delete": {
         "success": "Berhasil dihapus",
-        "undoSuccess": "Restored",
-        "undoError": "Couldn't undo. You can still restore it from the Trash.",
+        "undoSuccess": "Berhasil dipulihkan",
+        "undoError": "Gagal mengurungkan. Kamu masih dapat memulihkannya dari Sampah.",
         "error": "Gagal menghapus transaksi!"
       },
       "submit": {
@@ -165,22 +165,22 @@
       },
       "record": {
         "addedByTooltip": "Transaksi ini dilampirkan ke anggaran oleh {handle}",
-        "addedByRule": "Added by the tracker's rules",
+        "addedByRule": "Ditambahkan melalui aturan pelacak.",
         "matchedByAi": "Dicocokkan oleh AI",
-        "externalLinkTooltip": "Open external link",
-        "locationTooltip": "Open location on the map",
-        "attachmentsTooltip": "Has attachments",
+        "externalLinkTooltip": "Buka tautan eksternal",
+        "locationTooltip": "Lihat lokasi di peta",
+        "attachmentsTooltip": "Memiliki lampiran",
         "hiddenAccount": "Akun tersembunyi",
         "selectRow": "Pilih transaksi",
         "unselectableReasons": {
           "sharedAccount": "Tidak dapat dipilih: transaksi ini berada di akun yang dibagikan dengan Anda, dan hanya pemiliknya yang dapat mengeditnya."
         },
         "payment": {
-          "paidFrom": "Paid from {count} accounts",
-          "receivedInto": "Received into {count} accounts",
-          "partOf": "Part of a {total} payment",
-          "thisAccount": "(this account)",
-          "loadError": "Couldn't open this transaction. Try again."
+          "paidFrom": "Dibayar dari {count} rekening",
+          "receivedInto": "Diterima ke {count} rekening",
+          "partOf": "Bagian dari pembayaran senilai {total}",
+          "thisAccount": "(rekening ini)",
+          "loadError": "Transaksi tidak dapat dibuka. Silakan coba lagi."
         }
       }
     },
@@ -242,7 +242,7 @@
         "brand": "Merek",
         "letters": "Huruf",
         "icon": "Ikon",
-        "custom": "Image"
+        "custom": "Gambar"
       },
       "searchPlaceholder": "Nama merek atau domain",
       "searchHint": "Ketik nama merek, atau domain seperti amazon.com",
@@ -252,42 +252,42 @@
       "autoLabel": "Otomatis (dari nama)",
       "domainHint": "Untuk menemukan merek yang tepat, ketik domain situs web perusahaan (mis. amazon.com) — itu selalu mencocokkan logo yang benar.",
       "searchError": "Tidak dapat memuat logo — coba lagi",
-      "brandNotConfigured": "Brand logos are not configured on this instance. Ask the admin to set VITE_LOGO_DEV_TOKEN, or use letters instead.",
+      "brandNotConfigured": "Logo merek belum dikonfigurasi. Hubungi pengelola untuk mengatur VITE_LOGO_DEV_TOKEN atau gunakan huruf saja.",
       "editAriaLabel": "Sunting logo",
       "dialogTitle": "Ganti logo",
       "resetToAuto": "Kembalikan ke otomatis",
       "remove": "Hapus logo",
-      "pickerDescription": "Pick a brand logo or use letters instead.",
-      "updatedToast": "Logo updated",
+      "pickerDescription": "Pilih logo merek atau gunakan huruf.",
+      "updatedToast": "Logo berhasil diperbarui",
       "resetToast": "Logo dihapus",
-      "updateError": "Couldn't update the logo. Try again.",
+      "updateError": "Gagal memperbarui logo. Coba lagi.",
       "lettersLabel": "Huruf (1–2)",
       "lettersPlaceholder": "AB",
       "colorLabel": "Warna",
       "colorSwatchAriaLabel": "Gunakan warna {color}",
       "customColorAriaLabel": "Pilih warna khusus",
       "lettersSelectedLabel": "Huruf “{letters}”",
-      "lettersHint": "1–2 letters or an emoji",
-      "chooseImage": "Choose image",
-      "replaceImage": "Replace image",
-      "imageHint": "Cropped to a square and resized to 200×200 on your device.",
-      "imageTooLarge": "The image is still over 50 KB after resizing. Try a simpler picture.",
-      "imageUnreadable": "That file couldn't be read as an image."
+      "lettersHint": "1–2 huruf atau emoji",
+      "chooseImage": "Pilih gambar",
+      "replaceImage": "Ganti gambar",
+      "imageHint": "Gambar dipotong persegi dan diubah menjadi 200×200 piksel pada perangkatmu.",
+      "imageTooLarge": "Ukuran gambar masih lebih dari 50 KB setelah diubah. Coba gambar yang lebih sederhana.",
+      "imageUnreadable": "Berkas tidak dapat dibaca sebagai gambar."
     },
     "iconPicker": {
       "searchPlaceholder": "Cari ikon...",
       "clear": "Hapus ikon"
     },
     "importBatchDeleteOverlay": {
-      "title": "Deleting imported transactions",
-      "description": "A large import batch is being removed. Balances are recalculated when it finishes, so the app is locked until then.",
-      "deleting": "Deleting transactions",
-      "preparing": "Getting ready",
+      "title": "Menghapus transaksi hasil impor",
+      "description": "Sekelompok transaksi impor sedang dihapus. Saldo dihitung ulang setelah selesai, jadi aplikasi terkunci sementara.",
+      "deleting": "Menghapus transaksi",
+      "preparing": "Menyiapkan penghapusan",
       "finishing": "Menyelesaikan",
-      "takingLong": "This is taking longer than usual — large batches can take several minutes. Keep this page open.",
+      "takingLong": "Proses lebih lama dari biasanya. Impor berukuran besar bisa memerlukan beberapa menit. Biarkan halaman terbuka.",
       "unreachableTitle": "Tidak dapat menjangkau server",
-      "unreachableDescription": "The delete may still be running. Dismiss to keep using the app, and reload later to see the result.",
-      "failedTitle": "Delete failed",
+      "unreachableDescription": "Penghapusan mungkin masih berjalan. Tutup pesan ini dan muat ulang nanti untuk melihat hasilnya.",
+      "failedTitle": "Penghapusan gagal",
       "dismiss": "Abaikan"
     },
     "duration": {
@@ -301,18 +301,18 @@
         "fat": "Fat FIRE"
       },
       "pace": {
-        "ahead": "{duration} ahead",
-        "behind": "{duration} behind",
-        "onPace": "On pace",
-        "backInReach": "Back within reach",
-        "offTrack": "Off track"
+        "ahead": "Lebih cepat {duration}",
+        "behind": "Tertinggal {duration}",
+        "onPace": "Sesuai target",
+        "backInReach": "Kembali bisa tercapai",
+        "offTrack": "Di luar target"
       }
     },
     "pasteImage": {
-      "button": "Paste image",
-      "shortcutHint": "or press {shortcut}",
-      "noImage": "No image found in the clipboard.",
-      "readFailed": "Couldn't read the clipboard. Allow clipboard access or paste with the keyboard shortcut."
+      "button": "Tempel gambar",
+      "shortcutHint": "atau tekan {shortcut}",
+      "noImage": "Tidak ada gambar di papan klip.",
+      "readFailed": "Gagal membaca papan klip. Izinkan akses atau gunakan pintasan keyboard."
     }
   },
   "accountGroups": {
@@ -332,8 +332,8 @@
       "error": "Gagal menambahkan akun ke grup"
     },
     "linkMany": {
-      "success": "Accounts added to the group",
-      "error": "Failed to add accounts to the group"
+      "success": "Rekening berhasil ditambahkan ke grup.",
+      "error": "Gagal menambahkan rekening ke grup."
     },
     "unlink": {
       "success": "Akun telah dihapus dari grup",
@@ -341,7 +341,7 @@
     }
   },
   "validation": {
-    "required": "Field is required",
+    "required": "Wajib diisi",
     "minLength": "Panjang minimal adalah {length}.",
     "emailInvalid": "Silakan masukkan alamat email yang valid.",
     "passwordsNoMatch": "Kata sandi tidak cocok"
@@ -370,8 +370,8 @@
       "sendFailedHint": "Buka panel berbagi untuk mengirim ulang."
     },
     "goalReached": {
-      "title": "Goal reached: {name}",
-      "message": "You've saved {amount}."
+      "title": "Target tercapai: {name}",
+      "message": "Kamu berhasil menyimpan {amount}."
     },
     "unrealizedLossAlert": {
       "title": "{count} holding crossed your loss alert | {count} holdings crossed your loss alert"
@@ -517,18 +517,18 @@
     }
   },
   "aiUsage": {
-    "title": "Included AI usage",
-    "used": "used",
-    "percentUsed": "{percent}% used",
-    "resetsOn": "Resets on {date}",
-    "connectOwnModel": "Connect your own model",
+    "title": "Penggunaan AI yang tersedia",
+    "used": "terpakai",
+    "percentUsed": "{percent}% terpakai",
+    "resetsOn": "Diperbarui pada {date}",
+    "connectOwnModel": "Hubungkan model AI sendiri",
     "gotIt": "Mengerti",
     "badge": {
-      "used": "{percent}% AI used",
-      "reached": "AI limit reached"
+      "used": "AI terpakai {percent}%",
+      "reached": "Batas AI tercapai"
     },
     "dialog": {
-      "description": "Statement parsing, categorization, receipts and budget suggestions share this allowance.",
+      "description": "Pemindaian mutasi, kategorisasi, struk, dan saran anggaran berbagi kuota ini.",
       "status": {
         "plusWarning": "You've used most of this month's included AI. When it runs out, AI features pause until {date}.",
         "plusReached": "You've used this month's included AI. AI features are paused until {date}.",
@@ -537,7 +537,7 @@
       }
     },
     "options": {
-      "connectDescription": "Use your own Anthropic, OpenAI, Gemini or local model. It's never counted toward this limit.",
+      "connectDescription": "Gunakan model Anthropic, OpenAI, Gemini, atau model lokalmu sendiri. Tidak termasuk dalam batas kuota ini.",
       "subscribeTitle": "Subscribe to Plus",
       "subscribeDescription": "Get more included AI every month.",
       "waitTitle": "Wait for the reset",
@@ -633,6 +633,17 @@
     "imports": {
       "label": "Imports and sharing",
       "description": "Import batches (list, undo) and bank connections (status, unlink an account); sharing is read only."
+    }
+  },
+  "kasana": {
+    "settings": {
+      "exit": "Tutup pengaturan"
+    },
+    "optionalFields": {
+      "remove": "Hapus kolom",
+      "removeNamed": "Hapus kolom {name}",
+      "confirmTitle": "Hapus kolom {name}?",
+      "confirmDescription": "Isian pada kolom ini yang belum disimpan akan dibersihkan. Lampiran yang sebelumnya sudah tersimpan tidak akan dihapus. Lanjutkan?"
     }
   }
 }

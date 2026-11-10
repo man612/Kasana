@@ -20,6 +20,6 @@ const props = withDefaults(defineProps<ScrollAreaScrollbarProps>(), {
       )
     "
   >
-    <ScrollAreaThumb class="bg-border relative flex-1 rounded-full" />
+    <ScrollAreaThumb class="bg-primary/35 hover:bg-primary/60 relative flex-1 rounded-full transition-colors" />
   </ScrollAreaScrollbar>
 </template>

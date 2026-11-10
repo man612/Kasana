@@ -2,7 +2,7 @@
 import CurrencyChip from '@/components/common/currency-chip.vue';
 import AccountSelectField from '@/components/fields/account-select-field.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
-import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import { cn } from '@/lib/utils';
 import type { AccountModel } from '@bt/shared/types';
 import { ref } from 'vue';
@@ -25,7 +25,7 @@ const emit = defineEmits<{
   'amount-blur': [];
 }>();
 
-const amountFieldRef = ref<InstanceType<typeof InputField> | null>(null);
+const amountFieldRef = ref<InstanceType<typeof FormattedAmountField> | null>(null);
 
 defineExpose({
   focus: () => amountFieldRef.value?.focus(),
@@ -56,13 +56,12 @@ defineExpose({
         <slot name="account-addon" />
       </div>
 
-      <div class="border-input flex w-28 shrink-0 items-center border-l pr-2 @sm:w-32 [&_input]:px-2">
-        <InputField
+      <div class="border-input flex w-32 shrink-0 items-center border-l pr-2 @sm:w-40 [&_input]:px-2">
+        <FormattedAmountField
           ref="amountFieldRef"
-          class="min-w-0 flex-1 rounded-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+          class="min-w-0 flex-1"
           :model-value="amount"
-          type="number"
-          only-positive
+          embedded
           :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
           :aria-label="$t('dialogs.manageTransaction.form.amountLabel')"
           :disabled="disabled || locked"

@@ -246,6 +246,34 @@
   Prevent document-level scrolling. All scrolling should happen inside ScrollArea components.
   This fixes the "double scroll" issue where html/body can scroll independently.
 */
+/* KASANA DESIGN TOKENS: adjust overall scale and colors without changing components. */
+:root {
+  --kasana-ui-scale: 0.8;
+  --kasana-brand-light: rgb(27, 91, 74);
+  --kasana-brand-dark: rgb(27, 91, 74);
+  --kasana-brand-text-light: rgb(22, 95, 72);
+  --kasana-brand-text-dark: rgb(127, 222, 179);
+}
+@layer base {
+  html { zoom: var(--kasana-ui-scale); }
+}
+/* App-branded native scrollbars. Reka scroll areas have their own thumb below. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--primary) 48%, var(--border)) transparent;
+}
+*::-webkit-scrollbar { width: 9px; height: 9px; }
+*::-webkit-scrollbar-track { background: transparent; border-radius: 999px; }
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 35%, var(--border));
+  border: 2px solid var(--background);
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary) 60%, var(--border));
+}
+*::-webkit-scrollbar-corner { background: transparent; }
+
 @layer base {
   html,
   body {
@@ -286,9 +314,9 @@
 
     --input-background: rgb(242, 241, 238);
 
-    --primary: rgb(27, 91, 74);
+    --primary: var(--kasana-brand-light);
     --primary-foreground: rgb(255, 255, 255);
-    --primary-text: rgb(22, 95, 72);
+    --primary-text: var(--kasana-brand-text-light);
 
     --secondary: rgb(239, 237, 233);
     --secondary-foreground: rgb(32, 28, 22);
@@ -402,10 +430,10 @@
     /* Matches --background; field edges come from the --input border rather than a surface step. */
     --input-background: rgb(11, 9, 8);
 
-    --primary: rgb(27, 91, 74);
+    --primary: var(--kasana-brand-dark);
     --primary-foreground: rgb(255, 255, 255);
     /* --primary stays dark enough for white labels on filled buttons; --primary-text is the brighter tint text/icons need on dark backgrounds. */
-    --primary-text: rgb(127, 222, 179);
+    --primary-text: var(--kasana-brand-text-dark);
 
     --secondary: rgb(42, 40, 38);
     --secondary-foreground: rgb(249, 248, 246);

@@ -1,7 +1,7 @@
 <template>
   <div class="bg-background flex h-dvh max-md:flex-col">
     <template v-if="!isMobileView">
-      <SidebarRail v-if="isCollapsed" />
+      <SidebarRail v-if="isCollapsed || isSettingsRoute" />
       <Sidebar v-else />
     </template>
 
@@ -66,6 +66,9 @@ const userCurrenciesStore = useCurrenciesStore();
 const onboardingStore = useOnboardingStore();
 const idleEnabled = useIdleEnabled();
 const { isCollapsed } = useSidebarCollapsed();
+// Settings owns a separate navigator: temporarily collapse the regular sidebar
+// without overwriting the user's persisted preference.
+const isSettingsRoute = computed(() => String(route.name ?? '').startsWith(ROUTES_NAMES.settings));
 const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile, {
   wait: 50,
 });

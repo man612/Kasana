@@ -48,6 +48,7 @@ export const useFieldReveal = ({
 }) => {
   // Fields mount in their fixed template slots, so click order never changes the layout.
   const mounted = ref(new Set<MountableField>());
+  const dismissed = ref(new Set<MountableField>());
 
   // A field that once held a value stays mounted, so clearing it never pulls the field away mid-edit.
   watchEffect(() => {
@@ -66,17 +67,23 @@ export const useFieldReveal = ({
   const shown = computed<Record<MountableField, boolean>>(() => {
     const isMounted = (field: MountableField) => mounted.value.has(field);
     return {
-      tags: !toValue(isMobileView) || isMounted('tags'),
+      tags: !dismissed.value.has('tags') && (!toValue(isMobileView) || isMounted('tags')),
       // A saved row's attachment count is only known once the section itself fetches it.
-      attachments: !toValue(isMobileView) || toValue(isSavedTransaction) || isMounted('attachments'),
-      externalUrl: isMounted('externalUrl'),
-      externalReference: isMounted('externalReference'),
-      location: isMounted('location'),
-      originalAmount: isMounted('originalAmount'),
+      attachments: !dismissed.value.has('attachments') && (!toValue(isMobileView) || toValue(isSavedTransaction) || isMounted('attachments')),
+      externalUrl: !dismissed.value.has('externalUrl') && (isMounted('externalUrl')),
+      externalReference: !dismissed.value.has('externalReference') && (isMounted('externalReference')),
+      location: !dismissed.value.has('location') && (isMounted('location')),
+      originalAmount: !dismissed.value.has('originalAmount') && (isMounted('originalAmount')),
     };
   });
 
+  const hide = ({ field }: { field: MountableField }) => {
+    dismissed.value.add(field);
+    mounted.value.delete(field);
+  };
+
   const mount = ({ field }: { field: MountableField }) => {
+    dismissed.value.delete(field);
     mounted.value.add(field);
     onReveal({ field });
   };
@@ -104,5 +111,5 @@ export const useFieldReveal = ({
     return result;
   });
 
-  return { shown, chips, mount };
+  return { shown, chips, mount, hide };
 };

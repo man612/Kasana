@@ -12,11 +12,13 @@ import { isMacPlatform } from '@/common/utils/platform';
 import { findFormattedCategoryById } from '@/stores/categories/helpers';
 import { captureException } from '@/lib/sentry';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
+import OptionalRemoveButton from './components/optional-remove-button.vue';
 import CategorySelectField from '@/components/fields/category-select-field.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import PayeeSelectField from '@/components/fields/payee-select-field.vue';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import TagSelectField from '@/components/fields/tag-select-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
@@ -107,7 +109,7 @@ import {
 } from './composables';
 import type { TransferDestinationType } from './composables/transfer-form';
 import { useDefaultPaymentType } from './composables/use-default-payment-type';
-import { useFieldReveal } from './composables/use-field-reveal';
+import { useFieldReveal, type MountableField } from './composables/use-field-reveal';
 import { useMapPickerSetting } from './composables/use-map-picker-setting';
 import { useOptionalFields } from './composables/use-optional-fields';
 import { useReverseGeocodedLabel } from './composables/use-reverse-geocoded-label';
@@ -1208,7 +1210,7 @@ const refundFieldRef = ref<InstanceType<typeof MarkAsRefundField> | null>(null);
 
 const moreOptionsRef = ref<HTMLElement | null>(null);
 
-const { shown: shownFields, chips: addFieldChips } = useFieldReveal({
+const { shown: shownFields, chips: addFieldChips, hide: hideOptionalField } = useFieldReveal({
   form,
   hasPendingAttachments: () => pendingAttachments.value.length > 0,
   isMobileView,
@@ -1226,6 +1228,73 @@ const { shown: shownFields, chips: addFieldChips } = useFieldReveal({
     (fieldElement?.querySelector('input') ?? fieldElement?.querySelector('button'))?.focus();
   },
 });
+
+// Reversible optional-column visibility with confirmation before discarding
+// unsaved input. Saved attachments are never deleted by hiding a column.
+const pendingOptionalRemoval = ref<MountableField | null>(null);
+const isOptionalRemovalConfirmOpen = ref(false);
+const optionalFieldNames: Record<MountableField, string> = {
+  tags: 'dialogs.manageTransaction.form.tagsLabel',
+  attachments: 'dialogs.manageTransaction.form.attachments.label',
+  externalUrl: 'dialogs.manageTransaction.form.externalUrlLabel',
+  externalReference: 'dialogs.manageTransaction.form.externalReferenceLabel',
+  location: 'dialogs.manageTransaction.form.location.label',
+  originalAmount: 'dialogs.manageTransaction.form.originalAmountLabel',
+};
+const requestedOptionalName = computed(() =>
+  pendingOptionalRemoval.value ? t(optionalFieldNames[pendingOptionalRemoval.value]) : '',
+);
+const isOptionalFilled = (field: MountableField): boolean => {
+  switch (field) {
+    case 'tags': return !!form.value.tagIds?.length;
+    case 'attachments': return pendingAttachments.value.length > 0;
+    case 'externalUrl': return !!form.value.externalUrl?.trim();
+    case 'externalReference': return !!form.value.externalReference?.trim();
+    case 'location': return form.value.latitude != null || form.value.longitude != null;
+    case 'originalAmount': return form.value.originalAmount != null || !!form.value.originalCurrency;
+  }
+};
+const performOptionalRemoval = (field: MountableField) => {
+  hideOptionalField({ field });
+  switch (field) {
+    case 'tags':
+      form.value.tagIds = [];
+      break;
+    case 'attachments':
+      // Only new uploads are cleared; previously saved attachments stay intact.
+      pendingAttachments.value = [];
+      break;
+    case 'externalUrl':
+      form.value.externalUrl = undefined;
+      break;
+    case 'externalReference':
+      form.value.externalReference = undefined;
+      break;
+    case 'location':
+      form.value.latitude = undefined;
+      form.value.longitude = undefined;
+      break;
+    case 'originalAmount':
+      form.value.originalAmount = null;
+      form.value.originalCurrency = null;
+      break;
+  }
+};
+const requestOptionalRemoval = (field: MountableField) => {
+  if (isFormFieldsDisabled.value) return;
+  if (isOptionalFilled(field)) {
+    pendingOptionalRemoval.value = field;
+    isOptionalRemovalConfirmOpen.value = true;
+    return;
+  }
+  performOptionalRemoval(field);
+};
+const confirmOptionalRemoval = () => {
+  const field = pendingOptionalRemoval.value;
+  if (field) performOptionalRemoval(field);
+  pendingOptionalRemoval.value = null;
+  isOptionalRemovalConfirmOpen.value = false;
+};
 
 const externalUrlHref = computed(() => {
   const value = form.value.externalUrl?.trim();
@@ -1353,7 +1422,7 @@ watch([effectiveFormattedCategories, isCategoriesReady], ([categories, isReady])
   form.value.category = null;
 });
 
-const amountFieldRef = ref<InstanceType<typeof InputField> | null>(null);
+const amountFieldRef = ref<InstanceType<typeof FormattedAmountField> | null>(null);
 const paymentLegsFieldRef = ref<InstanceType<typeof PaymentLegsField> | null>(null);
 const editableAmountFieldRef = computed(() =>
   isMultiAccount.value ? paymentLegsFieldRef.value : amountFieldRef.value,
@@ -1369,7 +1438,7 @@ const paymentTotalLabel = computed(() =>
     { currency: currencyCode.value },
   ),
 );
-const targetAmountFieldRef = ref<InstanceType<typeof InputField> | null>(null);
+const targetAmountFieldRef = ref<InstanceType<typeof FormattedAmountField> | null>(null);
 const categoryFieldRef = ref<InstanceType<typeof CategorySelectField> | null>(null);
 
 const templating = useTransactionTemplating({
@@ -1542,9 +1611,16 @@ onUnmounted(() => {
           v-model="form.tagIds"
           :label="$t('dialogs.manageTransaction.form.tagsLabel')"
           :disabled="isFormFieldsDisabled"
-        />
+        >
+          <template #label-right>
+            <OptionalRemoveButton :label="t(optionalFieldNames.tags)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('tags')" />
+          </template>
+        </TagSelectField>
       </FormRow>
       <div v-if="isAttachmentsAvailable && shownFields.attachments" data-optional-field="attachments">
+        <div class="-mb-1 flex justify-end">
+          <OptionalRemoveButton :label="t(optionalFieldNames.attachments)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('attachments')" />
+        </div>
         <AttachmentsSection
           v-model:pending="pendingAttachments"
           :transaction-id="transaction?.id"
@@ -1561,7 +1637,11 @@ onUnmounted(() => {
           :label="$t('dialogs.manageTransaction.form.externalUrlLabel')"
           :error-message="externalUrlErrorMessage"
           @blur="touchField('form.externalUrl')"
+          non-label-wrapper
         >
+          <template #label-right>
+            <OptionalRemoveButton :label="t(optionalFieldNames.externalUrl)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('externalUrl')" />
+          </template>
           <template v-if="externalUrlHref" #label-after>
             <DesktopOnlyTooltip :content="$t('common.transactions.record.externalLinkTooltip')">
               <a
@@ -1585,7 +1665,12 @@ onUnmounted(() => {
           :label="$t('dialogs.manageTransaction.form.externalReferenceLabel')"
           :error-message="externalReferenceErrorMessage"
           @blur="touchField('form.externalReference')"
-        />
+          non-label-wrapper
+        >
+          <template #label-right>
+            <OptionalRemoveButton :label="t(optionalFieldNames.externalReference)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('externalReference')" />
+          </template>
+        </InputField>
       </FormRow>
       <FormRow v-if="shownFields.location" data-optional-field="location">
         <FieldLabel :label="$t('dialogs.manageTransaction.form.location.label')" only-template>
@@ -1604,6 +1689,7 @@ onUnmounted(() => {
           </template>
           <template #label-right>
             <div class="flex items-center gap-1">
+              <OptionalRemoveButton :label="t(optionalFieldNames.location)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('location')" />
               <Button
                 type="button"
                 variant="ghost-primary"
@@ -1692,7 +1778,11 @@ onUnmounted(() => {
           :suggested-amount="suggestedOriginalAmount"
           :suggested-date="form.time"
           @apply-suggestion="applySuggestedOriginalAmount"
-        />
+        >
+          <template #label-right>
+            <OptionalRemoveButton :label="t(optionalFieldNames.originalAmount)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('originalAmount')" />
+          </template>
+        </AmountWithCurrencyField>
       </FormRow>
       <!-- Refund linking on accounts shared *with* the caller isn't supported by the
            backend yet — hide the field rather than offering a button that errors on
@@ -1826,15 +1916,12 @@ onUnmounted(() => {
                     <CurrencyChip v-if="currencyCode" :code="currencyCode" />
                   </template>
                 </input-field>
-                <input-field
+                <FormattedAmountField
                   v-else
-                  trailing-icon-css-class="px-2"
                   ref="amountFieldRef"
                   v-model="form.amount"
                   :label="$t('dialogs.manageTransaction.form.amountLabel')"
-                  type="number"
                   :disabled="isFormFieldsDisabled || isAmountFieldDisabled"
-                  only-positive
                   :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
                   :error-message="amountErrorMessage"
                   autofocus
@@ -1843,7 +1930,7 @@ onUnmounted(() => {
                   <template #iconTrailing>
                     <CurrencyChip v-if="currencyCode" :code="currencyCode" />
                   </template>
-                </input-field>
+                </FormattedAmountField>
               </form-row>
               <ReuseDateField v-if="isMobileView" />
             </div>
@@ -1948,22 +2035,19 @@ onUnmounted(() => {
 
                 <template v-if="isTargetFieldVisible">
                   <form-row>
-                    <input-field
-                      trailing-icon-css-class="px-2"
+                    <FormattedAmountField
                       ref="targetAmountFieldRef"
                       v-model="form.targetAmount"
                       :disabled="isFormFieldsDisabled || isTargetAmountFieldDisabled"
-                      only-positive
                       :label="$t('dialogs.manageTransaction.form.targetAmountLabel')"
                       :placeholder="$t('dialogs.manageTransaction.form.targetAmountPlaceholder')"
-                      type="number"
                       :error-message="targetAmountErrorMessage"
                       @blur="touchField('form.targetAmount')"
                     >
                       <template #iconTrailing>
                         <CurrencyChip v-if="targetCurrency?.currency?.code" :code="targetCurrency.currency.code" />
                       </template>
-                    </input-field>
+                    </FormattedAmountField>
                   </form-row>
                 </template>
 
@@ -2157,6 +2241,17 @@ onUnmounted(() => {
         <template #title>{{ $t('dialogs.manageTransaction.form.deleteConfirmTitle') }}</template>
         <template #description>{{ $t('dialogs.manageTransaction.form.deleteConfirmDescription') }}</template>
       </ResponsiveAlertDialog>
+      <ResponsiveAlertDialog
+        v-model:open="isOptionalRemovalConfirmOpen"
+        :confirm-label="$t('kasana.optionalFields.remove')"
+        confirm-variant="destructive"
+        @confirm="confirmOptionalRemoval"
+        @cancel="pendingOptionalRemoval = null"
+      >
+        <template #title>{{ $t('kasana.optionalFields.confirmTitle', { name: requestedOptionalName }) }}</template>
+        <template #description>{{ $t('kasana.optionalFields.confirmDescription') }}</template>
+      </ResponsiveAlertDialog>
+
       <div class="ml-auto flex items-center gap-2">
         <DesktopOnlyTooltip
           v-if="isDuplicateVisible"

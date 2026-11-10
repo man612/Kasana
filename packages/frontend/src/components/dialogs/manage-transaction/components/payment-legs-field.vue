@@ -3,7 +3,7 @@ import CurrencyChip from '@/components/common/currency-chip.vue';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import { useExchangeRates } from '@/composable/data-queries/currencies';
 import FieldLabel from '@/components/fields/components/field-label.vue';
-import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import { Button } from '@/components/lib/ui/button';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { formatUIAmount } from '@/js/helpers';
@@ -336,11 +336,10 @@ defineExpose({
 
             <template v-if="legRateInfos[index]" #converted>
               <span class="text-muted-foreground" aria-hidden="true">≈</span>
-              <InputField
-                class="min-w-0 flex-1 rounded-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+              <FormattedAmountField
+                class="min-w-0 flex-1"
                 :model-value="leg.paymentAmount ?? null"
-                type="number"
-                only-positive
+                embedded
                 :aria-label="
                   $t('dialogs.manageTransaction.form.paymentLegs.convertedAmountLabel', { currency: currencyCode })
                 "

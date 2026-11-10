@@ -48,7 +48,7 @@ const triggerText = computed(() => {
   const to = props.modelValue.to;
 
   if (isSameMonth(new Date(), to) && isSameMonth(from, to)) {
-    return t('common.dateSelector.currentMonth');
+    return `${t('common.dateSelector.currentMonth')} · ${format(from, 'MMMM yyyy')}`;
   }
 
   if (from.getMonth() === 0 && from.getDate() === 1 && to.getMonth() === 11 && to.getDate() === 31) {
