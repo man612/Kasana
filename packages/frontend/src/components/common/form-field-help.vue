@@ -19,7 +19,7 @@ const isOpen = ref(false);
         type="button"
         variant="ghost"
         size="icon-sm"
-        class="text-muted-foreground hover:text-foreground size-9 shrink-0 rounded-lg"
+        class="text-muted-foreground hover:text-foreground size-8 shrink-0 rounded-lg"
         :aria-label="t('forms.fieldHelp.open', { field: t(`forms.fieldHelp.${topic}.title`) })"
         :title="t(`forms.fieldHelp.${topic}.title`)"
       >
