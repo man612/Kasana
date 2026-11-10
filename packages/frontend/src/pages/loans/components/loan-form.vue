@@ -314,7 +314,6 @@ const submit = () => {
       :placeholder="$t('forms.loan.namePlaceholder')"
       :error-message="getFieldErrorMessage('form.name')"
       @blur="touchField('form.name')"
-    
       non-label-wrapper
     >
       <template #label-right><FormFieldHelp topic="loanName" /></template>
@@ -329,7 +328,6 @@ const submit = () => {
       :label="$t('forms.loan.loanTypeLabel')"
       :placeholder="$t('forms.loan.loanTypePlaceholder')"
       @update:model-value="(v) => v && (form.loanType = v.value)"
-    
     >
       <template #label-right><FormFieldHelp topic="loanType" /></template>
     </SelectField>
@@ -343,7 +341,6 @@ const submit = () => {
       :label="$t('forms.loan.currencyLabel')"
       :placeholder="$t('forms.loan.currencyPlaceholder')"
       @update:model-value="(v) => v && (form.currencyCode = v.code)"
-    
     >
       <template #label-right><FormFieldHelp topic="loanCurrency" /></template>
     </SelectField>
@@ -356,7 +353,6 @@ const submit = () => {
         :placeholder="$t('forms.loan.originalPrincipalPlaceholder')"
         :error-message="getFieldErrorMessage('form.originalPrincipal')"
         @blur="touchField('form.originalPrincipal')"
-      
       >
         <template #label-right><FormFieldHelp topic="loanPrincipal" /></template>
       </FormattedAmountField>
@@ -393,7 +389,6 @@ const submit = () => {
         :placeholder="$t('forms.loan.interestRatePlaceholder')"
         :error-message="getFieldErrorMessage('form.interestRate')"
         @blur="touchField('form.interestRate')"
-      
         non-label-wrapper
       >
         <template #label-right><FormFieldHelp topic="loanAPR" /></template>
@@ -430,7 +425,6 @@ const submit = () => {
         :placeholder="$t('forms.loan.plannedPaymentPlaceholder')"
         :error-message="getFieldErrorMessage('form.plannedPayment')"
         @blur="touchField('form.plannedPayment')"
-      
         non-label-wrapper
       >
         <template #label-right><FormFieldHelp topic="loanPlanned" /></template>
@@ -448,19 +442,19 @@ const submit = () => {
           <div class="flex items-center gap-1">
             <FormFieldHelp topic="loanMinimum" />
             <template v-if="estimatedMinPaymentLabel">
-          <DesktopOnlyTooltip :content="$t('forms.loan.minPaymentEstimateTooltip')" side="top">
-            <UiButton
-              type="button"
-              variant="link"
-              size="sm"
-              class="text-muted-foreground inline-flex h-auto max-w-full items-center gap-1 p-0 text-xs font-normal whitespace-nowrap no-underline"
-              :aria-label="$t('forms.loan.minPaymentApplyEstimateAriaLabel')"
-              @click="applyEstimatedMinPayment"
-            >
-              <InfoIcon class="size-3 shrink-0" />
-              <span class="truncate hover:underline">{{ estimatedMinPaymentLabel }}</span>
-            </UiButton>
-          </DesktopOnlyTooltip>
+              <DesktopOnlyTooltip :content="$t('forms.loan.minPaymentEstimateTooltip')" side="top">
+                <UiButton
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  class="text-muted-foreground inline-flex h-auto max-w-full items-center gap-1 p-0 text-xs font-normal whitespace-nowrap no-underline"
+                  :aria-label="$t('forms.loan.minPaymentApplyEstimateAriaLabel')"
+                  @click="applyEstimatedMinPayment"
+                >
+                  <InfoIcon class="size-3 shrink-0" />
+                  <span class="truncate hover:underline">{{ estimatedMinPaymentLabel }}</span>
+                </UiButton>
+              </DesktopOnlyTooltip>
             </template>
           </div>
         </template>
@@ -474,7 +468,6 @@ const submit = () => {
       :placeholder="$t('forms.loan.paymentDayPlaceholder')"
       :error-message="getFieldErrorMessage('form.paymentDayOfMonth')"
       @blur="touchField('form.paymentDayOfMonth')"
-    
       non-label-wrapper
     >
       <template #label-right><FormFieldHelp topic="loanPaymentDay" /></template>
@@ -487,7 +480,6 @@ const submit = () => {
         :placeholder="$t('forms.loan.lenderNamePlaceholder')"
         :error-message="getFieldErrorMessage('form.lenderName')"
         @blur="touchField('form.lenderName')"
-      
         non-label-wrapper
       >
         <template #label-right><FormFieldHelp topic="loanLender" /></template>
@@ -498,7 +490,6 @@ const submit = () => {
         :placeholder="$t('forms.loan.accountNumberPlaceholder')"
         :error-message="getFieldErrorMessage('form.accountNumber')"
         @blur="touchField('form.accountNumber')"
-      
         non-label-wrapper
       >
         <template #label-right><FormFieldHelp topic="loanReference" /></template>
