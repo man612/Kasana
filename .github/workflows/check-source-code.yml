@@ -11,6 +11,13 @@ on:
   # enable manual triggers
   workflow_dispatch:
 
+# dorny/paths-filter reads pull-request changed files through the GitHub API.
+# On a private independent repository, the default GITHUB_TOKEN may lack that
+# permission; explicitly grant read-only PR metadata access.
+permissions:
+  contents: read
+  pull-requests: read
+
 env:
   # Total number of backend e2e shards. Must stay in sync with the
   # backend-e2e job's matrix.shardIndex list (a matrix cannot read env vars).
