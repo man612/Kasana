@@ -1,152 +1,90 @@
-> **Independent Indonesia-first deployment:** This repository is a modified copy of [MoneyMatter by letehaha](https://github.com/letehaha/moneymatter), based on v0.33.14. It is not an official MoneyMatter release. Changes and local/VPS instructions: [docs/LOCAL-VPS-ID.md](docs/LOCAL-VPS-ID.md). Original copyright and AGPL-3.0 license are preserved.
-
 <div align="center">
 
-<img src="packages/landing/public/img/logo.svg" width="72" alt="MoneyMatter logo">
+<img src="docs/brand/logo.svg" width="88" alt="Logo Kasana">
 
-# MoneyMatter
+# Kasana
 
-**Open-source personal finance. Your finances, your server, your rules.**
+**Keuangan lebih tertata.**
 
-Accounts, budgets, investments, loans and net worth in one place.<br>
-Self-host it for free, or use the cloud.
+Aplikasi pencatatan keuangan pribadi yang dikembangkan dengan fokus pada kebutuhan pengguna Indonesia. Bisa dijalankan sendiri (*self-hosted*) dan dikembangkan secara terbuka.
 
-[Website](https://moneymatter.app) · [Docs](https://docs.moneymatter.app) · [Self-host](self-hosting/README.md) · [Cloud](https://moneymatter.app/sign-up) · [Roadmap](https://moneymatter.featurebase.app/dashboard/roadmap) · [Community](https://www.reddit.com/r/moneymatterapp/) · [Changelog](https://github.com/letehaha/moneymatter/releases)
+[![Lisensi AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+[![GitHub Actions](https://github.com/man612/Kasana/actions/workflows/check-source-code.yml/badge.svg?branch=main)](https://github.com/man612/Kasana/actions/workflows/check-source-code.yml)
 
-[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![CI](https://img.shields.io/github/actions/workflow/status/letehaha/moneymatter/check-source-code.yml?branch=main&label=CI)](https://github.com/letehaha/moneymatter/actions/workflows/check-source-code.yml)
-[![Release](https://img.shields.io/github/v/release/letehaha/moneymatter)](https://github.com/letehaha/moneymatter/releases)
-[![Crowdin](https://badges.crowdin.net/moneymatter/localized.svg)](https://crowdin.com/project/moneymatter)
+[Panduan instalasi](self-hosting/README.md) · [Pengembangan lokal](docs/LOCAL-VPS-ID.md) · [Laporkan masalah](https://github.com/man612/Kasana/issues) · [Kontribusi](CONTRIBUTING.md)
 
 </div>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="packages/docs/public/screenshots/getting-started/app-overview.dark.png">
-  <img src="packages/docs/public/screenshots/getting-started/app-overview.png" alt="The MoneyMatter dashboard: balance trend, cash flow, expenses structure, latest transactions and a categories watchlist, with accounts, portfolios, vehicles and loans grouped in the sidebar.">
-</picture>
+## Tentang Kasana
 
-<details>
-<summary><b>More screenshots</b></summary>
-<br>
+Kasana adalah modifikasi **independen** dari [MoneyMatter](https://github.com/letehaha/moneymatter) berdasarkan basis kode **v0.33.14**, dilisensikan **AGPL-3.0-only**. Ini **bukan** produk, layanan cloud, atau rilis resmi MoneyMatter. Hak cipta dan pemberitahuan lisensi proyek asal tetap dipertahankan dalam [LICENSE](LICENSE) dan [LICENSING.md](LICENSING.md).
 
-<table>
-  <tr>
-    <td width="50%">
-      <img src="packages/landing/public/img/landing/screenshots/net-worth@2x.webp" alt="Net worth history chart stacked by cash, investments, vehicles and ventures">
-      <br><sub>Net worth history</sub>
-    </td>
-    <td width="50%">
-      <img src="packages/landing/public/img/landing/screenshots/money-flow@2x.webp" alt="Money flow diagram from income through expenses and savings to categories">
-      <br><sub>Money flow</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="packages/landing/public/img/landing/screenshots/investments@2x.webp" alt="Investment portfolio with total value, total return and gains per holding">
-      <br><sub>Investments</sub>
-    </td>
-    <td width="50%">
-      <img src="packages/landing/public/img/landing/screenshots/transactions@2x.webp" alt="Transactions list with categories, accounts and payee logos">
-      <br><sub>Transactions</sub>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%">
-      <img src="packages/landing/public/img/landing/screenshots/bank-providers@2x.webp" alt="Bank provider picker listing LunchFlow, SimpleFIN, Monobank and Walutomat">
-      <br><sub>Bank connections</sub>
-    </td>
-    <td width="50%">
-      <img src="packages/landing/public/img/landing/screenshots/import-sources@2x.webp" alt="Import options: any text source, CSV, OFX, YNAB, Wallet and Microsoft Money">
-      <br><sub>Import sources</sub>
-    </td>
-  </tr>
-</table>
+Fokus Kasana adalah pencatatan uang sehari-hari dengan antarmuka Bahasa Indonesia, nilai default IDR/Rupiah untuk pengguna baru, format angka Indonesia, serta alur yang lebih mudah dipakai pada desktop maupun perangkat seluler.
 
-Every feature is explained, with screenshots, in the [help center](https://docs.moneymatter.app).
+### Kemampuan dalam basis aplikasi
 
-</details>
+- Pencatatan rekening dan transaksi, kategori, transfer, dan impor data.
+- Anggaran, laporan, grafik, serta gambaran saldo dan kekayaan bersih.
+- Pencatatan investasi, kendaraan, pinjaman, dan aset lain yang tersedia dalam basis MoneyMatter.
+- Dukungan berbagai mata uang; default Rupiah **tidak** mengonversi data yang sudah ada.
+- Pengoperasian pada server sendiri menggunakan Docker Compose, PostgreSQL, dan Redis.
 
-MoneyMatter shows you where your money is and where it goes. Add accounts by hand or sync them from your bank, and it turns your transactions into balances, a dashboard and reports in one base currency. It goes beyond cash: investments, loans, vehicles and private deals are part of your net worth too. Any AI agent can work with your data over MCP.
+**Batasan penting:** integrasi sinkronisasi bank yang diwarisi dari MoneyMatter bukan berarti sinkronisasi otomatis dengan bank Indonesia tersedia. Beberapa fitur upstream, teks, dan dokumentasi masih dalam proses penyesuaian. Perubahan UI terbaru direview terpisah dan belum tentu tersedia di branch `main`. Jangan menggunakan status repo Public sebagai tanda aplikasi sudah lolos QA atau siap menyimpan data keuangan produksi.
 
-> [!TIP]
-> [MoneyMatter Cloud](https://moneymatter.app) is the same app, hosted: a 40-day free trial, no card required. Self-hosting is free and every feature is enabled.
+## Menjalankan Kasana dari kode repository ini
 
-## Contents
+Sumber kode ada di **[man612/Kasana](https://github.com/man612/Kasana)**. Perintah yang hanya menggunakan `docker compose up` dengan file base **akan menarik image MoneyMatter upstream**, bukan build Kasana. Gunakan overlay **build + private** berikut.
 
-1. [Features](#features)
-2. [Get started](#get-started)
-3. [Connect an AI agent](#connect-an-ai-agent)
-4. [Documentation](#documentation)
-5. [Tech stack](#tech-stack)
-6. [Contributing](#contributing)
-7. [License](#license)
+### Linux / VPS (contoh)
 
-## Features
-
-- **Accounts** in any currency, manual or [synced from your bank](https://docs.moneymatter.app/import/bank-connections/) through Monobank, SimpleFIN, LunchFlow and Walutomat
-- **Transactions** with categories, payees, tags, splits, attachments, [transfers and refunds](https://docs.moneymatter.app/transfers-and-refunds/how-transfers-work/), and automation rules for new ones
-- **Budgets**, subscriptions and bills with reminders, and loans with a payoff projection
-- **Investments**: portfolios of stocks, ETFs and crypto with daily prices, plus venture deals and [vehicles](https://docs.moneymatter.app/accounts/vehicles/), all counted in your net worth
-- **Reports**: a customizable [dashboard](https://docs.moneymatter.app/stats/dashboard/), cash flow, money flow, net worth history and a [pivot table](https://docs.moneymatter.app/stats/analytics-reports/)
-- **Multi-currency** with [automatic exchange rates](https://docs.moneymatter.app/settings/base-currency-and-currencies/) and one base currency for every total
-- **Import** from [CSV](https://docs.moneymatter.app/import/import-from-csv/), OFX/QFX, [YNAB, Wallet and Microsoft Money](https://docs.moneymatter.app/import/other-import-sources/), or any statement file parsed with AI. Export to JSON, CSV or XLSX, and [back up and restore](https://docs.moneymatter.app/settings/security-and-account/#backup-and-restore) everything
-- **AI**: bring your own model (OpenAI, Anthropic, Google, Ollama or any OpenAI-compatible endpoint) for categorization and statement parsing, and a remote MCP server for Claude, ChatGPT or any agent
-- **Sharing**: share an account or tracker with someone, or give a household member access to all your accounts
-- **Security**: sign in with [email, Google, GitHub or passkeys](https://docs.moneymatter.app/settings/security-and-account/), credentials encrypted at rest, and your data exportable or deletable at any time
-- **Everywhere**: light and dark theme, a layout that works on your phone, and English, Ukrainian, Spanish, Indonesian and Russian
-
-## Get started
-
-**Try it.** The **Try demo** button on [moneymatter.app](https://moneymatter.app) opens a ready-made account with sample data. No sign-up required, and it expires after four hours.
-
-**Self-host.** The stack pulls published Docker images (amd64 and arm64) and exposes the whole app on one port, so you can put it behind whatever reverse proxy you already run, or use the optional Traefik + Let's Encrypt overlay.
+Pastikan Docker Engine dan Docker Compose plugin tersedia, serta RAM dan ruang disk memadai untuk membangun frontend dari source.
 
 ```bash
-git clone https://github.com/letehaha/moneymatter.git
-cd moneymatter/self-hosting
-cp .env.example .env   # then fill the REQUIRED section
-docker compose up -d
+git clone https://github.com/man612/Kasana.git
+cd Kasana/self-hosting
+cp .env.example .env
+# Edit .env: wajib ganti seluruh __REPLACE_ME__ dan atur origin HTTPS untuk VPS
+docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml config --quiet
+docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml up -d --build
 ```
 
-Open `http://<host>:8080`. The [self-hosting guide](self-hosting/README.md) covers the full setup, reverse-proxy recipes, every environment variable and troubleshooting.
+Jangan masukkan `.env`, data transaksi, backup database, atau private key ke Git. Untuk instalasi yang dapat diakses internet, gunakan HTTPS, batasi akses database/Redis, siapkan backup **beserta uji restore**, dan verifikasi login sebelum menggunakan data nyata. Petunjuk lebih rinci: [self-hosting/README.md](self-hosting/README.md) dan [docs/LOCAL-VPS-ID.md](docs/LOCAL-VPS-ID.md).
 
-**Cloud.** [Sign up](https://moneymatter.app/sign-up) for a 40-day free trial with no card. Paid plans start at $30 a year. See [plans and billing](https://docs.moneymatter.app/settings/plans-and-billing/) for details. You can move between cloud and self-hosted in either direction with a backup export and restore.
+### Windows (Docker Desktop)
 
-## Connect an AI agent
+Di PowerShell, dari folder hasil clone repository:
 
-MoneyMatter exposes a remote [MCP](https://modelcontextprotocol.io) server. Add the endpoint to Claude, ChatGPT or any MCP client, pick the access level on the consent screen, and ask questions the UI can't answer: "Which of my subscriptions got more expensive this year?" or "Where can I realistically cut $500 a month?"
-
+```powershell
+.\scripts\setup-local-private.ps1
+.\scripts\run-local-private.ps1
+.\scripts\verify-local-private.ps1
 ```
-https://mcp.moneymatter.app/mcp
-```
 
-A self-hosted instance serves its own endpoint. See `MCP_BASE_URL` in the [environment reference](self-hosting/docs/environment-reference.md). Connected apps are listed and revocable under **Settings → AI**.
+Script menghasilkan konfigurasi lokal terpisah, membangun image Kasana dari source, lalu menjalankan pemeriksaan kesehatan aplikasi tanpa mengubah transaksi. Baca panduan sebelum dijalankan, khususnya jika sudah mempunyai instalasi atau volume Docker yang menyimpan data.
 
-## Documentation
+**Jangan mengganti** nama project/network/image pada `self-hosting/docker-compose.private.yml` hanya karena nama repository berubah. Nama tersebut masih dipertahankan demi kompatibilitas volume Docker dari instalasi terdahulu. Perubahan identitas infrastruktur harus melalui proses migrasi dengan backup dan restore teruji.
 
-- [Help center](https://docs.moneymatter.app): user guides for accounts, transactions, transfers and refunds, stats, imports, bank connections and settings
-- [Self-hosting guide](self-hosting/README.md)
-- [Local development setup](docs/application-setup.md)
-- [Contributing](CONTRIBUTING.md)
+## Struktur repository
 
-## Tech stack
+| Lokasi | Isi |
+| --- | --- |
+| `packages/frontend/` | Vue 3, TypeScript, Vite, UI aplikasi |
+| `packages/backend/` | Node.js, API, autentikasi dan logika data |
+| `packages/shared/` | Tipe dan komponen bersama |
+| `self-hosting/` | Docker Compose, Dockerfile, konfigurasi server |
+| `docs/` | Catatan pengembangan Kasana dan referensi teknis |
+| `packages/docs/`, `packages/landing/` | Materi turunan upstream; bukan bukti adanya situs layanan cloud Kasana |
 
-Vue 3, Vite, TypeScript and Tailwind CSS on the frontend. Node.js, Express, Sequelize, PostgreSQL and Redis with BullMQ on the backend. better-auth for sign-in, the Vercel AI SDK for model access, and the official MCP SDK for the agent server. The docs site runs on Astro Starlight. Everything ships as Docker images.
+## Pengembangan dan status pengujian
 
-## Contributing
+Kasana terus dikembangkan lewat Pull Request. Lihat [GitHub Actions](https://github.com/man612/Kasana/actions), [PR terbuka](https://github.com/man612/Kasana/pulls), dan [issue](https://github.com/man612/Kasana/issues) untuk status terkini. Build berhasil pada satu commit tidak membuktikan seluruh alur transaksi, backup, maupun deploy telah teruji.
 
-Bug reports, fixes and features are welcome. Open an issue first for anything non-trivial, then follow [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and the one-time CLA.
+Paket internal seperti `budget-tracker` serta sebagian file bernama `private` merupakan jejak teknis historis dari basis kode dan instalasi awal. Nama publik repository **Kasana** tidak mengharuskan perubahan identifier internal tersebut.
 
-Translations live on [Crowdin](https://crowdin.com/project/moneymatter). Corrections and new languages are welcome there.
+## Kontribusi, keamanan dan atribusi
 
-## License
+Bug report, perbaikan, dokumentasi, dan kontribusi kode dapat disampaikan melalui [Issues](https://github.com/man612/Kasana/issues) dan Pull Request. Baca [CONTRIBUTING.md](CONTRIBUTING.md). Kasana **tidak** menggunakan perjanjian CLA proyek upstream sebagai syarat kontribusi. Jangan menaruh kredensial ataupun data finansial asli di issue, screenshot, atau log.
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**.
+Untuk laporan kerentanan, baca [kebijakan keamanan Kasana](.github/SECURITY.md); jangan membuka issue publik berisi eksploitasi atau secret.
 
-- ✅ Free to use, study, modify, and self-host
-- ✅ Free to redistribute under the same license
-- ✅ Commercial use permitted (sell hosting, support, custom builds, etc.)
-- 🔄 Modifications must be released under AGPL-3.0
-- 🌐 If you run a modified version as a network service, you must publish your modifications
-
-See [LICENSE](LICENSE) for full details. The project was previously licensed under CC BY-NC-SA 4.0; that license still applies to versions of the codebase prior to the AGPL-3.0 relicensing commit.
+Kode ini dilisensikan [GNU Affero General Public License v3.0](LICENSE). Hak dan kewajiban pemakaian/modifikasi/distribusi mengikuti teks lisensi sebenarnya. Kasana tidak berafiliasi dengan layanan cloud MoneyMatter, dokumentasi eksternal MoneyMatter, atau akun media sosialnya. Riwayat asal dan lisensi tetap tercatat untuk penghormatan kepada kontributor upstream.

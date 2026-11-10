@@ -1,4 +1,7 @@
-# Setup Guide
+# Setup Guide — reference for MoneyMatter upstream
+
+> **Khusus Kasana:** panduan berikut diwarisi dari proyek asal. Perintah `docker compose up -d` tanpa overlay menggunakan image upstream, **bukan Kasana**. Untuk deployment Kasana ikuti [self-hosting/README Kasana](../README.md), gunakan ketiga file Compose `docker-compose.yml`, `docker-compose.build.yml` dan `docker-compose.private.yml`.
+
 
 Run MoneyMatter on your own server. The stack pulls published Docker images
 (amd64 and arm64) and exposes the whole app on **one host port**. You put

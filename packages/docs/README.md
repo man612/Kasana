@@ -1,4 +1,6 @@
-# MoneyMatter docs
+# Dokumentasi turunan MoneyMatter (referensi upstream)
+
+> **Kasana:** paket dokumentasi ini diwarisi dari MoneyMatter dan masih memuat URL, branding, paket langganan, screenshot, dan pengaturan layanan upstream. Ini **bukan** situs dokumentasi Kasana yang sudah diluncurkan. Untuk instalasi Kasana gunakan [README root](../../README.md) dan [panduan self-host](../../self-hosting/README.md). Jangan deploy sebagai situs Kasana tanpa audit semua konten dan aset.
 
 User documentation served at https://docs.moneymatter.app, built with [Astro Starlight](https://starlight.astro.build).
 
