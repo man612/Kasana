@@ -177,9 +177,9 @@ const submit = async () => {
       :placeholder="$t('forms.createVehicle.namePlaceholder')"
       :error-message="getFieldErrorMessage('form.name')"
       @blur="touchField('form.name')"
-    
       non-label-wrapper
-      :aria-label="$t('forms.createVehicle.nameLabel')">
+      :aria-label="$t('forms.createVehicle.nameLabel')"
+    >
       <template #label-right>
         <FormFieldHelp topic="vehicleName" />
       </template>
@@ -210,49 +210,50 @@ const submit = async () => {
         placeholder="Toyota"
         :error-message="getFieldErrorMessage('form.make')"
         @blur="touchField('form.make')"
-      
-      non-label-wrapper
-      :aria-label="$t('forms.createVehicle.makeLabel')">
-      <template #label-right>
-        <FormFieldHelp topic="vehicleMake" />
-      </template>
-    </input-field>
+        non-label-wrapper
+        :aria-label="$t('forms.createVehicle.makeLabel')"
+      >
+        <template #label-right>
+          <FormFieldHelp topic="vehicleMake" />
+        </template>
+      </input-field>
       <input-field
         v-model="form.model"
         :label="$t('forms.createVehicle.modelLabel')"
-        placeholder="Camry"
+        placeholder="Avanza / Vario"
         :error-message="getFieldErrorMessage('form.model')"
         @blur="touchField('form.model')"
-      
-      non-label-wrapper
-      :aria-label="$t('forms.createVehicle.modelLabel')">
-      <template #label-right>
-        <FormFieldHelp topic="vehicleModel" />
-      </template>
-    </input-field>
+        non-label-wrapper
+        :aria-label="$t('forms.createVehicle.modelLabel')"
+      >
+        <template #label-right>
+          <FormFieldHelp topic="vehicleModel" />
+        </template>
+      </input-field>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
-      <input-field v-model="form.trim" :label="$t('forms.createVehicle.trimLabel')" placeholder="XLE" 
+      <input-field v-model="form.trim" :label="$t('forms.createVehicle.trimLabel')" placeholder="G CVT / 160 CBS"
       non-label-wrapper
-      :aria-label="$t('forms.createVehicle.trimLabel')">
-      <template #label-right>
-        <FormFieldHelp topic="vehicleTrim" />
-      </template>
-    </input-field>
+      :aria-label="$t('forms.createVehicle.trimLabel')"
+    >
+        <template #label-right>
+          <FormFieldHelp topic="vehicleTrim" />
+        </template>
+      </input-field>
       <input-field
         v-model="form.year"
         type="number"
         :label="$t('forms.createVehicle.yearLabel')"
         :error-message="getFieldErrorMessage('form.year')"
         @blur="touchField('form.year')"
-      
-      non-label-wrapper
-      :aria-label="$t('forms.createVehicle.yearLabel')">
-      <template #label-right>
-        <FormFieldHelp topic="vehicleYear" />
-      </template>
-    </input-field>
+        non-label-wrapper
+        :aria-label="$t('forms.createVehicle.yearLabel')"
+      >
+        <template #label-right>
+          <FormFieldHelp topic="vehicleYear" />
+        </template>
+      </input-field>
     </div>
 
     <SelectField
@@ -272,9 +273,9 @@ const submit = async () => {
       :label="$t('forms.createVehicle.purchasePriceLabel')"
       :error-message="getFieldErrorMessage('form.purchasePrice')"
       @blur="touchField('form.purchasePrice')"
-    
       non-label-wrapper
-      :aria-label="$t('forms.createVehicle.purchasePriceLabel')">
+      :aria-label="$t('forms.createVehicle.purchasePriceLabel')"
+    >
       <template #label-right>
         <FormFieldHelp topic="vehiclePurchasePrice" />
       </template>
@@ -303,9 +304,9 @@ const submit = async () => {
       :label="$t('forms.createVehicle.customAnnualRatePctLabel')"
       :error-message="getFieldErrorMessage('form.customAnnualRatePct')"
       @blur="touchField('form.customAnnualRatePct')"
-    
       non-label-wrapper
-      :aria-label="$t('forms.createVehicle.customAnnualRatePctLabel')">
+      :aria-label="$t('forms.createVehicle.customAnnualRatePctLabel')"
+    >
       <template #label-right>
         <FormFieldHelp topic="vehicleCustomRate" />
       </template>
@@ -317,9 +318,9 @@ const submit = async () => {
       :label="$t('forms.createVehicle.salvageFloorPctLabel')"
       :error-message="getFieldErrorMessage('form.salvageFloorPct')"
       @blur="touchField('form.salvageFloorPct')"
-    
       non-label-wrapper
-      :aria-label="$t('forms.createVehicle.salvageFloorPctLabel')">
+      :aria-label="$t('forms.createVehicle.salvageFloorPctLabel')"
+    >
       <template #label-right>
         <FormFieldHelp topic="vehicleFloor" />
       </template>
@@ -332,9 +333,9 @@ const submit = async () => {
       :placeholder="$t('forms.createVehicle.currentMileagePlaceholder')"
       :error-message="getFieldErrorMessage('form.currentMileage')"
       @blur="touchField('form.currentMileage')"
-    
       non-label-wrapper
-      :aria-label="$t('forms.createVehicle.currentMileageLabel')">
+      :aria-label="$t('forms.createVehicle.currentMileageLabel')"
+    >
       <template #label-right>
         <FormFieldHelp topic="vehicleMileage" />
       </template>
