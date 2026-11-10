@@ -142,7 +142,8 @@
       "notifications": {
         "success": "Created successfully.",
         "error": "Unexpected error."
-      }
+      },
+      "digitalWalletHint": "For DANA, GoPay, OVO or ShopeePay, use General provisionally. A dedicated e-wallet category is not yet available; balances still belong to their original accounts."
     },
     "directCashTransaction": {
       "methodTypes": {
