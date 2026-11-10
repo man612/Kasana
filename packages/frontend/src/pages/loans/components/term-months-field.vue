@@ -25,7 +25,7 @@
             <ChevronDownIcon class="size-4" />
           </Button>
         </Popover.PopoverTrigger>
-        <Popover.PopoverContent align="end" class="w-48 p-1">
+        <Popover.PopoverContent align="end" class="max-h-[min(24rem,calc(100dvh-3rem))] w-52 overflow-y-auto p-1">
           <div class="text-muted-foreground px-2 py-1.5 text-xs font-medium">
             {{ $t('forms.loan.termPresetsHeader') }}
           </div>
@@ -75,14 +75,20 @@ const { t } = useI18n();
 
 // Year-aligned terms are what users actually quote ("a 30-year mortgage"); the months value beside
 // each one is a sanity-check.
-const PRESET_YEARS = [1, 2, 3, 5, 7, 10, 15, 20, 25, 30];
+// Months are the common unit for Indonesian BNPL, cash loans, and short installments.
+const PRESET_MONTHS = [1, 2, 3, 6, 9, 12, 18, 24];
+const PRESET_YEARS = [3, 5, 7, 10, 15, 20, 25, 30];
 
-const presets = computed(() =>
-  PRESET_YEARS.map((years) => ({
+const presets = computed(() => [
+  ...PRESET_MONTHS.map((months) => ({
+    months,
+    label: t('forms.loan.termPresetMonths', { count: months }),
+  })),
+  ...PRESET_YEARS.map((years) => ({
     months: years * 12,
     label: t('forms.loan.termPresetYears', { count: years }),
   })),
-);
+]);
 
 const selectPreset = (months: number) => {
   emit('update:modelValue', months);
