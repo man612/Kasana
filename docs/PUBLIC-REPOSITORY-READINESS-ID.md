@@ -1,25 +1,30 @@
-# Audit keamanan repository publik Kasana
+# Public Repository Security Readiness
 
-**Status 10 November 2026:** repository sudah Public dengan nama `man612/Kasana`. Audit awal belum mencakup seluruh log GitHub Actions/artifact dan semua histori branch. Jika secret pernah bocor, rotasi pada provider; menghapus dari HEAD tidak menghapus histori.
+> **Historical filename:** This document keeps its `-ID.md` path for link compatibility. Public-facing documentation is now written in English.
 
-Kasana merupakan modifikasi dari MoneyMatter yang berlisensi AGPL-3.0. Kode aplikasi boleh dipublikasikan, tetapi **jangan pernah mempublikasikan** password, token, data keuangan, data VPS, backup database, maupun private key.
+**Status — November 11, 2026:** [`man612/Kasana`](https://github.com/man612/Kasana) is **Public**. An initial check found no high-confidence token patterns in the examined changes, but it did **not** cover every historical commit, branch, Actions log, or artifact. Absence of a pattern match is **not** proof that no secret was exposed.
 
-## Alasan workflow warisan dibatasi
+Kasana is an independent adaptation of [MoneyMatter](https://github.com/letehaha/moneymatter) under AGPL-3.0-only. Publishing source code is appropriate, but never commit passwords, API keys, tokens, database dumps, personal financial data, SSH keys, or production configuration.
 
-Repo independen Kasana mengandung workflow upstream untuk backup PostgreSQL ke R2, deployment VPS/Dokploy, deploy preview dengan restore backup produksi, deployment dokumentasi, dan sinkronisasi Crowdin. Workflow tersebut ditujukan hanya untuk `letehaha/moneymatter`, sehingga job terkait diberi guard `github.repository == 'letehaha/moneymatter'`. Sampai workflow deployment Kasana yang baru diuji dan dikonfigurasi, gunakan prosedur backup/deploy lokal yang telah didokumentasikan, bukan workflow upstream ini.
+## Why inherited infrastructure workflows are restricted
 
-CI lint/test/build tetap aktif untuk Kasana. Workflow memakai concurrency yang membatalkan **hanya** run PR yang sudah digantikan oleh commit baru. Run `main` dan pemicu manual tidak dibatalkan otomatis.
+MoneyMatter included workflows for PostgreSQL backups to R2, VPS deployment, PR previews, documentation publishing, and Crowdin sync. These belong to the upstream project. Kasana's copy uses `github.repository == 'letehaha/moneymatter'` guards so these jobs cannot run on Kasana.
 
-## Audit wajib sebelum ubah visibility
+The standard lint/test/build workflow remains enabled. Its concurrency configuration cancels superseded PR runs while preserving `main` and manually started runs.
 
-1. Periksa file, **seluruh cabang dan sejarah Git**, termasuk commit/file yang sudah dihapus. Tidak cukup hanya memeriksa `main` saat ini. Jalankan secret scanner terhadap seluruh histori (contoh: Gitleaks) dari clone lokal yang aksesnya privat.
-2. Periksa **Actions logs dan artifacts** dari run lama. GitHub akan mempublikasikan riwayat Actions dan log saat repo dijadikan publik. Hapus artifact/log sensitif jika ada, serta rotasi kredensial yang pernah muncul.
-3. Audit daftar `Repository secrets` / `Environment secrets` dan pastikan tidak ada kredensial upstream yang masih dipakai. Tidak perlu menyalin atau memasukkan nilai secret ke Git.
-4. Konfirmasi workflow produksi yang menulis ke VPS, mengirim data ke R2, atau mengubah Docker Hub diblokir untuk Kasana setelah PR ini digabungkan.
-5. Pastikan `.env`, backup database, attachment data, dan private key tetap **di luar Git**. File contoh `.env.example` saja yang boleh ada.
-6. Karena visibility sudah Public, perlakukan history Git dan Actions logs sebagai informasi publik. Audit log dan artifact lama; rotasi semua kredensial yang ditemukan bocor.
-7. Jalankan ulang CI di PR integrasi dan periksa **hasil job sebenarnya**, bukan sekadar status sukses/skipped. Lakukan audit lisensi dan atribusi AGPL sebelum layanan dibuka untuk pengguna lain.
+## Security review checklist
 
-## Batas audit awal
+1. Scan **all Git refs and history**, including deleted files and old branches, with a dedicated secret scanner such as Gitleaks. A scan of `main` alone is insufficient.
+2. Audit old **GitHub Actions logs and artifacts**. Sensitive content may have become publicly visible when repository visibility changed.
+3. Review repository and environment secrets, Actions permissions, third-party apps, and webhooks. Do not display or paste secret values into GitHub issues.
+4. Confirm upstream VPS, R2, Crowdin, and Docker Hub publication workflows are guarded on `main` and in development branches.
+5. Keep `.env`, private keys, backups, and financial data outside Git. A sanitized example file such as `.env.example` may remain tracked.
+6. If secrets are discovered, **revoke or rotate them at the provider first**. Deleting a file from the latest commit does not remove the credential from Git history.
+7. Require actual CI results—not merely a green-looking overview or skipped jobs—before merging financial logic or deploying a live installation.
+8. Preserve the upstream AGPL license, historical notices, and any source-distribution obligations that apply to a network-accessible modified service.
 
-Pada 10 November 2026, pemeriksaan pola secret berkeyakinan tinggi pada diff PR integrasi dan 10 commit Kasana sejak snapshot upstream **tidak menemukan pola token/private key yang dikenal**. Temuan nihil ini **bukan bukti bebas secret**: file lain, string tanpa pola umum, histori luar scope, dan log lama belum semuanya diperiksa.
+## What the initial audit did and did not prove
+
+On November 10, 2026, high-confidence secret-pattern checks on the integration PR diff and ten Kasana commits since the upstream snapshot found no known token or private-key patterns. Eight common secret-file paths had no commits in the history checked. These checks were **limited**, not a comprehensive security audit.
+
+After the repository became Public, GitHub Actions started assigning runners, revealing ordinary test and infrastructure failures that still require separate fixes. Public visibility alone is not a release-approval or security certification.
