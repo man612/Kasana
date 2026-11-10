@@ -21,6 +21,11 @@ permissions:
 
 jobs:
   cla-assistant:
+    # This workflow belongs to the ORIGINAL upstream project. Our private repo
+    # is independent and has no upstream cla-signatures branch; do not demand
+    # contributors sign a separate project's CLA to change our own code.
+    # AGPL-3.0 attribution and LICENSE remain preserved independently.
+    if: github.repository == 'letehaha/moneymatter'
     runs-on: ubuntu-latest
     steps:
       - name: CLA Assistant
