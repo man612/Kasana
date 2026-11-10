@@ -1,5 +1,7 @@
-# Situs landing turunan upstream — belum digunakan untuk Kasana
+# Inherited Landing Site — Not Published by Kasana
 
-Folder ini berasal dari situs pemasaran MoneyMatter, termasuk teks promosi, gambar dan tautan ke layanan cloud proyek asal. **Situs ini bukan landing resmi Kasana dan belum disesuaikan untuk diterbitkan.**
+This folder contains marketing-site material inherited from MoneyMatter, including images, product copy, links, and references to upstream cloud services.
 
-Jangan melakukan deployment publik atas nama Kasana tanpa mengaudit klaim fitur, tautan, kebijakan privasi, syarat layanan, aset merek, analitik, dan informasi pembayaran. Gunakan [README Kasana](../../README.md) untuk informasi produk yang akurat.
+**It is not Kasana's official website and is not ready to be deployed under the Kasana name.**
+
+Before publishing any derivative landing site, review all product claims, navigation links, brand assets, analytics, payment flows, terms, and privacy statements. Use the [Kasana README](../../README.md) for an accurate description of the project in its current state.

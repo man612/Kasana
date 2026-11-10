@@ -1,50 +1,59 @@
-# Audit rename repository dan identitas publik Kasana
+# Repository Rename and Public Identity Audit
 
-Pemeriksaan aktual **10 November 2026**: repo GitHub sekarang [`man612/Kasana`](https://github.com/man612/Kasana), status **Public**, branch utama `main`. Kasana adalah nama kerja, sehingga bisa diganti lagi nanti.
+> **Historical filename:** This document retains its `-ID.md` path so existing GitHub links do not break. Its content is now written in English, in keeping with Kasana's public documentation policy.
 
-## Identitas utama yang sudah disejajarkan di repository
+As of **November 11, 2026**, the repository is [`man612/Kasana`](https://github.com/man612/Kasana), **Public**, with `main` as its default branch. **Kasana** is a working product name and can be renamed again later.
 
-- URL clone, badge CI, issue, kontribusi, dan README: `man612/Kasana`.
-- Panduan Docker memakai image yang **dibangun dari source Kasana** melalui tiga Compose file. Perintah bare `docker compose up` tanpa overlay masih memakai image upstream.
-- CLA dan jalur deployment milik proyek upstream tidak dipakai untuk kontribusi ataupun release Kasana.
-- Registry `server.json` dari upstream dihapus karena mengklaim identitas server serta alamat MCP aktif **MoneyMatter**, bukan Kasana. Registry sendiri perlu disiapkan kembali apabila Kasana memiliki endpoint MCP publik yang benar-benar dioperasikan.
-- File `LICENSE`, `LICENSING.md`, hak cipta dan tautan historis [MoneyMatter](https://github.com/letehaha/moneymatter) **tetap dipertahankan**. Jangan mengganti semuanya secara membabi buta.
+## Verified changes after the rename
 
-## Yang perlu diedit manual di GitHub
+- The clone URL, README, CI badge, issue templates, security policy, and contributor guidance refer to `man612/Kasana`.
+- Docker instructions build **Kasana source** using the base, build, and independent-instance Compose files. Running the base Compose file alone still pulls upstream MoneyMatter images.
+- Inherited upstream CLA enforcement and deployment/backup paths are not enabled for Kasana.
+- The original `server.json` registry was removed because it advertised an unrelated live MoneyMatter MCP service. A Kasana registry descriptor must only be published when a real Kasana-owned endpoint is available.
+- [LICENSE](../LICENSE), [LICENSING.md](../LICENSING.md), original copyrights, and historical [MoneyMatter](https://github.com/letehaha/moneymatter) attribution must be retained.
 
-Konektor yang tersedia tidak memiliki tindakan untuk mengedit GitHub **About**, **Homepage**, dan **Topics**. Edit dari halaman utama repo dengan ikon roda gigi di bagian About.
+## GitHub About: recommended public metadata
 
-**Description (disarankan):**
+The connected repository tools can edit code and pull requests but cannot update the **About description, homepage, topics, or social preview**. These fields require a repository administrator to use GitHub's web settings.
 
-> Kasana — aplikasi keuangan pribadi open-source berfokus Indonesia (IDR, Bahasa Indonesia), self-hosted; berbasis MoneyMatter, AGPL-3.0.
+**Description:**
 
-**Website:** biarkan kosong sampai ada domain Kasana yang benar-benar aktif; jangan memakai `moneymatter.app`.
+> Open-source, self-hosted personal finance with an Indonesia-first experience. Based on MoneyMatter (AGPL-3.0).
 
-**Topics:** `personal-finance`, `budgeting`, `indonesia`, `self-hosted`, `vue`, `typescript`, `agpl-3`.
+**Website:** leave empty until Kasana has its own working, verified official website. Do not use `moneymatter.app`.
 
-**Secrets / Actions:** audit Settings → Secrets and variables, Actions policy, status runner, penggunaan billing; jangan pernah mengirim nilai secret ke issue.
+**Topics:** `personal-finance`, `budgeting`, `expense-tracker`, `self-hosted`, `indonesia`, `rupiah`, `vue`, `typescript`, `agpl-3`.
 
-## Git lokal dan deployment
+**Social preview:** optionally upload a branded 1280×640 PNG/JPEG under 1 MB in Settings → Social preview. Do not present inherited MoneyMatter screenshots as verified Kasana screenshots.
 
-Perbarui Git remote pada setiap komputer/clone yang lama:
+## Repository language policy
+
+- **English:** GitHub About, README files, contributing policy, issue and PR templates, security and conduct policies, and public developer documentation.
+- **Bahasa Indonesia:** the product's default interface, localized UI strings, and user-facing Indonesian examples.
+- Preserve translation resources for other supported languages. A project's documentation language and its default app locale do not need to match.
+- Public copy should be factual and understated. Do not claim Indonesian bank integration, a hosted cloud offering, production readiness, or complete QA unless independently verified.
+
+## Local Git, VPS, and external integrations
+
+Update the `origin` remote on each clone that still uses the old URL:
 
 ```bash
 git remote set-url origin https://github.com/man612/Kasana.git
 git remote -v
 ```
 
-Periksa konfigurasi Dokploy, Portainer, VPS, Cloudflare, CI eksternal, webhooks, dan file konfigurasi lain **sebelum** menerbitkan aplikasi. GitHub me-redirect kebanyakan URL repository lama, tetapi redirect untuk external action `uses: OWNER/REPO@REF` **tidak dijamin** setelah rename.
+Check Git remotes on Windows, VPS, Dokploy/Portainer integrations, Cloudflare, webhooks, external CI and deployment systems, and documentation links. GitHub redirects most old repository URLs, but **renamed GitHub Actions references** such as `uses: OWNER/REPO@REF` are not guaranteed to redirect.
 
-**Jangan mengganti** `name: moneymatter-private`, image `moneymatter-private-*`, dan network `moneymatter-private-net` dalam `self-hosting/docker-compose.private.yml` tanpa backup dan prosedur migrasi. Itu identifier Docker dari instalasi lama dan **tidak mengikuti nama GitHub**. Package internal `budget-tracker` dan skrip `*-private.ps1` juga tidak perlu dipaksa ikut rename.
+**Do not rename production Docker resources just for branding.** The `moneymatter-private` Compose project, `moneymatter-private-net` network, and `moneymatter-private-*` image tags are historical deployment identifiers. A project rename without volume migration can make existing databases appear to vanish. Internal `budget-tracker` package names and `*-private.ps1` filenames are also intentionally retained.
 
-## Status risiko / QA
+## Outstanding release and security requirements
 
-- PR #10 fitur UI masih terpisah, jangan merge hanya untuk menyelesaikan rename.
-- Workflow lint/test/build terkini masih bisa gagal dengan `steps: []` dan runner kosong setelah Public. Ini kegagalan sebelum menjalankan kode; perlu cek status Actions/billing/policy GitHub.
-- Workflow backup/deploy dari upstream sudah dibatasi. **Belum ada deployment otomatis Kasana yang terverifikasi aman**.
-- Folder `packages/docs` dan `packages/landing` masih mengandung sumber pemasaran dan tautan upstream; keduanya **bukan** situs cloud atau dokumentasi resmi Kasana.
-- Audit histori dan Actions logs/artifacts yang dipublikasikan perlu dituntaskan. Kredensial yang pernah bocor wajib dirotasi pada penyedia layanan.
+- [PR #10](https://github.com/man612/Kasana/pull/10) remains a separate UI integration under QA. Repository rename work must not be used as a reason to merge it early.
+- GitHub Actions began acquiring runners and executing tests after public visibility was enabled. Some real frontend/backend tests still failed; see [Issue #11](https://github.com/man612/Kasana/issues/11).
+- Legacy upstream backup and deployment jobs are blocked for Kasana. No Kasana production auto-deploy has been verified.
+- The inherited `packages/docs` and `packages/landing` content is not an official Kasana site.
+- Public Git history and old Actions logs/artifacts still need comprehensive secret auditing. Revoke and rotate exposed credentials at the provider.
 
-Bila nama produk nanti berubah lagi, ulangi pemeriksaan README, URL source, Git remote, About, badge, workflow action references, dokumen, webhook dan konfigurasi deployment. Database dan volume tidak boleh dipindah hanya karena rename.
+For any later product rename, re-check the README, GitHub About, remote URLs, badges, links, workflows, source metadata, webhooks, and deployment configuration. Database migrations must be evaluated separately from branding changes.
 
-Referensi: [GitHub Docs — Renaming a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository).
+Reference: [GitHub Docs — Renaming a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository).

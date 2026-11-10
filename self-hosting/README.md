@@ -1,32 +1,41 @@
-# Kasana — menjalankan aplikasi di server sendiri
+# Self-hosting Kasana
 
-Dokumentasi ini untuk source **[man612/Kasana](https://github.com/man612/Kasana)**, pengembangan independen dari MoneyMatter. Jangan mengira image `letehaha/budget-tracker-*` merupakan image Kasana: image tersebut milik proyek asal.
+This guide runs **[Kasana](https://github.com/man612/Kasana)**, an independent MoneyMatter-based application, on your own machine or server.
 
-**Gunakan ketiga file Compose berikut bersama-sama** untuk menjalankan kode Kasana:
+> **Important:** Docker images tagged `letehaha/budget-tracker-*` belong to MoneyMatter upstream, **not Kasana**. Do not launch only the base Compose file and assume it contains Kasana changes.
 
-- `docker-compose.yml` — layanan dan database bersama (masih turunan upstream).
-- `docker-compose.build.yml` — membangun aplikasi dari source repository Kasana.
-- `docker-compose.private.yml` — mengganti tag image/nama container dan isolasi instalasi independen.
+## How the Compose files fit together
 
-## Quickstart Linux / VPS
+| File | Purpose |
+| --- | --- |
+| `docker-compose.yml` | Inherited service definitions, PostgreSQL, Redis, and networking |
+| `docker-compose.build.yml` | Builds frontend and backend **from Kasana source** |
+| `docker-compose.private.yml` | Keeps Kasana's image tags and Docker resources separate from upstream |
+
+Use all three files together.
+
+## Linux / VPS quickstart
+
+Install Docker Engine with the Compose plugin, then:
 
 ```bash
 git clone https://github.com/man612/Kasana.git
 cd Kasana/self-hosting
 cp .env.example .env
-# Buka .env dan ganti seluruh __REPLACE_ME__, atur origin sesuai URL deployment
+# Edit .env and replace all __REPLACE_ME__ placeholders.
+# For a public server, configure your real HTTPS origin.
 docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml config --quiet
 docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml up -d --build
 docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml ps
 ```
 
-Untuk uji lokal, buka `http://localhost:8080` jika `HTTP_PORT` menggunakan default. Untuk VPS, gunakan HTTPS melalui reverse proxy/Cloudflare Tunnel, atur `BETTER_AUTH_URL` dan `AUTH_ORIGIN` ke origin yang benar, serta batasi akses database dan Redis. Build dari source memerlukan RAM dan ruang disk lebih besar daripada sekadar menarik image.
+For local testing, open `http://localhost:8080` when using the default port. For an internet-facing server, use HTTPS behind a reverse proxy or Cloudflare Tunnel. Configure `BETTER_AUTH_URL`, `AUTH_ORIGIN`, and reverse-proxy headers for the actual origin. Keep database and Redis ports off public interfaces.
 
-**Jangan menjalankan `docker compose up -d` tanpa overlay untuk mengharapkan Kasana.** Perintah itu memakai konfigurasi upstream dan dapat menjalankan aplikasi upstream, bukan perubahan Kasana.
+A build from source can need substantially more RAM and storage than pulling prebuilt images. See [Windows/VPS setup notes](../docs/LOCAL-VPS-ID.md) for practical checks and resource caveats.
 
-## Windows lokal
+## Windows / Docker Desktop
 
-Dari direktori repository di PowerShell:
+From the repository root in PowerShell:
 
 ```powershell
 .\scripts\setup-local-private.ps1
@@ -34,23 +43,26 @@ Dari direktori repository di PowerShell:
 .\scripts\verify-local-private.ps1
 ```
 
-Script lama masih menggunakan akhiran `private`, tetapi mendukung source Kasana. Jangan mengubah nama script atau Docker Compose project pada instalasi yang sudah memiliki volume data hanya agar sama dengan nama repository.
+The `-private` script names are historical; they still build the public Kasana repository from source. These scripts are designed for local development. Do not reuse freshly generated local credentials to overwrite credentials from an existing deployment.
 
-## Penting untuk database
+## Preserving existing data
 
-`docker-compose.private.yml` **sengaja masih memakai** nama project `moneymatter-private`, network `moneymatter-private-net`, serta image lokal bertanda `moneymatter-private-*`. Nama Docker berbeda dari nama repo GitHub. Menggantinya tanpa migrasi dapat menciptakan volume baru sehingga data lama seolah menghilang.
+The `docker-compose.private.yml` overlay deliberately retains the legacy project name `moneymatter-private`, network `moneymatter-private-net`, and local image tags `moneymatter-private-*`. These are **Docker identifiers**, not the GitHub repository name.
 
-- **Jangan gunakan** `docker compose down -v` untuk instance berdata nyata.
-- Back up database, attachment, dan environment secrets. Uji restore pada instance terpisah.
-- GitHub Actions backup/deploy/preview upstream telah dibatasi; **tidak ada deploy otomatis Kasana yang terverifikasi**.
-- Jangan menghubungkan domain publik sebelum login, cookie, backup/restore, dan HTTPS diuji.
+Changing the Compose project name without a migration creates a different resource namespace. An existing database may look empty simply because a **new volume** has been mounted.
 
-## Referensi
+- Do not run `docker compose down -v` against a data-bearing instance.
+- Back up PostgreSQL, attachments, and secrets, then verify a restore in an isolated environment.
+- Audit login, sessions, OAuth redirects, and HTTPS before exposing the app publicly.
+- Kasana has **no verified production auto-deployment**; inherited upstream deploy and backup workflows have been guarded against running here.
 
-- [Panduan Kasana Windows/VPS](../docs/LOCAL-VPS-ID.md)
-- [Konfigurasi environment](docs/environment-reference.md) — turunan upstream, cocokkan lagi dengan konfigurasi Kasana
-- [Reverse proxy](docs/reverse-proxies.md) dan [Traefik](docs/traefik-overlay.md)
-- [Panduan upstream](docs/setup-guide.md) — **referensi arsitektur**, bukan perintah start default Kasana
-- [Issue Kasana](https://github.com/man612/Kasana/issues)
+## Further documentation
 
-Lisensi dan atribusi kode: [AGPL-3.0](../LICENSE) dan [LICENSING.md](../LICENSING.md).
+- [Kasana project overview](../README.md)
+- [Windows/VPS notes](../docs/LOCAL-VPS-ID.md)
+- [Environment variable reference](docs/environment-reference.md) — inherited reference; verify values for Kasana
+- [Reverse proxy recipes](docs/reverse-proxies.md) and [Traefik overlay](docs/traefik-overlay.md)
+- [Upstream-derived setup guide](docs/setup-guide.md) — architecture reference, **not** the default Kasana launch command
+- [Report a problem](https://github.com/man612/Kasana/issues)
+
+See [LICENSE](../LICENSE) and [LICENSING.md](../LICENSING.md) for licensing and upstream attribution.

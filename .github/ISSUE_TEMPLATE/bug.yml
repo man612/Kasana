@@ -1,53 +1,52 @@
-name: Laporan bug Kasana
-description: Laporkan masalah Kasana pada UI, transaksi, Docker, atau pengembangan lokal.
+name: Bug report
+description: Report a bug in Kasana, its interface, or its self-hosted setup.
 labels: ['bug']
 body:
   - type: checkboxes
     attributes:
-      label: Sebelum melapor
+      label: Before submitting
       options:
-        - label: Saya sudah mencari issue serupa dan tidak akan membagikan password, token, atau data keuangan asli.
+        - label: I searched for existing issues and removed all passwords, tokens, and personal financial information.
           required: true
   - type: dropdown
     attributes:
-      label: Lingkungan
+      label: Environment
       options:
-        - Kasana self-hosted (Docker)
-        - Pengembangan lokal (Windows / Linux)
-        - Belum dijalankan / masalah kode
+        - Self-hosted Kasana (Docker)
+        - Local development (Windows / Linux / macOS)
+        - Source code or build pipeline
     validations:
       required: true
   - type: input
     attributes:
-      label: Versi / commit
-      description: Isi SHA commit, nama branch, atau versi. Jika belum tahu, kosongkan.
-      placeholder: main (SHA singkat) atau feat/...
+      label: Version or commit
+      description: Provide the version, branch, or commit SHA if known.
+      placeholder: main at abc1234
   - type: textarea
     attributes:
-      label: Masalah
-      description: Apa yang terjadi? Gunakan contoh dan tangkapan layar tanpa data pribadi.
+      label: What happened?
+      description: Describe the observed behavior using synthetic data where possible.
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Cara mereproduksi
+      label: Steps to reproduce
       placeholder: |
-        1. Buka ...
-        2. Pilih ...
-        3. Terjadi ...
+        1. Open ...
+        2. Select ...
+        3. Observe ...
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Hasil yang diharapkan
+      label: Expected behavior
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Log / error (tanpa data sensitif)
-      description: Hapus secret, cookies, email, token, data rekening, dan transaksi asli sebelum mengirim.
-      render: shell
+      label: Relevant logs or screenshots
+      description: Remove secrets, session cookies, personal details, and real account or transaction data.
   - type: input
     attributes:
-      label: Browser / perangkat
-      placeholder: Chrome Android, Firefox Windows, Safari iOS, dll.
+      label: Browser or device
+      placeholder: Chrome on Android, Firefox on Windows, Safari on iOS, etc.
