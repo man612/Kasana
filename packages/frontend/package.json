@@ -1,6 +1,7 @@
 {
   "name": "budget-tracker-fe",
   "version": "0.33.14",
+  "description": "Kasana frontend — Indonesia-first personal finance interface",
   "private": true,
   "type": "module",
   "scripts": {

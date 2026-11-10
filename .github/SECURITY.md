@@ -1,22 +1,21 @@
-# Kebijakan keamanan Kasana
+# Security Policy
 
-Kasana adalah proyek open-source independen. Repository publik **bukan** tempat yang tepat untuk membagikan password, data rekening, token, private key, cadangan database, ataupun detail eksploitasi yang belum diperbaiki.
+Kasana is an independent open-source project. Public issues and pull requests are **not** appropriate places for passwords, private financial data, tokens, private keys, database backups, or undisclosed exploit details.
 
-## Melaporkan kerentanan
+## Reporting a vulnerability
 
-Gunakan fitur **private vulnerability reporting** GitHub bila telah diaktifkan untuk repository ini:
-https://github.com/man612/Kasana/security/advisories/new
+Use GitHub's [private vulnerability reporting](https://github.com/man612/Kasana/security/advisories/new) if it is enabled for this repository.
 
-Jika tautan tersebut tidak tersedia bagi pelapor, hubungi pemilik repository **secara privat melalui saluran yang sudah Anda miliki**. Jangan memindahkan rincian kerentanan ke issue, diskusi, atau pull request publik.
+If the form is unavailable, use an **existing private channel** to contact the maintainer. If you have no such channel, open a public issue requesting a secure reporting method **without describing the vulnerability or including sensitive information**.
 
-Sertakan reproduksi dengan data dummy, dampak, versi atau SHA commit yang diuji, dan langkah minimal untuk memverifikasi. Hapus kredensial dan data pengguna sebelum mengirim log.
+Include the affected commit or version, a minimal reproduction using dummy data, expected impact, and sanitized logs.
 
-## Ruang lingkup
+## Scope
 
-Kode Kasana yang diterbitkan di repository `man612/Kasana` termasuk dalam ruang lingkup tinjauan. Kasana tidak mengoperasikan situs `moneymatter.app`, image Docker `letehaha/*`, akun Crowdin upstream, atau server milik MoneyMatter; laporkan kerentanan layanan tersebut kepada pengelola yang bersangkutan.
+This policy covers code published in [man612/Kasana](https://github.com/man612/Kasana). Kasana does not operate `moneymatter.app`, Docker images under `letehaha/*`, or MoneyMatter's hosted infrastructure. Report problems with those services to their respective operators.
 
-Tidak ada SLA atau waktu tanggapan tertentu yang dijanjikan. Status rilis dan dukungan keamanan bergantung pada sumber daya pemeliharaan proyek.
+There is no guaranteed response-time SLA or separately maintained long-term support branch at present.
 
-## Mengamankan instalasi sendiri
+## Securing a self-hosted deployment
 
-Gunakan versi yang telah diverifikasi, rahasiakan `.env`, pakai HTTPS, batasi akses PostgreSQL/Redis, dan simpan backup terenkripsi yang telah diuji pemulihannya. Jangan mengekspos instance finansial ke internet hanya karena source code sudah publik.
+Keep `.env` out of version control, use HTTPS, restrict access to PostgreSQL and Redis, and maintain encrypted backups with a tested restore process. Public source code does not mean a particular installation is production-ready.

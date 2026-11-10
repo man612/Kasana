@@ -1,8 +1,8 @@
-# Dokumentasi turunan MoneyMatter (referensi upstream)
+# Inherited MoneyMatter Documentation — Reference Only
 
-> **Kasana:** paket dokumentasi ini diwarisi dari MoneyMatter dan masih memuat URL, branding, paket langganan, screenshot, dan pengaturan layanan upstream. Ini **bukan** situs dokumentasi Kasana yang sudah diluncurkan. Untuk instalasi Kasana gunakan [README root](../../README.md) dan [panduan self-host](../../self-hosting/README.md). Jangan deploy sebagai situs Kasana tanpa audit semua konten dan aset.
+> **Kasana:** This documentation package is inherited from MoneyMatter. Its URLs, subscriptions, screenshots, brand content, and hosted-service instructions have **not** all been adapted for Kasana. It is **not** a published Kasana documentation website. Use the [Kasana project README](../../README.md) and [self-hosting guide](../../self-hosting/README.md) for the active project.
 
-User documentation served at https://docs.moneymatter.app, built with [Astro Starlight](https://starlight.astro.build).
+MoneyMatter's original documentation is served at https://docs.moneymatter.app and built with [Astro Starlight](https://starlight.astro.build). That URL belongs to the upstream project; it is **not** an official Kasana documentation endpoint.
 
 This is a standalone npm project (not a root workspace), so install and run it from this directory:
 
@@ -42,5 +42,9 @@ npm run screenshots:seed   # creates or refreshes docs-test@example.com with dem
 The full workflow lives in the `user-docs` Claude skill (`.claude/skills/user-docs/SKILL.md`).
 
 ## Deployment
+
+Kasana does **not** deploy this documentation to MoneyMatter's Docker Hub or hosting infrastructure. The upstream publish job in `.github/workflows/docs.yml` is guarded to run only in `letehaha/moneymatter`; PR builds can still check documentation changes.
+
+For Kasana documentation, publish only after auditing branding, product claims, licensed assets, and destination infrastructure. The notes below describe **upstream behavior**, not an available Kasana deployment.
 
 `.github/workflows/docs.yml` builds the site on PRs that touch `packages/docs/**`. On `main` it pushes `letehaha/budget-tracker-docs` to Docker Hub and calls the `DOKPLOY_DOCS_DEPLOY_WEBHOOK_URL` secret.
