@@ -105,12 +105,16 @@ function onPointerMove(event: PointerEvent) {
   onboardingStore.setTriggerPosition({
     x: maxX === minX ? 0 : (x - minX) / (maxX - minX),
     y: maxY === minY ? 0 : (y - minY) / (maxY - minY),
-  });
+  }, false);
 }
 
 function finishPointer(event: PointerEvent) {
   if (activePointer !== event.pointerId) return;
-  if (dragging.value) suppressClick = true;
+  if (dragging.value) {
+    suppressClick = true;
+    // Save only the final drop location, not every intermediate move.
+    if (onboardingStore.triggerPosition) onboardingStore.setTriggerPosition(onboardingStore.triggerPosition);
+  }
   clearLongPressTimer();
   dragging.value = false;
   activePointer = null;

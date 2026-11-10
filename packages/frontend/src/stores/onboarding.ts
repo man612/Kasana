@@ -195,13 +195,14 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     return hiddenUntil.value > Date.now();
   });
 
-  const setTriggerPosition = (position: QuickStartPosition) => {
+  const setTriggerPosition = (position: QuickStartPosition, persist = true) => {
     if (!Number.isFinite(position.x) || !Number.isFinite(position.y)) return;
     triggerPosition.value = {
       x: Math.min(1, Math.max(0, position.x)),
       y: Math.min(1, Math.max(0, position.y)),
     };
-    saveLocalSetting(POSITION_STORAGE_KEY, JSON.stringify(triggerPosition.value));
+    // Dragging fires many pointermove events: avoid synchronous storage writes per frame.
+    if (persist) saveLocalSetting(POSITION_STORAGE_KEY, JSON.stringify(triggerPosition.value));
   };
   const resetTriggerPosition = () => {
     triggerPosition.value = null;
