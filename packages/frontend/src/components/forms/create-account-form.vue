@@ -244,6 +244,12 @@ const submit = async () => {
         </Select.SelectContent>
       </Select.Select>
     </FieldLabel>
+    <p
+      v-if="form.accountCategory === ACCOUNT_CATEGORIES.general"
+      class="text-muted-foreground -mt-4 text-xs leading-relaxed"
+    >
+      {{ $t('forms.createAccount.digitalWalletHint') }}
+    </p>
 
     <SelectField
       v-model="form.defaultPaymentType"
