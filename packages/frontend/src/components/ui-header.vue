@@ -170,19 +170,10 @@ const isSettingsRoute = computed(() => String(route.name ?? '').startsWith(ROUTE
 // Keep the fallback deterministic and safe when browser history has no prior app route.
 const detailParents: Record<string, string> = {
   [ROUTES_NAMES.account]: ROUTES_NAMES.accounts,
-  [ROUTES_NAMES.accountsVehicleDetails]: ROUTES_NAMES.accounts,
-  [ROUTES_NAMES.loanDetail]: ROUTES_NAMES.loans,
   [ROUTES_NAMES.investmentAccount]: ROUTES_NAMES.investments,
-  [ROUTES_NAMES.portfolioDetail]: ROUTES_NAMES.investments,
-  [ROUTES_NAMES.portfolioTransactionsImport]: ROUTES_NAMES.investments,
-  [ROUTES_NAMES.venturePlatformsList]: ROUTES_NAMES.venture,
-  [ROUTES_NAMES.ventureDealDetail]: ROUTES_NAMES.venture,
-  [ROUTES_NAMES.goalDetails]: ROUTES_NAMES.goals,
   [ROUTES_NAMES.budgetPlan]: ROUTES_NAMES.budget,
   [ROUTES_NAMES.plannedSubscriptionDetails]: ROUTES_NAMES.plannedSubscriptions,
   [ROUTES_NAMES.plannedTrackerDetails]: ROUTES_NAMES.plannedTrackers,
-  [ROUTES_NAMES.settingsPayeeDetail]: ROUTES_NAMES.settingsPayees,
-  [ROUTES_NAMES.automationDetails]: ROUTES_NAMES.automations,
 };
 const backDestination = computed(() => detailParents[String(route.name ?? '')] ?? null);
 const goBack = () => {
