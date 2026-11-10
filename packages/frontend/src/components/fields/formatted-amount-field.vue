@@ -48,7 +48,7 @@ import { cn } from '@/lib/utils';
 import { computed, nextTick, onMounted, ref } from 'vue';
 
 const props = defineProps<{
-  modelValue: number | null;
+  modelValue?: number | null;
   label?: string;
   placeholder?: string;
   disabled?: boolean;
