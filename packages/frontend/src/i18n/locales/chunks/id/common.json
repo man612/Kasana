@@ -644,6 +644,16 @@
       "removeNamed": "Hapus kolom {name}",
       "confirmTitle": "Hapus kolom {name}?",
       "confirmDescription": "Isian pada kolom ini yang belum disimpan akan dibersihkan. Lampiran yang sebelumnya sudah tersimpan tidak akan dihapus. Lanjutkan?"
+    },
+    "quickStart": {
+      "triggerLabel": "Mulai Cepat, {count} tugas tersisa. Tekan lama lalu geser untuk memindahkan.",
+      "dragHint": "Ketuk untuk membuka. Tekan lama lalu geser untuk memindahkan. Alt + tombol panah untuk mengatur lewat keyboard.",
+      "hideButton": "Sembunyikan",
+      "hideOneHour": "Selama 1 jam",
+      "hideOneDay": "Selama 24 jam",
+      "hideOneWeek": "Selama 7 hari",
+      "resetPosition": "Reset posisi",
+      "hideExplanation": "Tombol akan muncul otomatis setelah waktunya habis. Kamu juga dapat menampilkannya lebih awal dari Pengaturan → Umum."
     }
   }
 }
