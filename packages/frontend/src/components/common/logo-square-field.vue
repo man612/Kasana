@@ -59,15 +59,20 @@ function handleReset() {
       :disabled="disabled"
       :class="
         cn(
-          'bg-background/80 hover:bg-background absolute inset-0 size-full rounded-[inherit] opacity-0 backdrop-blur-sm transition-opacity',
-          !disabled && 'group-focus-within:opacity-100 group-hover:opacity-100',
+          'focus-visible:ring-ring absolute inset-0 z-10 size-full rounded-lg bg-transparent p-0 hover:bg-transparent focus-visible:ring-2 focus-visible:ring-offset-2',
+          disabled && 'pointer-events-none opacity-50',
         )
       "
       :aria-label="$t('common.logo.editAriaLabel')"
       data-test="logo-square-field"
       @click="isOpen = true"
     >
-      <PencilIcon class="size-4" />
+      <span
+        class="bg-card text-foreground border-border pointer-events-none absolute -right-1 -bottom-1 flex size-5 items-center justify-center rounded-md border shadow-sm transition-colors group-hover:bg-accent"
+        aria-hidden="true"
+      >
+        <PencilIcon class="size-3" />
+      </span>
     </Button>
 
     <ResponsiveDialog v-model:open="isOpen">
