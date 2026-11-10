@@ -104,10 +104,14 @@ const ACCOUNT_CATEGORY_ORDER: ACCOUNT_CATEGORIES[] = [
 const selectableAccountCategories = computed(() =>
   Object.entries(ACCOUNT_CATEGORIES_TRANSLATION_KEYS)
     .filter(([category]) => !isDedicatedFlowAccountCategory(category as ACCOUNT_CATEGORIES))
-    .sort(([first], [second]) =>
-      ACCOUNT_CATEGORY_ORDER.indexOf(first as ACCOUNT_CATEGORIES) -
-      ACCOUNT_CATEGORY_ORDER.indexOf(second as ACCOUNT_CATEGORIES),
-    ),
+    .sort(([first], [second]) => {
+      // New or upstream categories should follow the Indonesia-first shortlist,
+      // not jump ahead just because indexOf() returned -1.
+      const firstIndex = ACCOUNT_CATEGORY_ORDER.indexOf(first as ACCOUNT_CATEGORIES);
+      const secondIndex = ACCOUNT_CATEGORY_ORDER.indexOf(second as ACCOUNT_CATEGORIES);
+      const fallback = ACCOUNT_CATEGORY_ORDER.length;
+      return (firstIndex < 0 ? fallback : firstIndex) - (secondIndex < 0 ? fallback : secondIndex);
+    }),
 );
 
 const createAccountMutation = useMutation({ mutationFn: createAccount });
