@@ -1,3 +1,5 @@
+> **Catatan Kasana:** Dokumen di bawah ini adalah arsip CLA untuk proyek MoneyMatter upstream dan **tidak diberlakukan** sebagai syarat kontribusi di repository independen [Kasana](https://github.com/man612/Kasana). Kebijakan kontribusi Kasana ada di [CONTRIBUTING.md](CONTRIBUTING.md). Teks historis di bawah dipertahankan untuk konteks asal proyek.
+
 # MoneyMatter Individual Contributor License Agreement
 
 Thank you for your interest in contributing to MoneyMatter (the "Project"),

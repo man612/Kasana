@@ -1,63 +1,53 @@
-name: Bug report
-description: Something is broken or behaves unexpectedly.
-labels: ['bug', 'needs-triage']
+name: Laporan bug Kasana
+description: Laporkan masalah Kasana pada UI, transaksi, Docker, atau pengembangan lokal.
+labels: ['bug']
 body:
   - type: checkboxes
     attributes:
-      label: Before you start
+      label: Sebelum melapor
       options:
-        - label: >-
-            I searched existing [issues](https://github.com/letehaha/moneymatter/issues),
-            [discussions](https://github.com/letehaha/moneymatter/discussions) and the
-            [Featurebase board](https://moneymatter.featurebase.app/) and found nothing matching.
+        - label: Saya sudah mencari issue serupa dan tidak akan membagikan password, token, atau data keuangan asli.
           required: true
   - type: dropdown
     attributes:
-      label: Where does this happen?
+      label: Lingkungan
       options:
-        - moneymatter.app (cloud)
-        - Self-hosted (Docker)
-        - Local development
+        - Kasana self-hosted (Docker)
+        - Pengembangan lokal (Windows / Linux)
+        - Belum dijalankan / masalah kode
     validations:
       required: true
   - type: input
     attributes:
-      label: Version
-      description: >-
-        Self-hosted: expand the sidebar and copy the "App version" line under your user menu
-        (release + commit), or your `IMAGE_TAG`. Cloud: leave empty.
-      placeholder: v0.29.6 (72520a8)
+      label: Versi / commit
+      description: Isi SHA commit, nama branch, atau versi. Jika belum tahu, kosongkan.
+      placeholder: main (SHA singkat) atau feat/...
   - type: textarea
     attributes:
-      label: What happened?
-      description: Include the exact error text if there is one. Screenshots or a short recording help a lot.
+      label: Masalah
+      description: Apa yang terjadi? Gunakan contoh dan tangkapan layar tanpa data pribadi.
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Steps to reproduce
+      label: Cara mereproduksi
       placeholder: |
-        1. Go to ...
-        2. Click ...
-        3. See ...
+        1. Buka ...
+        2. Pilih ...
+        3. Terjadi ...
     validations:
       required: true
   - type: textarea
     attributes:
-      label: What did you expect?
-  - type: input
-    attributes:
-      label: Bank sync provider
-      description: Only if the bug involves a connected bank.
-      placeholder: SimpleFIN / LunchFlow (bank name)
+      label: Hasil yang diharapkan
+    validations:
+      required: true
   - type: textarea
     attributes:
-      label: Logs or errors
-      description: >-
-        Self-hosted: `docker compose logs backend --since 10m`. Any setup: errors from the browser
-        console (F12 → Console). Remove tokens and personal data.
+      label: Log / error (tanpa data sensitif)
+      description: Hapus secret, cookies, email, token, data rekening, dan transaksi asli sebelum mengirim.
       render: shell
   - type: input
     attributes:
-      label: Browser / device
-      placeholder: Chrome 130 on macOS, Safari on iPhone 15, ...
+      label: Browser / perangkat
+      placeholder: Chrome Android, Firefox Windows, Safari iOS, dll.

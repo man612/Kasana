@@ -1,31 +1,32 @@
-## What and why
+## Tujuan perubahan
 
-<!-- One or two sentences. Link the issue: Closes #123 -->
+<!-- Masalah yang diselesaikan, referensi issue jika ada -->
 
-## Checklist
+## Ruang lingkup dan risiko
 
-### Tests
+<!-- UI, perhitungan nominal, database, auth, Docker, API, migrasi, kompatibilitas -->
+- Perubahan:
+- Risiko / batasan:
+- Dampak pada data lama:
 
-- [ ] Tests added or updated (e2e for new backend endpoints: happy path, empty state, error case)
-- [ ] No logic change, no tests needed
+## Verifikasi
 
-### UI
+- [ ] Pemeriksaan lint/typecheck yang relevan sudah dijalankan, atau alasan belum bisa dijelaskan.
+- [ ] Tes ditambahkan/diperbarui untuk perubahan logika, atau alasan tidak perlu ditulis.
+- [ ] UI mobile/desktop dan navigasi diuji bila ada perubahan tampilan.
+- [ ] Nilai IDR, format angka, loading/empty/error state diuji bila terkait.
+- [ ] Tidak ada secret, data transaksi nyata, atau identitas pribadi di diff dan screenshot.
+- [ ] Dokumentasi/config diperbarui bila perilaku atau deployment berubah.
+- [ ] Atribusi dan lisensi AGPL upstream tidak dihapus.
 
-- [ ] Screenshots or a short recording attached
-- [ ] No UI change
+**Perintah yang dijalankan dan hasilnya:**
 
-### Strings
+```text
+Isi hasil pengujian nyata; jangan mengaku lulus jika job tidak berjalan.
+```
 
-- [ ] New strings added to `en` only (other languages come from Crowdin)
-- [ ] No user-facing strings
+## AI-assisted development
 
-### Database
+<!-- Sebutkan bila memakai AI. Tinjau sendiri dampak perubahan dan keakuratan pengujian. -->
 
-- [ ] Migration included
-- [ ] No schema change
-
-## AI assistance
-
-<!-- None / light / heavy, and which tool. You understand and have run every line in this PR (see CONTRIBUTING.md). -->
-
-<!-- First PR? The CLA bot will ask you to sign once with a single comment. -->
+Kasana tidak mewajibkan CLA terpisah dari MoneyMatter upstream. Lihat [CONTRIBUTING.md](../CONTRIBUTING.md).
