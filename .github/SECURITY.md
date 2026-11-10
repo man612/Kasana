@@ -1,43 +1,22 @@
-# Security Policy
+# Kebijakan keamanan Kasana
 
-## Reporting a vulnerability
+Kasana adalah proyek open-source independen. Repository publik **bukan** tempat yang tepat untuk membagikan password, data rekening, token, private key, cadangan database, ataupun detail eksploitasi yang belum diperbaiki.
 
-**Do not open a public issue for security problems.**
+## Melaporkan kerentanan
 
-Report privately through GitHub's advisory form:
-https://github.com/letehaha/moneymatter/security/advisories/new
+Gunakan fitur **private vulnerability reporting** GitHub bila telah diaktifkan untuk repository ini:
+https://github.com/man612/Kasana/security/advisories/new
 
-Please include:
+Jika tautan tersebut tidak tersedia bagi pelapor, hubungi pemilik repository **secara privat melalui saluran yang sudah Anda miliki**. Jangan memindahkan rincian kerentanan ke issue, diskusi, atau pull request publik.
 
-- What the issue is and its impact
-- Where it happened: `moneymatter.app` or a self-hosted instance (with the image
-  tag or the "App version" shown in the sidebar)
-- Steps to reproduce, or a proof of concept
+Sertakan reproduksi dengan data dummy, dampak, versi atau SHA commit yang diuji, dan langkah minimal untuk memverifikasi. Hapus kredensial dan data pengguna sebelum mengirim log.
 
-You will get an acknowledgement within 7 days. MoneyMatter is maintained by one
-person, so fixes are best effort, but confirmed issues are treated as top
-priority. You will be credited in the advisory unless you ask otherwise.
+## Ruang lingkup
 
-If you used an AI tool to find the issue, say so and make sure you have
-reproduced it yourself against a real instance before reporting.
+Kode Kasana yang diterbitkan di repository `man612/Kasana` termasuk dalam ruang lingkup tinjauan. Kasana tidak mengoperasikan situs `moneymatter.app`, image Docker `letehaha/*`, akun Crowdin upstream, atau server milik MoneyMatter; laporkan kerentanan layanan tersebut kepada pengelola yang bersangkutan.
 
-## Scope
+Tidak ada SLA atau waktu tanggapan tertentu yang dijanjikan. Status rilis dan dukungan keamanan bergantung pada sumber daya pemeliharaan proyek.
 
-- The hosted service at `moneymatter.app`
-- The published Docker images `letehaha/budget-tracker-be` and
-  `letehaha/budget-tracker-fe`
-- This repository's source code
+## Mengamankan instalasi sendiri
 
-Out of scope:
-
-- Misconfiguration of a self-hosted deployment (exposed database or Redis
-  ports, weak `.env` secrets, reverse-proxy setup)
-- Vulnerabilities in third-party services the app connects to (bank data
-  providers, AI providers, Crowdin)
-- Denial of service, rate limiting, or missing security headers without a
-  demonstrated impact
-
-## Supported versions
-
-Only the latest release and the `latest` Docker images receive security fixes.
-Self-hosters should stay on a recent release.
+Gunakan versi yang telah diverifikasi, rahasiakan `.env`, pakai HTTPS, batasi akses PostgreSQL/Redis, dan simpan backup terenkripsi yang telah diuji pemulihannya. Jangan mengekspos instance finansial ke internet hanya karena source code sudah publik.

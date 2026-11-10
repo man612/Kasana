@@ -1,86 +1,57 @@
-# Connect an AI agent to MoneyMatter
+# Menghubungkan AI agent ke Kasana (self-hosted)
 
-MoneyMatter exposes a remote Model Context Protocol (MCP) server. Connecting an
-agent to this server gives the agent OAuth-secured access to the user's
-financial data: accounts, transactions (including planned
-ones, refunds, transfers, splits and attachments), categories, tags, tag
-reminders, payees, trackers, budget plans, savings goals, subscriptions,
-transaction automations and templates, loans, vehicles, currencies and exchange rates,
-investment portfolios, holdings, investment
-transactions, venture deals, and duplicate cleanup. Bank connections can
-be read and an account unlinked from its bank; sharing is read only; imports can be
-listed and undone. The agent can
-read these records and — when the user grants the corresponding scopes —
-create, edit, and delete them.
+Kasana memuat server Model Context Protocol (MCP) berbasis OAuth pada backend.
+Agent dapat membaca dan, bila izin diberikan, mengubah data keuangan pengguna.
+Berikan izin seminimal mungkin: `finance:read` lebih aman untuk tahap uji.
+Jangan membagikan kredensial, token, ataupun data rekening nyata lewat issue.
 
-Use this skill when the user asks to "connect Claude to my budget", "hook up
-ChatGPT to MoneyMatter", "let my AI see my finances", or similar.
+**Penting:** Kasana merupakan proyek independen dari MoneyMatter.
+Kasana belum memiliki layanan cloud atau endpoint MCP publik yang
+terverifikasi. **Jangan memakai `mcp.moneymatter.app` atau proses login
+`moneymatter.app` untuk menghubungkan akun Kasana**, karena kedua alamat itu
+milik proyek upstream, bukan deployment Kasana.
 
-## Endpoints
+## Endpoint instalasi sendiri
 
-- **MCP transport**: `https://mcp.moneymatter.app/mcp` (Streamable HTTP)
-- **Server card**: <https://moneymatter.app/.well-known/mcp/server-card.json>
-- **OAuth Authorization Server metadata**: <https://moneymatter.app/.well-known/oauth-authorization-server>
-- **OAuth Protected Resource metadata**: <https://moneymatter.app/.well-known/oauth-protected-resource>
+Sesudah Kasana berhasil di-deploy melalui HTTPS dengan URL misalnya
+`https://finance.example.com`, endpoint yang harus diuji adalah:
 
-## OAuth scopes
+- MCP: `https://finance.example.com/mcp`
+- Server card: `https://finance.example.com/.well-known/mcp/server-card.json`
+- OAuth authorization metadata: `https://finance.example.com/.well-known/oauth-authorization-server`
+- OAuth protected resource metadata: `https://finance.example.com/.well-known/oauth-protected-resource`
 
-| Scope            | Purpose                                                          |
-| ---------------- | ---------------------------------------------------------------- |
-| `finance:read`   | Read accounts, transactions, trackers, budget plans, analytics   |
-| `finance:write`  | Create and edit transactions, trackers, subscriptions, and more  |
-| `finance:delete` | Permanently delete records (transactions, trackers, portfolios…) |
-| `profile:read`   | Read the user's profile (name, email, base currency)             |
-| `offline_access` | Receive a refresh token so sessions survive expiration           |
+`finance.example.com` adalah **contoh**, bukan server yang disediakan
+Kasana. Sesuaikan `BETTER_AUTH_URL`, `AUTH_ORIGIN`, `MCP_BASE_URL` dan
+konfigurasi reverse proxy sebelum mencoba koneksi. Periksa login, consent
+screen, callback, refresh token, dan izin akses dengan data dummy dahulu.
 
-The MoneyMatter consent screen lets the user grant or deny `finance:write` and
-`finance:delete` independently. Always request the narrowest set of scopes
-sufficient for the job — read-only agents should not request write or delete.
-Users can revoke a connected app at any time from the MoneyMatter settings
-page.
+## Ruang lingkup izin
 
-## Toolsets
+| Scope | Kegunaan |
+| --- | --- |
+| `finance:read` | Membaca transaksi, rekening, anggaran, dan laporan |
+| `finance:write` | Menambah atau mengubah data sesuai izin tool |
+| `finance:delete` | Menghapus data; hindari bila tidak diperlukan |
+| `profile:read` | Membaca identitas akun dasar |
+| `offline_access` | Memberikan refresh token, bila disetujui |
 
-Tools come in toolsets. `core` is always registered; every other toolset is
-granted with its own `toolset:<id>` scope, which the user ticks on the consent
-screen (none are ticked by default). Request every toolset scope you might
-need: the user narrows them down. A session lists only the tools of the
-toolsets its token was granted, so a tool missing from `tools/list` means the
-user didn't grant its toolset; ask them to reconnect the app and tick it.
+Toolset selain `core` membutuhkan izin `toolset:<id>` terkait. Pengguna
+dapat menolak izin yang tidak diperlukan dan mencabut aplikasi terhubung
+melalui pengaturan Kasana.
 
-| Toolset            | Scope                      | Covers                                                                                                   |
-| ------------------ | -------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `core`             | none, always on            | Profile, accounts, transactions, transfers and refunds, attachments, categories, tags, payees, analytics |
-| `subscriptions`    | `toolset:subscriptions`    | Subscriptions, their periods and candidates, planned transactions                                        |
-| `budget-plans`     | `toolset:budget-plans`     | Budget plans, their groups, lines and line goals, savings goals                                          |
-| `trackers`         | `toolset:trackers`         | Trackers, their lines and suggestions                                                                    |
-| `automations`      | `toolset:automations`      | Transaction automations, payee aliases, ignored payee names, tag reminders                               |
-| `review`           | `toolset:review`           | Refund and transfer matches, duplicate cleanup, stuck pending transactions                               |
-| `groups-templates` | `toolset:groups-templates` | Transaction groups and transaction templates                                                             |
-| `investments`      | `toolset:investments`      | Portfolios, holdings, securities, investment transactions, portfolio transfers                           |
-| `ventures`         | `toolset:ventures`         | Venture platforms, deals and events                                                                      |
-| `loans-vehicles`   | `toolset:loans-vehicles`   | Loans and vehicles                                                                                       |
-| `currencies`       | `toolset:currencies`       | User currencies and exchange rates                                                                       |
-| `imports`          | `toolset:imports`          | Import batches (list, undo), bank connections (status, unlink an account), sharing (read only)           |
+## Langkah koneksi
 
-The server card gives each tool's toolset in its `toolset` field.
+1. Siapkan instance Kasana sendiri dengan HTTPS dan autentikasi yang telah diuji.
+2. Masukkan URL MCP milik **instance Kasana**, bukan URL upstream, ke klien AI.
+3. Verifikasi domain pada halaman login dan persetujuan OAuth.
+4. Berikan izin seperlunya, lalu uji satu operasi baca menggunakan data dummy.
+5. Baru setelah aman, pertimbangkan izin tulis atau hapus untuk tugas tertentu.
 
-## Setup steps (Claude Desktop, Claude.ai, ChatGPT, OpenClaw)
+## Daftar tool MCP
 
-1. Ensure the user has a MoneyMatter account. If not: direct them to
-   <https://moneymatter.app/sign-up>.
-2. In the agent client, add a new MCP server using the URL
-   `https://mcp.moneymatter.app/mcp`.
-3. The client discovers the OAuth authorization server from the
-   `/.well-known/oauth-protected-resource/mcp` endpoint automatically.
-4. The client opens a browser window for the user to sign in and authorize
-   the requested scopes. The user grants consent in the MoneyMatter UI.
-5. On success, the agent receives tokens and can list the tools exposed by
-   the server (see below).
-
-## Available tools
-
-Tools are grouped by toolset. Tools marked with a scope need that OAuth scope; the rest only read.
+Bagian di bawah ini dihasilkan otomatis dari kode backend. Jangan menyunting
+isi tabel di antara penanda generated; perbarui generator jika tool berubah.
 
 <!-- BEGIN GENERATED TOOL TABLES: npm run mcp:generate-metadata -->
 
