@@ -1,12 +1,14 @@
 # Kasana
 
-Kasana adalah aplikasi keuangan pribadi versi mandiri untuk pengguna Indonesia,
-dikembangkan sebagai modifikasi MoneyMatter v0.33.14 (AGPL-3.0).
+Kasana is an open-source, self-hosted personal finance application with an Indonesia-first experience. It is an independent adaptation of MoneyMatter v0.33.14 under AGPL-3.0.
 
-- URL lokal: http://localhost:8080
-- Fitur utama: rekening manual, transaksi, anggaran, laporan, tabungan, aset, pinjaman, dan investasi.
-- IDR dan bahasa Indonesia diprioritaskan; mata uang lain tetap didukung.
-- Koneksi bank otomatis terutama mendukung lembaga luar negeri, bukan otomatis BCA/BRI/Mandiri.
-- Tidak ada akun cloud MoneyMatter atau langganan yang diperlukan untuk self-hosting ini.
-- Dokumentasi lokal: /panduan.html
-- Informasi hukum dan source: /legal.html
+- Source code: https://github.com/man612/Kasana
+- Default local access after setup: http://localhost:8080
+- Core areas: manual accounts, transactions, transfers, imports, budgets, reports, savings goals, assets, loans, and investments.
+- Indonesian-language interface and IDR-oriented defaults; other supported currencies remain available.
+- Automatic integration with Indonesian banks or e-wallets is not provided or claimed.
+- A self-hosted instance does not require an account with the upstream hosted service.
+- Local getting-started guide: /panduan.html
+- Legal notice and corresponding source: /legal.html
+
+Kasana is independent of the upstream MoneyMatter commercial service. See the repository README for development status, tested features, and deployment prerequisites.
