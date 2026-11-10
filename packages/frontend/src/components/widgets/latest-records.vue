@@ -34,6 +34,7 @@ import {
   readLatestRecordsTagsVariant,
 } from './latest-records-config';
 import { useIncludePlannedConfig, useWidgetConfigFlag } from './use-include-planned-config';
+import { getLatestRecordsState } from './latest-records-state';
 
 // Days ahead threshold for "upcoming" payments shown in the widget.
 const UPCOMING_DAYS_WINDOW = 3;
@@ -141,8 +142,15 @@ function formatDueDate({ dueDate }: { dueDate: string }): string {
 const isFetching = computed(() => isTxFetching.value || (includeScheduled.value && isScheduledFetching.value));
 // Upcoming/overdue scheduled payments count as content even if there are no
 // recorded transactions. Wait until both requests settle before showing empty.
-const isInitialLoading = computed(() => isFetching.value && pastTransactions.value.length === 0 && scheduledRows.value.length === 0);
-const isDataEmpty = computed(() => !isFetching.value && pastTransactions.value.length === 0 && scheduledRows.value.length === 0);
+const presentationState = computed(() =>
+  getLatestRecordsState({
+    isFetching: isFetching.value,
+    transactionCount: pastTransactions.value.length,
+    scheduledCount: scheduledRows.value.length,
+  }),
+);
+const isInitialLoading = computed(() => presentationState.value.isInitialLoading);
+const isDataEmpty = computed(() => presentationState.value.isDataEmpty);
 
 const reportDashboardEmpty = inject<((isEmpty: boolean) => void) | null>('dashboard-widget-empty-change', null);
 watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: true });

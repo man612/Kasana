@@ -10,6 +10,7 @@ import { GripVerticalIcon, XIcon } from '@lucide/vue';
 import { computed, defineAsyncComponent, provide, ref, toRef, watch } from 'vue';
 
 import type { Period } from '../types';
+import { getEffectiveDashboardRowSpan } from './dashboard-widget-layout';
 
 const props = defineProps<{
   widgetConfig: DashboardWidgetConfig;
@@ -60,9 +61,12 @@ const ROW_SPAN_CLASSES: Record<number, string> = {
 
 const colSpanClass = computed(() => COL_SPAN_CLASSES[props.widgetConfig.colSpan] ?? COL_SPAN_CLASSES[1]);
 const effectiveRowSpan = computed(() =>
-  props.widgetConfig.widgetId === 'latest-records' && !props.isEditMode && latestRecordsEmpty.value
-    ? 1
-    : (props.widgetConfig.rowSpan ?? 1),
+  getEffectiveDashboardRowSpan({
+    widgetId: props.widgetConfig.widgetId,
+    rowSpan: props.widgetConfig.rowSpan,
+    isEditMode: props.isEditMode,
+    isDataEmpty: latestRecordsEmpty.value,
+  }),
 );
 const rowSpanClass = computed(() => ROW_SPAN_CLASSES[effectiveRowSpan.value] ?? '');
 
