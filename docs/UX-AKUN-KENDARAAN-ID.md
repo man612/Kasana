@@ -1,67 +1,76 @@
-# Audit UX: membuat rekening dan kendaraan — Indonesia
+# Kasana UX Review — Account and Vehicle Creation for Indonesia
 
-Tanggal: 10 November 2026. Referensi: kode MoneyMatter v0.33.14 yang dimodifikasi untuk Kasana, dokumentasi asli `packages/docs/src/content/docs/accounts/`, Actual Budget, Bank Indonesia, serta praktik aksesibilitas W3C WCAG 2.2.
+**Review date:** November 10, 2026. References include the Kasana-modified MoneyMatter v0.33.14 codebase, original account documentation in `packages/docs/src/content/docs/accounts/`, Actual Budget, Bank Indonesia, and WCAG 2.2.
 
-## Status implementasi pada branch ini
+## Current implementation status
 
-- **Sudah diubah:** tombol edit logo dengan badge pensil kecil di sudut, tanpa overlay gelap menutupi gambar; area klik tetap seluruh logo.
-- **Sudah diubah:** komponen `form-field-help.vue` yang memakai `ResponsiveDialog` (bottom drawer pada mobile, dialog pada desktop), serta bantuan kontekstual di semua kolom utama formulir akun dan kendaraan.
-- **Sudah diubah:** 19 topik penjelasan dengan terjemahan Indonesia dan Inggris, termasuk contoh nyata dan catatan risiko.
-- **Sudah diubah:** urutan kategori rekening menonjolkan tunai, rekening transaksi/giro, tabungan, kartu kredit, umum, investasi, dll., tanpa mengubah enum atau data lama.
-- **Sudah diubah:** fallback metode pembayaran baru tidak lagi mengasumsikan kartu kredit; apabila preferensi global/rekening tidak ada, biarkan belum terpilih.
-- **Belum dilakukan:** menambah enum kategori e-wallet, MPV, LCGC, atau kurva penyusutan lokal, serta mengubah rumus saldo. Perlu rancangan data, migrasi, dan test tersendiri.
-- **Belum tervalidasi secara penuh:** build Vue, automated UI testing, dan uji touch/keyboard/layar kecil. Cabang ini sengaja tidak mengubah image Docker atau data finansial.
+- **Implemented:** a small corner pencil badge for editing account logos, replacing the dark overlay while preserving the full image as a click target.
+- **Implemented:** a shared `form-field-help.vue` component using `ResponsiveDialog` (mobile bottom drawer, desktop dialog) and contextual guidance throughout key account and vehicle form fields.
+- **Implemented:** 19 help topics with English and Indonesian translations, practical examples, and risk notes.
+- **Implemented:** a more relevant account-category ordering (cash, checking/transaction accounts, savings, credit cards, general, investments, etc.) without changing existing enum values or user records.
+- **Implemented:** new payment-type selection no longer assumes a credit card when no account or global preference exists.
+- **Not implemented:** separate e-wallet, MPV, LCGC, or local depreciation enum values; changes to account balance calculations. Those require data-model decisions, migrations, and independent regression tests.
+- **Not yet fully validated:** Vue build, automated UI tests, mobile touch/keyboard/small-screen QA. No Docker production images or financial data were deliberately modified.
 
-## Konsep: di mana uang vs untuk apa uang dipakai
+## Accounts, spending categories, and budgets are different
 
-Akun menyimpan lokasi uang atau kewajiban nyata (BCA, DANA, tunai, rekening investasi). Kategori pengeluaran menyimpan alasan pengeluaran (makan, transportasi). Anggaran mengalokasikan dana untuk tujuan. Portofolio investasi menyimpan posisi saham, reksa dana, emas dan nilainya. Hindari menjumlahkan ulang posisi investasi sebagai saldo akun biasa jika portofolio sudah dicatat.
+An **account** records where money or debt actually resides: BCA, DANA, cash, a broker, or a lender. An **expense category** records why money was spent, such as food or transport. A **budget** allocates spending capacity. An **investment portfolio** tracks holdings and values.
 
-Contoh: anggaran makan Rp600.000 bisa didanai dari BCA, DANA dan uang tunai. Buat akun BCA/DANA/tunai dan kategori Makan, bukan tiga salinan saldo uang makan.
+Avoid counting the same investment holdings again as a conventional bank balance if they are already included in net worth.
 
-## Kategori akun yang relevan untuk Indonesia (usulan lanjutan)
+For example, a monthly food budget of Rp600,000 might draw from BCA, DANA, and cash. Create those three accounts and a Food category, rather than three duplicate copies of the food budget balance.
 
-Rekening bank/transaksi; dompet digital/e-money; tunai; tabungan/deposito; kartu kredit; akun investasi/perantara; kripto; lainnya. “Giro” sebaiknya tidak dijadikan sinonim untuk semua rekening tabungan pribadi: menurut BI, giro memakai mekanisme cek/bilyet giro. “E-wallet” perlu enum tersendiri, tidak bisa diselesaikan hanya mengganti label `general`.
+## Account categories relevant to Indonesia — proposed later work
 
-Tetap pertahankan kategori produk khusus yang diperlukan untuk data lama. Tampilkan opsi langka di kelompok “Lainnya / lanjutan” alih-alih menghapusnya.
+Potential categories include checking/transaction accounts, e-money and e-wallets, cash, savings/deposits, credit cards, brokerage/investment accounts, crypto, and other.
 
-## Metode pembayaran bukan sumber dana
+In Indonesia, *giro* refers to a specific bank account mechanism, not every personal savings account. A true e-wallet category requires its own enum or compatible data model; renaming the existing `general` label alone is misleading.
 
-QRIS merupakan kanal pembayaran, bukan jenis saldo. Bank Indonesia menyebut sumber QRIS dapat berupa simpanan bank, kartu, fasilitas kredit, atau uang elektronik. Contoh: QRIS dari BCA => akun BCA, cara bayar digital, kategori Makan. Jangan menyamakan QRIS dengan akun DANA.
+Preserve legacy categories for existing records. Uncommon types can be grouped under an advanced or Other section rather than removed.
 
-## Batas kredit
+## Payment method is not a funding account
 
-`creditLimit` adalah limit fasilitas kredit (kartu kredit atau cerukan), bukan dana positif yang bisa dibelanjakan. Contoh limit Rp10 juta, tagihan Rp2 juta => sisa limit Rp8 juta, utang tetap Rp2 juta. Pengaturan `Include credit limits in balance` dapat mengurangkan limit dari saldo rekening yang sudah termasuk limit. Jika rekening sudah mencatat utang negatif Rp2 juta, jangan mengurangkan Rp10 juta lagi; nilai negatif Rp12 juta merupakan penghitungan ganda.
+QRIS is a **payment channel**, not a balance category. A QRIS transaction may draw from a bank deposit, card, credit facility, or e-money. A QRIS payment funded by BCA should be recorded against the **BCA account**, with the correct expense category—not automatically as a DANA balance.
 
-**Usulan berikutnya:** tampilkan bidang `creditLimit` hanya saat kategori kartu kredit atau cerukan dan berikan pratinjau konsekuensi saldo. Sebelum menerapkan, ubah unit test yang saat ini mengasumsikan seluruh kategori dapat mengisi limit.
+## Credit limits are not available cash
 
-## Kendaraan: model data yang lebih sesuai Indonesia (butuh tahap kedua)
+`creditLimit` represents a credit facility such as a credit card or overdraft, not a positive asset. Example: a Rp10 million limit and a Rp2 million bill imply Rp8 million unused limit, but the outstanding debt remains Rp2 million.
 
-Enum kini: sedan, SUV, truck, luxury, EV, motorcycle, other. Ini mencampur bentuk bodi, segmen harga dan sumber tenaga. Usulan skema dua/tiga dimensi:
-- Jenis: mobil penumpang, sepeda motor, kendaraan niaga, lainnya.
-- Bentuk mobil: MPV, SUV, sedan, hatchback, city car, pickup, minibus, van; LCGC adalah segmen/program pasar, bukan bentuk bodi.
-- Bentuk motor: skutik, bebek, sport, trail, listrik, lainnya.
-- Penggerak: bensin, diesel, hybrid, listrik; pisahkan dari tipe bodi.
-- Merek, model, varian, tahun produksi, tanggal beli, harga perolehan, odometer, dan kondisi sebagai data independen.
+The existing `Include credit limits in balance` behavior can subtract credit limits from balances that already include them. If an account already records Rp2 million of debt, subtracting another Rp10 million can create double-counting. The interface must explain its configuration clearly.
 
-Tidak boleh langsung menambah opsi MPV/LCGC dengan `VEHICLE_CLASS.other` di belakang layar sambil menjanjikan kurva lokal: itu menimbulkan estimasi yang menyesatkan.
+**Proposed future improvement:** show `creditLimit` only for relevant account types and preview the balance impact. Update tests before changing schema expectations.
 
-## Penyusutan kendaraan yang benar-benar digunakan source saat ini
+## Vehicle data model — future Indonesia-specific design
 
-`packages/shared/src/types/vehicles.ts` berisi kurva luar negeri, misalnya sedan 20% tahun pertama dan 15% tahun kedua dari nilai tersisa. `Slow` memakai multiplier 0,7, `Fast` 1,3; `Custom` persentase tahunan tetap. `salvageFloorPct` batas bawah proyeksi, bukan jaminan nilai jual. `currentMileage` disimpan untuk catatan, **tidak masuk perhitungan**. Rumus menggunakan harga dan tanggal pembelian sendiri, termasuk pembelian bekas. Harga beli, tanggal beli dan mata uang tidak bisa diubah setelah membuat kendaraan menurut dokumentasi asli.
+The inherited enum combines body style, price segment, and powertrain: sedan, SUV, truck, luxury, EV, motorcycle, and other. A more useful future schema could separate:
 
-Tampilkan peringatan yang jujur sebelum membuat aset. Dalam versi berikutnya, gunakan pembanding harga pasar Indonesia yang memiliki sumber dan tanggal, disertai opsi koreksi nilai manual; jangan mengklaim kurva awal sudah akurat untuk Indonesia.
+- **Vehicle kind:** passenger car, motorcycle, commercial vehicle, other.
+- **Car body:** MPV, SUV, sedan, hatchback, city car, pickup, minibus, van; LCGC is a market/policy segment, not a body shape.
+- **Motorcycle kind:** scooter, underbone, sport, trail, electric, other.
+- **Powertrain:** petrol, diesel, hybrid, electric; independent of body style.
+- **Identity and condition:** brand, model, trim, model year, purchase date, purchase price, odometer, and condition.
 
-## Kriteria penerimaan sebelum merge
+Do not quietly map MPV/LCGC onto `VEHICLE_CLASS.other` while claiming accurate Indonesia-specific depreciation. That would make projections misleading.
 
-- `vue-tsc --noEmit` dan `vite build` tanpa error.
-- Seluruh tombol bantuan membuka dialog/drawer responsif, tidak membuat form tersubmit, serta bisa ditutup dengan keyboard dan swipe sesuai kontrol komponen.
-- Label dan contoh tetap akurat di mode bahasa Indonesia maupun Inggris.
-- Logo terpilih (ikon, huruf, merek, gambar unggahan) tetap terlihat; tombol pena kecil, dapat diketuk di mobile, tanpa lapisan gelap menutupi logo.
-- Form akun tetap mengirim enum, limit, dan default metode pembayaran yang valid; form kendaraan tidak mengubah payload.
-- Dropdown modal tidak melewati batas layar dan tetap dapat di-scroll.
-- Tidak ada perubahan migrasi database ataupun saldo transaksi yang sudah tersimpan.
+## Current vehicle depreciation behavior
 
-## Rujukan publik
+The inherited values in `packages/shared/src/types/vehicles.ts` use overseas-style example curves (for instance, sedan 20% in year one and 15% in year two of remaining value). `Slow` uses a 0.7 multiplier and `Fast` uses 1.3; `Custom` applies a constant annual percentage.
+
+`salvageFloorPct` sets a projected lower bound, **not** a guaranteed resale price. `currentMileage` is stored for reference but is **not** included in depreciation calculations. The estimate uses the entered purchase price and purchase date, including for used vehicles. Original documentation states purchase price/date/currency cannot be edited after vehicle creation.
+
+Present these limitations clearly. A future valuation feature should use dated, sourced Indonesian market comparisons and allow manual corrections rather than claiming these inherited curves are locally accurate.
+
+## Acceptance criteria before merge
+
+- `vue-tsc --noEmit` and `vite build` complete successfully.
+- Help controls open the correct responsive dialog/drawer without submitting forms and support keyboard dismissal and the component's mobile interactions.
+- Examples and labels remain accurate in both Indonesian and English modes.
+- Selected logos (icon, initials, brand, uploaded image) remain visible, with a usable pencil control and no dark overlay.
+- Account forms submit valid enum, credit-limit, and payment defaults; vehicle form payloads remain backward compatible.
+- Modal dropdowns are scrollable and remain inside the viewport.
+- No database migrations or financial-balance modifications are introduced by these UI changes.
+
+## References
 
 - https://actualbudget.org/docs/getting-started/starting-fresh/
 - https://www.bi.go.id/id/fungsi-utama/sistem-pembayaran/ritel/instrumen/default.aspx
