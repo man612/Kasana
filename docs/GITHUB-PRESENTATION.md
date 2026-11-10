@@ -13,7 +13,9 @@ Why this wording works:
 - **Who it prioritizes:** an Indonesia-first experience without claiming Indonesian bank integration.
 - **Independent identity:** the short description markets Kasana only; source attribution remains prominent in the README, legal notices and license files.
 
-Do not put the former product or its original developer in the GitHub About summary: preserve required origin and copyright attribution in the appropriate licensing and acknowledgments sections instead.\n\nIt avoids unsupported terms such as *official*, *secure by default*, *fully audited*, *bank-connected*, or *production-ready*.
+Do not put the former product or its original developer in the GitHub About summary: preserve required origin and copyright attribution in the appropriate licensing and acknowledgments sections instead.
+
+It avoids unsupported terms such as *official*, *secure by default*, *fully audited*, *bank-connected*, or *production-ready*.
 
 ## Repository metadata
 

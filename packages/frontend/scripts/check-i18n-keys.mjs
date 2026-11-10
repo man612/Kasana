@@ -83,7 +83,7 @@ for (const locale of ['en', 'id']) {
   const dir = path.join(SRC, 'i18n/locales/chunks', locale);
   for (const file of walk(dir).filter((f) => f.endsWith('.json'))) {
     const data = fs.readFileSync(file, 'utf8');
-    for (const match of data.matchAll(/MoneyMatter|moneymatter\\.app|letehaha/gi)) {
+    for (const match of data.matchAll(/MoneyMatter|moneymatter\.app|letehaha/gi)) {
       errors.push(`${path.relative(ROOT, file)}:${lineOf(data, match.index)} legacy public brand "${match[0]}"`);
     }
   }
