@@ -11,6 +11,19 @@ on:
   # enable manual triggers
   workflow_dispatch:
 
+# A fast sequence of commits should cancel the older PR build, not pay for
+# dozens of stale 17-job matrices. Preserve every main/manual run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# dorny/paths-filter reads pull-request changed files through the GitHub API.
+# On a private independent repository, the default GITHUB_TOKEN may lack that
+# permission; explicitly grant read-only PR metadata access.
+permissions:
+  contents: read
+  pull-requests: read
+
 env:
   # Total number of backend e2e shards. Must stay in sync with the
   # backend-e2e job's matrix.shardIndex list (a matrix cannot read env vars).
@@ -47,6 +60,10 @@ jobs:
     name: Frontend tasks
     needs: [prepare-dependencies, detect-changes]
     runs-on: ubuntu-latest
+    # The monorepo's vue-tsc + Vite build can exceed Node 24's default ~2GB
+    # V8 heap on GitHub runners. This raises only the frontend job's cap.
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
     strategy:
       matrix:
         task: [lint, test, build, knip]
@@ -88,6 +105,9 @@ jobs:
     name: Backend tasks
     needs: [prepare-dependencies, detect-changes]
     runs-on: ubuntu-latest
+    # Memory headroom for large Jest unit suites without changing production runtime.
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
     strategy:
       matrix:
         # typecheck is the only type-check gate for backend code: the e2e/unit
@@ -119,7 +139,7 @@ jobs:
           envkey_APPLICATION_REDIS_HOST: test-redis
           # GitHub runner has 4 CPU
           # https://docs.github.com/en/actions/reference/runners/github-hosted-runners#standard-github-hosted-runners-for-public-repositories
-          envkey_JEST_WORKERS_AMOUNT: 4
+          envkey_JEST_WORKERS_AMOUNT: 2
           envkey_SHOW_LOGS_IN_TESTS: false
           envkey_POLYGON_API_KEY: test
           envkey_ALPHA_VANTAGE_API_KEY: test
