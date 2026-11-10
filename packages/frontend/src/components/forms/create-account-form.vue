@@ -11,6 +11,7 @@ import AccountLogo from '@/components/common/account-logo.vue';
 import DocsLink from '@/components/common/docs-link.vue';
 import { type LogoSelection, toOptionalLogoPayload } from '@/components/common/logo-selection';
 import LogoSquareField from '@/components/common/logo-square-field.vue';
+import FormFieldHelp from '@/components/common/form-field-help.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import InputField from '@/components/fields/input-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
@@ -86,10 +87,26 @@ const logoPlaceholderAccount = computed(() => ({
   accountCategory: form.accountCategory,
 }));
 
+// Prioritize familiar Indonesian cash/banking flows without changing persisted enum values.
+const ACCOUNT_CATEGORY_ORDER: ACCOUNT_CATEGORIES[] = [
+  ACCOUNT_CATEGORIES.cash,
+  ACCOUNT_CATEGORIES.currentAccount,
+  ACCOUNT_CATEGORIES.saving,
+  ACCOUNT_CATEGORIES.creditCard,
+  ACCOUNT_CATEGORIES.general,
+  ACCOUNT_CATEGORIES.investment,
+  ACCOUNT_CATEGORIES.crypto,
+  ACCOUNT_CATEGORIES.bonus,
+  ACCOUNT_CATEGORIES.insurance,
+  ACCOUNT_CATEGORIES.overdraft,
+];
 const selectableAccountCategories = computed(() =>
-  Object.entries(ACCOUNT_CATEGORIES_TRANSLATION_KEYS).filter(
-    ([category]) => !isDedicatedFlowAccountCategory(category as ACCOUNT_CATEGORIES),
-  ),
+  Object.entries(ACCOUNT_CATEGORIES_TRANSLATION_KEYS)
+    .filter(([category]) => !isDedicatedFlowAccountCategory(category as ACCOUNT_CATEGORIES))
+    .sort(([first], [second]) =>
+      ACCOUNT_CATEGORY_ORDER.indexOf(first as ACCOUNT_CATEGORIES) -
+      ACCOUNT_CATEGORY_ORDER.indexOf(second as ACCOUNT_CATEGORIES),
+    ),
 );
 
 const createAccountMutation = useMutation({ mutationFn: createAccount });
@@ -149,7 +166,13 @@ const submit = async () => {
           :placeholder="$t('forms.createAccount.namePlaceholder')"
           :error-message="getFieldErrorMessage('form.name')"
           @blur="touchField('form.name')"
-        />
+        
+      non-label-wrapper
+      :aria-label="$t('forms.createAccount.nameLabel')">
+      <template #label-right>
+        <FormFieldHelp topic="accountName" />
+      </template>
+    </input-field>
       </div>
       <LogoSquareField
         v-model="form.logo"
@@ -165,7 +188,8 @@ const submit = async () => {
     </div>
 
     <div>
-      <FieldLabel :label="$t('forms.createAccount.currencyLabel')">
+      <FieldLabel :label="$t('forms.createAccount.currencyLabel')" :only-template="true">
+        <template #label-right><FormFieldHelp topic="accountCurrency" /></template>
         <Select.Select v-model="form.currencyCode">
           <Select.SelectTrigger>
             <Select.SelectValue :placeholder="$t('forms.createAccount.currencyPlaceholder')" />
@@ -193,15 +217,21 @@ const submit = async () => {
       type="number"
       :label="$t('forms.createAccount.initialBalanceLabel')"
       :placeholder="$t('forms.createAccount.initialBalancePlaceholder')"
+      non-label-wrapper
+      :aria-label="$t('forms.createAccount.initialBalanceLabel')"
     >
       <template #label-right>
-        <DocsLink path="/accounts/create-an-account/#choose-the-right-initial-balance" class="text-xs">
-          {{ $t('forms.createAccount.initialBalanceHelpLink') }}
-        </DocsLink>
+        <div class="flex items-center gap-1">
+          <DocsLink path="/accounts/create-an-account/#choose-the-right-initial-balance" class="text-xs">
+            {{ $t('forms.createAccount.initialBalanceHelpLink') }}
+          </DocsLink>
+          <FormFieldHelp topic="accountInitialBalance" />
+        </div>
       </template>
     </input-field>
 
-    <FieldLabel :label="$t('forms.createAccount.accountCategoryLabel')">
+    <FieldLabel :label="$t('forms.createAccount.accountCategoryLabel')" :only-template="true">
+      <template #label-right><FormFieldHelp topic="accountCategory" /></template>
       <Select.Select v-model="form.accountCategory">
         <Select.SelectTrigger>
           <Select.SelectValue :placeholder="$t('forms.createAccount.accountCategoryPlaceholder')" />
@@ -221,14 +251,22 @@ const submit = async () => {
       :values="NULLABLE_PAYMENT_TYPE_OPTIONS"
       :label-key="(item) => $t(item.label)"
       :label="$t('forms.createAccount.defaultPaymentTypeLabel')"
-    />
+    >
+      <template #label-right><FormFieldHelp topic="accountPaymentType" /></template>
+    </SelectField>
 
     <input-field
       v-model="form.creditLimit"
       type="number"
       :label="$t('forms.createAccount.creditLimitLabel')"
       :placeholder="$t('forms.createAccount.creditLimitPlaceholder')"
-    />
+    
+      non-label-wrapper
+      :aria-label="$t('forms.createAccount.creditLimitLabel')">
+      <template #label-right>
+        <FormFieldHelp topic="accountCreditLimit" />
+      </template>
+    </input-field>
 
     <div class="flex">
       <ui-button type="submit" class="ml-auto min-w-30" :disabled="createAccountMutation.isPending.value">
