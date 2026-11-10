@@ -36,7 +36,12 @@ const namespaces = new Set([...parents].filter((p) => !p.includes('.')));
 
 const KEY_LIKE = /^[a-zA-Z][\w-]*(\.[\w-]+)+$/;
 // Dotted strings that share a namespace with i18n keys but aren't keys.
-const NOT_KEYS = new Set(['planned.subscriptions.sortBy']);
+const NOT_KEYS = new Set([
+  'planned.subscriptions.sortBy',
+  // Local-storage keys are identifiers, not user-facing translation keys.
+  'kasana.quick-start-position-v1',
+  'kasana.quick-start-hidden-until-v1',
+]);
 const MESSAGE_FNS = new Set(['t', '$t', 'te', '$te', 'tc', '$tc', 'i18n.global.t']);
 
 const lineOf = (text, index) => text.slice(0, index).split('\n').length;

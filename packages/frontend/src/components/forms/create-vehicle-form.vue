@@ -129,8 +129,8 @@ const submit = async () => {
   if (createVehicleMutation.isPending.value) return;
 
   if (!isFormValid()) return;
-  const selectedVehicleClass = form.vehicleClass;
-  if (selectedVehicleClass === null) return;
+  const vehicleClass = form.vehicleClass;
+  if (vehicleClass === null) return;
 
   try {
     await createVehicleMutation.mutateAsync({
@@ -140,7 +140,7 @@ const submit = async () => {
       model: form.model,
       trim: form.trim || null,
       year: form.year,
-      vehicleClass: selectedVehicleClass,
+      vehicleClass,
       purchasePrice: form.purchasePrice,
       purchaseDate: format(form.purchaseDate, 'yyyy-MM-dd'),
       depreciationPreset: form.depreciationPreset,

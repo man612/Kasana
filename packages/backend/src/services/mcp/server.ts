@@ -10,7 +10,7 @@ import { slimToolListing } from './tool-list-slimming';
 import { registerToolsets } from './toolsets';
 
 export const MCP_SERVER_INFO = {
-  name: 'MoneyMatter Finance Tracker',
+  name: 'Kasana Personal Finance',
   version: '2.0.0',
 };
 
