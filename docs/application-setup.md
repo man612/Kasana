@@ -1,6 +1,8 @@
-# Local Application Setup Guide
+# Panduan setup developer (turunan upstream)
 
-This guide will walk you through setting up the MoneyMatter project on your local machine.
+**Kasana:** clone `https://github.com/man612/Kasana.git` dan ikuti [panduan Kasana](LOCAL-VPS-ID.md) untuk build Docker dari source Kasana. Bagian selanjutnya adalah panduan teknis turunan MoneyMatter dan masih dapat memuat contoh upstream. Jangan gunakan konfigurasi development untuk produksi.
+
+This guide will walk you through setting up the inherited MoneyMatter codebase on your local machine.
 
 ## Table of Contents
 
@@ -49,8 +51,8 @@ moneymatter/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/letehaha/moneymatter
-cd moneymatter
+git clone https://github.com/man612/Kasana.git
+cd Kasana
 ```
 
 ### 2. Install Dependencies

@@ -1,4 +1,6 @@
-# Checklist sebelum Kasana dijadikan repository publik
+# Audit keamanan repository publik Kasana
+
+**Status 10 November 2026:** repository sudah Public dengan nama `man612/Kasana`. Audit awal belum mencakup seluruh log GitHub Actions/artifact dan semua histori branch. Jika secret pernah bocor, rotasi pada provider; menghapus dari HEAD tidak menghapus histori.
 
 Kasana merupakan modifikasi dari MoneyMatter yang berlisensi AGPL-3.0. Kode aplikasi boleh dipublikasikan, tetapi **jangan pernah mempublikasikan** password, token, data keuangan, data VPS, backup database, maupun private key.
 
@@ -15,7 +17,7 @@ CI lint/test/build tetap aktif untuk Kasana. Workflow memakai concurrency yang m
 3. Audit daftar `Repository secrets` / `Environment secrets` dan pastikan tidak ada kredensial upstream yang masih dipakai. Tidak perlu menyalin atau memasukkan nilai secret ke Git.
 4. Konfirmasi workflow produksi yang menulis ke VPS, mengirim data ke R2, atau mengubah Docker Hub diblokir untuk Kasana setelah PR ini digabungkan.
 5. Pastikan `.env`, backup database, attachment data, dan private key tetap **di luar Git**. File contoh `.env.example` saja yang boleh ada.
-6. Setelah audit lulus, pemilik repo mengubah **Settings → General → Danger Zone → Change repository visibility → Public**. Baca konsekuensi dan gunakan akun dengan izin admin.
+6. Karena visibility sudah Public, perlakukan history Git dan Actions logs sebagai informasi publik. Audit log dan artifact lama; rotasi semua kredensial yang ditemukan bocor.
 7. Jalankan ulang CI di PR integrasi dan periksa **hasil job sebenarnya**, bukan sekadar status sukses/skipped. Lakukan audit lisensi dan atribusi AGPL sebelum layanan dibuka untuk pengguna lain.
 
 ## Batas audit awal
