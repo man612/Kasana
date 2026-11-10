@@ -6,6 +6,18 @@
       class="shadow-header border-border @container/header-bar flex items-center justify-between border-b px-4 py-2 sm:px-6"
     >
       <div class="flex items-center gap-4">
+        <Button
+          v-if="backDestination"
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          class="shrink-0"
+          :aria-label="$t('common.actions.back')"
+          :title="$t('common.actions.back')"
+          @click="goBack"
+        >
+          <ArrowLeftIcon class="size-4" />
+        </Button>
         <template v-if="isMobileView">
           <Sheet.Sheet :open="isMobileSheetOpen" @update:open="isMobileSheetOpen = $event">
             <Sheet.SheetTrigger as-child>
@@ -120,6 +132,7 @@ import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-br
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useUserStore } from '@/stores';
 import {
+  ArrowLeftIcon,
   ChevronDownIcon,
   ImportIcon,
   MenuIcon,
@@ -152,6 +165,35 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 const isSettingsRoute = computed(() => String(route.name ?? '').startsWith(ROUTES_NAMES.settings));
+
+// Detail pages need a visible way back even after a deep link or direct refresh.
+// Keep the fallback deterministic and safe when browser history has no prior app route.
+const detailParents: Record<string, string> = {
+  [ROUTES_NAMES.account]: ROUTES_NAMES.accounts,
+  [ROUTES_NAMES.accountsVehicleDetails]: ROUTES_NAMES.accounts,
+  [ROUTES_NAMES.loanDetail]: ROUTES_NAMES.loans,
+  [ROUTES_NAMES.investmentAccount]: ROUTES_NAMES.investments,
+  [ROUTES_NAMES.portfolioDetail]: ROUTES_NAMES.investments,
+  [ROUTES_NAMES.portfolioTransactionsImport]: ROUTES_NAMES.investments,
+  [ROUTES_NAMES.venturePlatformsList]: ROUTES_NAMES.venture,
+  [ROUTES_NAMES.ventureDealDetail]: ROUTES_NAMES.venture,
+  [ROUTES_NAMES.goalDetails]: ROUTES_NAMES.goals,
+  [ROUTES_NAMES.budgetPlan]: ROUTES_NAMES.budget,
+  [ROUTES_NAMES.plannedSubscriptionDetails]: ROUTES_NAMES.plannedSubscriptions,
+  [ROUTES_NAMES.plannedTrackerDetails]: ROUTES_NAMES.plannedTrackers,
+  [ROUTES_NAMES.settingsPayeeDetail]: ROUTES_NAMES.settingsPayees,
+  [ROUTES_NAMES.automationDetails]: ROUTES_NAMES.automations,
+};
+const backDestination = computed(() => detailParents[String(route.name ?? '')] ?? null);
+const goBack = () => {
+  // Vue Router records the previous in-app location on its history state.
+  const previous = router.options.history.state.back;
+  if (typeof previous === 'string' && previous.startsWith('/') && previous !== route.fullPath) {
+    router.back();
+  } else if (backDestination.value) {
+    void router.push({ name: backDestination.value });
+  }
+};
 const previousAppRoute = ref<string | null>(null);
 watch(
   () => route.fullPath,
