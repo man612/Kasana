@@ -166,13 +166,13 @@ const submit = async () => {
           :placeholder="$t('forms.createAccount.namePlaceholder')"
           :error-message="getFieldErrorMessage('form.name')"
           @blur="touchField('form.name')"
-        
-      non-label-wrapper
-      :aria-label="$t('forms.createAccount.nameLabel')">
-      <template #label-right>
-        <FormFieldHelp topic="accountName" />
-      </template>
-    </input-field>
+          non-label-wrapper
+          :aria-label="$t('forms.createAccount.nameLabel')"
+        >
+          <template #label-right>
+            <FormFieldHelp topic="accountName" />
+          </template>
+        </input-field>
       </div>
       <LogoSquareField
         v-model="form.logo"
@@ -260,9 +260,9 @@ const submit = async () => {
       type="number"
       :label="$t('forms.createAccount.creditLimitLabel')"
       :placeholder="$t('forms.createAccount.creditLimitPlaceholder')"
-    
       non-label-wrapper
-      :aria-label="$t('forms.createAccount.creditLimitLabel')">
+      :aria-label="$t('forms.createAccount.creditLimitLabel')"
+    >
       <template #label-right>
         <FormFieldHelp topic="accountCreditLimit" />
       </template>
