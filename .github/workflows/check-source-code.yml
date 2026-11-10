@@ -11,6 +11,11 @@ on:
   # enable manual triggers
   workflow_dispatch:
 
+# Change detection reads the PR file list via GitHub's API.
+permissions:
+  contents: read
+  pull-requests: read
+
 env:
   # Total number of backend e2e shards. Must stay in sync with the
   # backend-e2e job's matrix.shardIndex list (a matrix cannot read env vars).
@@ -47,6 +52,8 @@ jobs:
     name: Frontend tasks
     needs: [prepare-dependencies, detect-changes]
     runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
     strategy:
       matrix:
         task: [lint, test, build, knip]
