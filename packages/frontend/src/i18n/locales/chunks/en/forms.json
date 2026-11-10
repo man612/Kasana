@@ -263,8 +263,8 @@
       "minPaymentEstimateTooltip": "Estimated from principal, annual interest rate, and term using the standard amortization formula.",
       "minPaymentApplyEstimateAriaLabel": "Use estimated minimum payment",
       "termMonthsLabel": "Term (months)",
-      "termPresetsAriaLabel": "Term presets",
-      "termPresetsHeader": "Common terms",
+      "termPresetsAriaLabel": "Choose a loan term",
+      "termPresetsHeader": "Suggested loan terms",
       "termMonthsSuffix": "mo",
       "termPresetYears": "{count} year | {count} years",
       "termMonthsPlaceholder": "e.g. 360 for a 30-year loan",
@@ -305,7 +305,8 @@
         "startDateInFuture": "Start date can't be in the future"
       },
       "balanceExceedsPrincipalWarning": "Outstanding balance is higher than the original principal – double-check these amounts.",
-      "modelWarning": "Automatic projections assume declining-balance interest. Indonesian paylater with flat charges or service fees may differ. Always reconcile with the lender's bill."
+      "modelWarning": "Automatic projections assume declining-balance interest. Indonesian paylater with flat charges or service fees may differ. Always reconcile with the lender's bill.",
+      "termPresetMonths": "{count} month | {count} months"
     },
     "fieldHelp": {
       "open": "Explain {field}",
