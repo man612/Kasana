@@ -21,8 +21,9 @@ on:
 jobs:
   backup:
     runs-on: ubuntu-latest
-    # Only allow letehaha to manually trigger
-    if: ${{ github.event_name != 'workflow_dispatch' || github.actor == 'letehaha' }}
+    # Upstream production backup workflow. Kasana's VPS must use its OWN
+    # separately reviewed backup procedure; never use inherited R2/VPS secrets.
+    if: ${{ github.repository == 'letehaha/moneymatter' && (github.event_name != 'workflow_dispatch' || github.actor == 'letehaha') }}
 
     steps:
       - name: Create database backup and upload to R2
