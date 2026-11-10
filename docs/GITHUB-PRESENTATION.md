@@ -4,16 +4,16 @@ This document defines the **English-first public presentation** of Kasana. The a
 
 ## Recommended GitHub About description
 
-> Open-source, self-hosted personal finance with an Indonesia-first experience. Based on MoneyMatter (AGPL-3.0).
+> Open-source, self-hosted personal finance with an Indonesia-first experience.
 
 Why this wording works:
 
 - **What it is:** personal finance software.
 - **How it runs:** self-hosted, not a promised cloud service.
 - **Who it prioritizes:** an Indonesia-first experience without claiming Indonesian bank integration.
-- **Where it comes from:** MoneyMatter, with AGPL attribution.
+- **Independent identity:** the short description markets Kasana only; source attribution remains prominent in the README, legal notices and license files.
 
-It avoids unsupported terms such as *official*, *secure by default*, *fully audited*, *bank-connected*, or *production-ready*.
+Do not put the former product or its original developer in the GitHub About summary: preserve required origin and copyright attribution in the appropriate licensing and acknowledgments sections instead.\n\nIt avoids unsupported terms such as *official*, *secure by default*, *fully audited*, *bank-connected*, or *production-ready*.
 
 ## Repository metadata
 

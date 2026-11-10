@@ -350,7 +350,7 @@
         "title": "Batas kredit dan saldo utang",
         "meaning": "Batas kredit adalah plafon fasilitas pinjaman yang diberikan penyedia kartu kredit atau cerukan bank. Ini bukan uang tunai yang kamu miliki dan bukan target anggaran. Pada akun tabungan, DANA, atau dompet tunai, biasanya isi 0.",
         "example": "Kartu kredit memiliki limit Rp10.000.000 dan sudah dipakai Rp2.000.000. Sisa limit Rp8.000.000, tetapi kewajibanmu tetap Rp2.000.000. Jika saldo akun sudah dicatat −Rp2.000.000, jangan mengurangkan limit Rp10.000.000 sekali lagi.",
-        "important": "MoneyMatter memiliki opsi ‘sertakan batas kredit dalam saldo’ untuk rekening tertentu yang laporannya sudah memasukkan limit. Aktifkan hanya bila benar-benar memahami format saldo dari bankmu; jika salah, total saldo bisa tampak jauh lebih negatif dari utang sebenarnya."
+        "important": "Aplikasi memiliki opsi ‘sertakan batas kredit dalam saldo’ untuk rekening tertentu yang laporannya sudah memasukkan limit. Aktifkan hanya bila benar-benar memahami format saldo dari bankmu; jika salah, total saldo bisa tampak jauh lebih negatif dari utang sebenarnya."
       },
       "vehicleName": {
         "title": "Nama kendaraan",
@@ -386,7 +386,7 @@
         "title": "Tahun kendaraan",
         "meaning": "Ini tahun produksi atau tahun model kendaraan, bukan tanggal kamu membelinya. Mobil tahun 2021 dapat saja baru kamu beli sebagai kendaraan bekas pada 2026.",
         "example": "Kamu membeli Honda Brio produksi 2021 pada November 2026: Tahun = 2021; Tanggal beli = tanggal transaksi pembelian pada 2026.",
-        "important": "Kurva penyusutan MoneyMatter dihitung dari tanggal dan harga belimu, bukan dari tahun kendaraan atau riwayat harga jual barunya. Perlu kehati-hatian untuk kendaraan bekas."
+        "important": "Kurva penyusutan aplikasi dihitung dari tanggal dan harga belimu, bukan dari tahun kendaraan atau riwayat harga jual barunya. Perlu kehati-hatian untuk kendaraan bekas."
       },
       "vehicleClass": {
         "title": "Kategori kendaraan dan keterbatasannya",
@@ -428,7 +428,7 @@
         "title": "Jarak tempuh odometer",
         "meaning": "Masukkan angka kilometer total pada odometer kendaraan saat ini, bukan jarak yang kamu tempuh hari ini. Kolom ini opsional dan terutama untuk catatan kondisi kendaraan.",
         "example": "Odometer menunjukkan 45.600 km: isi 45600. Tidak perlu menambahkan ‘km’ karena satuannya sudah jelas.",
-        "important": "Pada kode MoneyMatter saat ini, odometer BELUM memengaruhi estimasi penyusutan. Jadi nilai aset tidak otomatis turun karena kilometernya tinggi. Anggap ini informasi pelengkap, bukan kalkulasi harga pasar."
+        "important": "Pada versi aplikasi ini, odometer BELUM memengaruhi estimasi penyusutan. Jadi nilai aset tidak otomatis turun karena kilometernya tinggi. Anggap ini informasi pelengkap, bukan kalkulasi harga pasar."
       },
       "loanOverview": {
         "title": "Tentang pencatatan pinjaman",
