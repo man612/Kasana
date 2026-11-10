@@ -418,24 +418,20 @@ const submit = () => {
     </DateField>
 
     <div class="grid grid-cols-1 items-end gap-4 @sm/loan-form:grid-cols-2">
-      <InputField
+      <FormattedAmountField
         v-model="form.plannedPayment"
-        type="number"
         :label="$t('forms.loan.plannedPaymentLabel')"
         :placeholder="$t('forms.loan.plannedPaymentPlaceholder')"
         :error-message="getFieldErrorMessage('form.plannedPayment')"
         @blur="touchField('form.plannedPayment')"
-        non-label-wrapper
       >
         <template #label-right><FormFieldHelp topic="loanPlanned" /></template>
-      </InputField>
-      <InputField
+      </FormattedAmountField>
+      <FormattedAmountField
         v-model="form.minPayment"
-        type="number"
         :label="$t('forms.loan.minPaymentLabel')"
         :placeholder="$t('forms.loan.minPaymentPlaceholder')"
         :error-message="getFieldErrorMessage('form.minPayment')"
-        non-label-wrapper
         @blur="touchField('form.minPayment')"
       >
         <template #label-right>
@@ -458,7 +454,7 @@ const submit = () => {
             </template>
           </div>
         </template>
-      </InputField>
+      </FormattedAmountField>
     </div>
 
     <InputField
