@@ -1,32 +1,31 @@
-## Tujuan perubahan
+## Summary
 
-<!-- Masalah yang diselesaikan, referensi issue jika ada -->
+<!-- What changed, why is it needed, and which issue does it address? -->
 
-## Ruang lingkup dan risiko
+## Scope and risk
 
-<!-- UI, perhitungan nominal, database, auth, Docker, API, migrasi, kompatibilitas -->
-- Perubahan:
-- Risiko / batasan:
-- Dampak pada data lama:
+- **Changes:**
+- **Known limitations or trade-offs:**
+- **Impact on existing data or deployments:**
 
-## Verifikasi
+## Verification
 
-- [ ] Pemeriksaan lint/typecheck yang relevan sudah dijalankan, atau alasan belum bisa dijelaskan.
-- [ ] Tes ditambahkan/diperbarui untuk perubahan logika, atau alasan tidak perlu ditulis.
-- [ ] UI mobile/desktop dan navigasi diuji bila ada perubahan tampilan.
-- [ ] Nilai IDR, format angka, loading/empty/error state diuji bila terkait.
-- [ ] Tidak ada secret, data transaksi nyata, atau identitas pribadi di diff dan screenshot.
-- [ ] Dokumentasi/config diperbarui bila perilaku atau deployment berubah.
-- [ ] Atribusi dan lisensi AGPL upstream tidak dihapus.
+- [ ] Relevant lint/typecheck checks ran, or blockers are documented.
+- [ ] Tests were added or updated for logic changes, or the reason is explained.
+- [ ] Mobile/desktop UI and navigation were checked where applicable.
+- [ ] Monetary inputs, currency formatting, and loading/empty/error states were checked where relevant.
+- [ ] No production secrets, personal financial data, or private screenshots are included.
+- [ ] Documentation/configuration was updated when behavior changed.
+- [ ] Original copyright notices and AGPL-3.0 licensing remain intact.
 
-**Perintah yang dijalankan dan hasilnya:**
+**Commands actually run and results:**
 
 ```text
-Isi hasil pengujian nyata; jangan mengaku lulus jika job tidak berjalan.
+List completed commands, outcomes, and anything not yet tested.
 ```
 
-## AI-assisted development
+## AI-assisted changes
 
-<!-- Sebutkan bila memakai AI. Tinjau sendiri dampak perubahan dan keakuratan pengujian. -->
+<!-- If AI tools were used, describe their role and confirm that the diff and tests were reviewed. -->
 
-Kasana tidak mewajibkan CLA terpisah dari MoneyMatter upstream. Lihat [CONTRIBUTING.md](../CONTRIBUTING.md).
+Kasana does not require MoneyMatter's upstream CLA. See [CONTRIBUTING.md](../CONTRIBUTING.md).
