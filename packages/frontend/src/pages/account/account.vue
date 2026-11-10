@@ -29,7 +29,7 @@
       <div class="text-muted-foreground text-sm">{{ t('pages.account.loading') }}</div>
     </div>
 
-    <div v-else class="flex flex-col justify-start gap-4 p-6 @[800px]/settings:flex-row">
+    <div v-else class="flex flex-col justify-start gap-4 p-4 md:p-6 @[800px]/settings:flex-row">
       <Card.Card class="w-full max-w-150">
         <Header :account="account" />
 
@@ -92,7 +92,10 @@
             </div>
             <Tabs.TabsContent value="records">
               <template v-if="isFetched">
-                <ScrollArea :scroll-area-id="SCROLL_AREA_IDS.accountTransactions" class="h-screen max-h-150">
+                <p v-if="rawTransactionsList.length === 0" class="text-muted-foreground py-8 text-center text-sm">
+                  {{ t('pages.account.rightPanel.noTransactions') }}
+                </p>
+                <ScrollArea v-else :scroll-area-id="SCROLL_AREA_IDS.accountTransactions" class="max-h-[min(60dvh,38rem)]">
                   <TransactionsList
                     :hasNextPage="hasNextPage"
                     :transactions="rawTransactionsList"
