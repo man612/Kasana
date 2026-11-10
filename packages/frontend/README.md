@@ -1,16 +1,14 @@
-# Frontend Kasana
+# Kasana Frontend
 
-Frontend Vue 3 / TypeScript untuk aplikasi Kasana. Nama internal workspace `budget-tracker-fe` tetap dipertahankan agar tidak merusak dependency dan lockfile yang diwarisi dari MoneyMatter.
+The Vue 3 / TypeScript frontend for Kasana. Its inherited workspace name `budget-tracker-fe` remains unchanged to preserve dependencies and lockfile compatibility.
 
-**Backend juga dibutuhkan** untuk login dan menyimpan data. Frontend saja bukan instalasi aplikasi yang lengkap.
+The frontend alone is **not** a complete application: authentication and financial data depend on the backend and its database.
 
-## Jalur utama untuk menjalankan aplikasi
+## Recommended setup
 
-Gunakan [panduan root repository](../../README.md), [pengembangan lokal](../../docs/LOCAL-VPS-ID.md) atau [Docker Compose Kasana](../../self-hosting/README.md), yang membangun frontend dan backend dari source repository ini.
+Start with the [root README](../../README.md), [self-hosting instructions](../../self-hosting/README.md), or [local development notes](../../docs/LOCAL-VPS-ID.md). The documented Docker workflow builds both services from **Kasana source**, not from published upstream MoneyMatter images.
 
-## Untuk kontributor
-
-Dari root repository dengan Node.js sesuai `.nvmrc`/Volta dan dependensi yang sudah diinstal:
+For contributors who have configured the backend and required environment variables, run from the repository root:
 
 ```bash
 npm ci
@@ -20,6 +18,4 @@ npm -w packages/frontend run typecheck
 npm -w packages/frontend run build
 ```
 
-Perintah dev frontend memerlukan backend dan konfigurasi environment yang sesuai. Jangan menyalin URL layanan cloud upstream atau menggunakan data finansial produksi saat development.
-
-**Jangan publish Docker image ke akun `letehaha`.** Skrip upload image upstream telah dihapus; untuk instalasi Kasana gunakan Compose build dengan overlay `docker-compose.private.yml` atau registry yang kamu miliki sendiri.
+Do not use live financial data for testing. Do not publish Kasana Docker images to the upstream `letehaha` namespace; use the documented local Compose overlays or a registry under your control.
