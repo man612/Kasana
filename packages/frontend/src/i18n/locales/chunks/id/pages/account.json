@@ -246,7 +246,8 @@
       "rightPanel": {
         "transactions": "Transaksi",
         "viewAll": "Lihat semua",
-        "analyticsSoon": "Analitik (segera)"
+        "analyticsSoon": "Analitik (segera)",
+        "noTransactions": "Belum ada transaksi di rekening ini."
       },
       "integrations": {
         "connectedVia": "Terhubung melalui",
