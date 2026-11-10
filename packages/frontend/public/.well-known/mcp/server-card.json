@@ -22,7 +22,7 @@
       }
     ],
     "license": "AGPL-3.0-only",
-    "sourceCode": "https://github.com/man612/moneymatter-private"
+    "sourceCode": "https://github.com/man612/Kasana"
   },
   "transport": {
     "type": "streamable-http",

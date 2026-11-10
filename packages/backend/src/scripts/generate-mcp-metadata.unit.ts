@@ -22,10 +22,18 @@ describe('MCP metadata', () => {
     }
   });
 
-  it('registry server.json matches the server version and the card transport URL', () => {
-    const registry = JSON.parse(fs.readFileSync(REGISTRY_SERVER_JSON_PATH, 'utf-8'));
+  it('only publishes a registry descriptor when the MCP endpoint is real', () => {
     const card = JSON.parse(fs.readFileSync(SERVER_CARD_PATH, 'utf-8'));
 
+    // The independent Kasana repository has no public MCP server yet.
+    // Keep the registry descriptor unpublished instead of pointing users to
+    // a different project's live OAuth/MCP service.
+    if (!fs.existsSync(REGISTRY_SERVER_JSON_PATH)) {
+      expect(new URL(card.transport.url).hostname).toBe('kasana.invalid');
+      return;
+    }
+
+    const registry = JSON.parse(fs.readFileSync(REGISTRY_SERVER_JSON_PATH, 'utf-8'));
     expect(registry.version).toBe(MCP_SERVER_INFO.version);
     expect(registry.remotes).toEqual([card.transport]);
     expect(registry.description.length).toBeLessThanOrEqual(100);
