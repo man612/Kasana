@@ -237,7 +237,9 @@
       "notifications": {
         "success": "Vehicle added",
         "error": "Failed to add vehicle"
-      }
+      },
+      "vehicleClassPlaceholder": "Choose a vehicle class",
+      "vehicleClassHint": "Class affects depreciation estimates. MPVs, LCGCs and hatchbacks do not yet have Indonesia-specific curves; choose Other provisionally and verify the estimated value."
     },
     "editVehicle": {
       "submitButton": "Save changes",
