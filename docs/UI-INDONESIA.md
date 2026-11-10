@@ -20,6 +20,8 @@ Dokumen ini menjelaskan perubahan UI dari MoneyMatter v0.33.14 untuk deployment 
 - Teks periode dashboard menyertakan nama bulan dan tahun.
 - Bahasa Indonesia adalah default awal, tetapi **belum seluruh terjemahan upstream selesai**. Audit awal menemukan 2.462 string bahasa Indonesia yang masih identik dengan paket Inggris (sebagian berupa istilah internasional yang wajar). Audit tambahan dibutuhkan pada seluruh menu dan tampilan.
 - `html { zoom: var(--kasana-ui-scale) }` dipilih untuk target 80% desktop dan mobile. Penting: lakukan QA pada ponsel kecil, tablet, popover di dalam modal, input keyboard virtual dan kemampuan pengguna untuk memperbesar tampilan browser. Jika terlalu kecil, ubah token dengan pertimbangan aksesibilitas.
+- **Perbaikan full viewport (10 November 2026):** pada root `zoom: 0.8`, utilitas Tailwind `h-dvh` yang semula setinggi `100dvh` hanya menutupi 80% tinggi fisik; `w-screen` bisa menutupi 80% lebar. Di `global.css`, utilitas layar `h-dvh`, `h-screen`, `w-dvw`, `w-screen` dan variasi `min/max` dikompensasi menjadi `calc(100dvh / var(--kasana-ui-scale))`, dan seterusnya. **Jangan menghapus kompensasi ini ketika mengubah skala UI.**
+- Reproduksi di Chromium headless dengan viewport desktop 1280×800 dan ponsel 390×844: sebelum kompensasi, kontainer `h-dvh` masing-masing hanya setinggi 640 px dan 675 px. Setelah kompensasi, kontainer kembali 800 px dan 844 px; aturan yang sama juga diuji dengan skala `1`. Ini **tes layout terisolasi**, belum menggantikan pengujian seluruh route Kasana melalui browser nyata.
 
 ## Cakupan pengetikan nominal
 
