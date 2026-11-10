@@ -132,11 +132,11 @@ describe('CreateAccountForm', () => {
       const nameInput = wrapper.find<HTMLInputElement>('input:not([type="number"])');
       await nameInput.setValue('My Savings');
 
-      // Fill initialBalance (first number input)
-      const numberInputs = wrapper.findAll<HTMLInputElement>('input[type="number"]');
-      await simulateNumberInput({ wrapper, input: numberInputs[0]!, value: '250.50' });
+      // Fill initialBalance (first money input)
+      const numberInputs = wrapper.findAll<HTMLInputElement>('input[inputmode="decimal"]');
+      await simulateNumberInput({ wrapper, input: numberInputs[0]!, value: '250,50' });
 
-      // Fill creditLimit (second number input)
+      // Fill creditLimit (second money input)
       await simulateNumberInput({ wrapper, input: numberInputs[1]!, value: '1000' });
 
       await submitForm({ wrapper });
@@ -195,7 +195,7 @@ describe('CreateAccountForm', () => {
       const nameInput = wrapper.find<HTMLInputElement>('input:not([type="number"])');
       await nameInput.setValue('Test Account');
 
-      const numberInputs = wrapper.findAll<HTMLInputElement>('input[type="number"]');
+      const numberInputs = wrapper.findAll<HTMLInputElement>('input[inputmode="decimal"]');
       await simulateNumberInput({ wrapper, input: numberInputs[0]!, value: '-500' });
 
       await submitForm({ wrapper });
@@ -211,8 +211,8 @@ describe('CreateAccountForm', () => {
       const nameInput = wrapper.find<HTMLInputElement>('input:not([type="number"])');
       await nameInput.setValue('Big Balance');
 
-      const numberInputs = wrapper.findAll<HTMLInputElement>('input[type="number"]');
-      await simulateNumberInput({ wrapper, input: numberInputs[0]!, value: '99999999.99' });
+      const numberInputs = wrapper.findAll<HTMLInputElement>('input[inputmode="decimal"]');
+      await simulateNumberInput({ wrapper, input: numberInputs[0]!, value: '99999999,99' });
 
       await submitForm({ wrapper });
 
