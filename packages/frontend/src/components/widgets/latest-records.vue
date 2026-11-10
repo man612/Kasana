@@ -178,7 +178,7 @@ const isDataEmpty = computed(() => !isTxFetching.value && pastTransactions.value
     </template>
     <template v-else-if="isDataEmpty">
       <EmptyState>
-        <ListIcon class="size-32" />
+        <ListIcon class="size-14" />
       </EmptyState>
     </template>
     <ScrollArea v-else class="-mx-2 min-h-0 flex-1" viewport-class="px-2 md:overscroll-contain-if-scrollable">
