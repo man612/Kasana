@@ -249,17 +249,17 @@
     },
     "loan": {
       "nameLabel": "Nama pinjaman",
-      "namePlaceholder": "mis. KPR utama",
+      "namePlaceholder": "mis. Kredivo – HP / KrediFazz – November",
       "loanTypeLabel": "Jenis pinjaman",
       "loanTypePlaceholder": "Pilih jenis pinjaman",
       "currencyLabel": "Mata Uang",
       "currencyPlaceholder": "Pilih mata uang",
       "originalPrincipalLabel": "Pokok awal",
-      "originalPrincipalPlaceholder": "mis. 320000",
+      "originalPrincipalPlaceholder": "mis. 1.000.000",
       "initialBalanceLabel": "Saldo terutang saat ini",
-      "initialBalancePlaceholder": "Yang Anda hutangi hari ini",
-      "interestRateLabel": "Suku bunga (APR %)",
-      "interestRatePlaceholder": "mis. 6.25",
+      "initialBalancePlaceholder": "Sisa pokok sesuai rincian pinjaman",
+      "interestRateLabel": "Bunga tahunan (APR %, bukan bunga flat)",
+      "interestRatePlaceholder": "Bunga efektif tahunan sesuai kontrak",
       "minPaymentEstimateTooltip": "Diperkirakan dari pokok, suku bunga tahunan, dan jangka waktu menggunakan rumus amortisasi standar.",
       "minPaymentApplyEstimateAriaLabel": "Gunakan perkiraan pembayaran minimum",
       "termMonthsLabel": "Jangka waktu (bulan)",
@@ -267,19 +267,19 @@
       "termPresetsHeader": "Jangka waktu umum",
       "termMonthsSuffix": "bln",
       "termPresetYears": "{count} tahun | {count} tahun",
-      "termMonthsPlaceholder": "mis. 360 untuk pinjaman 30 tahun",
+      "termMonthsPlaceholder": "mis. 3, 6, 12, atau 180 bulan",
       "startDateLabel": "Tanggal mulai",
       "startDatePlaceholder": "DD/MM/YYYY",
-      "startDateTooltip": "Tanggal pinjaman berasal — saat pertama kali Anda mengambilnya. Ini hanya informasional dan tidak mengubah saldo terutang saat ini atau proyeksi pelunasan.",
-      "plannedPaymentLabel": "Pembayaran bulanan yang direncanakan",
-      "plannedPaymentPlaceholder": "Yang sebenarnya Anda bayar",
-      "minPaymentLabel": "Pembayaran bulanan minimum",
-      "minPaymentPlaceholder": "Opsional, dari pemberi pinjaman Anda",
+      "startDateTooltip": "Tanggal perjanjian atau pencairan dimulai. Berbeda dari tanggal pertama kali saldo pinjaman dicatat ke Kasana.",
+      "plannedPaymentLabel": "Cicilan bulanan sesuai tagihan",
+      "plannedPaymentPlaceholder": "mis. 350000",
+      "minPaymentLabel": "Pembayaran minimum (jika ada)",
+      "minPaymentPlaceholder": "Masukkan jika tercantum dalam perjanjian",
       "paymentDayLabel": "Hari pembayaran dalam bulan",
       "paymentDayPlaceholder": "1–31",
-      "lenderNameLabel": "Pemberi pinjaman",
-      "lenderNamePlaceholder": "mis. Chase, Wells Fargo",
-      "accountNumberLabel": "Nomor akun / pinjaman",
+      "lenderNameLabel": "Penyedia pembiayaan",
+      "lenderNamePlaceholder": "mis. Kredivo / KrediFazz / SPayLater",
+      "accountNumberLabel": "Nomor kontrak / referensi",
       "accountNumberPlaceholder": "Opsional",
       "currentBalanceLabel": "Saldo terutang saat ini",
       "balanceAsOfLabel": "Saldo per",
@@ -302,9 +302,10 @@
         "termRange": "Jangka waktu harus antara 1 dan 1200 bulan.",
         "paymentDayRange": "Hari dalam bulan harus antara 1 dan 31.",
         "asOfInFuture": "Tanggal tidak boleh di masa depan",
-        "startDateInFuture": "Start date can't be in the future"
+        "startDateInFuture": "Tanggal mulai tidak boleh di masa depan."
       },
-      "balanceExceedsPrincipalWarning": "Saldo terutang lebih tinggi dari pokok awal – periksa kembali jumlah ini."
+      "balanceExceedsPrincipalWarning": "Saldo terutang lebih tinggi dari pokok awal – periksa kembali jumlah ini.",
+      "modelWarning": "Perhitungan otomatis mengasumsikan bunga menurun atas sisa pokok; cicilan paylater Indonesia dengan bunga flat atau biaya layanan mungkin berbeda. Cocokkan selalu dengan rincian tagihan resmi."
     },
     "fieldHelp": {
       "open": "Jelaskan kolom {field}",
@@ -424,6 +425,96 @@
         "meaning": "Masukkan angka kilometer total pada odometer kendaraan saat ini, bukan jarak yang kamu tempuh hari ini. Kolom ini opsional dan terutama untuk catatan kondisi kendaraan.",
         "example": "Odometer menunjukkan 45.600 km: isi 45600. Tidak perlu menambahkan ‘km’ karena satuannya sudah jelas.",
         "important": "Pada kode MoneyMatter saat ini, odometer BELUM memengaruhi estimasi penyusutan. Jadi nilai aset tidak otomatis turun karena kilometernya tinggi. Anggap ini informasi pelengkap, bukan kalkulasi harga pasar."
+      },
+      "loanOverview": {
+        "title": "Tentang pencatatan pinjaman",
+        "meaning": "Fitur ini menyimpan sisa kewajiban dan perkiraan pelunasan. Untuk pinjaman tunai, saldo pinjaman menjadi utang sementara uang yang cair perlu dicatat pada rekening bank. Untuk cicilan belanja, barang yang dibeli tidak selalu masuk sebagai uang tunai.",
+        "example": "Pinjaman tunai KrediFazz Rp1.000.000, dana masuk bank setelah dipotong biaya: catat uang benar-benar masuk di bank, utang sesuai perjanjian, dan biaya dipisahkan. SPayLater pembelian sepatu tidak membuat saldo bank bertambah.",
+        "important": "Peringatan: mesin proyeksi memakai asumsi bunga tahunan menurun atas sisa pokok dan memperlakukan pembayaran tercatat sebagai pengurangan pokok. Ini bisa salah untuk bunga flat, admin di muka, dan cicilan tetap. Tagihan serta rincian pokok/bunga di aplikasi pemberi pinjaman adalah acuan utamanya."
+      },
+      "loanName": {
+        "title": "Nama pinjaman",
+        "meaning": "Nama ini mengenali satu fasilitas atau kontrak utang. Jangan mencampur seluruh pembelian berbeda ke satu pinjaman jika setiap cicilan punya tanggal dan nominal tersendiri.",
+        "example": "'Kredivo – HP November 2026', 'SPayLater – Sepatu', atau 'KrediFazz – Pinjaman November'. Kamu boleh memakai merek dan bulan agar tidak tertukar.",
+        "important": "Jangan mencatat transaksi pembelian yang sama dua kali sebagai pengeluaran. Limit yang belum digunakan bukan jumlah utang."
+      },
+      "loanType": {
+        "title": "Jenis pinjaman",
+        "meaning": "Pilihan KPR, Kendaraan, Mahasiswa, dan Pribadi sebagian besar untuk pengelompokan tampilan, bukan pengatur rumus. Paylater atau pinjaman online belum punya tipe tersendiri dalam model awal.",
+        "example": "Untuk KrediFazz, Kredivo PayLater, dan SPayLater, pilihan yang paling mendekati saat ini adalah 'Pribadi', tetapi belum berarti proyeksi bunganya akan cocok.",
+        "important": "KrediFazz adalah pinjaman tunai; Kredivo PayLater dan SPayLater dipakai untuk pembelian barang/jasa. SPinjam berbeda lagi dari SPayLater. Jenis kewajiban harus dipisahkan berdasarkan kontraknya."
+      },
+      "loanCurrency": {
+        "title": "Mata uang pinjaman",
+        "meaning": "Gunakan mata uang kewajiban pada kontrak, bukan mata uang perusahaan pemberi pinjaman.",
+        "example": "Cicilan Kredivo atau SPayLater yang ditagih Rupiah menggunakan IDR.",
+        "important": "Mata uang tidak bisa diubah bebas setelah membuat pinjaman. Pastikan kontrak dan cicilan menggunakan unit yang sama."
+      },
+      "loanPrincipal": {
+        "title": "Pokok pinjaman awal",
+        "meaning": "Pokok adalah jumlah kredit asli sebelum sebagian angsuran dibayar, bukan total semua angsuran, limit kredit, atau jumlah uang bersih yang diterima setelah potongan biaya.",
+        "example": "Pinjaman disetujui Rp1.000.000 dan admin Rp60.000 dipotong di muka: pokok kontrak bisa tetap Rp1.000.000 meskipun dana masuk hanya Rp940.000. Lihat perjanjian untuk angka pastinya.",
+        "important": "Pinjaman belanja Rp1.000.000 dengan bunga/biaya menjadi total tagihan Rp1.120.000: jangan menyamakan pokok Rp1.000.000 dengan total kewajiban masa depan Rp1.120.000. Biaya keuangan harus dipisahkan saat pencatatan yang akurat."
+      },
+      "loanBalance": {
+        "title": "Sisa pokok atau saldo terutang saat ini",
+        "meaning": "Angka positif ini menyatakan sisa utang pada tanggal kamu mulai mencatat. Kasana akan menyimpannya sebagai kewajiban (saldo negatif). Angka dapat berbeda dari total cicilan masa depan yang sudah memasukkan bunga atau admin.",
+        "example": "Pokok awal Rp1.000.000, sisa pokok setelah pembayaran sebelumnya Rp750.000: masukkan 750000. Periksa detail tagihan resmi karena 'total yang harus dibayar' bisa termasuk biaya yang belum jatuh tempo.",
+        "important": "Jangan menambahkan pokok dan total tagihan secara bersamaan. Dalam sistem ini pembayaran tercatat dapat langsung mengurangi pokok, sehingga perlu rekonsiliasi dengan sisa pokok resmi jika ada biaya bunga di setiap angsuran."
+      },
+      "loanAPR": {
+        "title": "Suku bunga tahunan (APR)",
+        "meaning": "APR berarti persentase bunga tahunan. Proyeksi aplikasi menghitung bunga berdasarkan saldo yang tersisa, bukan otomatis memakai angka bunga flat bulanan atau seluruh biaya pinjaman.",
+        "example": "Bila kontrak menyatakan bunga efektif tahunan 12%, isilah 12. Tetapi 2,6% per bulan yang dihitung flat dari pokok awal tidak boleh begitu saja diubah menjadi 31,2% dan dianggap setara dengan APR untuk proyeksi.",
+        "important": "Jangan mengisi 0% hanya karena tidak tahu bunganya atau promo menyebut 'bunga 0%' tetapi masih ada biaya administrasi. Tanpa rincian tarif dan cara hitung dari kontrak, perhitungan otomatis dapat menyesatkan."
+      },
+      "loanTerm": {
+        "title": "Jangka waktu atau tenor",
+        "meaning": "Tenor adalah berapa bulan perjanjian berlangsung. Satu bulan dan 30 hari tidak selalu sama dalam tanggal penagihan.",
+        "example": "Cicilan HP 6 kali bulanan: masukkan 6 bulan. KPR 15 tahun: 180 bulan.",
+        "important": "Menu pintasan semula lebih berfokus pada pinjaman jangka panjang. Untuk Kredivo/SPayLater, ketik langsung 1, 3, 6, 9, 12, atau jumlah bulan persis sesuai kontrak; jangan memilih tenor karena menu saja."
+      },
+      "loanStart": {
+        "title": "Tanggal pinjaman dimulai",
+        "meaning": "Tanggal kontrak atau pencairan/pembelian mulai berlaku. Berbeda dengan tanggal kamu mulai mencatat saldo pinjaman ke aplikasi.",
+        "example": "HP dibeli dengan cicilan pada 10 November 2026, cicilan pertama pada Desember: tanggal mulai bisa 10 November sesuai kontrak.",
+        "important": "Tanggal mulai tidak memindahkan dana ke bank, tidak menetapkan tanggal semua angsuran, dan pada model saat ini tidak otomatis membetulkan ketidaksesuaian saldo."
+      },
+      "loanPlanned": {
+        "title": "Cicilan yang direncanakan",
+        "meaning": "Jumlah yang ingin atau benar-benar kamu bayarkan per bulan. Dipakai untuk membuat perkiraan kapan pinjaman lunas, bukan instruksi pembayaran otomatis.",
+        "example": "Tagihan cicilan KrediFazz Rp380.000 per bulan: rencanakan Rp380.000 dan cocokkan dengan jadwal resmi di aplikasi penyedia.",
+        "important": "Untuk cicilan flat, nilai bulanan bisa mengandung pokok, bunga dan biaya layanan. Proyeksi Kasana belum memisahkan ketiganya secara otomatis; jangan menganggap penurunan pokok sama dengan seluruh cicilan."
+      },
+      "loanMinimum": {
+        "title": "Pembayaran minimum",
+        "meaning": "Nilai terendah yang wajib dibayar sesuai kontrak agar kewajiban bulanan terpenuhi. Ini bukan selalu angsuran normal dan bukan perkiraan mesin aplikasi.",
+        "example": "Kartu kredit bisa mempunyai pembayaran minimum yang berbeda dari total tagihan. Cicilan SPayLater yang sudah ditentukan sering punya nominal tagihan sesuai jadwal. Isi sesuai yang benar-benar diwajibkan.",
+        "important": "Tautan perkiraan otomatis di form menghitung menggunakan rumus kredit amortisasi. Jangan menyalin hasil itu sebagai cicilan Kredivo/SPayLater tanpa mencocokkan invoice/tagihan dari penyedia."
+      },
+      "loanPaymentDay": {
+        "title": "Tanggal jatuh tempo pembayaran",
+        "meaning": "Hari dalam bulan ketika pembayaran harus dilakukan. Berbeda dari tanggal pembelian dan bukan perintah autodebet.",
+        "example": "Cicilan jatuh tempo setiap tanggal 15: isi 15. Jika platform menagih setiap 30 hari dari transaksi, tanggalnya dapat bergeser dan harus dilihat per kontrak.",
+        "important": "Untuk tanggal 29–31, sistem dapat menyesuaikan ke hari terakhir pada bulan yang lebih pendek. Periksa tetap kalender cicilan resmi dan atur pengingat terpisah bila diperlukan."
+      },
+      "loanLender": {
+        "title": "Pemberi pinjaman",
+        "meaning": "Nama lembaga yang memberi atau mengelola pembiayaan. Nama aplikasi tempat kamu checkout tidak selalu sama dengan pemberi dana dalam kontrak.",
+        "example": "Pembelian barang melalui SPayLater dapat memakai PT Commerce Finance; pinjaman tunai KrediFazz dan cicilan Kredivo dapat berasal dari entitas berbeda. Isi sesuai kontrak yang kamu terima.",
+        "important": "Jangan otomatis menulis 'Shopee' untuk semua pinjaman di Shopee. SPayLater dan SPinjam merupakan produk berbeda. Selalu cek halaman ringkasan perjanjian yang berlaku."
+      },
+      "loanReference": {
+        "title": "Nomor kontrak atau referensi",
+        "meaning": "Nomor unik yang membantu mencocokkan tagihan, pembayaran, dan perjanjian pinjaman. Tidak harus berupa nomor rekening bank.",
+        "example": "Gunakan kode transaksi atau ID perjanjian dari riwayat Kredivo, SPayLater, atau KrediFazz. Jika sensitif, cukup simpan sebagian nomor dan catatan yang dapat kamu kenali.",
+        "important": "Jangan menaruh PIN, OTP, password, atau nomor identitas lengkap pada catatan aplikasi. Nomor referensi bisa disamarkan selama masih cukup untuk rekonsiliasi."
+      },
+      "loanBalanceDate": {
+        "title": "Saldo terutang berlaku sejak tanggal",
+        "meaning": "Saat mengoreksi sisa utang lama, tanggal ini menentukan kapan nilai baru dianggap benar untuk riwayat pinjaman.",
+        "example": "Sisa utang resmi berubah menjadi Rp750.000 per 10 November: pilih tanggal 10 November ketika memperbaiki saldo.",
+        "important": "Perubahan tanggal historis dapat mengubah grafik utang masa lalu. Jangan gunakan tanggal pencairan jika angka yang kamu masukkan merupakan sisa utang hari ini."
       }
     }
   },
