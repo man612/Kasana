@@ -178,9 +178,16 @@ const detailParents: Record<string, string> = {
 };
 const backDestination = computed(() => detailParents[String(route.name ?? '')] ?? null);
 const goBack = () => {
-  // Vue Router records the previous in-app location on its history state.
+  // A previous browser entry may be /sign-in or another auth page, not an app
+  // screen. Only navigate back when the previous URL resolves inside the
+  // dashboard layout; direct links safely fall back to their parent list.
   const previous = router.options.history.state.back;
-  if (typeof previous === 'string' && previous.startsWith('/') && previous !== route.fullPath) {
+  const previousIsAppPage =
+    typeof previous === 'string' &&
+    previous.startsWith('/') &&
+    previous !== route.fullPath &&
+    router.resolve(previous).matched.some((record) => record.name === ROUTES_NAMES.dashboard);
+  if (previousIsAppPage) {
     router.back();
   } else if (backDestination.value) {
     void router.push({ name: backDestination.value });
