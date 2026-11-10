@@ -1,99 +1,103 @@
-# Panduan Kasana: dompet lintas tujuan, anggaran, dan utang Indonesia
+# Kasana Guide — Accounts, Budgets, Savings Goals, and Debt in Indonesia
 
-**10 November 2026 — panduan rancangan berdasarkan source MoneyMatter v0.33.14 yang dimodifikasi.** Angka hanya ilustrasi, bukan data nyata pengguna. PR #8 masih draft sampai build dan pengujian visual lulus.
+**Design reference, November 10, 2026.** Based on the Kasana-modified MoneyMatter v0.33.14 codebase. Figures are illustrative, not real user data. The combined UI changes remain under review in [PR #10](https://github.com/man612/Kasana/pull/10).
 
-## 1. Tiga lapis pencatatan keuangan
+## 1. Three different layers of personal finance
 
-1. **Akun** menjawab *di mana uang atau utang sebenarnya berada*: BCA, BRI, DANA, GoPay, uang tunai, rekening broker; dan akun kewajiban SPayLater atau Kredivo.
-2. **Anggaran / Budget** menjawab *berapa yang boleh dipakai untuk suatu keperluan*: makan, main, pulsa, transportasi. Sumber dana bisa beberapa akun sekaligus. Transaksi mengurangi saldo di akun yang dipilih dan mengurangi sisa anggaran kategorinya.
-3. **Goals / Target** menjawab *sedang menabung untuk apa*: dana darurat, laptop, motor, dan sebagainya. Goals membaca sebagian saldo dari beberapa akun, tanpa memindahkan uang.
+1. **Accounts** answer *where the money or debt actually is*: BCA, BRI, DANA, GoPay, cash, brokerage accounts, and obligations to SPayLater or Kredivo.
+2. **Budgets** answer *how much may be spent for a purpose*: food, entertainment, mobile credit, or transportation. A single budget can involve multiple funding accounts. Each transaction reduces the chosen account's balance and the remaining budget for its category.
+3. **Savings goals** answer *what the money is being reserved for*: emergency funds, a laptop, a motorcycle, etc. Goals measure assigned portions of account balances without physically transferring the funds.
 
-**Jangan membuat akun bayangan “Uang makan” yang mengklaim saldo sudah berada di BCA/DANA.** Ini menggandakan total aset. Pengecualian hanya bila ada saldo fisik/akun terpisah yang benar-benar dikelola dan dapat direkonsiliasi.
+**Do not create a fictitious "Food Money" account holding the same rupiah already tracked in BCA or DANA.** That would double-count assets. A separate account is appropriate only when it truly represents a distinct balance that can be reconciled.
 
-### Contoh lintas rekening
+### Example across several accounts
 
-| Akun nyata | Saldo |
-|---|---:|
-| BCA | Rp2.000.000 |
-| DANA | Rp400.000 |
-| Tunai | Rp300.000 |
-| Reksa dana | Rp1.500.000 |
+| Real balance source | Balance |
+| --- | ---: |
+| BCA | Rp2,000,000 |
+| DANA | Rp400,000 |
+| Cash | Rp300,000 |
+| Mutual-fund portfolio | Rp1,500,000 |
 
-- Buat empat sumber saldo tersebut **sekali saja**. Portofolio reksa dana jangan dijumlahkan ulang sebagai akun “tabungan” tambahan jika posisi investasi sudah masuk kekayaan bersih.
-- Buka **Perencanaan > Anggaran**, pilih akun kas yang berpartisipasi, lalu baris **Makan** Rp600.000/bulan dan **Hiburan/Main** Rp300.000/bulan. Tambahkan kategori biaya lain dan tetapkan aturan sisa anggaran (rollover) sesuai kebutuhan.
-- Buka **Perencanaan > Target/Goals**, buat **Dana darurat** dan **Laptop**. Tautkan rekening yang mendanai target dan bagian masing-masing.
-- **Mode yang sudah tersedia dalam source:** `packages/frontend/src/pages/goals/components/goal-accounts-dialog.vue` mendukung **Persentase** *dan* **Nominal tetap** per rekening. Pilih berdasarkan sifat alokasi: nominal Rp500.000 dari BCA ke Tabungan Laptop, Rp200.000 dari DANA, dan Rp300.000 dari akun investasi = kemajuan Rp1.000.000 dari target Rp2 juta.
-- Jika menggunakan mode **Persentase**, contoh 25% BCA + 50% DANA + 20% akun investasi juga menghasilkan Rp1 juta, tetapi naik-turun saat saldo tiap akun berubah.
-- Sistem menampung beberapa **Nominal tetap** dari satu akun dan menyediakan **urutan prioritas**. Nilai nominal tetap mengambil saldo yang tersedia dahulu sesuai urutan, maksimal sebesar nominal yang diatur; barulah bagian persentase dihitung dari sisanya. Ketika saldo tak cukup, alokasi yang prioritasnya lebih belakang dapat berkurang. Ini **bukan penguncian dana fisik**.
-- Total alokasi persentase dari satu akun ke beberapa Goals aktif/dijeda dibatasi hingga **100%**. Nominal tetap ditangani oleh mekanisme kapasitas dan prioritas tersendiri, bukan dijumlahkan sebagai persentase. Tetap perlu perhatian karena **Budget dan Goals belum mengunci alokasi satu sama lain**: mengalokasikan Rp600.000 ke anggaran Makan dan mengklaim rupiah yang sama untuk Tabungan Laptop bisa membuat rencana melebihi uang nyata.
-- Tujuan yang membutuhkan nominal tetap tidak perlu rekening tambahan selama kamu memahami bahwa uangnya tetap berada pada sumber aslinya dan target dapat turun jika saldo berkurang.
-- Saat membeli makan dari DANA Rp35.000, **pengeluaran akun DANA Rp35.000 dengan kategori Makan** sekaligus mengurangi dua angka yang berbeda: saldo DANA dan sisa anggaran Makan. Tidak perlu membuat transaksi keluar dari akun “Anggaran Makan”.
+- Create the four real balance sources **once**. Do not add an extra savings account that repeats an investment holding already included in net worth.
+- In **Planning → Budgets**, select the relevant cash accounts and create lines such as **Food** Rp600,000/month and **Entertainment** Rp300,000/month. Set rollover behavior deliberately.
+- In **Planning → Goals**, create goals such as **Emergency Fund** and **Laptop**, assigning portions of supporting balances.
+- The inherited `packages/frontend/src/pages/goals/components/goal-accounts-dialog.vue` supports **percentage** and **fixed-amount** allocations per account. Choose based on the intended behavior. A fixed allocation of Rp500,000 from BCA, Rp200,000 from DANA, and Rp300,000 from investments gives Rp1,000,000 progress toward a Rp2,000,000 laptop goal.
+- A percentage allocation of 25% BCA + 50% DANA + 20% investment value also yields Rp1,000,000 with the example balances, but changes as each source balance changes.
+- Multiple **fixed allocations** from one account are allowed and have **priority order**. Earlier allocations take available capacity up to their configured amount; subsequent allocations may shrink when funds are insufficient. Percentage allocations are then computed from the remainder. These are tracking rules, **not physical fund locks**.
+- The total percentage allocated from one account to several active or paused goals is limited to **100%**. Fixed allocations use their own priority/capacity mechanism, not a percentage sum.
+- **Budgets and Goals do not reserve funds against each other.** Assigning Rp600,000 to Food and claiming the exact same money for a Laptop goal can make a plan exceed real available cash.
+- For a fixed-amount goal, another bank account is unnecessary if you understand that money remains at its source and goal progress can fall when the underlying account balance falls.
+- When spending Rp35,000 from DANA on food, record a **Rp35,000 expense against DANA with category Food**. This reduces both the DANA balance and the available Food budget. Do not invent a withdrawal from a separate "Food Budget" account.
 
-Rujukan source: `packages/docs/src/content/docs/budgeting/start-budgeting.mdx`, `budgeting/assigning-and-rollover.mdx`, `goals/create-and-edit.mdx`, `goals/how-progress-is-calculated.mdx`.
+Related upstream docs: `packages/docs/src/content/docs/budgeting/start-budgeting.mdx`, `budgeting/assigning-and-rollover.mdx`, `goals/create-and-edit.mdx`, and `goals/how-progress-is-calculated.mdx`.
 
-## 2. Tiga jenis utang yang berbeda
+## 2. Distinguish three forms of debt
 
-| Jenis | Contoh | Alur benar |
-|---|---|---|
-| **Paylater pembelian** | Kredivo cicilan belanja; Shopee SPayLater | Akun kewajiban/paylater, catat pembelian dan biaya pada akun itu; pembayaran dari BCA via transfer |
-| **Pinjaman tunai** | KrediFazz; Shopee SPinjam | Pokok utang, pencairan aktual ke bank, biaya terpotong, dan angsuran dipisahkan |
-| **Kredit berulang** | Kartu kredit | Saldo utang kartu, pembelian/pengembalian, bunga, bayar tagihan; limit kredit bukan kas |
+| Debt type | Example | Accounting approach |
+| --- | --- | --- |
+| **Purchase financing / paylater** | Kredivo installments, Shopee SPayLater | Track the outstanding liability and purchases/fees; payments from BCA are transfers that reduce the debt |
+| **Cash loans** | KrediFazz, Shopee SPinjam | Separate contractual principal, actual cash received, deducted fees, and installment components |
+| **Revolving credit** | Credit cards | Track charged purchases, refunds, interest, bill payments, and outstanding debt; a credit limit is not cash |
 
-**SPayLater (PT Commerce Finance) bukan SPinjam (PT Lentera Dana Nusantara).** KrediFazz adalah fasilitas pinjaman tunai dalam ekosistem Kredivo, tetapi setiap kontrak bisa memiliki pemberi dana, tarif, tenor, dan biaya sendiri. Gunakan ringkasan kontrak pada akun masing-masing, bukan satu tarif dari internet.
+**SPayLater (PT Commerce Finance) and SPinjam (PT Lentera Dana Nusantara) are different products.** KrediFazz operates in the Kredivo ecosystem, but lenders, rates, terms, and fees can vary by contract. Use the actual provider disclosure, not a generic rate found online.
 
-## 3. Cara mencatat paylater pembelian di aplikasi saat ini
+## 3. Recording purchase paylater in the current app
 
-Contoh hipotetis: beli barang Rp600.000 dengan SPayLater dan dikenai biaya transaksi Rp30.000, lalu bayar Rp210.000 dari BCA.
+Hypothetical scenario: an item costs Rp600,000, the provider charges a Rp30,000 fee, and you pay Rp210,000 from BCA.
 
-1. Buat **akun manual 'SPayLater'** (kategori Kartu Kredit untuk kewajiban berjalan, atau Umum bila klasifikasi tersebut tidak cocok). Saldo awal 0 jika belum ada transaksi. **Jangan mengisi limit kredit sebagai saldo awal.**
-2. Catat pengeluaran Rp600.000 di akun SPayLater dengan kategori barang (Elektronik, Pakaian, dll). Saldo SPayLater menjadi −Rp600.000.
-3. Saat biaya Rp30.000 resmi muncul, catat pengeluaran pada akun SPayLater dengan kategori **Biaya pembiayaan**. Saldo menjadi −Rp630.000.
-4. Saat membayar Rp210.000 dari BCA, buat **transfer BCA → SPayLater**. Saldo BCA turun Rp210.000; utang SPayLater tinggal −Rp420.000.
-5. Jangan mencatat langkah 4 sebagai belanja lagi: pembelian sudah dicatat pada langkah 2. Kalau baru mulai pencatatan setelah beberapa cicilan, gunakan **saldo awal negatif sebesar utang yang benar-benar sudah dibebankan/tercatat**, lalu catat pembayaran setelah titik awal tersebut.
+1. Create a **manual account named SPayLater** (use the Credit Card category for an ongoing liability, or General if that classification does not fit). Start with zero balance if no debt has been recorded. **Never enter the credit limit as the opening balance.**
+2. Record a **Rp600,000 expense** in the SPayLater account, using an appropriate item category. The tracked balance becomes **−Rp600,000**.
+3. When the Rp30,000 fee is formally charged, record a financing-cost expense against SPayLater. The liability becomes **−Rp630,000**.
+4. When paying Rp210,000 from BCA, create a **BCA → SPayLater transfer**. BCA decreases by Rp210,000; the remaining SPayLater balance becomes **−Rp420,000**.
+5. **Do not record the transfer as another shopping expense**: the purchase was already counted in step 2. If tracking begins after some installments have been paid, initialize the SPayLater account with the true outstanding **negative** balance and record only subsequent transactions.
 
-Jika sebagian bunga/biaya belum timbul secara akuntansi, jangan asal memasukkan semua biaya masa depan sebagai utang hari ini tanpa mengetahui cara penyedia menyatakan sisa kewajiban. Cocokkan dengan mutasi/tagihan resmi.
+If some future fees or interest have not yet accrued under the contract, do not arbitrarily recognize all future charges as current debt. Reconcile against the provider's official statements and accounting treatment.
 
-## 4. Cara mencatat pinjaman tunai dan menghindari bunga yang salah
+## 4. Recording cash loans and avoiding incorrect interest assumptions
 
-Misal contoh kontrak menyatakan **pokok Rp1.000.000**, biaya administrasi di muka Rp60.000, **uang benar-benar masuk Rp940.000**. Ketiga angka harus dibedakan. Apabila kamu mulai melacak ketika uang sudah cair, masukkan saldo bank yang nyata sebagai saldo awal/penyesuaian dengan catatan, dan catat kewajiban pokok yang benar; **jangan menjadikan pencairan sebagai gaji**.
+Suppose a loan contract specifies **Rp1,000,000 principal** and deducts **Rp60,000 upfront fees**, so only **Rp940,000** reaches the bank. These values are not interchangeable. If tracking begins after disbursement, enter the observed bank balance with a proper opening-balance or adjustment note and separately record the actual liability. **Do not classify loan disbursement as salary or earned income.**
 
-Fitur **Pinjaman** saat ini menerima pokok awal, saldo terutang, APR, tenor, pembayaran bulanan, minimum, jatuh tempo, dan penyedia. Namun kodenya menghitung proyeksi bunga dari sisa pokok dengan model amortisasi, sedangkan `LoanPayment` memperlakukan transfer pembayaran sebagai pengurangan pokok sepenuhnya.
+The current **Loans** feature stores original principal, outstanding balance, APR, term, monthly/minimum payment, due dates, and lender. Its projection uses declining-principal amortization, while the inherited `LoanPayment` logic treats loan payments as reductions of principal.
 
-**Contoh pembayaran:** bila bukti tagihan Rp360.000 ternyata terdiri atas pengurangan pokok Rp300.000 dan biaya/bunga Rp60.000, untuk laporan saldo utang yang akurat catat Rp300.000 sebagai pembayaran pokok dan Rp60.000 sebagai biaya keuangan dari bank. Jangan mengurangi pokok Rp360.000 lalu mengakui Rp60.000 lagi.
+**Payment example:** if a Rp360,000 installment includes Rp300,000 principal and Rp60,000 interest/fees, record Rp300,000 as principal repayment and Rp60,000 as financing cost from the bank. Recording Rp360,000 as principal reduction **and** another Rp60,000 fee would misstate debt and spending.
 
-Apabila kontrak menunjukkan *flat monthly interest*, bunga 2,6% sebulan **tidak otomatis** sama dengan APR 31,2% untuk rumus menurun; APR tidak boleh ditebak. Jangan mengisi 0% hanya karena tidak tahu tarif sebenarnya. Bila tidak ada informasi pemisahan pokok/bunga, untuk sementara pakai pencatatan manual saldo utang/biaya yang ditagih dan jangan mengandalkan grafik proyeksi otomatis.
+A contractual **flat monthly interest rate of 2.6%** cannot simply be entered as a **31.2% APR** into a declining-balance calculator; those are different pricing conventions. Do not enter 0% just because the true effective rate is unknown. If principal and interest are not separately disclosed, track actual balances and billed charges manually rather than relying on automatic loan projections.
 
-### Kekurangan fitur yang perlu desain tahap kedua
-- Pinjaman tunai belum mempunyai alur terpadu **pencairan pinjaman -> dana bersih diterima -> biaya di muka -> kewajiban** tanpa rekayasa transaksi.
-- APR **wajib** diisi di loan form; pengguna dengan tarif flat atau APR tidak diketahui tidak bisa mendapat proyeksi yang benar.
-- Pembayaran loan saat ini masuk 100% pengurangan pokok. Perlu tipe **alokasi cicilan: pokok + bunga + admin + denda** untuk model pinjaman Indonesia.
-- Perlu fasilitas **paylater dengan banyak kontrak/angsuran pada satu provider**, masing-masing biaya dan tanggalnya, alih-alih mencampurnya ke satu proyeksi.
-- Pengingat sesuai kalender pembayaran/tagihan resmi, bukan hanya satu hari tetap dalam setiap bulan.
-- Laporan jangan menghitung limit kredit yang belum dipakai sebagai aset.
+### Gaps requiring a separate implementation phase
 
-## 5. Panduan baru pada PR #8
+- Cash loans lack an integrated flow for **contractual principal → net disbursement → deducted upfront fees → outstanding liability** without manually constructing transactions.
+- The loan form requires APR. Users with flat interest or unknown effective rates cannot obtain accurate projections without suitable calculation logic.
+- Current loan payments reduce principal by 100%. An Indonesian loan model needs **installment allocation across principal, interest, administration fees, and late fees**.
+- Paylater providers may contain **multiple independent purchases or installment contracts**, each with distinct rates and billing dates. Combining them into one forecast can mislead.
+- Reminders should follow official due dates and billing calendars, not only a fixed day of the month.
+- Reports must not count unused credit limits as assets.
 
-- Bantuan per kolom rekening, kendaraan dan pinjaman berbasis komponen dialog/drawer yang sudah dipakai aplikasi.
-- Peringatan bunga flat pada awal form Pinjaman.
-- Default jenis pinjaman baru menjadi **Pribadi**, bukan **KPR**.
-- Shortcut tenor cicilan pendek: 1, 2, 3, 6, 9, 12, 18, 24 bulan, ditambah tenor tahun panjang. Menu dibatasi tinggi dan dapat di-scroll.
-- Contoh lokal pada nama penyedia: Kredivo, KrediFazz, SPayLater.
-- Perhitungan asli dan database tetap tidak berubah. **Tidak berarti APR, saldo, dan cicilan paylater sudah otomatis dihitung benar.**
+## 5. Form guidance implemented in historical PR #8
 
-## 6. Prioritas produk berikutnya
+- Field-by-field help for accounts, vehicles, and loans using the application's responsive dialog/drawer.
+- A flat-interest warning near the beginning of the Loan form.
+- The default new loan type changes to **Personal**, not Mortgage.
+- Short installment-term presets: **1, 2, 3, 6, 9, 12, 18, and 24 months**, alongside longer multi-year terms. The menu has a capped, scrollable height.
+- Local provider examples: Kredivo, KrediFazz, and SPayLater.
+- The existing calculation engine and database were **not** replaced. These changes do **not** imply that APR, liabilities, and paylater schedules are automatically modeled correctly.
 
-1. Perbaiki kualitas tampilan/form dan jalankan build, unit test, serta QA mobile. Merge hanya setelah lolos.
-2. Jadikan alur penambahan akun jelas **Akun nyata → Anggaran → Target**. Tutorial onboarding tidak membuat saldo ganda.
-3. Tambahkan kategori **Dompet digital** secara nyata pada model akun (bukan hanya ganti label Umum), tanpa menghilangkan enum lama.
-4. Tambahkan jenis kewajiban **Paylater/cicilan barang** terpisah dari **Pinjaman tunai**, serta tampilan rincian kontrak.
-5. Pisahkan komponen angsuran dan jangan membuat estimasi APR jika kontrak tidak menyediakan data yang diperlukan.
-6. Integrasikan pengingat tagihan dan rekonsiliasi saldo; buat mesin perhitungan sebagai modul yang diuji dengan simulasi kontrak Indonesia.
+## 6. Priorities for later product development
 
-## Sumber pembanding
+1. Finish visual/form quality checks and run builds, unit tests, and mobile QA before merging.
+2. Make onboarding explain **Real Accounts → Budgets → Savings Goals** without duplicating balances.
+3. Add a genuine **E-wallet** account type to the data model, rather than merely renaming General, with backward compatibility for old enums.
+4. Distinguish **purchase paylater contracts** from **cash loans** and support each contract's outstanding balance and billing dates.
+5. Separate installment components and avoid estimating APR when a contract lacks the necessary information.
+6. Add bill reminders and balance reconciliation; test calculation modules against representative Indonesian contract scenarios.
+
+## References
 
 - `packages/shared/src/types/loans.ts`; `packages/backend/src/common/loans/projection.ts`; `packages/frontend/src/pages/loans/components/loan-form.vue`; `.../loan-payment-form.vue`.
 - [Kredivo FAQ](https://www.kredivo.com/faqs/)
-- [Shopee RIPLAY SPayLater](https://help.shopee.co.id/portal/4/article/145891)
+- [Shopee SPayLater product disclosure](https://help.shopee.co.id/portal/4/article/145891)
 - [Shopee SPinjam](https://help.shopee.co.id/portal/4/article/72485-%5BSPinjam%5D-Apa-itu-SPinjam%3F)
 - [Actual Budget: envelope budgeting](https://actualbudget.org/docs/budgeting/)
-- [OJK: POJK 40/2024](https://ojk.go.id/id/regulasi/Pages/POJK-40-Tahun-2024-Layanan-Pendanaan-Bersama-Berbasis-Teknologi-Informasi.aspx)
+- [OJK Regulation 40/2024](https://ojk.go.id/id/regulasi/Pages/POJK-40-Tahun-2024-Layanan-Pendanaan-Bersama-Berbasis-Teknologi-Informasi.aspx)
+
+**These examples are educational bookkeeping guidance, not contractual, accounting, legal, or lending advice. Verify each provider statement and real transaction before entering liabilities.**
