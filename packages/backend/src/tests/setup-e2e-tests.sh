@@ -11,7 +11,10 @@ fi
 # Namespace the docker compose project by the worktree basename so multiple
 # worktrees get their own containers/volumes and do not destroy each other's
 # template DB / worker DBs / images.
-WORKTREE_ID=$(basename "$(cd ../.. && pwd)")
+# Docker Compose project names only allow lowercase letters, numbers, '_' and '-'.
+# A renamed checkout such as 'Kasana' must not yield 'bt-test-Kasana'.
+WORKTREE_ID=$(basename "$(cd ../.. && pwd)" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9_-]+/-/g; s/^[^a-z0-9]+//; s/[-_]+$//')
+WORKTREE_ID="${WORKTREE_ID:-repo}"
 export COMPOSE_PROJECT_NAME="bt-test-${WORKTREE_ID}"
 echo "Using COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT_NAME}"
 
