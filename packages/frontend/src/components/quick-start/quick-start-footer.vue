@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/common/dropdown-menu';
 import { useOnboardingStore } from '@/stores/onboarding';
-import { EyeOffIcon, RotateCcwIcon } from '@lucide/vue';
+import { EyeOffIcon, MoveIcon, RotateCcwIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -48,17 +48,39 @@ const handleConfirm = () => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button
-        variant="outline"
-        size="sm"
-        class="w-full"
-        :disabled="isAtDefaultPosition"
-        @click="onboardingStore.resetTriggerPosition()"
-      >
-        <RotateCcwIcon class="size-4" />
-        {{ t('kasana.quickStart.resetPosition') }}
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger as-child>
+          <Button variant="outline" size="sm" class="w-full">
+            <MoveIcon class="size-4" />
+            {{ t('kasana.quickStart.placeButton') }}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem @select="onboardingStore.setTriggerPosition({ x: 0, y: 0 })">
+            {{ t('kasana.quickStart.topLeft') }}
+          </DropdownMenuItem>
+          <DropdownMenuItem @select="onboardingStore.setTriggerPosition({ x: 1, y: 0 })">
+            {{ t('kasana.quickStart.topRight') }}
+          </DropdownMenuItem>
+          <DropdownMenuItem @select="onboardingStore.setTriggerPosition({ x: 0, y: 1 })">
+            {{ t('kasana.quickStart.bottomLeft') }}
+          </DropdownMenuItem>
+          <DropdownMenuItem @select="onboardingStore.setTriggerPosition({ x: 1, y: 1 })">
+            {{ t('kasana.quickStart.bottomRight') }}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
+    <Button
+      variant="ghost"
+      size="sm"
+      class="mb-2 w-full"
+      :disabled="isAtDefaultPosition"
+      @click="onboardingStore.resetTriggerPosition()"
+    >
+      <RotateCcwIcon class="size-4" />
+      {{ t('kasana.quickStart.resetPosition') }}
+    </Button>
     <p class="text-muted-foreground mb-3 text-xs leading-relaxed">
       {{ t('kasana.quickStart.hideExplanation') }}
     </p>
