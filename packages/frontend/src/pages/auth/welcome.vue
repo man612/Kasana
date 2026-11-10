@@ -37,11 +37,11 @@ const { data: allCurrencies, isLoading: isCurrenciesLoading, isError: isErrorLoa
 const { data: baseCurrency } = useBaseCurrency();
 const { mutate: setBaseCurrency, isPending: isSubmitting } = useSetBaseCurrency();
 
-// Sort currencies with priority currencies first (USD, EUR, UAH, PLN)
+// Indonesian private deployment: offer IDR first on first-run onboarding; other currencies stay available.
 const currencies = computed(() => {
   if (!allCurrencies.value || allCurrencies.value.length === 0) return [];
 
-  const priorityCurrencies = ['USD', 'EUR', 'UAH', 'PLN'];
+  const priorityCurrencies = ['IDR', 'USD', 'EUR', 'UAH', 'PLN'];
   const priority: CurrencyModel[] = [];
   const others: CurrencyModel[] = [];
 

@@ -4,7 +4,6 @@ import {
   SUPPORTED_LOCALES as LOCALES,
   type SupportedLocale,
   isSupportedLocale,
-  resolveLocale,
 } from '@bt/shared/i18n/locales';
 import { compile } from '@intlify/core-base';
 import { type I18n, type MessageCompiler, type MessageFunction, createI18n } from 'vue-i18n';
@@ -270,12 +269,13 @@ export async function setLocale(locale: string): Promise<void> {
 }
 
 /**
- * Initialize locale from various sources
- * Priority: localStorage → browser → default
+ * Private Indonesian deployment: default to Bahasa Indonesia on first visit.
+ * A language explicitly selected in Settings remains authoritative.
+ * English stays the translation fallback for missing community translations.
  */
 export function initializeLocale(): string {
   const storedLocale = localStorage.getItem('preferred-locale');
   if (storedLocale && isSupportedLocale(storedLocale)) return storedLocale;
 
-  return resolveLocale({ tag: navigator.languages.join(',') || navigator.language });
+  return LOCALES.INDONESIAN;
 }

@@ -1,3 +1,5 @@
+> **Independent Indonesia-first deployment:** This repository is a modified copy of [MoneyMatter by letehaha](https://github.com/letehaha/moneymatter), based on v0.33.14. It is not an official MoneyMatter release. Changes and local/VPS instructions: [docs/LOCAL-VPS-ID.md](docs/LOCAL-VPS-ID.md). Original copyright and AGPL-3.0 license are preserved.
+
 <div align="center">
 
 <img src="packages/landing/public/img/logo.svg" width="72" alt="MoneyMatter logo">

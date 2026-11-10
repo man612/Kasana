@@ -1,0 +1,17 @@
+# Private independent copy of MoneyMatter (not a GitHub fork).
+# Combine with the upstream base and build overlays:
+# docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml up -d --build
+#
+# Never reuse the upstream container-image names or fixed shared Docker network.
+name: moneymatter-private
+
+services:
+  backend:
+    image: moneymatter-private-backend:local
+
+  frontend:
+    image: moneymatter-private-frontend:local
+
+networks:
+  budget-tracker:
+    name: moneymatter-private-net
