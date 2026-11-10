@@ -154,7 +154,13 @@ let wakeTimer: ReturnType<typeof setTimeout> | null = null;
 function scheduleReappearance() {
   if (wakeTimer) clearTimeout(wakeTimer);
   const remaining = hiddenUntil.value - Date.now();
-  if (remaining > 0) wakeTimer = setTimeout(() => onboardingStore.showTriggerNow(), remaining);
+  if (remaining > 0) {
+    wakeTimer = setTimeout(() => onboardingStore.showTriggerNow(), remaining);
+  } else if (hiddenUntil.value > 0) {
+    // Android may suspend timers when the tab is backgrounded: restore an
+    // expired shortcut immediately on remount instead of leaving it hidden.
+    onboardingStore.showTriggerNow();
+  }
 }
 watch(hiddenUntil, scheduleReappearance);
 
