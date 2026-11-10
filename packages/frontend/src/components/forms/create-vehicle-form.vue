@@ -9,6 +9,7 @@ import FieldLabel from '@/components/fields/components/field-label.vue';
 import FormFieldHelp from '@/components/common/form-field-help.vue';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import * as Select from '@/components/lib/ui/select';
@@ -270,19 +271,17 @@ const submit = async () => {
       <template #label-right><FormFieldHelp topic="vehicleClass" /></template>
     </SelectField>
 
-    <input-field
+    <FormattedAmountField
       v-model="form.purchasePrice"
-      type="number"
       :label="$t('forms.createVehicle.purchasePriceLabel')"
       :error-message="getFieldErrorMessage('form.purchasePrice')"
       @blur="touchField('form.purchasePrice')"
-      non-label-wrapper
       :aria-label="$t('forms.createVehicle.purchasePriceLabel')"
     >
       <template #label-right>
         <FormFieldHelp topic="vehiclePurchasePrice" />
       </template>
-    </input-field>
+    </FormattedAmountField>
 
     <DateField v-model="form.purchaseDate" :label="$t('forms.createVehicle.purchaseDateLabel')">
       <template #label-right><FormFieldHelp topic="vehiclePurchaseDate" /></template>
