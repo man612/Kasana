@@ -83,7 +83,7 @@ const formatNumber = (value: number): string => {
 };
 
 const displayValue = computed(() => {
-  if (props.modelValue === null || props.modelValue === undefined) return '';
+  if (props.modelValue === null || props.modelValue === undefined) return trailingFragment.value === '-' ? '-' : '';
   // fragment uses a canonical '.' — swap in the locale's decimal separator to match the formatter.
   const fragment = trailingFragment.value.replace('.', separators.decimal);
   return `${formatNumber(props.modelValue)}${fragment}`;
@@ -111,7 +111,7 @@ const onInput = (event: Event) => {
   }
 
   // Format immediately on EACH keystroke, not after blur or the parent rerender.
-  const formattedNow = numeric === null ? '' : formatNumber(numeric) + fragment.replace('.', separators.decimal);
+  const formattedNow = numeric === null ? (fragment === '-' ? '-' : '') : formatNumber(numeric) + fragment.replace('.', separators.decimal);
   target.value = formattedNow;
   const caretAfter = caretOffsetAfterDigits({
     text: formattedNow,
