@@ -237,7 +237,9 @@
       "notifications": {
         "success": "Kendaraan ditambahkan",
         "error": "Gagal menambahkan kendaraan"
-      }
+      },
+      "vehicleClassPlaceholder": "Pilih jenis kendaraan",
+      "vehicleClassHint": "Jenis kendaraan memengaruhi estimasi penyusutan. MPV, LCGC, dan hatchback belum mempunyai rumus khusus Indonesia; gunakan Lainnya sementara dan periksa kembali perkiraan nilainya."
     },
     "editVehicle": {
       "submitButton": "Simpan perubahan",
