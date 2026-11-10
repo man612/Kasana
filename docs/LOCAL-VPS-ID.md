@@ -21,8 +21,9 @@ This project is not represented as original software and must preserve upstream 
 2. Open PowerShell in the repository directory.
 3. Run `.\scripts\setup-local-private.ps1` once. It generates random secrets in gitignored `self-hosting/.env`, caps signups at one for initial testing, and binds the frontend to `127.0.0.1:8080`.
 4. Run `.\scripts\run-local-private.ps1`. This builds the backend/frontend from **this repository's source**, not the upstream published application images.
-5. Visit http://localhost:8080; register the first user and verify onboarding preselects IDR.
-6. Use Settings to choose any other base currency if necessary **before** importing real data. Existing data is not automatically converted by the UI default.
+5. Run `.\scripts\verify-local-private.ps1` to confirm container health and that the sign-in page returns HTTP 200. This test never registers a user or changes financial data.
+6. Visit http://localhost:8080; register the first user and verify onboarding preselects IDR.
+7. Use Settings to choose any other base currency if necessary **before** importing real data. Existing data is not automatically converted by the UI default.
 
 Note: source builds are resource intensive. This Windows machine has ~12 GB RAM; the generated env sets `NODE_BUILD_HEAP_MB=4096`. Increase Docker/WSL available RAM if the frontend build fails. Upstream dev source may require Node 24.22.1, but the production Dockerfiles already pin that version.
 

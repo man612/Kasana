@@ -8,6 +8,10 @@ name: moneymatter-private
 services:
   backend:
     image: moneymatter-private-backend:local
+    # First-time database migrations may exceed the upstream 60-second startup window.
+    # Healthchecks still turn healthy immediately when the HTTP server is ready.
+    healthcheck:
+      start_period: 300s
 
   frontend:
     image: moneymatter-private-frontend:local
