@@ -179,7 +179,7 @@ const submit = async () => {
         :name-for-search="form.name"
         :reset-label="$t('common.logo.remove')"
         size-class="size-10 rounded-lg"
-        align="with-labeled-field"
+        align="with-help-labeled-field"
       >
         <template #placeholder>
           <AccountLogo :account="logoPlaceholderAccount" class="size-10 rounded-lg" />
