@@ -99,6 +99,9 @@ jobs:
     name: Backend tasks
     needs: [prepare-dependencies, detect-changes]
     runs-on: ubuntu-latest
+    # Memory headroom for large Jest unit suites without changing production runtime.
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
     strategy:
       matrix:
         # typecheck is the only type-check gate for backend code: the e2e/unit
@@ -130,7 +133,7 @@ jobs:
           envkey_APPLICATION_REDIS_HOST: test-redis
           # GitHub runner has 4 CPU
           # https://docs.github.com/en/actions/reference/runners/github-hosted-runners#standard-github-hosted-runners-for-public-repositories
-          envkey_JEST_WORKERS_AMOUNT: 4
+          envkey_JEST_WORKERS_AMOUNT: 2
           envkey_SHOW_LOGS_IN_TESTS: false
           envkey_POLYGON_API_KEY: test
           envkey_ALPHA_VANTAGE_API_KEY: test

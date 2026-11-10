@@ -1,3 +1,4 @@
+import { numberFormatLocale } from '@/js/helpers/formatters';
 import type { FormattedCategory } from '@/common/types';
 import {
   ACCOUNT_STATUSES,
@@ -7,7 +8,7 @@ import {
   TRANSACTION_TYPES,
   type TransactionTemplateModel,
 } from '@bt/shared/types';
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type EmitFn, type ShortEmitsToObject } from 'vue';
 
 import {
@@ -16,6 +17,11 @@ import {
   type TemplateListProps,
   useTemplateList,
 } from './use-template-list';
+
+// Legacy assertions in this suite explicitly use English number formatting.
+// Keep production Indonesia-first defaults unchanged and isolate the fixture locale.
+beforeEach(() => { numberFormatLocale.value = 'en-US'; });
+afterAll(() => { numberFormatLocale.value = 'id-ID'; });
 
 vi.mock('vue-i18n', () => ({
   useI18n: () => ({ t: (key: string) => key }),
