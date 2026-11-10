@@ -14,6 +14,7 @@ import LogoSquareField from '@/components/common/logo-square-field.vue';
 import FormFieldHelp from '@/components/common/form-field-help.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import * as Select from '@/components/lib/ui/select';
@@ -212,12 +213,10 @@ const submit = async () => {
       </FieldLabel>
     </div>
 
-    <input-field
+    <FormattedAmountField
       v-model="form.initialBalance"
-      type="number"
       :label="$t('forms.createAccount.initialBalanceLabel')"
       :placeholder="$t('forms.createAccount.initialBalancePlaceholder')"
-      non-label-wrapper
       :aria-label="$t('forms.createAccount.initialBalanceLabel')"
     >
       <template #label-right>
@@ -228,7 +227,7 @@ const submit = async () => {
           <FormFieldHelp topic="accountInitialBalance" />
         </div>
       </template>
-    </input-field>
+    </FormattedAmountField>
 
     <FieldLabel :label="$t('forms.createAccount.accountCategoryLabel')" :only-template="true">
       <template #label-right><FormFieldHelp topic="accountCategory" /></template>
@@ -255,18 +254,16 @@ const submit = async () => {
       <template #label-right><FormFieldHelp topic="accountPaymentType" /></template>
     </SelectField>
 
-    <input-field
+    <FormattedAmountField
       v-model="form.creditLimit"
-      type="number"
       :label="$t('forms.createAccount.creditLimitLabel')"
       :placeholder="$t('forms.createAccount.creditLimitPlaceholder')"
-      non-label-wrapper
       :aria-label="$t('forms.createAccount.creditLimitLabel')"
     >
       <template #label-right>
         <FormFieldHelp topic="accountCreditLimit" />
       </template>
-    </input-field>
+    </FormattedAmountField>
 
     <div class="flex">
       <ui-button type="submit" class="ml-auto min-w-30" :disabled="createAccountMutation.isPending.value">
