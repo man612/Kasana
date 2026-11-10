@@ -8,6 +8,12 @@
         <p class="text-muted-foreground mt-2 mb-3 text-sm">
           {{ t('pages.integrations.addDialog.selectProviderHint') }}
         </p>
+        <div class="border-border/70 bg-muted/30 mb-4 rounded-lg border px-3 py-3 text-sm">
+          <p class="font-medium">{{ t('pages.integrations.addDialog.indonesiaNoticeTitle') }}</p>
+          <p class="text-muted-foreground mt-1 leading-relaxed">
+            {{ t('pages.integrations.addDialog.indonesiaNotice') }}
+          </p>
+        </div>
 
         <div class="mb-4 flex flex-wrap gap-1.5">
           <UiButton

@@ -3,7 +3,7 @@
     "importExport": {
       "ynabImport": {
         "pageTitle": "Импорт из YNAB",
-        "pageDescription": "Загрузите экспорт YNAB Register.csv, чтобы перенести в MoneyMatter счета, транзакции, категории, получателей и теги.",
+        "pageDescription": "Загрузите экспорт YNAB Register.csv, чтобы перенести в Kasana счета, транзакции, категории, получателей и теги.",
         "stepper": {
           "steps": {
             "upload": "Загрузка",
@@ -57,7 +57,7 @@
         },
         "done": {
           "successTitle": "Импорт завершён",
-          "successDescription": "Данные YNAB теперь находятся в MoneyMatter.",
+          "successDescription": "Данные YNAB теперь находятся в Kasana.",
           "accountsCreated": "Создано счетов",
           "accountsSkipped": "Пропущено счетов",
           "categoriesCreated": "Создано категорий",

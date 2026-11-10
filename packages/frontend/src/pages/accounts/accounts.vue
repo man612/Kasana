@@ -86,7 +86,16 @@
             :projected-total="projectedTotal"
           />
 
-          <AccountsSection :title="$t('accounts.sections.bankConnections')" :count="bankConnectionsCount">
+          <AccountsSection v-if="manualItems.length" :title="$t('accounts.sections.manual')" :count="manualCount">
+            <div class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border">
+              <template v-for="item in manualItems" :key="item.id">
+                <AccountGroupRow v-if="item.kind === 'group'" :group="item.group" />
+                <AccountListRow v-else :account="item.account" />
+              </template>
+            </div>
+          </AccountsSection>
+
+          <AccountsSection v-if="connectionRows.length" :title="$t('accounts.sections.bankConnections')" :count="bankConnectionsCount">
             <template #action>
               <UiButton size="sm" @click="openAddIntegrationDialog">
                 <LinkIcon class="size-4" />
@@ -110,14 +119,14 @@
             <p v-else class="text-muted-foreground px-1 py-2 text-sm">{{ $t('accounts.noBanksConnected') }}</p>
           </AccountsSection>
 
-          <AccountsSection v-if="manualItems.length" :title="$t('accounts.sections.manual')" :count="manualCount">
-            <div class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border">
-              <template v-for="item in manualItems" :key="item.id">
-                <AccountGroupRow v-if="item.kind === 'group'" :group="item.group" />
-                <AccountListRow v-else :account="item.account" />
-              </template>
+          <!-- International integrations are optional for Indonesian-first usage. -->
+          <div v-if="!connectionRows.length" class="border-border/60 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3">
+            <div>
+              <p class="text-sm font-medium">Koneksi bank internasional</p>
+              <p class="text-muted-foreground text-xs">Opsional. Belum ada sinkronisasi langsung bawaan untuk bank Indonesia.</p>
             </div>
-          </AccountsSection>
+            <UiButton variant="outline" size="sm" @click="openAddIntegrationDialog">Lihat integrasi</UiButton>
+          </div>
 
           <AccountsSection
             v-if="sharedAccounts.length"
@@ -181,29 +190,31 @@
       </template>
 
       <template v-else>
-        <div class="py-12 text-center">
-          <div class="mb-4">
-            <LandmarkIcon class="text-muted-foreground mx-auto size-12" />
+        <section class="border-border/70 bg-card mx-auto mt-8 max-w-xl rounded-2xl border px-5 py-9 text-center sm:px-10">
+          <div class="bg-primary/10 text-primary-text mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl">
+            <LandmarkIcon class="size-6" />
           </div>
-          <h3 class="text-foreground mb-2 text-lg font-medium">{{ $t('accounts.empty.title') }}</h3>
-          <p class="text-muted-foreground mb-6">
-            {{ $t('accounts.empty.description') }}
+          <h3 class="text-foreground text-xl font-semibold tracking-tight">Mulai dari rekening pertamamu</h3>
+          <p class="text-muted-foreground mx-auto mt-3 max-w-md text-sm leading-relaxed">
+            Catat saldo BCA, BRI, Mandiri, BNI, Jago, DANA, GoPay, atau uang tunai.
+            Semuanya bisa dikelola secara manual dalam Rupiah tanpa menghubungkan akun bank.
           </p>
-
-          <div class="mx-auto flex max-w-sm flex-col gap-3">
-            <UiButton size="lg" @click="openAddIntegrationDialog">
-              <LinkIcon class="size-5" />
-              {{ $t('accounts.empty.connectBank') }}
-            </UiButton>
-
+          <div class="mx-auto mt-7 flex max-w-sm flex-col gap-3">
             <CreateAccountDialog>
-              <UiButton variant="outline">
+              <UiButton size="lg" class="w-full">
                 <PlusIcon class="size-4" />
                 {{ $t('accounts.empty.createManual') }}
               </UiButton>
             </CreateAccountDialog>
+            <UiButton variant="outline" size="sm" class="w-full" @click="openAddIntegrationDialog">
+              <LinkIcon class="size-4" />
+              Integrasi bank internasional (opsional)
+            </UiButton>
           </div>
-        </div>
+          <p class="text-muted-foreground mx-auto mt-4 max-w-sm text-xs leading-relaxed">
+            Sinkronisasi otomatis bank Indonesia belum tersedia secara bawaan. Jangan memasukkan PIN atau password m-banking ke penyedia yang tidak mendukung bankmu.
+          </p>
+        </section>
       </template>
 
       <AddIntegrationDialog

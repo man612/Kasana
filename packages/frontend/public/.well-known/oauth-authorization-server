@@ -1,11 +1,11 @@
 {
-  "issuer": "https://api.moneymatter.app/api/v1/auth",
-  "authorization_endpoint": "https://api.moneymatter.app/api/v1/auth/oauth2/authorize",
-  "token_endpoint": "https://api.moneymatter.app/api/v1/auth/oauth2/token",
-  "registration_endpoint": "https://api.moneymatter.app/api/v1/auth/oauth2/register",
-  "revocation_endpoint": "https://api.moneymatter.app/api/v1/auth/oauth2/revoke",
-  "introspection_endpoint": "https://api.moneymatter.app/api/v1/auth/oauth2/introspect",
-  "jwks_uri": "https://api.moneymatter.app/api/v1/auth/.well-known/jwks.json",
+  "issuer": "https://kasana.invalid/api/v1/auth",
+  "authorization_endpoint": "https://kasana.invalid/api/v1/auth/oauth2/authorize",
+  "token_endpoint": "https://kasana.invalid/api/v1/auth/oauth2/token",
+  "registration_endpoint": "https://kasana.invalid/api/v1/auth/oauth2/register",
+  "revocation_endpoint": "https://kasana.invalid/api/v1/auth/oauth2/revoke",
+  "introspection_endpoint": "https://kasana.invalid/api/v1/auth/oauth2/introspect",
+  "jwks_uri": "https://kasana.invalid/api/v1/auth/.well-known/jwks.json",
   "response_types_supported": [
     "code"
   ],

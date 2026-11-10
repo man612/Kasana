@@ -1,32 +1,32 @@
 {
   "serverInfo": {
-    "name": "MoneyMatter Finance Tracker",
+    "name": "Kasana Personal Finance",
     "version": "2.0.0",
-    "title": "MoneyMatter — Personal Finance MCP Server",
-    "description": "OAuth-secured read/write access to your MoneyMatter financial data: accounts, transactions (including splits, refunds, transfers, and groups), trackers, savings goals, subscriptions, transaction automations (rules engine), categories, tags, cash flow, balance history, spending analytics, and investment portfolios (holdings, cash balances, and investment transactions). Supports creating, editing, and deleting records when the corresponding scopes are granted. Enables natural-language queries and automation of your personal finances. Tools come in toolsets: core is always on, and each other toolset is granted with its toolset:<id> scope on the consent screen.",
-    "website": "https://moneymatter.app",
-    "documentation": "https://moneymatter.app/llms-full.txt",
+    "title": "Kasana - Keuangan Pribadi",
+    "description": "OAuth-secured read/write access to your Kasana financial data: accounts, transactions (including splits, refunds, transfers, and groups), trackers, savings goals, subscriptions, transaction automations (rules engine), categories, tags, cash flow, balance history, spending analytics, and investment portfolios (holdings, cash balances, and investment transactions). Supports creating, editing, and deleting records when the corresponding scopes are granted. Enables natural-language queries and automation of your personal finances. Tools come in toolsets: core is always on, and each other toolset is granted with its toolset:<id> scope on the consent screen.",
+    "website": "https://kasana.invalid",
+    "documentation": "https://kasana.invalid/llms-full.txt",
     "vendor": {
-      "name": "MoneyMatter",
-      "url": "https://moneymatter.app"
+      "name": "Kasana",
+      "url": "https://kasana.invalid"
     },
     "icons": [
       {
-        "src": "https://moneymatter.app/favicon.svg",
+        "src": "https://kasana.invalid/favicon.svg",
         "type": "image/svg+xml"
       },
       {
-        "src": "https://moneymatter.app/web-app-manifest-512x512.png",
+        "src": "https://kasana.invalid/web-app-manifest-512x512.png",
         "type": "image/png",
         "sizes": "512x512"
       }
     ],
     "license": "AGPL-3.0-only",
-    "sourceCode": "https://github.com/letehaha/moneymatter"
+    "sourceCode": "https://github.com/man612/moneymatter-private"
   },
   "transport": {
     "type": "streamable-http",
-    "url": "https://mcp.moneymatter.app/mcp"
+    "url": "https://kasana.invalid/mcp"
   },
   "capabilities": {
     "tools": {},
@@ -35,9 +35,9 @@
   },
   "authentication": {
     "oauth2": {
-      "authorizationServer": "https://api.moneymatter.app/api/v1/auth",
-      "metadata": "https://moneymatter.app/.well-known/oauth-authorization-server",
-      "protectedResourceMetadata": "https://moneymatter.app/.well-known/oauth-protected-resource",
+      "authorizationServer": "https://kasana.invalid/api/v1/auth",
+      "metadata": "https://kasana.invalid/.well-known/oauth-authorization-server",
+      "protectedResourceMetadata": "https://kasana.invalid/.well-known/oauth-protected-resource",
       "scopes": [
         "finance:read",
         "finance:write",
@@ -814,7 +814,7 @@
     {
       "name": "dismiss_transfer_suggestion",
       "toolset": "review",
-      "description": "Tell MoneyMatter that a suggested expense/income pair is not a transfer, so list_transfer_suggestions stops offering that pair. Requires finance:write scope."
+      "description": "Tell Kasana that a suggested expense/income pair is not a transfer, so list_transfer_suggestions stops offering that pair. Requires finance:write scope."
     },
     {
       "name": "get_reconciliation_history",
@@ -1274,7 +1274,7 @@
     {
       "name": "list_bank_connections",
       "toolset": "imports",
-      "description": "List the bank connections of the signed-in user (a bank or data provider linked to MoneyMatter), or read one with connectionId."
+      "description": "List the bank connections of the signed-in user (a bank or data provider linked to Kasana), or read one with connectionId."
     },
     {
       "name": "list_import_batches",
@@ -1305,7 +1305,7 @@
   "prompts": [
     {
       "name": "financial_data_guide",
-      "description": "Guidelines for understanding MoneyMatter financial data conventions. Read this before analyzing user data."
+      "description": "Guidelines for understanding Kasana financial data conventions. Read this before analyzing user data."
     }
   ]
 }

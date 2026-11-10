@@ -24,13 +24,7 @@
           :to="source.to"
         />
 
-        <DataSourceRow
-          v-if="group.id === 'fromOtherApps'"
-          :icon="PlusIcon"
-          :title="$t('settings.dataManagement.import.requestMore.title')"
-          :href="EXTERNAL_URLS.featurebaseRoadmap"
-          dashed
-        />
+
       </div>
     </section>
 
@@ -53,8 +47,7 @@
 <script setup lang="ts">
 import DocsLink from '@/components/common/docs-link.vue';
 import { ROUTES_NAMES } from '@/routes';
-import { EXTERNAL_URLS } from '@bt/shared/const/external-urls';
-import { DatabaseIcon, FileTextIcon, FileSpreadsheetIcon, HistoryIcon, PlusIcon, SparklesIcon } from '@lucide/vue';
+import { DatabaseIcon, FileTextIcon, FileSpreadsheetIcon, HistoryIcon, SparklesIcon } from '@lucide/vue';
 import { type Component } from 'vue';
 import { type RouteLocationRaw } from 'vue-router';
 

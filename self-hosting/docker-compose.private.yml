@@ -15,6 +15,9 @@ services:
 
   frontend:
     image: moneymatter-private-frontend:local
+    environment:
+      # Frontend AI/MCP descriptor URLs must match this deployment, not upstream.
+      MCP_BASE_URL: ${MCP_BASE_URL:-${BETTER_AUTH_URL:-http://localhost:8080}}
 
 networks:
   budget-tracker:

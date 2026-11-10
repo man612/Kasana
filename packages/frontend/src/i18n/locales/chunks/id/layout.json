@@ -203,7 +203,7 @@
   },
   "dashboard": {
     "onboarding": {
-      "title": "Selamat Datang di MoneyMatter",
+      "title": "Selamat Datang di Kasana",
       "subtitle": "Mulai dengan menyiapkan akun pertama Anda",
       "createManualAccount": {
         "title": "Buat Akun Manual",
@@ -330,7 +330,7 @@
         },
         "ui": {
           "title": "Mulai Cepat",
-          "subtitle": "Gunakan panduan Mulai Cepat kami untuk mempelajari semua yang bisa dilakukan MoneyMatter untuk Anda.",
+          "subtitle": "Gunakan panduan Mulai Cepat kami untuk mempelajari semua yang bisa dilakukan Kasana untuk Anda.",
           "dismissButton": "Tutup secara permanen",
           "dismissConfirmTitle": "Tutup Mulai Cepat?",
           "dismissConfirmDescription": "Anda selalu dapat membuka kembali panduan Mulai Cepat dari pengaturan jika berubah pikiran.",

@@ -1,4 +1,3 @@
-import { config } from '@/common/config';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { computed } from 'vue';
 
@@ -13,7 +12,7 @@ const DONATE_URL = 'https://donatr.ee/letehaha';
 export const useSupportButton = () => {
   const { data: userSettings, patchAsync, isPatching } = useUserSettings();
 
-  const isSupportButtonAvailable = computed(() => config.isSelfHost);
+  const isSupportButtonAvailable = computed(() => false); // No upstream donation prompt in the local product.
 
   const isSupportButtonVisible = computed(
     () => isSupportButtonAvailable.value && (userSettings.value?.showSupportButton ?? true),

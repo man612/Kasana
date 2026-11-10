@@ -3,7 +3,7 @@
     "aiIntegrations": {
       "mcpServer": {
         "title": "MCP server",
-        "description": "Pomocou tejto URL adresy pripojíte AI asistentov k svojmu účtu MoneyMatter. Vaše údaje sa zdieľajú len na čítanie.",
+        "description": "Pomocou tejto URL adresy pripojíte AI asistentov k svojmu účtu Kasana. Vaše údaje sa zdieľajú len na čítanie.",
         "copyTooltip": "Kopírovať URL adresu",
         "copiedNotification": "URL adresa MCP servera skopírovaná do schránky"
       },
@@ -18,7 +18,7 @@
             "enterName": "Do poľa „Name\" zadajte {value}",
             "pasteUrl": "Do poľa „Remote MCP server URL\" vložte {value}",
             "finish": "Nechajte Advanced settings prázdne a kliknite na {action}",
-            "authorize": "Po presmerovaní do MoneyMatter povoľte prístup"
+            "authorize": "Po presmerovaní do Kasana povoľte prístup"
           }
         },
         "chatgpt": {
@@ -26,7 +26,7 @@
             "addConnector": "Kliknite na {action}",
             "pasteUrl": "Do poľa „URL\" vložte {value}",
             "clickAdd": "Kliknite na {action}",
-            "authorize": "Po presmerovaní do MoneyMatter povoľte prístup"
+            "authorize": "Po presmerovaní do Kasana povoľte prístup"
           }
         }
       },

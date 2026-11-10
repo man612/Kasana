@@ -3,7 +3,7 @@
     "importExport": {
       "ynabImport": {
         "pageTitle": "Nhập từ YNAB",
-        "pageDescription": "Tải tệp Register.csv xuất từ YNAB lên để nhập tài khoản, giao dịch, danh mục, người nhận và thẻ vào MoneyMatter.",
+        "pageDescription": "Tải tệp Register.csv xuất từ YNAB lên để nhập tài khoản, giao dịch, danh mục, người nhận và thẻ vào Kasana.",
         "stepper": {
           "steps": {
             "upload": "Tải lên",
@@ -57,7 +57,7 @@
         },
         "done": {
           "successTitle": "Nhập dữ liệu hoàn tất",
-          "successDescription": "Dữ liệu YNAB của bạn hiện đã có trong MoneyMatter.",
+          "successDescription": "Dữ liệu YNAB của bạn hiện đã có trong Kasana.",
           "accountsCreated": "Tài khoản đã tạo",
           "accountsSkipped": "Tài khoản đã bỏ qua",
           "categoriesCreated": "Danh mục đã tạo",

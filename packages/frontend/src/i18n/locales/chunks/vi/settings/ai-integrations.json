@@ -3,7 +3,7 @@
     "aiIntegrations": {
       "mcpServer": {
         "title": "Máy chủ MCP",
-        "description": "Dùng URL này để kết nối trợ lý AI với tài khoản MoneyMatter của bạn. Dữ liệu của bạn được chia sẻ ở chế độ chỉ đọc.",
+        "description": "Dùng URL này để kết nối trợ lý AI với tài khoản Kasana của bạn. Dữ liệu của bạn được chia sẻ ở chế độ chỉ đọc.",
         "copyTooltip": "Sao chép URL",
         "copiedNotification": "Đã sao chép URL máy chủ MCP"
       },
@@ -18,7 +18,7 @@
             "enterName": "Ở ô \"Name\", nhập {value}",
             "pasteUrl": "Ở ô \"Remote MCP server URL\", dán {value}",
             "finish": "Để trống mục \"Advanced settings\" và nhấn {action}",
-            "authorize": "Bạn sẽ được chuyển đến MoneyMatter để cấp quyền truy cập"
+            "authorize": "Bạn sẽ được chuyển đến Kasana để cấp quyền truy cập"
           }
         },
         "chatgpt": {
@@ -26,7 +26,7 @@
             "addConnector": "Nhấn {action}",
             "pasteUrl": "Ở ô \"URL\", dán {value}",
             "clickAdd": "Nhấn {action}",
-            "authorize": "Bạn sẽ được chuyển đến MoneyMatter để cấp quyền truy cập"
+            "authorize": "Bạn sẽ được chuyển đến Kasana để cấp quyền truy cập"
           }
         }
       },

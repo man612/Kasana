@@ -203,7 +203,7 @@
   },
   "dashboard": {
     "onboarding": {
-      "title": "欢迎来到 MoneyMatter",
+      "title": "欢迎来到 Kasana",
       "subtitle": "从设置您的第一个账户开始",
       "createManualAccount": {
         "title": "创建手动账户",
@@ -330,7 +330,7 @@
         },
         "ui": {
           "title": "快速开始",
-          "subtitle": "使用我们的快速启动指南，了解 MoneyMatter 可以为您做的一切。",
+          "subtitle": "使用我们的快速启动指南，了解 Kasana 可以为您做的一切。",
           "dismissButton": "永久关闭",
           "dismissConfirmTitle": "隐藏快速开始？",
           "dismissConfirmDescription": "如果您改变主意，您随时可以从设置中重新打开“快速开始”指南。",

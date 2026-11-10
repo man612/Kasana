@@ -764,7 +764,7 @@
         "write": "Read + write",
         "manage": "Quản lý"
       },
-      "unknownOwner": "A MoneyMatter user",
+      "unknownOwner": "A Kasana user",
       "unknownResource": "a shared resource",
       "accept": "Accept",
       "decline": "Decline",

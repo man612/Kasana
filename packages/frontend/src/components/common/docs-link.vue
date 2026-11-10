@@ -10,7 +10,7 @@ defineProps<{
 
 <template>
   <a
-    :href="`${config.docsUrl}${path}`"
+    :href="config.isSelfHost ? '/panduan.html' : `${config.docsUrl}${path}`"
     target="_blank"
     rel="noopener noreferrer"
     class="text-primary-text inline-flex items-center gap-1 underline-offset-4 hover:underline"

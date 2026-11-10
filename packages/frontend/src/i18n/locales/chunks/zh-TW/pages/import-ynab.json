@@ -3,7 +3,7 @@
     "importExport": {
       "ynabImport": {
         "pageTitle": "Import from YNAB",
-        "pageDescription": "Upload your YNAB Register.csv export to bring accounts, transactions, categories, payees and tags into MoneyMatter.",
+        "pageDescription": "Upload your YNAB Register.csv export to bring accounts, transactions, categories, payees and tags into Kasana.",
         "stepper": {
           "steps": {
             "upload": "Upload",
@@ -57,7 +57,7 @@
         },
         "done": {
           "successTitle": "Import complete",
-          "successDescription": "Your YNAB data is now in MoneyMatter.",
+          "successDescription": "Your YNAB data is now in Kasana.",
           "accountsCreated": "Accounts created",
           "accountsSkipped": "Accounts skipped",
           "categoriesCreated": "Categories created",

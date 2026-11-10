@@ -1,7 +1,7 @@
 {
   "oauth": {
     "authorize": {
-      "title": "{name} 想要访问您的 MoneyMatter 数据",
+      "title": "{name} 想要访问您的 Kasana 数据",
       "redirect_notice": "After approval you will be redirected to {host}. Only continue if you recognize this address.",
       "description": "此应用正在请求这些权限：",
       "approve": "同意",
@@ -56,7 +56,7 @@
       },
       "unknown": {
         "label": "其他权限",
-        "desc": "此应用请求的权限不被 MoneyMatter承认。"
+        "desc": "此应用请求的权限不被 Kasana承认。"
       }
     }
   }

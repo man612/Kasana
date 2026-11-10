@@ -1,7 +1,7 @@
 {
   "oauth": {
     "authorize": {
-      "title": "{name} muốn truy cập dữ liệu MoneyMatter của bạn",
+      "title": "{name} muốn truy cập dữ liệu Kasana của bạn",
       "redirect_notice": "After approval you will be redirected to {host}. Only continue if you recognize this address.",
       "description": "Ứng dụng này đang yêu cầu các quyền sau:",
       "approve": "Chấp nhận",
@@ -56,7 +56,7 @@
       },
       "unknown": {
         "label": "Quyền bổ sung",
-        "desc": "Ứng dụng đã yêu cầu một quyền mà MoneyMatter không nhận dạng được."
+        "desc": "Ứng dụng đã yêu cầu một quyền mà Kasana không nhận dạng được."
       }
     }
   }

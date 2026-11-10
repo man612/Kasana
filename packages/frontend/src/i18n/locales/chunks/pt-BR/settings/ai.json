@@ -43,14 +43,14 @@
         "placeholder": "Escolha um modelo",
         "automaticOption": "Automático",
         "automaticOptionWithTarget": "Automático · {target}",
-        "serverOption": "MoneyMatter AI · incluído",
+        "serverOption": "Kasana AI · incluído",
         "connectionOption": "{name} · {model}",
         "connectionOptionNeedsAttention": "{name} · {model} (precisa de atenção)",
         "badges": {
           "yourKey": "Sua chave",
-          "yourKeyTooltip": "Roda em um dos seus próprios modelos de IA. Seu provedor cobra você diretamente, e o MoneyMatter não limita o uso.",
+          "yourKeyTooltip": "Roda em um dos seus próprios modelos de IA. Seu provedor cobra você diretamente, e o Kasana não limita o uso.",
           "server": "Servidor",
-          "serverTooltip": "Roda no MoneyMatter AI, incluído no seu plano. Há limites de uso."
+          "serverTooltip": "Roda no Kasana AI, incluído no seu plano. Há limites de uso."
         },
         "modelLabel": "Modelo",
         "modelInfo": {
@@ -229,7 +229,7 @@
           "modelListNoMatch": "Nenhum modelo da lista corresponde. Você ainda pode usar o nome que digitou.",
           "testButton": "Testar conexão",
           "saveButton": "Salvar alterações",
-          "localNetworkOnly": "O MoneyMatter não consegue acessar um servidor no seu próprio computador, como {hostname} ou {ip}. Exponha o servidor por um túnel, como ngrok ou Cloudflare Tunnel, e cole aqui a URL do túnel.",
+          "localNetworkOnly": "O Kasana não consegue acessar um servidor no seu próprio computador, como {hostname} ou {ip}. Exponha o servidor por um túnel, como ngrok ou Cloudflare Tunnel, e cole aqui a URL do túnel.",
           "dockerHost": "Se você roda este app no Docker na mesma máquina do servidor do modelo, use {dockerHost} em vez de {ip}."
         },
         "presets": {

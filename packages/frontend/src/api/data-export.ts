@@ -14,7 +14,7 @@ interface ExportDataResult {
   totalRows: number | null;
 }
 
-const DEFAULT_FILENAME = 'moneymatter-export.zip';
+const DEFAULT_FILENAME = 'kasana-export.zip';
 
 /** Trigger a data export and return the resulting zip as a Blob plus its row count. */
 export async function exportData({

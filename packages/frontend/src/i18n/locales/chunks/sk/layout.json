@@ -203,7 +203,7 @@
   },
   "dashboard": {
     "onboarding": {
-      "title": "Vitajte v MoneyMatter",
+      "title": "Vitajte v Kasana",
       "subtitle": "Začnite nastavením svojho prvého účtu",
       "createManualAccount": {
         "title": "Vytvoriť manuálny účet",
@@ -330,7 +330,7 @@
         },
         "ui": {
           "title": "Rýchly štart",
-          "subtitle": "Použite nášho sprievodcu Rýchlym štartom a zistite všetko, čo pre vás MoneyMatter dokáže urobiť.",
+          "subtitle": "Použite nášho sprievodcu Rýchlym štartom a zistite všetko, čo pre vás Kasana dokáže urobiť.",
           "dismissButton": "Natrvalo zavrieť",
           "dismissConfirmTitle": "Zavrieť Rýchly štart?",
           "dismissConfirmDescription": "Ak si to rozmyslíte, sprievodcu Rýchlym štartom môžete kedykoľvek znova otvoriť v nastaveniach.",

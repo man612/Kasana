@@ -3,7 +3,7 @@
     "aiIntegrations": {
       "mcpServer": {
         "title": "MCP-Server",
-        "description": "Verwende diese URL, um KI-Assistenten mit deinem MoneyMatter-Konto zu verbinden. Deine Daten werden schreibgeschützt geteilt.",
+        "description": "Verwende diese URL, um KI-Assistenten mit deinem Kasana-Konto zu verbinden. Deine Daten werden schreibgeschützt geteilt.",
         "copyTooltip": "URL kopieren",
         "copiedNotification": "MCP-Server-URL in die Zwischenablage kopiert"
       },
@@ -18,7 +18,7 @@
             "enterName": "Gib bei \"Name\" {value} ein",
             "pasteUrl": "Füge bei \"Remote MCP server URL\" {value} ein",
             "finish": "Lasse die erweiterten Einstellungen leer und klicke auf {action}",
-            "authorize": "Du wirst zu MoneyMatter weitergeleitet, um den Zugriff zu autorisieren"
+            "authorize": "Du wirst zu Kasana weitergeleitet, um den Zugriff zu autorisieren"
           }
         },
         "chatgpt": {
@@ -26,7 +26,7 @@
             "addConnector": "Klicke auf {action}",
             "pasteUrl": "Füge bei \"URL\" {value} ein",
             "clickAdd": "Klicke auf {action}",
-            "authorize": "Du wirst zu MoneyMatter weitergeleitet, um den Zugriff zu autorisieren"
+            "authorize": "Du wirst zu Kasana weitergeleitet, um den Zugriff zu autorisieren"
           }
         }
       },

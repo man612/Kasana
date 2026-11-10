@@ -43,14 +43,14 @@
         "placeholder": "Pick a model",
         "automaticOption": "Automatic",
         "automaticOptionWithTarget": "Automatic · {target}",
-        "serverOption": "MoneyMatter AI · included",
+        "serverOption": "Kasana AI · included",
         "connectionOption": "{name} · {model}",
         "connectionOptionNeedsAttention": "{name} · {model} (needs attention)",
         "badges": {
           "yourKey": "Khóa của bạn",
-          "yourKeyTooltip": "Runs on one of your own AI models. Your provider bills you directly, and MoneyMatter doesn't limit usage.",
+          "yourKeyTooltip": "Runs on one of your own AI models. Your provider bills you directly, and Kasana doesn't limit usage.",
           "server": "Máy chủ",
-          "serverTooltip": "Runs on MoneyMatter AI, included in your plan. Usage limits apply."
+          "serverTooltip": "Runs on Kasana AI, included in your plan. Usage limits apply."
         },
         "modelLabel": "Mô hình",
         "modelInfo": {
@@ -229,7 +229,7 @@
           "modelListNoMatch": "No listed model matches. You can still use the name you typed.",
           "testButton": "Test connection",
           "saveButton": "Save changes",
-          "localNetworkOnly": "MoneyMatter can't reach a server on your own computer, like {hostname} or {ip}. Expose it through a tunnel such as ngrok or Cloudflare Tunnel, then paste the tunnel's URL here.",
+          "localNetworkOnly": "Kasana can't reach a server on your own computer, like {hostname} or {ip}. Expose it through a tunnel such as ngrok or Cloudflare Tunnel, then paste the tunnel's URL here.",
           "dockerHost": "If you run this app in Docker on the same machine as the model server, use {dockerHost} instead of {ip}."
         },
         "presets": {

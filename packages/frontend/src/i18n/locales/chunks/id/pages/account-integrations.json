@@ -5,7 +5,9 @@
         "titleSelect": "Tambah Integrasi",
         "titleConnect": "Hubungkan {provider}",
         "selectProviderHint": "Pilih penyedia data bank untuk terhubung",
-        "betaBadge": "Beta"
+        "betaBadge": "Beta",
+        "indonesiaNoticeTitle": "Integrasi untuk wilayah tertentu",
+        "indonesiaNotice": "Penyedia di bawah ini terutama mendukung bank luar negeri. Untuk BCA, BRI, Mandiri, BNI, Jago, DANA, dan GoPay, gunakan rekening manual serta impor transaksi jika formatnya didukung. Jangan masukkan kredensial internet banking ke layanan yang belum terverifikasi."
       },
       "providers": {
         "monobank": {
@@ -49,7 +51,7 @@
         "connectingButton": "Menghubungkan...",
         "connectButton": "Hubungkan",
         "loadingAccounts": "Memuat akun...",
-        "selectAccountsHint": "Pilih akun yang ingin disinkronkan dengan MoneyMatter",
+        "selectAccountsHint": "Pilih akun yang ingin disinkronkan dengan Kasana",
         "syncingButton": "Menyinkronkan...",
         "syncButton": "Sinkronkan {count} akun",
         "syncSuccess": "Berhasil menyinkronkan {count} akun",
@@ -82,7 +84,7 @@
           "authWarning": "Anda akan diarahkan ke situs web {bank} untuk login dan menyetujui koneksi.",
           "authorizeButton": "Otorisasi dengan {bank}",
           "loadingAccounts": "Memuat akun...",
-          "selectAccountsHint": "Pilih akun yang ingin disinkronkan dengan MoneyMatter"
+          "selectAccountsHint": "Pilih akun yang ingin disinkronkan dengan Kasana"
         },
         "buttons": {
           "back": "Kembali",
@@ -132,7 +134,7 @@
         },
         "step2": {
           "title": "Hubungkan Akun Bank Anda",
-          "intro": "Sebelum menggunakan aplikasi dengan MoneyMatter, Anda harus menghubungkan akun bank melalui portal Enable Banking. Cari tombol \"Link accounts\" di dalam tile aplikasi yang dibuat dan ikuti semua langkah yang diperlukan.",
+          "intro": "Sebelum menggunakan aplikasi dengan Kasana, Anda harus menghubungkan akun bank melalui portal Enable Banking. Cari tombol \"Link accounts\" di dalam tile aplikasi yang dibuat dan ikuti semua langkah yang diperlukan.",
           "breakdown": "Berikut rinciannya:",
           "steps": {
             "clickLink": "Klik \"Link accounts\", tunggu spinner selesai",

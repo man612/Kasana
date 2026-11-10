@@ -2,6 +2,10 @@
   <div class="flex h-dvh items-center justify-center px-6">
     <Card class="w-full max-w-112.5" as="form" @submit.prevent="submit()">
       <card-header>
+        <div class="mb-3 flex items-center justify-center gap-2">
+          <span class="flex size-8 items-center justify-center rounded-lg bg-[#17443d] text-sm font-bold text-white">K</span>
+          <span class="text-base font-semibold tracking-tight">Kasana</span>
+        </div>
         <h1 class="text-center text-2xl font-semibold tracking-tight">{{ $t('auth.login.title') }}</h1>
       </card-header>
       <card-content class="grid gap-5">

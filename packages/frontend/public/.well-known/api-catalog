@@ -1,26 +1,26 @@
 {
   "linkset": [
     {
-      "anchor": "https://mcp.moneymatter.app/mcp",
+      "anchor": "https://kasana.invalid/mcp",
       "service-desc": [
         {
-          "href": "https://moneymatter.app/.well-known/mcp/server-card.json",
+          "href": "https://kasana.invalid/.well-known/mcp/server-card.json",
           "type": "application/json"
         }
       ],
       "service-doc": [
         {
-          "href": "https://moneymatter.app/llms-full.txt",
+          "href": "https://kasana.invalid/llms-full.txt",
           "type": "text/plain"
         }
       ],
       "service-meta": [
         {
-          "href": "https://moneymatter.app/.well-known/oauth-protected-resource",
+          "href": "https://kasana.invalid/.well-known/oauth-protected-resource",
           "type": "application/json"
         },
         {
-          "href": "https://moneymatter.app/.well-known/oauth-authorization-server",
+          "href": "https://kasana.invalid/.well-known/oauth-authorization-server",
           "type": "application/json"
         }
       ]

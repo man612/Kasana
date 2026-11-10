@@ -1,15 +1,15 @@
 {
   "specVersion": "1.0",
   "host": {
-    "displayName": "MoneyMatter",
-    "identifier": "did:web:moneymatter.app"
+    "displayName": "Kasana",
+    "identifier": "did:web:kasana.invalid"
   },
   "entries": [
     {
-      "identifier": "urn:air:moneymatter.app:server:finance",
-      "displayName": "MoneyMatter Personal Finance MCP Server",
+      "identifier": "urn:air:kasana:server:finance",
+      "displayName": "Kasana Personal Finance MCP Server",
       "type": "application/mcp-server-card+json",
-      "url": "https://moneymatter.app/.well-known/mcp/server-card.json",
+      "url": "https://kasana.invalid/.well-known/mcp/server-card.json",
       "representativeQueries": [
         "how much did I spend on groceries last month",
         "show my account balances",

@@ -764,7 +764,7 @@
         "write": "读取 + 写入",
         "manage": "管理"
       },
-      "unknownOwner": "MoneyMatter用户",
+      "unknownOwner": "Kasana用户",
       "unknownResource": "一个共享资源",
       "accept": "接受",
       "decline": "拒绝",

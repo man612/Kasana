@@ -1,7 +1,7 @@
 {
   "oauth": {
     "authorize": {
-      "title": "{name} möchte auf Ihre MoneyMatter-Daten zugreifen",
+      "title": "{name} möchte auf Ihre Kasana-Daten zugreifen",
       "redirect_notice": "Nach der Genehmigung wirst du zu {host} weitergeleitet. Fahre nur fort, wenn du diese Adresse kennst.",
       "description": "Diese App fordert folgende Berechtigungen an:",
       "approve": "Genehmigen",
@@ -56,7 +56,7 @@
       },
       "unknown": {
         "label": "Zusätzliche Berechtigung",
-        "desc": "Die App hat eine Berechtigung angefordert, die von MoneyMatter nicht erkannt wird."
+        "desc": "Die App hat eine Berechtigung angefordert, die von Kasana nicht erkannt wird."
       }
     }
   }

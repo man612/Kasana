@@ -203,7 +203,7 @@
   },
   "dashboard": {
     "onboarding": {
-      "title": "Willkommen bei MoneyMatter",
+      "title": "Willkommen bei Kasana",
       "subtitle": "Richte als Erstes dein erstes Konto ein",
       "createManualAccount": {
         "title": "Manuelles Konto erstellen",
@@ -330,7 +330,7 @@
         },
         "ui": {
           "title": "Schnellstart",
-          "subtitle": "Nutze unseren Schnellstart-Leitfaden, um alles zu erfahren, was MoneyMatter für dich tun kann.",
+          "subtitle": "Nutze unseren Schnellstart-Leitfaden, um alles zu erfahren, was Kasana für dich tun kann.",
           "dismissButton": "Dauerhaft ausblenden",
           "dismissConfirmTitle": "Schnellstart ausblenden?",
           "dismissConfirmDescription": "Du kannst den Schnellstart-Leitfaden jederzeit in den Einstellungen wieder öffnen, wenn du es dir anders überlegst.",

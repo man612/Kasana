@@ -49,7 +49,7 @@
         "connectingButton": "Verbinden...",
         "connectButton": "Verbinden",
         "loadingAccounts": "Konten werden geladen...",
-        "selectAccountsHint": "Wähle die Konten aus, die du mit MoneyMatter synchronisieren möchtest",
+        "selectAccountsHint": "Wähle die Konten aus, die du mit Kasana synchronisieren möchtest",
         "syncingButton": "Synchronisieren...",
         "syncButton": "{count} Konto/Konten synchronisieren",
         "syncSuccess": "{count} Konto/Konten verbunden. Transaktionen werden im Hintergrund synchronisiert.",
@@ -82,7 +82,7 @@
           "authWarning": "Du wirst zur Website von {bank} weitergeleitet, um dich anzumelden und die Verbindung zu genehmigen.",
           "authorizeButton": "Bei {bank} autorisieren",
           "loadingAccounts": "Konten werden geladen...",
-          "selectAccountsHint": "Wähle die Konten aus, die du mit MoneyMatter synchronisieren möchtest"
+          "selectAccountsHint": "Wähle die Konten aus, die du mit Kasana synchronisieren möchtest"
         },
         "buttons": {
           "back": "Zurück",
@@ -132,7 +132,7 @@
         },
         "step2": {
           "title": "Verknüpfe deine Bankkonten",
-          "intro": "Bevor du die Anwendung mit MoneyMatter nutzt, musst du zuerst deine Bankkonten über das Enable Banking-Portal verknüpfen. Suche nach der Schaltfläche \"Konten verknüpfen\" in der Kachel der erstellten Anwendung und folge allen dort erforderlichen Schritten.",
+          "intro": "Bevor du die Anwendung mit Kasana nutzt, musst du zuerst deine Bankkonten über das Enable Banking-Portal verknüpfen. Suche nach der Schaltfläche \"Konten verknüpfen\" in der Kachel der erstellten Anwendung und folge allen dort erforderlichen Schritten.",
           "breakdown": "Hier die Details:",
           "steps": {
             "clickLink": "Klicke auf \"Konten verknüpfen\" und warte, bis das Ladesymbol verschwindet",

@@ -43,14 +43,14 @@
         "placeholder": "Vyberte model",
         "automaticOption": "Automaticky",
         "automaticOptionWithTarget": "Automaticky · {target}",
-        "serverOption": "MoneyMatter AI · v cene",
+        "serverOption": "Kasana AI · v cene",
         "connectionOption": "{name} · {model}",
         "connectionOptionNeedsAttention": "{name} · {model} (vyžaduje pozornosť)",
         "badges": {
           "yourKey": "Váš kľúč",
-          "yourKeyTooltip": "Beží na jednom z vašich vlastných modelov AI. Účtuje vám priamo váš poskytovateľ a MoneyMatter používanie nijako neobmedzuje.",
+          "yourKeyTooltip": "Beží na jednom z vašich vlastných modelov AI. Účtuje vám priamo váš poskytovateľ a Kasana používanie nijako neobmedzuje.",
           "server": "Server",
-          "serverTooltip": "Beží na MoneyMatter AI, zahrnutom vo vašom pláne. Platia limity používania."
+          "serverTooltip": "Beží na Kasana AI, zahrnutom vo vašom pláne. Platia limity používania."
         },
         "modelLabel": "Model",
         "modelInfo": {
@@ -229,7 +229,7 @@
           "modelListNoMatch": "Žiadny uvedený model nezodpovedá. Zadaný názov môžete napriek tomu použiť.",
           "testButton": "Otestovať pripojenie",
           "saveButton": "Uložiť zmeny",
-          "localNetworkOnly": "MoneyMatter sa nedostane k serveru na vašom vlastnom počítači, ako je {hostname} alebo {ip}. Sprístupnite ho cez tunel, napríklad ngrok alebo Cloudflare Tunnel a sem vložte URL adresu tunela.",
+          "localNetworkOnly": "Kasana sa nedostane k serveru na vašom vlastnom počítači, ako je {hostname} alebo {ip}. Sprístupnite ho cez tunel, napríklad ngrok alebo Cloudflare Tunnel a sem vložte URL adresu tunela.",
           "dockerHost": "Ak túto aplikáciu prevádzkujete v Dockeri na rovnakom počítači ako server modelu, použite namiesto {ip} {dockerHost}."
         },
         "presets": {

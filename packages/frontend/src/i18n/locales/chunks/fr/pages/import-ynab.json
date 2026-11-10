@@ -3,7 +3,7 @@
     "importExport": {
       "ynabImport": {
         "pageTitle": "Importer depuis YNAB",
-        "pageDescription": "Importez votre fichier d'export YNAB Register.csv pour intégrer vos comptes, opérations, catégories, tiers et étiquettes dans MoneyMatter.",
+        "pageDescription": "Importez votre fichier d'export YNAB Register.csv pour intégrer vos comptes, opérations, catégories, tiers et étiquettes dans Kasana.",
         "stepper": {
           "steps": {
             "upload": "Téléverser",
@@ -57,7 +57,7 @@
         },
         "done": {
           "successTitle": "Import terminé",
-          "successDescription": "Vos données YNAB sont maintenant dans MoneyMatter.",
+          "successDescription": "Vos données YNAB sont maintenant dans Kasana.",
           "accountsCreated": "Comptes créés",
           "accountsSkipped": "Comptes ignorés",
           "categoriesCreated": "Catégories créées",

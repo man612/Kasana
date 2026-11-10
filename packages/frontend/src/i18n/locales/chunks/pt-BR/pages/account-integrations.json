@@ -49,7 +49,7 @@
         "connectingButton": "Conectando...",
         "connectButton": "Conectar",
         "loadingAccounts": "Carregando contas...",
-        "selectAccountsHint": "Escolha as contas que você quer sincronizar com o MoneyMatter",
+        "selectAccountsHint": "Escolha as contas que você quer sincronizar com o Kasana",
         "syncingButton": "Sincronizando...",
         "syncButton": "Sincronizar contas ({count})",
         "syncSuccess": "Contas conectadas: {count}. As transações estão sendo sincronizadas em segundo plano.",
@@ -82,7 +82,7 @@
           "authWarning": "Você será redirecionado para o site de {bank} para entrar e aprovar a conexão.",
           "authorizeButton": "Autorizar com {bank}",
           "loadingAccounts": "Carregando contas...",
-          "selectAccountsHint": "Escolha as contas que você quer sincronizar com o MoneyMatter"
+          "selectAccountsHint": "Escolha as contas que você quer sincronizar com o Kasana"
         },
         "buttons": {
           "back": "Voltar",
@@ -132,7 +132,7 @@
         },
         "step2": {
           "title": "Vincule suas contas bancárias",
-          "intro": "Antes de usar o aplicativo com o MoneyMatter, você precisa vincular suas contas bancárias pelo portal do Enable Banking. Procure o botão “Link accounts” no card do aplicativo criado e siga todos os passos indicados.",
+          "intro": "Antes de usar o aplicativo com o Kasana, você precisa vincular suas contas bancárias pelo portal do Enable Banking. Procure o botão “Link accounts” no card do aplicativo criado e siga todos os passos indicados.",
           "breakdown": "Veja o passo a passo em detalhes:",
           "steps": {
             "clickLink": "Clique em “Link accounts” e espere o carregamento terminar",

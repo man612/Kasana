@@ -1,7 +1,7 @@
 {
-  "resource": "https://mcp.moneymatter.app/mcp",
+  "resource": "https://kasana.invalid/mcp",
   "authorization_servers": [
-    "https://api.moneymatter.app/api/v1/auth"
+    "https://kasana.invalid/api/v1/auth"
   ],
   "scopes_supported": [
     "finance:read",

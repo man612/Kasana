@@ -43,14 +43,14 @@
         "placeholder": "Choisir un modèle",
         "automaticOption": "Automatique",
         "automaticOptionWithTarget": "Automatique · {target}",
-        "serverOption": "MoneyMatter AI · inclus",
+        "serverOption": "Kasana AI · inclus",
         "connectionOption": "{name} · {model}",
         "connectionOptionNeedsAttention": "{name} · {model} (requiert votre attention)",
         "badges": {
           "yourKey": "Votre clé",
-          "yourKeyTooltip": "Fonctionne avec l'un de vos propres modèles d'IA. Votre fournisseur vous facture directement et MoneyMatter ne limite pas l'utilisation.",
+          "yourKeyTooltip": "Fonctionne avec l'un de vos propres modèles d'IA. Votre fournisseur vous facture directement et Kasana ne limite pas l'utilisation.",
           "server": "Serveur",
-          "serverTooltip": "Fonctionne avec MoneyMatter AI, inclus dans votre forfait. Des limites d'utilisation s'appliquent."
+          "serverTooltip": "Fonctionne avec Kasana AI, inclus dans votre forfait. Des limites d'utilisation s'appliquent."
         },
         "modelLabel": "Modèle",
         "modelInfo": {
@@ -229,7 +229,7 @@
           "modelListNoMatch": "Aucun modèle correspondant dans la liste. Vous pouvez tout de même utiliser le nom saisi.",
           "testButton": "Tester la connexion",
           "saveButton": "Enregistrer les modifications",
-          "localNetworkOnly": "MoneyMatter ne peut pas accéder à un serveur situé sur votre propre ordinateur, tel que {hostname} ou {ip}. Rendez-le accessible via un tunnel comme ngrok ou Cloudflare Tunnel, puis collez l'URL du tunnel ici.",
+          "localNetworkOnly": "Kasana ne peut pas accéder à un serveur situé sur votre propre ordinateur, tel que {hostname} ou {ip}. Rendez-le accessible via un tunnel comme ngrok ou Cloudflare Tunnel, puis collez l'URL du tunnel ici.",
           "dockerHost": "Si vous exécutez cette application dans Docker sur la même machine que le serveur du modèle, utilisez {dockerHost} au lieu de {ip}."
         },
         "presets": {

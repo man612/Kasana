@@ -1,7 +1,7 @@
 {
   "oauth": {
     "authorize": {
-      "title": "{name} wants access to your MoneyMatter data",
+      "title": "{name} wants access to your Kasana data",
       "redirect_notice": "After approval you will be redirected to {host}. Only continue if you recognize this address.",
       "description": "This app is requesting these permissions:",
       "approve": "Approve",
@@ -56,7 +56,7 @@
       },
       "unknown": {
         "label": "Additional permission",
-        "desc": "The app requested a permission that is not recognized by MoneyMatter."
+        "desc": "The app requested a permission that is not recognized by Kasana."
       }
     }
   }

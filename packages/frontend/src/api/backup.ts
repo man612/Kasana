@@ -2,7 +2,7 @@ import { api } from '@/api/_api';
 import { fetchBinaryDownload } from '@/api/_binary-download';
 import type { BackupRestoreActiveStatus, BackupRestoreStatusResponse } from '@bt/shared/types';
 
-const DEFAULT_FILENAME = 'moneymatter-backup.zip';
+const DEFAULT_FILENAME = 'kasana-backup.zip';
 
 interface DownloadBackupResult {
   blob: Blob;

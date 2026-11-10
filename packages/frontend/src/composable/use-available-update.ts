@@ -1,5 +1,4 @@
 import { type LatestRelease, getLatestRelease } from '@/api/github-releases';
-import { config } from '@/common/config';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const/vue-query';
 import { addBreadcrumb } from '@/lib/sentry';
 import { useQuery } from '@tanstack/vue-query';
@@ -18,7 +17,7 @@ export const useAvailableUpdate = (): ComputedRef<LatestRelease | null> => {
         addBreadcrumb({ category: 'update-check', message: String(error), level: 'info' });
         return null;
       }),
-    enabled: config.isSelfHost,
+    enabled: false, // Independent copy: upstream releases cannot safely update this custom build.
     staleTime: Infinity,
   });
 

@@ -88,7 +88,7 @@
               {{ $t(item.labelKey) }}
             </span>
             <Switch
-              :model-value="userSettings?.sidebarNav?.[item.settingKey] !== false"
+              :model-value="item.settingKey === 'venture' ? userSettings?.sidebarNav?.venture === true : userSettings?.sidebarNav?.[item.settingKey] !== false"
               :disabled="isPatching"
               @update:model-value="(v) => patch({ sidebarNav: { [item.settingKey]: !!v } })"
             />

@@ -5,7 +5,9 @@
         "titleSelect": "Add integration",
         "titleConnect": "Connect {provider}",
         "selectProviderHint": "Where do you bank? Pick a region to see what works there.",
-        "betaBadge": "Beta"
+        "betaBadge": "Beta",
+        "indonesiaNoticeTitle": "Region-specific integrations",
+        "indonesiaNotice": "These providers mainly serve international institutions. For Indonesian banks and e-wallets, create a manual account and import supported statements. Never enter banking passwords into an unsupported third-party provider."
       },
       "providers": {
         "monobank": {
@@ -49,7 +51,7 @@
         "connectingButton": "Connecting...",
         "connectButton": "Connect",
         "loadingAccounts": "Loading accounts...",
-        "selectAccountsHint": "Select the accounts you want to sync with MoneyMatter",
+        "selectAccountsHint": "Select the accounts you want to sync with Kasana",
         "syncingButton": "Syncing...",
         "syncButton": "Sync {count} account(s)",
         "syncSuccess": "Connected {count} account(s). Transactions are syncing in the background.",
@@ -82,7 +84,7 @@
           "authWarning": "You will be redirected to {bank}'s website to log in and approve the connection.",
           "authorizeButton": "Authorize with {bank}",
           "loadingAccounts": "Loading accounts...",
-          "selectAccountsHint": "Select the accounts you want to sync with MoneyMatter"
+          "selectAccountsHint": "Select the accounts you want to sync with Kasana"
         },
         "buttons": {
           "back": "Back",
@@ -132,7 +134,7 @@
         },
         "step2": {
           "title": "Link your bank accounts",
-          "intro": "Before using the application with MoneyMatter, you must first link your bank accounts through the Enable Banking portal. Look for the \"Link accounts\" button inside the created application's tile and follow all the steps required there.",
+          "intro": "Before using the application with Kasana, you must first link your bank accounts through the Enable Banking portal. Look for the \"Link accounts\" button inside the created application's tile and follow all the steps required there.",
           "breakdown": "Here's the details breakdown:",
           "steps": {
             "clickLink": "Click \"Link accounts\", wait for spinner to finish loading",

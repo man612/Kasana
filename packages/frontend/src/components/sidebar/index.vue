@@ -1,41 +1,38 @@
 <script setup lang="ts">
-import FeedbackIcon from '@/components/common/icons/feedback-icon.vue';
-import FeedbackDialog from '@/components/dialogs/feedback-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
-import { useFeedbackAttention } from '@/composable/use-feedback-attention';
-import { useSupportButton } from '@/composable/use-support-button';
-import { HeartIcon, PanelLeftIcon } from '@lucide/vue';
-
+import { APP_BRAND } from '@/common/brand';
+import { PanelLeftIcon, WalletIcon } from '@lucide/vue';
 import AccountsView from './accounts-view/index.vue';
 import NavigationLinks from './navigation-links.vue';
 import UserMenu from './user-menu.vue';
 import { useSidebarCollapsed } from './use-sidebar-collapsed';
 
 defineProps<{ mobileView?: boolean }>();
-
 const { isCollapsed } = useSidebarCollapsed();
-const { isPulsing: isFeedbackPulsing, onClick: onFeedbackClick } = useFeedbackAttention();
-const { isSupportButtonVisible, openSupport } = useSupportButton();
 </script>
 
 <template>
   <component :is="mobileView ? 'div' : Card" class="flex h-full w-75 flex-col rounded-none max-md:w-auto">
-    <CardHeader class="h-14 px-4 py-3">
-      <div class="text-lg font-semibold tracking-tight">MoneyMatter</div>
+    <CardHeader class="h-16 px-4 py-3">
+      <div class="flex items-center gap-3">
+        <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#17443d] text-white">
+          <WalletIcon class="size-5" :stroke-width="1.8" />
+        </div>
+        <div class="min-w-0">
+          <div class="text-[17px] font-semibold leading-5 tracking-tight">{{ APP_BRAND.name }}</div>
+          <div class="text-muted-foreground mt-0.5 text-[10px] tracking-wide">{{ APP_BRAND.tagline }}</div>
+        </div>
+      </div>
     </CardHeader>
-    <CardContent class="flex max-h-[calc(100%-56px)] grow flex-col gap-3 px-3 pt-0 pb-3 sm:p-3 sm:pt-0">
+    <CardContent class="flex max-h-[calc(100%-64px)] grow flex-col gap-3 px-3 pt-0 pb-3 sm:p-3 sm:pt-0">
       <nav class="grid gap-0.5">
         <NavigationLinks />
       </nav>
-
       <div class="bg-border/50 mx-1 h-px" />
-
       <AccountsView />
-
       <div v-if="!mobileView" class="bg-border/50 mx-1 h-px" />
-
       <UserMenu :elevated="mobileView">
         <template #trailing>
           <DesktopOnlyTooltip v-if="!mobileView" :content="$t('sidebar.collapse')">
@@ -43,28 +40,6 @@ const { isSupportButtonVisible, openSupport } = useSupportButton();
               <PanelLeftIcon class="size-4" />
             </UiButton>
           </DesktopOnlyTooltip>
-          <template v-else>
-            <FeedbackDialog>
-              <UiButton
-                variant="ghost"
-                size="icon-sm"
-                :class="{ 'feedback-pulse': isFeedbackPulsing }"
-                :aria-label="$t('header.feedback')"
-                @click="onFeedbackClick"
-              >
-                <FeedbackIcon class="text-primary-text size-4" />
-              </UiButton>
-            </FeedbackDialog>
-            <UiButton
-              v-if="isSupportButtonVisible"
-              variant="ghost"
-              size="icon-sm"
-              :aria-label="$t('header.support')"
-              @click="openSupport"
-            >
-              <HeartIcon class="text-heart size-4 fill-current" />
-            </UiButton>
-          </template>
         </template>
       </UserMenu>
     </CardContent>

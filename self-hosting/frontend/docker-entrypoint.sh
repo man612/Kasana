@@ -259,4 +259,37 @@ location = /.well-known/oauth-protected-resource/mcp {
 EOF
 fi
 
+
+# Rewrite bundled AI/MCP discovery URLs for the current independent deployment.
+# The original hosted URL must never leak into client connection metadata.
+if [ "$IS_SELF_HOST" = "true" ]; then
+  KASANA_ORIGIN="${MCP_BASE_URL:-}"
+  case "$KASANA_ORIGIN" in
+    http://* | https://* ) : ;;
+    * ) echo "ERROR: MCP_BASE_URL must be an HTTP(S) origin" >&2; exit 1 ;;
+  esac
+  KASANA_ORIGIN="${KASANA_ORIGIN%/}"
+  case "$KASANA_ORIGIN" in
+    *'&'* | *'|'* | *'\'* | *'"'* | *'?'* | *'#'* )
+      echo "ERROR: Unsafe characters in MCP_BASE_URL" >&2; exit 1 ;;
+  esac
+  for doc in /app/.well-known/mcp/server-card.json \
+             /app/.well-known/ai-catalog.json \
+             /app/.well-known/api-catalog; do
+    sed "s|https://kasana.invalid|${KASANA_ORIGIN}|g" "$doc" > "$doc.tmp"
+    mv "$doc.tmp" "$doc"
+  done
+  KASANA_HOST="${KASANA_ORIGIN#*://}"
+  KASANA_HOST="${KASANA_HOST%%/*}"
+  KASANA_HOST="${KASANA_HOST%%:*}"
+  if [ "$KASANA_HOST" = "localhost" ]; then
+    KASANA_DID="urn:kasana:local"
+  else
+    KASANA_DID="did:web:${KASANA_HOST}"
+  fi
+  sed "s|did:web:kasana.invalid|${KASANA_DID}|g" \
+    /app/.well-known/ai-catalog.json > /app/.well-known/ai-catalog.json.tmp
+  mv /app/.well-known/ai-catalog.json.tmp /app/.well-known/ai-catalog.json
+fi
+
 exec "$@"

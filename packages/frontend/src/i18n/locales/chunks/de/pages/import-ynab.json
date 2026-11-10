@@ -3,7 +3,7 @@
     "importExport": {
       "ynabImport": {
         "pageTitle": "Aus YNAB importieren",
-        "pageDescription": "Lade deinen YNAB Register.csv-Export hoch, um Konten, Transaktionen, Kategorien, Zahlungsempfänger und Tags in MoneyMatter zu übernehmen.",
+        "pageDescription": "Lade deinen YNAB Register.csv-Export hoch, um Konten, Transaktionen, Kategorien, Zahlungsempfänger und Tags in Kasana zu übernehmen.",
         "stepper": {
           "steps": {
             "upload": "Hochladen",
@@ -57,7 +57,7 @@
         },
         "done": {
           "successTitle": "Import abgeschlossen",
-          "successDescription": "Deine YNAB-Daten befinden sich jetzt in MoneyMatter.",
+          "successDescription": "Deine YNAB-Daten befinden sich jetzt in Kasana.",
           "accountsCreated": "Konten erstellt",
           "accountsSkipped": "Konten übersprungen",
           "categoriesCreated": "Kategorien erstellt",

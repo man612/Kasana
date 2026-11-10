@@ -65,7 +65,7 @@
                   </i18n-t>
                   <i18n-t keypath="settings.aiIntegrations.quickConnect.claude.steps.enterName" tag="li">
                     <template #value>
-                      <ClickToCopy value="MoneyMatter" />
+                      <ClickToCopy value="Kasana" />
                     </template>
                   </i18n-t>
                   <i18n-t keypath="settings.aiIntegrations.quickConnect.claude.steps.pasteUrl" tag="li">

@@ -40,48 +40,10 @@
         <p class="text-muted-foreground max-w-prose text-[13px]">{{ $t('settings.language.community.hint') }}</p>
       </div>
 
-      <div class="bg-muted/40 @container grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1 rounded-lg border p-4">
-        <LanguagesIcon class="text-primary-text mt-0.5 size-5 shrink-0" />
-
-        <h3 class="text-sm font-medium">{{ $t('settings.language.contribute.title') }}</h3>
-
-        <p class="text-muted-foreground col-span-2 text-sm @min-[400px]:col-span-1 @min-[400px]:col-start-2">
-          {{ $t('settings.language.contribute.description') }}
-        </p>
-
-        <i18n-t
-          keypath="settings.language.contribute.requestNote"
-          tag="p"
-          class="text-muted-foreground col-span-2 mt-2 text-sm @min-[400px]:col-span-1 @min-[400px]:col-start-2"
-        >
-          <template #boardLink>
-            <a
-              :href="EXTERNAL_URLS.featurebaseRoadmap"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="font-medium underline underline-offset-2 hover:no-underline"
-              @click="handleRequestBoardClick"
-            >
-              {{ $t('settings.language.contribute.requestNoteLink') }}
-            </a>
-          </template>
-        </i18n-t>
-
-        <div class="col-span-2 mt-2 @min-[400px]:col-span-1 @min-[400px]:col-start-2">
-          <Button
-            as="a"
-            :href="EXTERNAL_URLS.crowdinProject"
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="outline"
-            size="sm"
-            @click="handleContributeClick"
-          >
-            {{ $t('settings.language.contribute.action') }}
-            <ExternalLinkIcon class="size-4" />
-          </Button>
-        </div>
-      </div>
+      <p class="text-muted-foreground rounded-lg border px-4 py-3 text-sm leading-relaxed">
+        Bahasa Indonesia adalah pilihan utama Kasana. Bahasa lain tetap tersedia,
+        dan sebagian terjemahan komunitas mungkin belum lengkap.
+      </p>
     </CardContent>
   </Card>
 </template>
@@ -92,9 +54,7 @@ import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { FLAG_SRCS, getCurrentLocale, setLocale } from '@/i18n';
 import { trackAnalyticsEvent } from '@/lib/posthog';
-import { EXTERNAL_URLS } from '@bt/shared/const/external-urls';
 import { COMMUNITY_LOCALES, LOCALE_NAMES, SUPPORTED_LOCALES, type SupportedLocale } from '@bt/shared/i18n/locales';
-import { ExternalLinkIcon, LanguagesIcon } from '@lucide/vue';
 import { ref } from 'vue';
 
 const { data: userSettings, mutateAsync, isUpdating } = useUserSettings();
@@ -108,20 +68,6 @@ const availableLocales = Object.values(SUPPORTED_LOCALES).map((value) => ({
 }));
 const maintainedLocales = availableLocales.filter((locale) => !COMMUNITY_LOCALES.has(locale.value));
 const communityLocales = availableLocales.filter((locale) => COMMUNITY_LOCALES.has(locale.value));
-
-const handleContributeClick = () => {
-  trackAnalyticsEvent({
-    event: 'crowdin_contribute_clicked',
-    properties: { current_locale: currentLocale.value },
-  });
-};
-
-const handleRequestBoardClick = () => {
-  trackAnalyticsEvent({
-    event: 'language_request_board_clicked',
-    properties: { current_locale: currentLocale.value },
-  });
-};
 
 const handleLocaleChange = async (locale: SupportedLocale) => {
   const previousLocale = currentLocale.value;

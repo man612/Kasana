@@ -128,7 +128,11 @@ export const useAccountsNavChildren = () => {
 
   return computed(() =>
     ACCOUNTS_NAV_CHILDREN.filter(
-      (child) => !child.settingKey || userSettings.value?.sidebarNav?.[child.settingKey] !== false,
+      (child) => {
+        // Venture capital is specialized: opt-in from Settings > Appearance > Sidebar Navigation.
+        if (child.settingKey === 'venture') return userSettings.value?.sidebarNav?.venture === true;
+        return !child.settingKey || userSettings.value?.sidebarNav?.[child.settingKey] !== false;
+      },
     ),
   );
 };

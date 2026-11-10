@@ -3,7 +3,7 @@
     "importExport": {
       "ynabImport": {
         "pageTitle": "Impor dari YNAB",
-        "pageDescription": "Upload ekspor Register.csv YNAB Anda untuk membawa akun, transaksi, kategori, penerima, dan tag ke MoneyMatter.",
+        "pageDescription": "Upload ekspor Register.csv YNAB Anda untuk membawa akun, transaksi, kategori, penerima, dan tag ke Kasana.",
         "stepper": {
           "steps": {
             "upload": "Unggah",
@@ -57,7 +57,7 @@
         },
         "done": {
           "successTitle": "Impor selesai",
-          "successDescription": "Data YNAB Anda sekarang ada di MoneyMatter.",
+          "successDescription": "Data YNAB Anda sekarang ada di Kasana.",
           "accountsCreated": "Akun dibuat",
           "accountsSkipped": "Akun dilewati",
           "categoriesCreated": "Kategori dibuat",

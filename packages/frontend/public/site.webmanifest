@@ -1,6 +1,6 @@
 {
-  "name": "MoneyMatter",
-  "short_name": "MoneyMatter",
+  "name": "Kasana",
+  "short_name": "Kasana",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -27,9 +27,11 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#9074db",
+  "theme_color": "#17443d",
   "background_color": "#ffffff",
   "display": "standalone",
   "start_url": "/dashboard",
-  "scope": "/"
+  "scope": "/",
+  "description": "Pencatatan keuangan pribadi yang nyaman untuk Indonesia.",
+  "lang": "id"
 }

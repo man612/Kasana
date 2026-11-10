@@ -43,14 +43,14 @@
         "placeholder": "Виберіть модель",
         "automaticOption": "Автоматично",
         "automaticOptionWithTarget": "Автоматично · {target}",
-        "serverOption": "MoneyMatter AI · входить у план",
+        "serverOption": "Kasana AI · входить у план",
         "connectionOption": "{name} · {model}",
         "connectionOptionNeedsAttention": "{name} · {model} (потребує уваги)",
         "badges": {
           "yourKey": "Ваш ключ",
-          "yourKeyTooltip": "Працює на одній із ваших власних AI-моделей. Ваш провайдер стягує оплату напряму з вас, а MoneyMatter не обмежує використання.",
+          "yourKeyTooltip": "Працює на одній із ваших власних AI-моделей. Ваш провайдер стягує оплату напряму з вас, а Kasana не обмежує використання.",
           "server": "Серверний",
-          "serverTooltip": "Працює на MoneyMatter AI, що входить у ваш план. Діють обмеження на використання."
+          "serverTooltip": "Працює на Kasana AI, що входить у ваш план. Діють обмеження на використання."
         },
         "modelLabel": "Модель",
         "modelInfo": {
@@ -229,7 +229,7 @@
           "modelListNoMatch": "Жодна модель зі списку не відповідає. Ви можете використати введену назву.",
           "testButton": "Перевірити з'єднання",
           "saveButton": "Зберегти зміни",
-          "localNetworkOnly": "MoneyMatter не може достукатися до сервера на вашому власному комп'ютері, наприклад {hostname} або {ip}. Відкрийте до нього доступ через тунель, наприклад ngrok або Cloudflare Tunnel, а потім вставте сюди URL тунелю.",
+          "localNetworkOnly": "Kasana не може достукатися до сервера на вашому власному комп'ютері, наприклад {hostname} або {ip}. Відкрийте до нього доступ через тунель, наприклад ngrok або Cloudflare Tunnel, а потім вставте сюди URL тунелю.",
           "dockerHost": "Якщо ви запускаєте цей застосунок у Docker на тій самій машині, що й сервер моделі, використовуйте {dockerHost} замість {ip}."
         },
         "presets": {

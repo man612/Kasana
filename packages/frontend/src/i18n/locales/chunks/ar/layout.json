@@ -203,7 +203,7 @@
   },
   "dashboard": {
     "onboarding": {
-      "title": "مرحبا بك في MoneyMatter",
+      "title": "مرحبا بك في Kasana",
       "subtitle": "ابدأ من خلال إعداد حسابك الأول",
       "createManualAccount": {
         "title": "إنشاء حساب يدوي",
@@ -330,7 +330,7 @@
         },
         "ui": {
           "title": "Quick start",
-          "subtitle": "Use our quick start guide to learn about everything MoneyMatter can do for you.",
+          "subtitle": "Use our quick start guide to learn about everything Kasana can do for you.",
           "dismissButton": "Dismiss permanently",
           "dismissConfirmTitle": "Dismiss quick start?",
           "dismissConfirmDescription": "You can always reopen the quick start guide from settings if you change your mind.",

@@ -3,7 +3,7 @@
     "aiIntegrations": {
       "mcpServer": {
         "title": "Сервер MCP",
-        "description": "Використовуйте цю URL-адресу для підключення AI-помічників до свого облікового запису MoneyMatter. Доступ до ваших даних надається лише для читання.",
+        "description": "Використовуйте цю URL-адресу для підключення AI-помічників до свого облікового запису Kasana. Доступ до ваших даних надається лише для читання.",
         "copyTooltip": "Скопіювати URL",
         "copiedNotification": "URL сервера MCP скопійовано до буфера обміну"
       },
@@ -18,7 +18,7 @@
             "enterName": "Для поля «Name» введіть {value}",
             "pasteUrl": "Для поля «Remote MCP server URL» вставте {value}",
             "finish": "Залиште розділ «Advanced settings» порожнім і натисніть {action}",
-            "authorize": "Вас буде перенаправлено в MoneyMatter для авторизації доступу"
+            "authorize": "Вас буде перенаправлено в Kasana для авторизації доступу"
           }
         },
         "chatgpt": {
@@ -26,7 +26,7 @@
             "addConnector": "Натисніть {action}",
             "pasteUrl": "Для поля «URL» вставте {value}",
             "clickAdd": "Натисніть {action}",
-            "authorize": "Вас буде перенаправлено в MoneyMatter для авторизації доступу"
+            "authorize": "Вас буде перенаправлено в Kasana для авторизації доступу"
           }
         }
       },

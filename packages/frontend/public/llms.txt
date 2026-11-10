@@ -1,50 +1,12 @@
-# MoneyMatter
+# Kasana
 
-> Open-source budget tracking and personal finance app. Self-host it for free with full data ownership, or use the cloud version from $30/year (40-day free trial, no card required). Supports AI integration via MCP (Model Context Protocol) for querying your finances with Claude, ChatGPT, or any MCP-compatible client.
+Kasana adalah aplikasi keuangan pribadi versi mandiri untuk pengguna Indonesia,
+dikembangkan sebagai modifikasi MoneyMatter v0.33.14 (AGPL-3.0).
 
-MoneyMatter is a privacy-first alternative to apps like Mint and YNAB. It is AGPL-3.0-licensed, free to self-host, and designed for people who want control over their financial data. The app runs as a web application with a Node.js/Express backend and Vue.js frontend, deployable via Docker.
-
-## Key Features
-
-- Bank account synchronization (LunchFlow, SimpleFIN, Monobank and Walutomat)
-- AI-powered transaction categorization that follows your own instructions
-- Budgets with a line per category, rollover and goals
-- Savings goals that track progress from shares of your accounts, with pace, ETA, what-if and an affordability check
-- Investment portfolio tracking with automatic price updates
-- Multi-currency support with automatic exchange rates
-- CSV and bank statement import (including AI-assisted parsing)
-- Custom categories, tags, and notes for transactions
-- Recurring transaction tracking
-- Detailed analytics and spending reports
-- Full data export
-- Dark mode, mobile-friendly responsive design
-- PWA (Progressive Web App) support
-
-## AI Integration (MCP)
-
-MoneyMatter exposes a remote MCP server that gives AI assistants scoped, OAuth-secured access to your financial data (you choose read-only or read/write at authorization). This lets you ask natural-language questions like:
-
-- "Compare my dining out this month to my 3-month average"
-- "Which subscriptions have increased in the past 6 months?"
-- "I want to save $500/month — where can I realistically cut?"
-
-Works with Claude, ChatGPT, OpenClaw, and any MCP-compatible client. Access can be revoked anytime.
-
-## Deployment Options
-
-- **Cloud**: Sign up at https://moneymatter.app — no setup required, 40-day free trial with no card, then from $5/month or $30/year, data never sold
-- **Self-hosted**: Deploy with Docker on your own server for maximum privacy. Source code and setup guide at https://github.com/letehaha/moneymatter
-
-## Links
-
-- [Homepage](https://moneymatter.app/): Landing page with feature overview and sign-up
-- [Features](https://moneymatter.app/features): One page per feature, with what it does and its limits
-- [Documentation](https://docs.moneymatter.app/llms.txt): User guides on accounts, transactions, budgeting, goals, transfers, refunds, stats, imports and bank connections
-- [GitHub Repository](https://github.com/letehaha/moneymatter): Source code, Docker setup guide, and issue tracker
-- [Reddit Community](https://www.reddit.com/r/moneymatterapp/): Questions, help from other users, and project updates
-- [Privacy Policy](https://moneymatter.app/privacy-policy): Data handling and privacy practices
-- [Terms of Use](https://moneymatter.app/terms-of-use): Terms of service
-
-## Optional
-
-- [Try Demo](https://moneymatter.app): Create a free account or try the demo
+- URL lokal: http://localhost:8080
+- Fitur utama: rekening manual, transaksi, anggaran, laporan, tabungan, aset, pinjaman, dan investasi.
+- IDR dan bahasa Indonesia diprioritaskan; mata uang lain tetap didukung.
+- Koneksi bank otomatis terutama mendukung lembaga luar negeri, bukan otomatis BCA/BRI/Mandiri.
+- Tidak ada akun cloud MoneyMatter atau langganan yang diperlukan untuk self-hosting ini.
+- Dokumentasi lokal: /panduan.html
+- Informasi hukum dan source: /legal.html
