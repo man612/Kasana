@@ -653,7 +653,12 @@
       "hideOneDay": "For 24 hours",
       "hideOneWeek": "For 7 days",
       "resetPosition": "Reset position",
-      "hideExplanation": "The button returns automatically. You can restore it earlier in Settings → General."
+      "hideExplanation": "The button returns automatically. You can restore it earlier in Settings → General.",
+      "placeButton": "Move to…",
+      "topLeft": "Top left",
+      "topRight": "Top right",
+      "bottomLeft": "Bottom left",
+      "bottomRight": "Bottom right"
     }
   }
 }
