@@ -280,7 +280,7 @@
     }
   },
   "landingFaq": {
-    "unavailable": "The assistant is unavailable right now. Please try again later or email support@moneymatter.app."
+    "unavailable": "De assistent is momenteel niet beschikbaar. Probeer het later opnieuw."
   },
   "loans": {
     "loanNotFound": "Loan not found.",
@@ -628,7 +628,7 @@
     "connectionModelNotAvailable": "This API key can't use the model \"{{model}}\". Check the model name.",
     "connectionProviderUnreachable": "Couldn't reach the provider. Try again in a moment.",
     "connectionValidationFailed": "The provider refused the test request: {{reason}}",
-    "serverModelUnavailable": "The included MoneyMatter AI model isn't available on your plan.",
+    "serverModelUnavailable": "Het AI-model van de server is niet beschikbaar voor dit account.",
     "connectionKeyNotInBackup": "API key isn't included in backups. Edit this model and enter the key again.",
     "customEndpointUnreachable": "Could not reach the endpoint. Check the base URL and make sure the server is running and reachable from the internet.",
     "customEndpointAuthFailed": "The endpoint rejected the API key. Check that the key is correct and has the required permissions.",
