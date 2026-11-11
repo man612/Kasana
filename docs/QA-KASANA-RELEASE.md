@@ -33,11 +33,19 @@ Backend unit tests require the correct test environment and may need `NODE_OPTIO
 | Quick Start gesture | Single tap opens the panel. Long press for approximately 420 ms, then drag to relocate. The position survives refresh; Reset is disabled at the default position, enabled after moving, and restores the original location. Simulate OS `pointercancel`: the unfinished move must be rolled back and the next tap must work. Use single-tap corner presets without requiring dragging. |
 | Hide Quick Start | Test hiding for 1 hour, 24 hours, and 7 days, and reopening through Settings → General. Refresh or reopen the tab before and after expiry. |
 | Navigation | Open account and vehicle details from their lists; on deep links, Back should return to a sensible list. The mobile hamburger remains available. Also test loan, portfolio, goals, budgets, trackers, recurring payments, investments, and ventures. |
-| Responsive layouts | Test widths of 360 px, 390 px, tablet, and 1280 px desktop with Kasana's 80% scale. Rotate the device and open the virtual keyboard. Check for horizontal overflow, obscured actions, clipped popovers, and off-screen floating controls. |
-| Dialogs and accessibility | Test keyboard Tab/Escape, screen-reader labels, touch targets, back buttons, Indonesian/English language switching, and mobile drawers. |
+| Responsive layouts | Test widths of 360 px, 390 px, tablet, and 1280 px desktop with Kasana's 80% rem-based density (no root CSS zoom). Rotate the device and open the virtual keyboard. The dashboard must fill the viewport, without horizontal overflow, obscured actions, clipped popovers, or off-screen floating controls. |
+| Dialogs and accessibility | Test keyboard Tab/Escape, screen-reader labels, touch targets, back buttons, Indonesian/English language switching, and mobile drawers. Dropdowns/Selects must remain anchored 6 px from their trigger (or flip to the opposite side near a viewport edge); centered modal dialogs are intentionally different. |
 | Loans | Verify principal, outstanding balance, interest, term, installments, and projections. **Do not** assume declining-balance amortization models flat interest, deducted origination fees, or provider-specific BNPL schedules. |
 
-- An isolated Playwright/Chromium CI browser test starts Kasana's real frontend/backend and synthetic PostgreSQL data, checks an IDR transaction and account detail at mobile viewport and 80% CSS zoom, and verifies the deep-link back button. A passing synthetic browser test still does not replace physical Android, native pinch-zoom, or real VPS testing.
+- An isolated Playwright/Chromium CI browser test starts Kasana's real frontend/backend and synthetic PostgreSQL data, checks an IDR transaction and account detail at mobile viewport with 80% rem-based UI density, verifies full viewport coverage, explicit deep-link Back, accent selection persistence, and anchored Select dropdown geometry. A passing synthetic browser test still does not replace physical Android, native pinch-zoom, or real VPS testing.
+
+### Motion and appearance checks
+
+- In Settings → Appearance, purple must be selected by default. Green/blue choices immediately update brand buttons and focus rings, persist after refresh, and do not change the independent light/dark theme.
+- Open/close the sidebar settings popover: its gear rotates into the open state and returns when closed. Test keyboard activation as well as touch.
+- Verify existing Reka select/popover/dialog and Vaul drawer animations, dashboard route transitions, hover/focus/pressed states, and sliding panels. No blanket `transition: all` or new heavy animation runtime was added.
+- Turn on OS **Reduce motion**. Decorative movement and sliding should stop, while focus visibility, accessibility and navigation remain functional.
+- Browser zoom levels 80%, 100% and 125% should be checked separately from the app's built-in 80% density. Browser-level zoom on a physical device is not reproduced by injecting `html.style.zoom` into a test.
 
 ## 3. Infrastructure and data protection
 

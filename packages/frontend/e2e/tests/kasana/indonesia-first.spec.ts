@@ -91,6 +91,43 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       } finally {
         await deepLink.close();
       }
+
+      // The accent is independent of light/dark mode and survives navigation
+      // and reload. Test the actual settings controls, not just stored tokens.
+      await page.goto('/settings/appearance');
+      const accents = page.getByRole('group', { name: /Warna aksen|Accent color/i });
+      await expect(accents).toBeVisible();
+      await expect(accents.getByRole('button', { name: /Ungu|Purple/i })).toHaveAttribute('aria-pressed', 'true');
+      await accents.getByRole('button', { name: /Hijau|Green/i }).click();
+      await expect(accents.getByRole('button', { name: /Hijau|Green/i })).toHaveAttribute('aria-pressed', 'true');
+      expect(await page.evaluate(() => localStorage.getItem('kasana-accent'))).toBe('green');
+      await page.reload();
+      const restoredAccents = page.getByRole('group', { name: /Warna aksen|Accent color/i });
+      await expect(restoredAccents.getByRole('button', { name: /Hijau|Green/i })).toHaveAttribute('aria-pressed', 'true');
+      await restoredAccents.getByRole('button', { name: /Ungu|Purple/i }).click();
+
+      // A portal is expected, but the dropdown must still visually touch its
+      // trigger (within a small design-system gap), including on narrow screens.
+      await page.goto('/settings/general');
+      const trigger = page.getByRole('combobox').first();
+      await expect(trigger).toBeVisible();
+      await trigger.click();
+      const dropdown = page.getByRole('listbox').first();
+      await expect(dropdown).toBeVisible();
+      const triggerBox = await trigger.boundingBox();
+      const dropdownBox = await dropdown.boundingBox();
+      expect(triggerBox).not.toBeNull();
+      expect(dropdownBox).not.toBeNull();
+      if (triggerBox && dropdownBox) {
+        const verticalGap = Math.min(
+          Math.abs(dropdownBox.y - (triggerBox.y + triggerBox.height)),
+          Math.abs(triggerBox.y - (dropdownBox.y + dropdownBox.height)),
+        );
+        expect(verticalGap, 'Select dropdown should stay near its triggering field').toBeLessThanOrEqual(20);
+        expect(dropdownBox.x).toBeGreaterThanOrEqual(-2);
+        expect(dropdownBox.x + dropdownBox.width).toBeLessThanOrEqual(392);
+      }
+      await page.keyboard.press('Escape');
     } finally {
       await api.dispose();
     }
