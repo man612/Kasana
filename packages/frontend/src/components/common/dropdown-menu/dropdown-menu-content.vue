@@ -26,7 +26,6 @@ const forwarded = useForwardPropsEmits(props, emits);
           $attrs.class ?? '',
         )
       "
-      :collision-padding="12"
       v-bind="forwarded"
     >
       <slot />
