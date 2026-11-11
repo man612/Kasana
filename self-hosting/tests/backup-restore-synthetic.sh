@@ -29,14 +29,19 @@ start_database() {
     "$image" >/dev/null
   local ready=false
   for _ in $(seq 1 45); do
-    if docker exec "$name" pg_isready -U "$user" -d "$database" >/dev/null 2>&1; then
+    # The official postgres image briefly starts a temporary bootstrap server
+    # that answers pg_isready, then shuts it down before launching PID 1 as
+    # postgres. Waiting for only pg_isready races with that shutdown.
+    if docker exec "$name" sh -c 'test "$(cat /proc/1/comm)" = postgres' >/dev/null 2>&1 \
+      && docker exec "$name" psql -U "$user" -d "$database" -tAc 'SELECT 1' >/dev/null 2>&1; then
       ready=true
       break
     fi
     sleep 1
   done
   if [ "$ready" != true ]; then
-    echo "FAIL: disposable PostgreSQL container did not become ready" >&2
+    echo "FAIL: disposable PostgreSQL final server did not become ready" >&2
+    docker logs --tail 50 "$name" >&2 || true
     return 1
   fi
 }
