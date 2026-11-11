@@ -1,6 +1,10 @@
 <template>
   <main class="bg-background">
-    <router-view />
+    <router-view v-slot="{ Component }">
+      <Transition name="kasana-shell" mode="out-in">
+        <component :is="Component" />
+      </Transition>
+    </router-view>
 
     <base-currency-change-overlay />
     <restore-in-progress-overlay />

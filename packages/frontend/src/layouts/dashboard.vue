@@ -12,7 +12,7 @@
         <div class="max-md:pb-4">
           <router-view v-slot="{ Component, route }">
             <Transition name="kasana-page" mode="out-in">
-              <component :is="Component" :key="route.path" />
+              <component :is="Component" :key="route.matched[1]?.path ?? route.path" />
             </Transition>
           </router-view>
         </div>

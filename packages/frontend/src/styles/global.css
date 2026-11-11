@@ -316,6 +316,57 @@
   }
 }
 
+/* Whole-app shell and nested navigation motion, preserving parent layouts. */
+.kasana-shell-enter-active,
+.kasana-shell-leave-active {
+  transition: opacity var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+.kasana-shell-enter-from,
+.kasana-shell-leave-to { opacity: 0; }
+
+.kasana-section-enter-active,
+.kasana-section-leave-active {
+  transition: opacity var(--kasana-motion-fast) var(--kasana-motion-ease),
+    transform var(--kasana-motion-fast) var(--kasana-motion-ease);
+}
+.kasana-section-enter-from { opacity: 0; transform: translateY(4px); }
+.kasana-section-leave-to { opacity: 0; transform: translateY(-3px); }
+
+/* Content for shared Reka Tabs fades in when activated, in addition to the
+   existing sliding active-tab indicator. */
+.kasana-tab-content[data-state='active'] {
+  animation: kasana-tab-enter var(--kasana-motion-normal) var(--kasana-motion-ease) both;
+}
+@keyframes kasana-tab-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Opt-in Vue TransitionGroup FLIP motion for short, keyed non-virtual lists.
+   Do not attach this to virtualized transaction tables or infinite lists. */
+.kasana-list-move,
+.kasana-list-enter-active,
+.kasana-list-leave-active {
+  transition: transform var(--kasana-motion-normal) var(--kasana-motion-ease),
+    opacity var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+.kasana-list-enter-from,
+.kasana-list-leave-to { opacity: 0; transform: translateY(6px); }
+.kasana-list-leave-active { position: absolute; left: 0; right: 0; }
+
+/* Validation and progress status updates: short, contained feedback. */
+.kasana-feedback-enter-active,
+.kasana-feedback-leave-active,
+.kasana-icon-enter-active,
+.kasana-icon-leave-active {
+  transition: opacity var(--kasana-motion-fast) var(--kasana-motion-ease),
+    transform var(--kasana-motion-fast) var(--kasana-motion-ease);
+}
+.kasana-feedback-enter-from,
+.kasana-feedback-leave-to { opacity: 0; transform: translateY(-3px); }
+.kasana-icon-enter-from { opacity: 0; transform: scale(0.84); }
+.kasana-icon-leave-to { opacity: 0; transform: scale(0.84); }
+
 /* App-branded native scrollbars. Reka scroll areas have their own thumb below. */
 * {
   scrollbar-width: thin;
