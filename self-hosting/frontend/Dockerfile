@@ -1,6 +1,6 @@
 # 🏗️ Stage 1️⃣: Build
 # --platform=$BUILDPLATFORM: this stage emits only static files (Vite SPA +
-# Astro landing), nothing arch-specific — so multi-arch builds run the heavy
+# no upstream marketing site), nothing arch-specific — so multi-arch builds run the heavy
 # JS build once natively instead of emulating it under QEMU per target arch.
 # The production nginx stage stays flag-less so it builds per target arch.
 FROM --platform=$BUILDPLATFORM node:24.22.1 AS build-stage
@@ -49,7 +49,6 @@ RUN printf '%s\n' \
 COPY tsconfig.json ./
 COPY packages/shared ./packages/shared
 COPY packages/frontend ./packages/frontend
-COPY packages/landing ./packages/landing
 
 # vue-tsc + vite exceed Node's default heap on hosts with less than ~16 GB RAM
 # (the default scales with system memory), so the heap is set explicitly.
@@ -59,14 +58,10 @@ ARG NODE_BUILD_HEAP_MB=6144
 WORKDIR /app/packages/frontend
 RUN NODE_OPTIONS="--max-old-space-size=$NODE_BUILD_HEAP_MB" npm run build
 
-# Build Astro landing
-WORKDIR /app/packages/landing
-RUN NODE_OPTIONS="--max-old-space-size=$NODE_BUILD_HEAP_MB" npm run build
-
 # 🚀 Stage 2️⃣: Production
 FROM nginx:1.27-alpine AS production-stage
 
-LABEL org.opencontainers.image.source="https://github.com/letehaha/moneymatter"
+LABEL org.opencontainers.image.source="https://github.com/man612/Kasana"
 
 # The Sentry release is the only baked runtime fallback: it must match the
 # source maps CI uploaded while building this exact image, so it ships inside
@@ -83,9 +78,8 @@ RUN mkdir -p /app /landing /etc/nginx/includes /etc/nginx/templates \
     && touch /etc/nginx/nginx.conf \
     && chown nginx:nginx /app /landing /etc/nginx/includes /etc/nginx/nginx.conf
 
-# Copy built assets
+# Copy only the Kasana app. The inherited Astro marketing site is never shipped.
 COPY --from=build-stage --chown=nginx:nginx /app/packages/frontend/dist /app
-COPY --from=build-stage --chown=nginx:nginx /app/packages/landing/dist /landing
 
 # nginx.conf is a template here: the entrypoint envsubst's the CSP placeholders
 # with the effective runtime values before nginx reads it.
