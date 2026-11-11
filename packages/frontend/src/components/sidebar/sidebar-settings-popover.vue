@@ -36,7 +36,7 @@ const goTo = (target: View) => {
   <Popover v-model:open="isOpen">
     <PopoverTrigger as-child>
       <Button size="icon-sm" variant="secondary" :aria-label="$t('sidebar.settings.title')">
-        <SettingsIcon class="size-3.5" />
+        <SettingsIcon :class="['size-3.5 origin-center transition-transform duration-300 ease-out motion-reduce:transition-none', isOpen && 'rotate-90']" />
       </Button>
     </PopoverTrigger>
     <PopoverContent class="w-64 overflow-hidden p-0" align="end">

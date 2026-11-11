@@ -10,7 +10,11 @@
 
       <template v-if="isAppInitialized">
         <div class="max-md:pb-4">
-          <router-view />
+          <router-view v-slot="{ Component, route }">
+            <Transition name="kasana-page" mode="out-in">
+              <component :is="Component" :key="route.path" />
+            </Transition>
+          </router-view>
         </div>
       </template>
     </ScrollArea>

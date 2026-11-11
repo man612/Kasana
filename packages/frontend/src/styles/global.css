@@ -278,6 +278,44 @@
 }
 :root.dark[data-kasana-accent='blue'] { --ring: rgb(96, 165, 250); }
 
+/* A restrained interaction vocabulary applied through shared primitives.
+   Vue Transition handles route entry/exit, Reka handles menu presence,
+   and Vaul keeps gesture-aware drawer motion. */
+:root {
+  --kasana-motion-fast: 140ms;
+  --kasana-motion-normal: 210ms;
+  --kasana-motion-slow: 320ms;
+  --kasana-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@layer base {
+  :where(button, [role='button'], input, select, textarea) {
+    transition-property: background-color, border-color, color, box-shadow, opacity;
+    transition-duration: var(--kasana-motion-fast);
+    transition-timing-function: var(--kasana-motion-ease);
+  }
+}
+[data-kasana-interactive]:not(:disabled):active {
+  filter: brightness(0.96);
+}
+.kasana-page-enter-active,
+.kasana-page-leave-active {
+  transition: opacity var(--kasana-motion-normal) var(--kasana-motion-ease),
+    transform var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+.kasana-page-enter-from { opacity: 0; transform: translateY(5px); }
+.kasana-page-leave-to { opacity: 0; transform: translateY(-3px); }
+
+/* User-accessibility setting wins over decorative motion, including existing
+   Tailwind and third-party animations. This does not remove focus feedback. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* App-branded native scrollbars. Reka scroll areas have their own thumb below. */
 * {
   scrollbar-width: thin;
