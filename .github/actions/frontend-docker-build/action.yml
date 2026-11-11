@@ -99,6 +99,9 @@ runs:
         build-args: |
           VITE_SENTRY_RELEASE=${{ inputs.sentry-release }}
           VITE_APP_COMMIT_HASH=${{ inputs.app-commit-hash }}
-          SENTRY_AUTH_TOKEN=${{ inputs.sentry-auth-token }}
           SENTRY_ORG=${{ inputs.sentry-org }}
           SENTRY_PROJECT=${{ inputs.sentry-project }}
+        # BuildKit mounts Sentry's token only while Vite runs. Never use a
+        # build-arg for a credential: it can be exposed in build provenance.
+        secrets: |
+          sentry_auth_token=${{ inputs.sentry-auth-token }}

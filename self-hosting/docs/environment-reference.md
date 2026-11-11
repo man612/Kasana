@@ -122,8 +122,10 @@ Used with `docker-compose.build.yml` (`--build`).
 
 | Variable                                            | Purpose                                                         |
 | --------------------------------------------------- | --------------------------------------------------------------- |
-| `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | Sentry source-map upload at build time                          |
+| `SENTRY_ORG`, `SENTRY_PROJECT` | Optional public Sentry build identifiers. Normal Compose builds do not upload source maps. |
 | `VITE_SENTRY_RELEASE`                               | Names the uploaded source maps; baked in as the release default |
+
+The Sentry upload token is **never a build argument**. The frontend image accepts a BuildKit secret named `sentry_auth_token` only for the Vite build step. The GitHub Actions frontend build action passes it through `secrets:`. The standard self-hosted Compose build deliberately does not pass a token; omit source-map uploads unless you have securely configured a custom BuildKit secret. Never put `SENTRY_AUTH_TOKEN` into a Docker `ARG`, `ENV`, `VITE_*`, or a committed configuration file.
 
 `VITE_SENTRY_RELEASE` is the one value that is both a build arg and runtime env.
 The build stamps it into the image as the release the SDK reports by default, so

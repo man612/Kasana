@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.10
 # 🏗️ Stage 1️⃣: Build
 # --platform=$BUILDPLATFORM: this stage emits only static files (Vite SPA +
 # no upstream marketing site), nothing arch-specific — so multi-arch builds run the heavy
@@ -10,12 +11,12 @@ WORKDIR /app
 # Deployment configuration (API origin, analytics keys, CSP hosts) enters at
 # container start via the entrypoint's runtime env — it is NOT baked here.
 # Build args carry only build-identity values and the Sentry source-map upload
-# credentials (compose interpolates them from the user's self-hosting/.env;
+# public release identifiers (compose interpolates them from the user's self-hosting/.env;
 # that file itself is NEVER copied into the image — it contains DB passwords +
-# auth secrets that must not leak into pushed image layers).
+# auth secrets that must not leak into pushed image layers). A Sentry upload
+# token is passed only through a BuildKit secret mount, never an ARG or layer.
 ARG VITE_SENTRY_RELEASE=
 ARG VITE_APP_COMMIT_HASH=
-ARG SENTRY_AUTH_TOKEN=
 ARG SENTRY_ORG=
 ARG SENTRY_PROJECT=
 
@@ -40,7 +41,6 @@ RUN npm ci
 RUN printf '%s\n' \
     "VITE_SENTRY_RELEASE=$VITE_SENTRY_RELEASE" \
     "VITE_APP_COMMIT_HASH=$VITE_APP_COMMIT_HASH" \
-    "SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN" \
     "SENTRY_ORG=$SENTRY_ORG" \
     "SENTRY_PROJECT=$SENTRY_PROJECT" \
     > /app/.env.production
@@ -56,7 +56,8 @@ ARG NODE_BUILD_HEAP_MB=6144
 
 # Build frontend SPA
 WORKDIR /app/packages/frontend
-RUN NODE_OPTIONS="--max-old-space-size=$NODE_BUILD_HEAP_MB" npm run build
+RUN --mount=type=secret,id=sentry_auth_token,env=SENTRY_AUTH_TOKEN \
+    NODE_OPTIONS="--max-old-space-size=$NODE_BUILD_HEAP_MB" npm run build
 
 # 🚀 Stage 2️⃣: Production
 FROM nginx:1.27-alpine AS production-stage

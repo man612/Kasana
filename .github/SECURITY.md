@@ -4,7 +4,7 @@ Kasana is an independent open-source project. Public issues and pull requests ar
 
 ## Reporting a vulnerability
 
-Use GitHub's [private vulnerability reporting](https://github.com/man612/Kasana/security/advisories/new) if it is enabled for this repository.
+Use GitHub's **enabled** [private vulnerability reporting](https://github.com/man612/Kasana/security/advisories/new). Reports sent through this form are not public issues.
 
 If the form is unavailable, use an **existing private channel** to contact the maintainer. If you have no such channel, open a public issue requesting a secure reporting method **without describing the vulnerability or including sensitive information**.
 

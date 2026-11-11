@@ -60,6 +60,19 @@ const walk = (folder) => {
   }
 };
 for (const localeDir of locales) walk(localeDir);
+// These build boundaries are security-critical on public forks. Shipping the
+// upstream marketing site or embedding Sentry credentials as ARG values can
+// expose misleading content or build provenance despite green app tests.
+const frontendDockerfile = read('self-hosting/frontend/Dockerfile');
+if (/ARG\s+SENTRY_AUTH_TOKEN|ENV\s+SENTRY_AUTH_TOKEN/.test(frontendDockerfile)) {
+  failures.push('Sentry credentials must be passed as BuildKit secrets, not Docker ARG/ENV');
+}
+if (/COPY\s+packages\/landing\s|COPY\s+--from=.*\/landing\/dist/.test(frontendDockerfile)) {
+  failures.push('Inherited landing content must never be copied into the Kasana production image');
+}
+if (!frontendDockerfile.includes('org.opencontainers.image.source="https://github.com/man612/Kasana"')) {
+  failures.push('Production Docker image source label must identify the Kasana repository');
+}
 const associatedApps = JSON.parse(read('packages/frontend/public/.well-known/apple-app-site-association'));
 if (associatedApps.webcredentials?.apps?.length !== 0) {
   failures.push('Apple webcredentials may not advertise the original project\'s native app identifiers');
