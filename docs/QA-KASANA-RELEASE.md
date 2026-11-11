@@ -39,6 +39,8 @@ Backend unit tests require the correct test environment and may need `NODE_OPTIO
 
 ## 3. Infrastructure and data protection
 
+- Backend integration tests now exercise real API requests against synthetic IDR accounts with fractional expense/income amounts and negative opening balances. Passing those tests does not automatically confirm displayed currency strings or touchscreen input behavior.
+
 - Verify [the public-repository security readiness record](PUBLIC-REPOSITORY-READINESS-ID.md). GitHub Secret Scanning, Push Protection, Dependabot alerts/updates, and private vulnerability reporting were enabled November 11, 2026; check subsequent alerts and old history separately.
 - Check the public-identity guard with `node scripts/check-public-identity.mjs`, including locale strings and outbound URLs, to prevent reintroducing inherited hosted services or original-developer support details.
 
