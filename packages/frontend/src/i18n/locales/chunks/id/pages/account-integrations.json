@@ -128,6 +128,8 @@
             "emailProtection": "Email untuk masalah perlindungan data:",
             "privacyUrl": "URL Privasi:",
             "termsUrl": "URL Persyaratan:",
+            "providedByOperator": "Diisi sendiri oleh pengelola instance",
+            "ownLegalDetails": "Gunakan alamat email kontak, halaman privasi, dan syarat layanan yang benar-benar kamu kelola untuk instance HTTPS ini. Kasana tidak menyediakan dokumen legal milik operator atau email kontak bawaan. Jangan memakai milik aplikasi lain.",
             "clickRegister": "Klik \"Register\"",
             "downloadKey": "Anda akan diminta mengunduh file. Itu adalah kunci RSA Anda yang harus disimpan karena ini bagian dari kredensial Anda"
           }

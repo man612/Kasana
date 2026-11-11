@@ -128,6 +128,8 @@
             "emailProtection": "Email for data protection matters:",
             "privacyUrl": "Privacy URL:",
             "termsUrl": "Terms URL:",
+            "providedByOperator": "Enter your own operator details",
+            "ownLegalDetails": "Provide a contact email, privacy-policy URL, and terms URL you actually control for this HTTPS instance. Kasana does not supply legal documents or a default operator contact. Never reuse another product's details.",
             "clickRegister": "Click \"Register\"",
             "downloadKey": "You will be suggested to download a file. It's your RSA key that you must save somewhere since this is part of your credentials"
           }

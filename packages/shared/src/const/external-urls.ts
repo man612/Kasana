@@ -1,13 +1,13 @@
+/** Public destinations for the independent Kasana project.
+ * No upstream community, hosted docs, subscriptions, or donation endpoints are
+ * presented as belonging to Kasana. Keep operator-managed links separate.
+ */
 export const EXTERNAL_URLS = {
-  // Community translation project
-  crowdinProject: 'https://crowdin.com/project/moneymatter',
-  // Public roadmap: what is planned/in-progress. Read-only view for users
-  featurebaseRoadmap: 'https://moneymatter.featurebase.app/dashboard/roadmap',
-  // Feedback board: where users submit and upvote requests
-  featurebaseBoard: 'https://moneymatter.featurebase.app/',
-  docs: 'https://docs.moneymatter.app',
-  redditCommunity: 'https://www.reddit.com/r/moneymatterapp/',
+  crowdinProject: 'https://github.com/man612/Kasana/blob/main/CONTRIBUTING.md',
+  featurebaseRoadmap: 'https://github.com/man612/Kasana/issues',
+  featurebaseBoard: 'https://github.com/man612/Kasana/issues',
+  docs: 'https://github.com/man612/Kasana',
+  redditCommunity: 'https://github.com/man612/Kasana/issues',
   appStoreSubscriptions: 'https://apps.apple.com/account/subscriptions',
-  enableBankingHttpsSetup:
-    'https://github.com/letehaha/moneymatter/blob/main/self-hosting/docs/troubleshooting.md#enable-banking-url-uses-unsupported-scheme',
+  enableBankingHttpsSetup: 'https://github.com/man612/Kasana/blob/main/self-hosting/README.md',
 } as const;

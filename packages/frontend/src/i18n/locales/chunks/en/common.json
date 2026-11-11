@@ -636,6 +636,11 @@
     }
   },
   "kasana": {
+    "feedback": {
+      "githubOnly": "Kasana accepts public feedback and feature reports through its own GitHub issue tracker.",
+      "privacyWarning": "GitHub issues are public. Remove account numbers, transactions, authentication tokens, and other financial or personal details before posting. Do not report undisclosed security vulnerabilities in public issues.",
+      "openIssues": "Open Kasana GitHub Issues"
+    },
     "navigation": {
       "openMenu": "Open navigation menu"
     },

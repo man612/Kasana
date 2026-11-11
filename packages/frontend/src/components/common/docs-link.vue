@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { config } from '@/common/config';
 import { ExternalLinkIcon } from '@lucide/vue';
 
 defineProps<{
@@ -10,7 +9,7 @@ defineProps<{
 
 <template>
   <a
-    :href="config.isSelfHost ? '/panduan.html' : `${config.docsUrl}${path}`"
+    href="/panduan.html"
     target="_blank"
     rel="noopener noreferrer"
     class="text-primary-text inline-flex items-center gap-1 underline-offset-4 hover:underline"
