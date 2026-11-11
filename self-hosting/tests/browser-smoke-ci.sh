@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # CI-ONLY browser smoke. Refuse to launch a stack on an operator workstation.
 set -Eeuo pipefail
-if [ "$GITHUB_ACTIONS" != "true" ]; then
+if [ "${RUNNER_ENVIRONMENT:-}" != "github-hosted" ] || [ "$GITHUB_ACTIONS" != "true" ]; then
   echo "Refusing to start the browser smoke stack outside GitHub Actions" >&2
   exit 1
 fi
 repo="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$repo/self-hosting"
+if [ -e .env ] || [ -e stack.env ]; then
+  echo "Refusing to overwrite any existing server configuration" >&2
+  exit 1
+fi
 cp .env.example .env
 for key in APPLICATION_JWT_SECRET APP_SESSION_ID_SECRET BETTER_AUTH_SECRET APPLICATION_DB_PASSWORD; do
   value="$(openssl rand -hex 32)"

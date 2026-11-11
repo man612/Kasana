@@ -114,6 +114,29 @@ jobs:
       - name: Verify isolated database + attachment backup and restore
         run: bash self-hosting/tests/backup-restore-synthetic.sh
 
+  browser-smoke:
+    name: Isolated Kasana mobile browser smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Reclaim unused runner disk space
+        uses: jlumbroso/free-disk-space@ceedf095f4ec1a097402bc6bd80831f2e1a6fde6 # v2.0.0
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.22.1'
+      - name: Test real-browser IDR mobile navigation on disposable stack
+        run: bash self-hosting/tests/browser-smoke-ci.sh
+
   backend:
     name: Backend tasks
     needs: [prepare-dependencies, detect-changes]

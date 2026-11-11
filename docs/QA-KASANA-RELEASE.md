@@ -37,6 +37,8 @@ Backend unit tests require the correct test environment and may need `NODE_OPTIO
 | Dialogs and accessibility | Test keyboard Tab/Escape, screen-reader labels, touch targets, back buttons, Indonesian/English language switching, and mobile drawers. |
 | Loans | Verify principal, outstanding balance, interest, term, installments, and projections. **Do not** assume declining-balance amortization models flat interest, deducted origination fees, or provider-specific BNPL schedules. |
 
+- An isolated Playwright/Chromium CI browser test starts Kasana's real frontend/backend and synthetic PostgreSQL data, checks an IDR transaction and account detail at mobile viewport and 80% CSS zoom, and verifies the deep-link back button. A passing synthetic browser test still does not replace physical Android, native pinch-zoom, or real VPS testing.
+
 ## 3. Infrastructure and data protection
 
 - Backend integration tests now exercise real API requests against synthetic IDR accounts with fractional expense/income amounts and negative opening balances. Passing those tests does not automatically confirm displayed currency strings or touchscreen input behavior.
