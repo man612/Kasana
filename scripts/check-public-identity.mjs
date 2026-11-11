@@ -29,6 +29,10 @@ const files = [
   'packages/shared/src/const/external-urls.ts',
   'packages/frontend/public/.well-known/apple-app-site-association',
   'packages/frontend/public/.well-known/security.txt',
+  'packages/frontend/public/llms.txt',
+  'packages/frontend/public/llms-full.txt',
+  'packages/frontend/public/skills/connect-kasana/SKILL.md',
+  'packages/backend/src/scripts/generate-mcp-metadata.ts',
 ];
 
 const forbiddenRuntime = /MoneyMatter|moneymatter\.app|moneymatter:\/\/|letehaha|Dmytro|donatr\.ee\/letehaha/gi;
@@ -60,6 +64,11 @@ const walk = (folder) => {
   }
 };
 for (const localeDir of locales) walk(localeDir);
+// Do not ship a skill URL carrying the old project's name. The public catalog
+// stays unadvertised until an operator configures a real HTTPS origin.
+if (fs.existsSync(path.join(ROOT, 'packages/frontend/public/skills/connect-moneymatter/SKILL.md'))) {
+  failures.push('The public agent skill must use the Kasana path, not the inherited one');
+}
 // These build boundaries are security-critical on public forks. Shipping the
 // upstream marketing site or embedding Sentry credentials as ARG values can
 // expose misleading content or build provenance despite green app tests.

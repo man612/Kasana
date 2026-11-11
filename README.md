@@ -38,7 +38,7 @@ Kasana is an **independent adaptation** of [MoneyMatter](https://github.com/lete
 
 ## Getting started
 
-Build Kasana **from this repository's source**. The base Compose file alone pulls **upstream MoneyMatter Docker images**, not Kasana. Combine the base, build, and independent-instance overlays as shown below.
+Build Kasana **from this repository's source**. The base Compose file uses intentionally non-pullable placeholder images for the finance frontend and backend; it is **not** a standalone deployment. Always combine the base, build, and private-instance overlays as shown below.
 
 **Prerequisites:** Git, Docker Engine or Docker Desktop, Docker Compose, and sufficient memory and storage for a frontend source build.
 

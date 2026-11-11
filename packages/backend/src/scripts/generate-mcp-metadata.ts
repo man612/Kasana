@@ -9,7 +9,7 @@ import { TOOLSET_DESCRIPTIONS, TOOLS_BY_TOOLSET } from '../services/mcp/toolsets
 
 /**
  * Regenerates the MCP metadata served from packages/frontend/public: the server card, `scopes_supported`
- * in the OAuth discovery mirrors and the tool tables of the connect-moneymatter skill.
+ * in the OAuth discovery mirrors and the tool tables of the connect-kasana skill.
  *
  * Usage: npm run mcp:generate-metadata
  */
@@ -18,7 +18,7 @@ const SERVER_CARD_PATH = path.join(PUBLIC_DIR, '.well-known/mcp/server-card.json
 const OAUTH_MIRROR_PATHS = ['oauth-authorization-server', 'oauth-protected-resource'].map((file) =>
   path.join(PUBLIC_DIR, '.well-known', file),
 );
-const SKILL_PATH = path.join(PUBLIC_DIR, 'skills/connect-moneymatter/SKILL.md');
+const SKILL_PATH = path.join(PUBLIC_DIR, 'skills/connect-kasana/SKILL.md');
 
 const SKILL_BEGIN = '<!-- BEGIN GENERATED TOOL TABLES: npm run mcp:generate-metadata -->';
 const SKILL_END = '<!-- END GENERATED TOOL TABLES -->';

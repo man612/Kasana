@@ -1,57 +1,43 @@
-# Menghubungkan AI agent ke Kasana (self-hosted)
+# Connect an AI agent to Kasana (self-hosted)
 
-Kasana memuat server Model Context Protocol (MCP) berbasis OAuth pada backend.
-Agent dapat membaca dan, bila izin diberikan, mengubah data keuangan pengguna.
-Berikan izin seminimal mungkin: `finance:read` lebih aman untuk tahap uji.
-Jangan membagikan kredensial, token, ataupun data rekening nyata lewat issue.
+Kasana includes an OAuth-protected Model Context Protocol (MCP) server in its backend. An authorized AI client can read financial data and, when explicitly permitted, change it. Start with the least-privileged scope (`finance:read`) and never publish credentials, access tokens, or actual financial records in public issues.
 
-**Penting:** Kasana merupakan proyek independen dari MoneyMatter.
-Kasana belum memiliki layanan cloud atau endpoint MCP publik yang
-terverifikasi. **Jangan memakai `mcp.moneymatter.app` atau proses login
-`moneymatter.app` untuk menghubungkan akun Kasana**, karena kedua alamat itu
-milik proyek upstream, bukan deployment Kasana.
+**Availability:** Kasana does not operate a verified hosted cloud login or public MCP endpoint. Use only the HTTPS address of a self-hosted Kasana installation that you control and have tested. Verify the domain before granting an AI client access.
 
-## Endpoint instalasi sendiri
+## Self-hosted endpoints
 
-Sesudah Kasana berhasil di-deploy melalui HTTPS dengan URL misalnya
-`https://finance.example.com`, endpoint yang harus diuji adalah:
+After deploying Kasana through HTTPS at, for example, `https://finance.example.com`, verify these endpoints on **your own instance**:
 
 - MCP: `https://finance.example.com/mcp`
 - Server card: `https://finance.example.com/.well-known/mcp/server-card.json`
 - OAuth authorization metadata: `https://finance.example.com/.well-known/oauth-authorization-server`
-- OAuth protected resource metadata: `https://finance.example.com/.well-known/oauth-protected-resource`
+- OAuth protected-resource metadata: `https://finance.example.com/.well-known/oauth-protected-resource`
 
-`finance.example.com` adalah **contoh**, bukan server yang disediakan
-Kasana. Sesuaikan `BETTER_AUTH_URL`, `AUTH_ORIGIN`, `MCP_BASE_URL` dan
-konfigurasi reverse proxy sebelum mencoba koneksi. Periksa login, consent
-screen, callback, refresh token, dan izin akses dengan data dummy dahulu.
+`finance.example.com` is a placeholder, **not** a service operated by Kasana. Configure `BETTER_AUTH_URL`, `AUTH_ORIGIN`, `MCP_BASE_URL`, and your reverse proxy for the actual deployment. Test sign-in, consent, callbacks, token refresh, and authorization with synthetic data before using real accounts.
 
-## Ruang lingkup izin
+## Permission scopes
 
-| Scope | Kegunaan |
+| Scope | Purpose |
 | --- | --- |
-| `finance:read` | Membaca transaksi, rekening, anggaran, dan laporan |
-| `finance:write` | Menambah atau mengubah data sesuai izin tool |
-| `finance:delete` | Menghapus data; hindari bila tidak diperlukan |
-| `profile:read` | Membaca identitas akun dasar |
-| `offline_access` | Memberikan refresh token, bila disetujui |
+| `finance:read` | Read transactions, accounts, budgets, and reports |
+| `finance:write` | Create or update data as authorized by individual tools |
+| `finance:delete` | Delete financial data; avoid until explicitly needed |
+| `profile:read` | Read basic account profile information |
+| `offline_access` | Request a refresh token when approved |
 
-Toolset selain `core` membutuhkan izin `toolset:<id>` terkait. Pengguna
-dapat menolak izin yang tidak diperlukan dan mencabut aplikasi terhubung
-melalui pengaturan Kasana.
+Toolsets other than `core` additionally require the matching `toolset:<id>` permission. Grant only the permissions needed and revoke access through Kasana settings when no longer required.
 
-## Langkah koneksi
+## Connection procedure
 
-1. Siapkan instance Kasana sendiri dengan HTTPS dan autentikasi yang telah diuji.
-2. Masukkan URL MCP milik **instance Kasana**, bukan URL upstream, ke klien AI.
-3. Verifikasi domain pada halaman login dan persetujuan OAuth.
-4. Berikan izin seperlunya, lalu uji satu operasi baca menggunakan data dummy.
-5. Baru setelah aman, pertimbangkan izin tulis atau hapus untuk tugas tertentu.
+1. Deploy and test your own Kasana instance using HTTPS and working authentication.
+2. Enter **your Kasana instance's MCP URL**, not a third-party hosted URL, in your AI client.
+3. Verify the login and OAuth consent screen's domain and requested scopes.
+4. Approve minimal permissions and test one read-only call on dummy data.
+5. Only then consider write or delete permissions for a specific use case.
 
-## Daftar tool MCP
+## MCP tool catalog
 
-Bagian di bawah ini dihasilkan otomatis dari kode backend. Jangan menyunting
-isi tabel di antara penanda generated; perbarui generator jika tool berubah.
+The following tool tables are generated from backend source. Do not edit content between the generated markers manually; regenerate it if the tools change.
 
 <!-- BEGIN GENERATED TOOL TABLES: npm run mcp:generate-metadata -->
 
