@@ -250,14 +250,33 @@
    Root zoom shrank 100dvh panels, clipped scroll containers and offset portals. */
 :root {
   --kasana-ui-scale: 0.8;
-  --kasana-brand-light: rgb(27, 91, 74);
-  --kasana-brand-dark: rgb(27, 91, 74);
-  --kasana-brand-text-light: rgb(22, 95, 72);
-  --kasana-brand-text-dark: rgb(127, 222, 179);
+  --kasana-brand-light: rgb(115, 85, 190);
+  --kasana-brand-dark: rgb(115, 85, 190);
+  --kasana-brand-text-light: rgb(100, 67, 175);
+  --kasana-brand-text-dark: rgb(197, 175, 255);
 }
 @layer base {
   html { font-size: calc(100% * var(--kasana-ui-scale)); }
 }
+
+/* Purple is the default accent. These selectors override only brand colors,
+   independently of the user's light/dark appearance preference. */
+:root[data-kasana-accent='green'] {
+  --kasana-brand-light: rgb(27, 91, 74);
+  --kasana-brand-dark: rgb(27, 91, 74);
+  --kasana-brand-text-light: rgb(22, 95, 72);
+  --kasana-brand-text-dark: rgb(127, 222, 179);
+  --ring: rgb(27 91 74 / 60%);
+}
+:root.dark[data-kasana-accent='green'] { --ring: rgb(91, 192, 149); }
+:root[data-kasana-accent='blue'] {
+  --kasana-brand-light: rgb(37, 99, 235);
+  --kasana-brand-dark: rgb(37, 99, 235);
+  --kasana-brand-text-light: rgb(29, 78, 216);
+  --kasana-brand-text-dark: rgb(147, 197, 253);
+  --ring: rgb(37 99 235 / 60%);
+}
+:root.dark[data-kasana-accent='blue'] { --ring: rgb(96, 165, 250); }
 
 /* App-branded native scrollbars. Reka scroll areas have their own thumb below. */
 * {
@@ -337,7 +356,7 @@
 
     --border: rgb(234, 229, 220);
     --input: rgb(30 25 18 / 0.16);
-    --ring: rgba(27, 91, 74, 0.6);
+    --ring: rgba(115, 85, 190, 0.6);
     --radius: 0.75rem;
 
     --success: rgb(42, 141, 82);
@@ -454,7 +473,7 @@
 
     --border: rgb(42, 40, 37);
     --input: rgb(255 255 255 / 0.12);
-    --ring: rgb(91, 192, 149);
+    --ring: rgb(155, 125, 222);
 
     --success: rgb(16, 59, 49);
     --success-foreground: rgb(250, 250, 250);

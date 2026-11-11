@@ -17,7 +17,7 @@ const { isCollapsed } = useSidebarCollapsed();
   <component :is="mobileView ? 'div' : Card" class="flex h-full w-75 flex-col rounded-none max-md:w-auto">
     <CardHeader class="h-16 px-4 py-3">
       <div class="flex items-center gap-3">
-        <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#17443d] text-white">
+        <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
           <WalletIcon class="size-5" :stroke-width="1.8" />
         </div>
         <div class="min-w-0">
