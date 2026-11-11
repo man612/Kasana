@@ -29,6 +29,29 @@
 
       <Separator />
 
+      <!-- Accent color is separate from light/dark theme. -->
+      <div>
+        <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.accent.title') }}</h3>
+        <p class="mb-4 text-sm leading-relaxed">{{ $t('settings.appearance.accent.description') }}</p>
+        <div class="flex flex-wrap gap-2" role="group" :aria-label="$t('settings.appearance.accent.title')">
+          <button
+            v-for="option in ACCENT_OPTIONS"
+            :key="option.value"
+            type="button"
+            :aria-pressed="accentTheme === option.value"
+            class="border-input hover:bg-accent focus-visible:ring-ring inline-flex min-h-10 items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            :class="accentTheme === option.value && 'border-primary bg-primary/10 text-primary-text'"
+            @click="setAccentTheme(option.value)"
+          >
+            <span class="size-4 shrink-0 rounded-full ring-1 ring-black/10" :style="{ backgroundColor: option.swatch }" aria-hidden="true" />
+            {{ $t('settings.appearance.accent.' + option.value) }}
+            <CheckIcon v-if="accentTheme === option.value" class="size-4" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      <Separator />
+
       <!-- Sidebar Sections -->
       <div>
         <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.sidebar.title') }}</h3>
@@ -147,6 +170,7 @@
 
 <script setup lang="ts">
 import { ThemePreference, setThemePreference, themePreference } from '@/common/utils/color-theme';
+import { ACCENT_OPTIONS, accentTheme, setAccentTheme } from '@/common/utils/accent-theme';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import Button from '@/components/lib/ui/button/Button.vue';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
@@ -156,7 +180,7 @@ import { Switch } from '@/components/lib/ui/switch';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { TOGGLEABLE_SIDEBAR_SECTIONS, useSidebarSections } from '@/composable/use-sidebar-sections';
 import { useSupportButton } from '@/composable/use-support-button';
-import { CoinsIcon, HeartIcon, InfoIcon, LayersIcon, MonitorIcon, MoonStarIcon, SunIcon } from '@lucide/vue';
+import { CheckIcon, CoinsIcon, HeartIcon, InfoIcon, LayersIcon, MonitorIcon, MoonStarIcon, SunIcon } from '@lucide/vue';
 import { type Component } from 'vue';
 
 const { sidebarSections, toggleSection, isUpdating } = useSidebarSections();

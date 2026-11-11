@@ -25,6 +25,13 @@
         "title": "Simbol mata uang",
         "description": "Cara jumlah menampilkan mata uangnya. Simbol singkat terlihat seperti Rp, ₴ atau zł, bukan IDR, UAH atau PLN, tetapi mata uang yang berbagi simbol yang sama (USD, CAD, AUD, SGD) semuanya menjadi $.",
         "narrowSymbol": "Gunakan simbol mata uang singkat"
+      },
+      "accent": {
+        "title": "Warna aksen",
+        "description": "Pilih warna utama aplikasi. Ungu adalah bawaan; pilihanmu disimpan di perangkat ini.",
+        "purple": "Ungu",
+        "green": "Hijau",
+        "blue": "Biru"
       }
     }
   }
