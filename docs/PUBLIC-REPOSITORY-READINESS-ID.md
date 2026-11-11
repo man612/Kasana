@@ -39,3 +39,7 @@ The standard lint/test/build workflow remains enabled. Its concurrency configura
 On November 10, 2026, high-confidence secret-pattern checks on the integration PR diff and ten Kasana commits since the upstream snapshot found no known token or private-key patterns. Eight common secret-file paths had no commits in the history checked. These checks were **limited**, not a comprehensive security audit.
 
 After the repository became Public, GitHub Actions started assigning runners, revealing ordinary test and infrastructure failures that still require separate fixes. Public visibility alone is not a release-approval or security certification.
+
+## NGINX base-image security update — November 11, 2026
+
+The inherited production frontend previously used `nginx:1.27-alpine`. The upstream NGINX team released [stable 1.30.6](https://nginx.org/en/download.html) with [fixes for several security advisories](https://nginx.org/en/security_advisories.html) on October 14, 2026. The Kasana production frontend Dockerfile now uses `nginx:1.30.6-alpine` (available in the [official Docker image tags](https://hub.docker.com/_/nginx/tags)); the inherited, independently built documentation image now uses `nginxinc/nginx-unprivileged:1.30.6-alpine` ([published tag](https://github.com/nginx/docker-nginx-unprivileged/pkgs/container/nginx-unprivileged/versions?filters%5Bversion_type%5D=tagged)). These changes require image-build and smoke-test validation; they do not mean an existing VPS has been upgraded or patched.

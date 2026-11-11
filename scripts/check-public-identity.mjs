@@ -73,6 +73,13 @@ if (/COPY\s+packages\/landing\s|COPY\s+--from=.*\/landing\/dist/.test(frontendDo
 if (!frontendDockerfile.includes('org.opencontainers.image.source="https://github.com/man612/Kasana"')) {
   failures.push('Production Docker image source label must identify the Kasana repository');
 }
+// Require the vetted, patched NGINX stable release in production Dockerfiles.
+for (const [dockerfile, expected] of [
+  ['self-hosting/frontend/Dockerfile', 'FROM nginx:1.30.6-alpine AS production-stage'],
+  ['packages/docs/Dockerfile', 'FROM nginxinc/nginx-unprivileged:1.30.6-alpine'],
+]) {
+  if (!read(dockerfile).includes(expected)) failures.push(`${dockerfile} must use vetted NGINX stable 1.30.6`);
+}
 const associatedApps = JSON.parse(read('packages/frontend/public/.well-known/apple-app-site-association'));
 if (associatedApps.webcredentials?.apps?.length !== 0) {
   failures.push('Apple webcredentials may not advertise the original project\'s native app identifiers');

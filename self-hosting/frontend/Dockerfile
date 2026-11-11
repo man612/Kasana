@@ -60,7 +60,7 @@ RUN --mount=type=secret,id=sentry_auth_token,env=SENTRY_AUTH_TOKEN \
     NODE_OPTIONS="--max-old-space-size=$NODE_BUILD_HEAP_MB" npm run build
 
 # 🚀 Stage 2️⃣: Production
-FROM nginx:1.27-alpine AS production-stage
+FROM nginx:1.30.6-alpine AS production-stage
 
 LABEL org.opencontainers.image.source="https://github.com/man612/Kasana"
 
