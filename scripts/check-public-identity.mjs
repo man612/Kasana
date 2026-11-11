@@ -85,6 +85,14 @@ for (const [dockerfile, expected] of [
 if (!read('self-hosting/backend/Dockerfile').includes('org.opencontainers.image.source="https://github.com/man612/Kasana"')) {
   failures.push('Backend production Docker image source label must identify Kasana');
 }
+// Never allow a plain docker compose up to run another product's money app.
+const baseCompose = read('self-hosting/docker-compose.yml');
+if (/image:\s*letehaha\/budget-tracker-(?:fe|be)/.test(baseCompose)) {
+  failures.push('The base Compose file must never pull upstream finance frontend/backend images');
+}
+for (const image of ['kasana-build-required-frontend:local', 'kasana-build-required-backend:local']) {
+  if (!baseCompose.includes(`image: ${image}`)) failures.push(`Missing fail-closed Compose placeholder: ${image}`);
+}
 const associatedApps = JSON.parse(read('packages/frontend/public/.well-known/apple-app-site-association'));
 if (associatedApps.webcredentials?.apps?.length !== 0) {
   failures.push('Apple webcredentials may not advertise the original project\'s native app identifiers');

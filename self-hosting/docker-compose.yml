@@ -1,9 +1,10 @@
-# Shared upstream-derived Compose base for Kasana (MoneyMatter origin).
-# IMPORTANT: This file alone pulls upstream MoneyMatter Docker images, not Kasana.
-# Always combine it with docker-compose.build.yml + docker-compose.private.yml
-# to run source code from https://github.com/man612/Kasana.
+# Shared Compose service definition for Kasana (source adapted under AGPL).
+# FAIL CLOSED: this file alone has deliberately UNAVAILABLE local frontend and
+# backend image tags. It must never run a different product's finance application.
+# Always combine with docker-compose.build.yml + docker-compose.private.yml
+# to build Kasana from source. No Kasana cloud image is currently published.
 #
-# Pulls the published images and exposes the whole app on ONE host port
+# Defines the application services and exposes ONE host port
 # (${HTTP_PORT:-8080}). The frontend container serves the SPA and reverse-proxies
 # /api to the backend on the internal network, so the browser talks to a single
 # origin. Point whatever reverse proxy you already run (Nginx Proxy Manager,
@@ -16,8 +17,8 @@
 #   4. open http://HOST:${HTTP_PORT:-8080}
 #
 # Optional overlays (compose merges them left-to-right):
-#   • Bundled Traefik + Let's Encrypt TLS:
-#       docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
+#   • Bundled Traefik + Let's Encrypt TLS (requires source + private overlays):
+#       docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml -f docker-compose.traefik.yml up -d --build
 #   • Build the images from source instead of pulling:
 #       docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml up -d --build
 
@@ -34,7 +35,9 @@ x-logging: &default-logging
 
 services:
   backend:
-    image: letehaha/budget-tracker-be:${IMAGE_TAG:-latest}
+    # Deliberately absent from registries: omit either overlay and startup fails.
+    image: kasana-build-required-backend:local
+    pull_policy: never
     restart: unless-stopped
     networks: [budget-tracker]
     # Internal-only: the frontend container reaches it over the `budget-tracker`
@@ -86,7 +89,8 @@ services:
     logging: *default-logging
 
   frontend:
-    image: letehaha/budget-tracker-fe:${IMAGE_TAG:-latest}
+    image: kasana-build-required-frontend:local
+    pull_policy: never
     restart: unless-stopped
     networks:
       budget-tracker:
