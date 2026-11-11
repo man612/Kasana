@@ -116,7 +116,9 @@ jobs:
 
   browser-smoke:
     name: Isolated Kasana mobile browser smoke
-    runs-on: ubuntu-latest
+    # Playwright 1.60.0 does not install Chromium on the ubuntu-latest 26.04
+    # runner image. Pin a supported distro until Playwright supports 26.04.
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
       - name: Reclaim unused runner disk space
