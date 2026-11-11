@@ -12,12 +12,12 @@ export const escapeHtml = (value: string): string =>
 export const isEmailEnabled = isEnvConfigured(EnvVar.RESEND_API_KEY, process.env.RESEND_API_KEY);
 export const resend = isEmailEnabled ? new Resend(process.env.RESEND_API_KEY) : null;
 export const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-export const appName = process.env.AUTH_RP_NAME || 'MoneyMatter';
-export const appUrl = process.env.APP_URL || 'https://moneymatter.app';
+export const appName = process.env.AUTH_RP_NAME || 'Kasana';
+export const appUrl = process.env.APP_URL || process.env.AUTH_ORIGIN || 'http://localhost:8080';
 
 /**
  * Wraps `innerHtml` (a sequence of `<tr>` rows) in the shared transactional email shell:
- * outer bg table → 560 px card → purple gradient bar → brand name row → inner rows.
+ * outer bg table → 560 px card → Kasana accent bar → brand name row → inner rows.
  */
 export const buildEmailShell = ({ innerHtml }: { innerHtml: string }): string => {
   const safeAppName = escapeHtml(appName);
@@ -38,8 +38,8 @@ export const buildEmailShell = ({ innerHtml }: { innerHtml: string }): string =>
     <tr>
       <td align="center" style="padding: 40px 16px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-          <tr><td style="height: 4px; background: linear-gradient(90deg, #8b5cf6, #a855f7, #9333ea); font-size: 0; line-height: 0;">&nbsp;</td></tr>
-          <tr><td style="padding: 32px 40px 0 40px;"><span style="font-size: 20px; font-weight: 700; color: #8b5cf6; letter-spacing: -0.3px;">${safeAppName}</span></td></tr>
+          <tr><td style="height: 4px; background: #17443d; font-size: 0; line-height: 0;">&nbsp;</td></tr>
+          <tr><td style="padding: 32px 40px 0 40px;"><span style="font-size: 20px; font-weight: 700; color: #17443d; letter-spacing: -0.3px;">${safeAppName}</span></td></tr>
           ${innerHtml}
         </table>
       </td>

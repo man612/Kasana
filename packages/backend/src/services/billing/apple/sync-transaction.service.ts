@@ -21,7 +21,7 @@ import { toAppleSubscriptionEvent } from './to-subscription-event';
 const ownedByAnotherAccount = () =>
   new ConflictError({
     code: API_ERROR_CODES.subscriptionOwnedByAnotherAccount,
-    message: 'This App Store subscription belongs to another MoneyMatter account.',
+    message: 'This App Store subscription belongs to another Kasana account.',
   });
 
 /** The user paid Apple either way, so the row is kept and the overlap is left for a manual refund. */

@@ -38,20 +38,20 @@ describe('buildEmailShell', () => {
     const html = buildEmailShell({ innerHtml: '<tr><td id="sentinel">unique-content</td></tr>' });
     expect(html).toContain('unique-content');
     // innerHtml must appear after the brand-name row
-    const brandIdx = html.indexOf('#8b5cf6');
+    const brandIdx = html.indexOf('#17443d');
     const contentIdx = html.indexOf('unique-content');
     expect(contentIdx).toBeGreaterThan(brandIdx);
   });
 
-  it('includes the purple gradient top bar', () => {
+  it('includes the Kasana accent top bar', () => {
     const html = buildEmailShell({ innerHtml: '' });
-    expect(html).toContain('linear-gradient(90deg, #8b5cf6, #a855f7, #9333ea)');
+    expect(html).toContain('#17443d');
   });
 
   it('includes the brand name (escaped)', () => {
     const html = buildEmailShell({ innerHtml: '' });
-    // Default appName is 'MoneyMatter' when AUTH_RP_NAME env var is not set
-    expect(html).toContain('MoneyMatter');
+    // Default appName is 'Kasana' when AUTH_RP_NAME env var is not set
+    expect(html).toContain('Kasana');
   });
 
   it('escapes special chars in appName', () => {

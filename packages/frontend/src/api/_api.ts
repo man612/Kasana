@@ -62,11 +62,8 @@ const SESSION_ID_KEY = 'session-id';
 // We only want to show the verbose "is the backend running / check ALLOWED_ORIGINS"
 // hint to operators – for cloud users a network failure is almost always transient
 // and the technical hint would be more confusing than helpful.
-const CLOUD_HOSTNAME = 'moneymatter.app';
-const isCloudDeployment = (): boolean => {
-  const hostname = window.location.hostname;
-  return hostname === CLOUD_HOSTNAME || hostname.endsWith(`.${CLOUD_HOSTNAME}`);
-};
+// Kasana currently has no official cloud service. Always show the self-host troubleshooting hint.
+const isCloudDeployment = (): boolean => false;
 
 /** Translated text with a literal fallback, for the window before the i18n chunk is loaded. */
 const t = (key: string, fallback: string): string => {

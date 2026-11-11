@@ -32,7 +32,7 @@ export class ExportTooLargeError extends Error {
 
 function buildFilename({ exportedAt }: { exportedAt: Date }): string {
   const datePart = exportedAt.toISOString().slice(0, 10);
-  return `moneymatter-export-${datePart}.zip`;
+  return `kasana-export-${datePart}.zip`;
 }
 
 async function fetchUserHeader({ userId }: { userId: number }): Promise<{

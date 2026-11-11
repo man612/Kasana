@@ -68,7 +68,7 @@ const SESSION_COOKIE_CACHE_MAX_AGE = 5 * 60;
 
 const OAUTH_BASE_URL = process.env.BETTER_AUTH_URL || 'https://localhost:8081';
 const OAUTH_MCP_URL = process.env.MCP_BASE_URL || OAUTH_BASE_URL;
-// MCP clients send the resource URL (e.g. https://mcp.moneymatter.app/mcp) as the token audience.
+// MCP clients send their deployment's resource URL (for example, https://finance.example.com/mcp) as the token audience.
 export const OAUTH_RESOURCE_IDENTIFIERS = [...new Set([OAUTH_BASE_URL, OAUTH_MCP_URL, `${OAUTH_MCP_URL}/mcp`])];
 const DEFAULT_SESSION_CACHE_VERSION = '1';
 const sessionCacheVersionKey = ({ userId }: { userId: string }) => `auth:session-cache-version:${userId}`;
@@ -107,9 +107,7 @@ export const auth = betterAuth({
       .map((o) => o.trim())
       .filter(Boolean),
     ...DEV_TRUSTED_ORIGINS,
-    // Native iOS app: callback scheme, and the `expo-origin` value its cookie-bearing requests must send.
-    // Kept out of ALLOWED_ORIGINS, which also feeds browser CORS.
-    'moneymatter://',
+    // Do not trust the original project's native callback scheme on independent Kasana instances.
     // Apple posts the OAuth callback (response_mode=form_post) from its own origin.
     ...(appleClientSecret ? ['https://appleid.apple.com'] : []),
   ],
@@ -302,7 +300,7 @@ export const auth = betterAuth({
                 pkce: true,
                 requireEmailVerification: isEmailEnabled,
                 requireIdTokenVerification: true,
-                // Off by default: sign-out ends only the MoneyMatter session and keeps the IdP session.
+                // Off by default: sign-out ends only the Kasana session and keeps the IdP session.
                 disableProviderLogout: !oidcConfig.providerLogout,
                 // better-auth passes the raw claim through and checks truthiness, so "false" would pass.
                 mapProfileToUser: (profile) => ({
@@ -351,7 +349,7 @@ export const auth = betterAuth({
     }),
     passkey({
       rpID: process.env.AUTH_RP_ID || 'localhost',
-      rpName: process.env.AUTH_RP_NAME || 'MoneyMatter',
+      rpName: process.env.AUTH_RP_NAME || 'Kasana',
       origin: process.env.AUTH_ORIGIN || 'https://localhost:8100',
       schema: {
         passkey: {
