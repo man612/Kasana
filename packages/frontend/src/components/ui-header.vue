@@ -104,7 +104,9 @@
             :aria-pressed="isSettingsRoute"
             @click="toggleSettings"
           >
-            <SettingsIcon class="size-4" />
+            <SettingsIcon
+              :class="['size-4 origin-center transition-transform duration-300 ease-out motion-reduce:transition-none', isSettingsRoute && 'rotate-90']"
+            />
           </Button>
         </DesktopOnlyTooltip>
       </div>
