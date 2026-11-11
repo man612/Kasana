@@ -31,7 +31,7 @@ const files = [
   'packages/frontend/public/.well-known/security.txt',
 ];
 
-const forbiddenRuntime = /MoneyMatter|moneymatter\\.app|moneymatter:\/\/|letehaha|Dmytro|donatr\\.ee\/letehaha/gi;
+const forbiddenRuntime = /MoneyMatter|moneymatter\.app|moneymatter:\/\/|letehaha|Dmytro|donatr\.ee\/letehaha/gi;
 const forbiddenPrivateFeedback = /trackAnalyticsEvent|user_feedback_submitted|posthog/gi;
 const report = (file, text, regex) => {
   for (const match of text.matchAll(regex)) {
