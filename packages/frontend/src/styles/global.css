@@ -246,7 +246,8 @@
   Prevent document-level scrolling. All scrolling should happen inside ScrollArea components.
   This fixes the "double scroll" issue where html/body can scroll independently.
 */
-/* KASANA DESIGN TOKENS: adjust overall scale and colors without changing components. */
+/* Keep the 80% rem-based interface density, but never zoom the HTML root.
+   Root zoom shrank 100dvh panels, clipped scroll containers and offset portals. */
 :root {
   --kasana-ui-scale: 0.8;
   --kasana-brand-light: rgb(27, 91, 74);
@@ -255,35 +256,9 @@
   --kasana-brand-text-dark: rgb(127, 222, 179);
 }
 @layer base {
-  html { zoom: var(--kasana-ui-scale); }
+  html { font-size: calc(100% * var(--kasana-ui-scale)); }
 }
 
-/*
-  When the root element uses zoom: .8, viewport-length utilities such as h-dvh
-  and w-screen still measure the unzoomed viewport before being scaled.
-  Without compensation, a "full-screen" dashboard renders only 80% tall,
-  while overflow:hidden on html/body hides the remaining area.
-  Keep the 80% visual density but let viewport-sized surfaces fill the actual
-  browser window on desktop and mobile. These rules track the same scale token,
-  so changing it later does not require replacing 1.25 throughout the app.
-*/
-@layer utilities {
-  .h-dvh { height: calc(100dvh / var(--kasana-ui-scale)); }
-  .min-h-dvh { min-height: calc(100dvh / var(--kasana-ui-scale)); }
-  .max-h-dvh { max-height: calc(100dvh / var(--kasana-ui-scale)); }
-
-  .h-screen { height: calc(100vh / var(--kasana-ui-scale)); }
-  .min-h-screen { min-height: calc(100vh / var(--kasana-ui-scale)); }
-  .max-h-screen { max-height: calc(100vh / var(--kasana-ui-scale)); }
-
-  .w-dvw { width: calc(100dvw / var(--kasana-ui-scale)); }
-  .min-w-dvw { min-width: calc(100dvw / var(--kasana-ui-scale)); }
-  .max-w-dvw { max-width: calc(100dvw / var(--kasana-ui-scale)); }
-
-  .w-screen { width: calc(100vw / var(--kasana-ui-scale)); }
-  .min-w-screen { min-width: calc(100vw / var(--kasana-ui-scale)); }
-  .max-w-screen { max-width: calc(100vw / var(--kasana-ui-scale)); }
-}
 /* App-branded native scrollbars. Reka scroll areas have their own thumb below. */
 * {
   scrollbar-width: thin;

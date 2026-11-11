@@ -13,7 +13,7 @@ import { buildTestCredentials, signUpAndVerify } from '../../helpers/test-setup'
 test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('displays IDR spending on mobile, supports 80% zoom and account deep-link return', async ({
+  test('displays IDR spending on mobile, fits the viewport at 80% UI density and supports account deep-link return', async ({
     page,
     playwright,
   }) => {
@@ -64,22 +64,24 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         const back = deepLink.getByRole('button', { name: /Kembali|Back/i });
         await expect(back).toBeVisible();
 
-        // Root CSS zoom changes scrollWidth's coordinate space: at 80%,
-        // a perfectly fitting 390px page reports ~488px scrollWidth.
-        // Normalize to rendered pixels before checking horizontal overflow.
-        const measureHorizontalOverflow = () =>
-          deepLink.evaluate(() => {
-            const rootZoom = Number.parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
-            const scrollWidth = Math.max(document.body.scrollWidth, document.documentElement.scrollWidth);
-            return scrollWidth * rootZoom - window.innerWidth;
-          });
-
-        expect(await measureHorizontalOverflow(), 'Account detail must fit the 390px viewport at 100%').toBeLessThanOrEqual(2);
-
-        await deepLink.evaluate(() => {
-          document.documentElement.style.zoom = '0.8';
+        // 80% density uses rem typography instead of root CSS zoom.
+        // Unlike CSS zoom, viewport dimensions and teleported overlay anchors
+        // must remain in one coordinate space at the default density.
+        const viewportGeometry = await deepLink.evaluate(() => {
+          const shell = document.querySelector<HTMLElement>('.h-dvh');
+          const shellRect = shell?.getBoundingClientRect();
+          return {
+            rootZoom: getComputedStyle(document.documentElement).zoom,
+            overflow: Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) - innerWidth,
+            shellRight: shellRect?.right ?? -1,
+            shellBottom: shellRect?.bottom ?? -1,
+          };
         });
-        expect(await measureHorizontalOverflow(), 'Account detail must fit the 390px viewport at 80%').toBeLessThanOrEqual(2);
+        expect(Number(viewportGeometry.rootZoom)).toBe(1);
+        expect(viewportGeometry.overflow, 'Account page must not overflow horizontally').toBeLessThanOrEqual(2);
+        expect(viewportGeometry.shellRight, 'Dashboard shell must fill viewport width').toBeGreaterThanOrEqual(389);
+        expect(viewportGeometry.shellBottom, 'Dashboard shell must fill viewport height').toBeGreaterThanOrEqual(843);
+
         await expect(
           deepLink.getByRole('button', { name: /Buka menu navigasi|Open navigation menu/i }),
         ).toBeVisible();

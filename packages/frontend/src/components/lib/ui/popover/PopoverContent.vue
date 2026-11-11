@@ -23,7 +23,7 @@ const props = withDefaults(
     }
   >(),
   {
-    sideOffset: 4,
+    sideOffset: 6,
     class: '',
   },
 );

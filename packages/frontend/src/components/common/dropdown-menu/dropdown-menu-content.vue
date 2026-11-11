@@ -9,7 +9,8 @@ import {
 } from 'reka-ui';
 
 const props = withDefaults(defineProps<DropdownMenuContentProps>(), {
-  sideOffset: 4,
+  sideOffset: 6,
+  align: 'start',
 });
 const emits = defineEmits<DropdownMenuContentEmits>();
 
@@ -25,6 +26,7 @@ const forwarded = useForwardPropsEmits(props, emits);
           $attrs.class ?? '',
         )
       "
+      :collision-padding="12"
       v-bind="forwarded"
     >
       <slot />
