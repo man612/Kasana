@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/lib/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { useOnboardingStore } from '@/stores/onboarding';
+import { useOnboardingStore, type QuickStartPosition } from '@/stores/onboarding';
+
+import { resolveQuickStartDrop } from './quick-start-drop';
 import { RocketIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
@@ -64,6 +66,7 @@ let originX = 0;
 let originY = 0;
 let grabOffsetX = 0;
 let grabOffsetY = 0;
+let positionBeforeDrag: QuickStartPosition | null = null;
 
 function clearLongPressTimer() {
   if (longPressTimer) clearTimeout(longPressTimer);
@@ -80,6 +83,7 @@ function onPointerDown(event: PointerEvent) {
   originY = event.clientY;
   grabOffsetX = event.clientX - rect.left;
   grabOffsetY = event.clientY - rect.top;
+  positionBeforeDrag = triggerPosition.value ? { ...triggerPosition.value } : null;
   dragging.value = false;
   suppressClick = false;
   // Capture keeps pointerup/cancel reachable even if the finger leaves the icon.
@@ -108,19 +112,35 @@ function onPointerMove(event: PointerEvent) {
   }, false);
 }
 
-function finishPointer(event: PointerEvent) {
+function finishPointer(event: PointerEvent, canceled = false) {
   if (activePointer !== event.pointerId) return;
-  if (dragging.value) {
+  const result = resolveQuickStartDrop({
+    canceled,
+    dragging: dragging.value,
+    previous: positionBeforeDrag,
+    current: onboardingStore.triggerPosition,
+  });
+  if (result.kind === 'persist') {
     suppressClick = true;
-    // Save only the final drop location, not every intermediate move.
-    if (onboardingStore.triggerPosition) onboardingStore.setTriggerPosition(onboardingStore.triggerPosition);
+    onboardingStore.setTriggerPosition(result.position);
+  } else if (result.kind === 'restore') {
+    // Android scrolling, focus changes, or OS interruption may issue pointercancel.
+    // Discard the unfinished drag rather than silently saving a half-moved button.
+    if (result.position) onboardingStore.setTriggerPosition(result.position);
+    else onboardingStore.resetTriggerPosition();
   }
+  if (canceled) suppressClick = false; // A cancelled gesture must not swallow the next tap.
   clearLongPressTimer();
   dragging.value = false;
   activePointer = null;
+  positionBeforeDrag = null;
   if (buttonRef.value?.hasPointerCapture?.(event.pointerId)) {
     buttonRef.value.releasePointerCapture(event.pointerId);
   }
+}
+
+function cancelPointer(event: PointerEvent) {
+  finishPointer(event, true);
 }
 
 function handleClick() {
@@ -209,7 +229,7 @@ const strokeDasharray = (progress: number) => {
           @pointerdown="onPointerDown"
           @pointermove="onPointerMove"
           @pointerup="finishPointer"
-          @pointercancel="finishPointer"
+          @pointercancel="cancelPointer"
           @keydown="onKeydown"
         >
           <div class="relative size-12">
