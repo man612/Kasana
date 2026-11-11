@@ -41,9 +41,16 @@ Backend unit tests require the correct test environment and may need `NODE_OPTIO
 
 ### Motion and appearance checks
 
+See [Kasana Motion System](KASANA-MOTION-SYSTEM.md) for the implementation map, ownership boundaries and motion/performance policy.
+
+- Verify auth/login-to-dashboard shell fade, dashboard route changes, and nested Settings/Analytics/Planned/Payees/Data Management content transitions. Parent navigators should remain mounted when child tabs change.
+- Verify active Reka tab content animates in without delaying focus or changing form inputs; validate the underline/pill indicator independently.
+- Create, rename, filter and delete tags/trackers. Lists of up to 40 keyed items use Vue TransitionGroup FLIP; larger groups must stay responsive without 40+ simultaneous layout animations. Never animate the virtualized transaction list.
+- Change onboarding task completion: its check/circle and category status icons should cross-fade and scale briefly. Verify dragging Quick Start does not acquire unwanted transform transitions.
+- Trigger and clear a form validation message. Error text should enter/exit briefly without losing the screen reader announcement or keyboard focus.
 - In Settings → Appearance, purple must be selected by default. Green/blue choices immediately update brand buttons and focus rings, persist after refresh, and do not change the independent light/dark theme.
 - Open/close the sidebar settings popover: its gear rotates into the open state and returns when closed. Test keyboard activation as well as touch.
-- Verify existing Reka select/popover/dialog and Vaul drawer animations, dashboard route transitions, hover/focus/pressed states, and sliding panels. No blanket `transition: all` or new heavy animation runtime was added.
+- Verify existing Reka select/popover/dialog and Vaul drawer animations, including scrollable dialog content, hover/focus/pressed states and sliding panels. The motion system extends built-in Vue transitions without a new heavy runtime or blanket `transition: all`.
 - Turn on OS **Reduce motion**. Decorative movement and sliding should stop, while focus visibility, accessibility and navigation remain functional.
 - Browser zoom levels 80%, 100% and 125% should be checked separately from the app's built-in 80% density. Browser-level zoom on a physical device is not reproduced by injecting `html.style.zoom` into a test.
 

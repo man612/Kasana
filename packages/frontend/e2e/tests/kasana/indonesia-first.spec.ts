@@ -132,6 +132,44 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         expect(dropdownBox.x + dropdownBox.width).toBeLessThanOrEqual(392);
       }
       await page.keyboard.press('Escape');
+
+      // Real Chromium style checks: motion runs normally but OS preference
+      // suppresses decorative movement. Do not test just class names.
+      const readRouteMotionSeconds = () =>
+        page.evaluate(() => {
+          const probe = document.createElement('div');
+          probe.className = 'kasana-section-enter-active';
+          document.body.appendChild(probe);
+          const durations = getComputedStyle(probe)
+            .transitionDuration.split(',')
+            .map((value) => {
+              const trimmed = value.trim();
+              const number = Number.parseFloat(trimmed);
+              return trimmed.endsWith('ms') ? number / 1000 : number;
+            });
+          probe.remove();
+          return Math.max(...durations);
+        });
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+      expect(await readRouteMotionSeconds()).toBeGreaterThan(0.1);
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      expect(await readRouteMotionSeconds()).toBeLessThan(0.005);
+      await page.emulateMedia({ reducedMotion: 'no-preference' });
+
+      // On desktop, navigating between settings sections must keep the parent
+      // navigator mounted. The former dashboard route.path key re-created it.
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await page.goto('/settings/appearance');
+      const settingsNavigation = page.locator('nav').filter({
+        has: page.locator('a[href="/settings/general"]'),
+      }).first();
+      await expect(settingsNavigation).toBeVisible();
+      await settingsNavigation.evaluate((node) => {
+        node.dataset.kasanaNavPersist = 'true';
+      });
+      await settingsNavigation.locator('a[href="/settings/general"]').click();
+      await expect(page).toHaveURL(/\/settings\/general(?:\?.*)?$/);
+      await expect(page.locator('nav[data-kasana-nav-persist="true"]')).toBeVisible();
     } finally {
       await api.dispose();
     }
