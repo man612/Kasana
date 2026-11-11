@@ -111,12 +111,16 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await page.goto('/settings/general');
       const trigger = page.getByRole('combobox').first();
       await expect(trigger).toBeVisible();
+      // Capture the trigger geometry before opening the popup. Reka UI's
+      // modal focus scope may temporarily hide outside controls from the
+      // accessibility tree while the listbox is open, although the trigger
+      // remains in the DOM and the popup is correctly anchored to it.
+      const triggerBox = await trigger.boundingBox();
+      expect(triggerBox).not.toBeNull();
       await trigger.click();
       const dropdown = page.getByRole('listbox').first();
       await expect(dropdown).toBeVisible();
-      const triggerBox = await trigger.boundingBox();
       const dropdownBox = await dropdown.boundingBox();
-      expect(triggerBox).not.toBeNull();
       expect(dropdownBox).not.toBeNull();
       if (triggerBox && dropdownBox) {
         const verticalGap = Math.min(
