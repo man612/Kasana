@@ -94,6 +94,8 @@ Interpolated into the frontend container's `environment:` block. Change and
 is not derivable from the DSN by the entrypoint, so a Sentry deployment that
 leaves this unset gets a `connect-src` that blocks every error report.
 
+By default, the private Kasana Compose overlay leaves `MCP_BASE_URL` blank and does not advertise an MCP connection. Set this variable only after deploying and testing OAuth/MCP at your intended origin.
+
 `MCP_BASE_URL` is the URL the app advertises to external MCP clients (Claude
 Desktop, ChatGPT). In same-origin mode set it to the origin you reach the app on
 (`https://money.example.com`): the frontend container proxies `/mcp` and the

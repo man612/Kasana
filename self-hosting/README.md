@@ -14,7 +14,7 @@ This guide runs **[Kasana](https://github.com/man612/Kasana)**, an independent M
 
 Use all three files together. The `pull_policy: never` guard for Kasana frontend/backend prevents automatic registry pulls; `up --build` explicitly builds both from source.
 
-For bundled HTTPS via Traefik, append `-f docker-compose.traefik.yml` after these three files, and set both `LETSENCRYPT_EMAIL` and `SELFHOST_FRONTEND_DOMAIN`. The Traefik proxy uses the historical Docker network `moneymatter-private-net`; do not rename that network on an existing installation without a migration.
+For bundled HTTPS via Traefik, append `-f docker-compose.traefik.yml` after these three files, and set both `LETSENCRYPT_EMAIL` and `SELFHOST_FRONTEND_DOMAIN`. Leave `MCP_BASE_URL` unset unless you intend to publish an MCP/OAuth endpoint; configuring just the application's login URL must not advertise an untested MCP service. The Traefik proxy uses the historical Docker network `moneymatter-private-net`; do not rename that network on an existing installation without a migration.
 
 ## Linux / VPS quickstart
 

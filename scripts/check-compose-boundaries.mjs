@@ -15,11 +15,19 @@ const build = 'self-hosting/docker-compose.build.yml';
 const kasana = 'self-hosting/docker-compose.private.yml';
 const tls = 'self-hosting/docker-compose.traefik.yml';
 
+// Dummy values are used for parsing only. No containers or real credentials
+// are involved. Compose requires POSTGRES_PASSWORD even for 'config'.
+const simulatedEnvironment = {
+  APPLICATION_DB_USERNAME: 'kasana_ci',
+  APPLICATION_DB_PASSWORD: 'CI-ONLY-DO-NOT-USE-IN-DEPLOYMENT',
+  APPLICATION_DB_DATABASE: 'kasana_ci',
+};
+
 function config(files, overrides = {}) {
   const args = ['compose', ...files.flatMap((file) => ['-f', file]), 'config', '--format', 'json'];
   const result = spawnSync('docker', args, {
     cwd: root,
-    env: { ...process.env, ...overrides },
+    env: { ...process.env, ...simulatedEnvironment, ...overrides },
     encoding: 'utf8',
     maxBuffer: 16 * 1024 * 1024,
   });
@@ -43,6 +51,7 @@ assert.equal(sourceModel.services.backend.pull_policy, 'never');
 assert.equal(sourceModel.services.frontend.pull_policy, 'never');
 assert.ok(sourceModel.services.backend.build?.context);
 assert.ok(sourceModel.services.frontend.build?.context);
+assert.equal(sourceModel.services.frontend.environment.MCP_BASE_URL, '', 'MCP must be opt-in');
 assert.equal(sourceModel.networks['budget-tracker'].name, 'moneymatter-private-net');
 
 const tlsModel = config([base, build, kasana, tls], {
@@ -63,7 +72,7 @@ const noDomain = spawnSync('docker', [
   'compose', '-f', base, '-f', build, '-f', kasana, '-f', tls, 'config', '--quiet',
 ], {
   cwd: root,
-  env: { ...process.env, LETSENCRYPT_EMAIL: 'kasana-test@example.invalid', SELFHOST_FRONTEND_DOMAIN: '' },
+  env: { ...process.env, ...simulatedEnvironment, LETSENCRYPT_EMAIL: 'kasana-test@example.invalid', SELFHOST_FRONTEND_DOMAIN: '' },
   encoding: 'utf8',
 });
 assert.notEqual(noDomain.status, 0, 'Traefik must reject an empty domain');
