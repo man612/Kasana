@@ -18,7 +18,7 @@ npm run test:unit -w packages/backend -- --runInBand
 
 Backend unit tests require the correct test environment and may need `NODE_OPTIONS=--max-old-space-size=4096`. Run backend e2e tests in the project's Docker test environment, **never** against real credentials or production financial data. If a required step fails, **do not merge or deploy**.
 
-**Updated CI finding, November 11, 2026:** GitHub Actions initially failed before assigning a runner, but later began running actual checks after the repository became Public. The current work is to fix **real lint and test failures**; earlier step-less failures are not evidence about code correctness. Check [Issue #11](https://github.com/man612/Kasana/issues/11) and the current PR run rather than relying on historic results.
+**Verified CI evidence — November 11, 2026:** [run #42878060359](https://github.com/man612/Kasana/actions/runs/42878060359) on commit `fe10505c` passed frontend build/lint/tests/knip, backend unit/typecheck/lint/knip, all four backend e2e shards, and both Docker image builds. Backend unit tests: 3,821 passed and 15 skipped. Later commits addressing public identity, privacy, and release safeguards must have **their own** successful CI run before merge. A green CI run does not prove mobile UI, real OAuth, data recovery, or VPS security.
 
 ## 2. Functional browser QA using synthetic data
 
@@ -30,7 +30,7 @@ Backend unit tests require the correct test environment and may need `NODE_OPTIO
 | Monetary formatting | Enter `1.000.000,50` and verify the API receives numeric `1000000.5`. Enter `-20.000,50` for an opening balance and preserve its negative sign. Test pasting, mid-string deletion, caret position, and blur formatting. |
 | Account records | Start with Rp1,000,000 and record an Rp125,000 expense. Expected remaining balance is Rp875,000 with no other transactions. Verify transactions, settings, transfers, and CSV import remain accessible. |
 | Bank connections | Header sync controls and irrelevant international bank integration promotions should be absent in the Indonesia-first manual-account flow. Existing bank-linked accounts must remain viewable without losing their transactions or metadata. |
-| Quick Start gesture | Single tap opens the panel. Long press for approximately 420 ms, then drag to relocate. The position survives refresh; Reset is disabled at the default position, enabled after moving, and restores the original location. |
+| Quick Start gesture | Single tap opens the panel. Long press for approximately 420 ms, then drag to relocate. The position survives refresh; Reset is disabled at the default position, enabled after moving, and restores the original location. Simulate OS `pointercancel`: the unfinished move must be rolled back and the next tap must work. Use single-tap corner presets without requiring dragging. |
 | Hide Quick Start | Test hiding for 1 hour, 24 hours, and 7 days, and reopening through Settings → General. Refresh or reopen the tab before and after expiry. |
 | Navigation | Open account and vehicle details from their lists; on deep links, Back should return to a sensible list. The mobile hamburger remains available. Also test loan, portfolio, goals, budgets, trackers, recurring payments, investments, and ventures. |
 | Responsive layouts | Test widths of 360 px, 390 px, tablet, and 1280 px desktop with Kasana's 80% scale. Rotate the device and open the virtual keyboard. Check for horizontal overflow, obscured actions, clipped popovers, and off-screen floating controls. |
@@ -38,6 +38,9 @@ Backend unit tests require the correct test environment and may need `NODE_OPTIO
 | Loans | Verify principal, outstanding balance, interest, term, installments, and projections. **Do not** assume declining-balance amortization models flat interest, deducted origination fees, or provider-specific BNPL schedules. |
 
 ## 3. Infrastructure and data protection
+
+- Verify [the public-repository security readiness record](PUBLIC-REPOSITORY-READINESS-ID.md). GitHub Secret Scanning, Push Protection, Dependabot alerts/updates, and private vulnerability reporting were enabled November 11, 2026; check subsequent alerts and old history separately.
+- Check the public-identity guard with `node scripts/check-public-identity.mjs`, including locale strings and outbound URLs, to prevent reintroducing inherited hosted services or original-developer support details.
 
 - Back up **both** the database and attachment volumes, along with securely stored application secrets. Perform a **restore test** in an isolated environment.
 - On Windows, run `./scripts/run-local-private.ps1` followed by `./scripts/verify-local-private.ps1` in PowerShell, then inspect all container health statuses.

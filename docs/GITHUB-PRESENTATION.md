@@ -50,7 +50,7 @@ The main README uses `docs/brand/logo.svg`, the existing Kasana brand asset.
 
 If a social preview is added, GitHub recommends a **1280 × 640** image in PNG, JPEG, or GIF format, **under 1 MB**. Upload through repository **Settings → Social preview**. Use a solid, readable background, the Kasana mark, and one short descriptive line. Avoid stale screenshots and unverified claims.
 
-The connected GitHub tools currently cannot change the About description, topics, homepage, or social-preview image. Those settings must be applied manually in the GitHub web interface.
+**Applied November 11, 2026:** the GitHub About description and all nine recommended topics were saved and verified on `man612/Kasana` using the connected maintainer account. The homepage remains empty. A custom social preview has not been uploaded or verified.
 
 ## Localization boundary
 
