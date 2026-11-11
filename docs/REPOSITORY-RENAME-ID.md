@@ -10,6 +10,7 @@ As of **November 11, 2026**, the repository is [`man612/Kasana`](https://github.
 - Docker instructions build **Kasana source** using the base, build, and independent-instance Compose files. Running the base Compose file alone still pulls upstream MoneyMatter images.
 - Inherited upstream CLA enforcement and deployment/backup paths are not enabled for Kasana.
 - The original `server.json` registry was removed because it advertised an unrelated live MoneyMatter MCP service. A Kasana registry descriptor must only be published when a real Kasana-owned endpoint is available.
+- Both production images now declare Kasana's own `org.opencontainers.image.source` label. The inherited marketing site is excluded from the frontend production image. An unconfigured MCP endpoint is not advertised.
 - [LICENSE](../LICENSE), [LICENSING.md](../LICENSING.md), original copyrights, and historical [MoneyMatter](https://github.com/letehaha/moneymatter) attribution must be retained.
 
 ## GitHub About: verified public metadata
