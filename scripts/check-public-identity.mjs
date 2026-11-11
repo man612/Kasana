@@ -69,6 +69,19 @@ for (const localeDir of locales) walk(localeDir);
 if (fs.existsSync(path.join(ROOT, 'packages/frontend/public/skills/connect-moneymatter/SKILL.md'))) {
   failures.push('The public agent skill must use the Kasana path, not the inherited one');
 }
+// An unreferenced legacy social image is still publicly downloadable after a
+// frontend build. Keep it out of the Kasana runtime asset tree.
+if (fs.existsSync(path.join(ROOT, 'packages/frontend/public/img/og-image.jpg'))) {
+  failures.push('The inherited promotional image must not ship with Kasana');
+}
+const appHtml = read('packages/frontend/index.html');
+const manifest = JSON.parse(read('packages/frontend/public/site.webmanifest'));
+if (!appHtml.includes(`name="theme-color" content="${manifest.theme_color}"`)) {
+  failures.push('The frontend theme color must match Kasana PWA branding');
+}
+if (!appHtml.includes('property="og:image" content="/web-app-manifest-512x512.png"')) {
+  failures.push('Kasana social previews must use the current branded artwork');
+}
 // These build boundaries are security-critical on public forks. Shipping the
 // upstream marketing site or embedding Sentry credentials as ARG values can
 // expose misleading content or build provenance despite green app tests.
