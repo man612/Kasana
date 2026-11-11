@@ -64,13 +64,22 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         const back = deepLink.getByRole('button', { name: /Kembali|Back/i });
         await expect(back).toBeVisible();
 
+        // Root CSS zoom changes scrollWidth's coordinate space: at 80%,
+        // a perfectly fitting 390px page reports ~488px scrollWidth.
+        // Normalize to rendered pixels before checking horizontal overflow.
+        const measureHorizontalOverflow = () =>
+          deepLink.evaluate(() => {
+            const rootZoom = Number.parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+            const scrollWidth = Math.max(document.body.scrollWidth, document.documentElement.scrollWidth);
+            return scrollWidth * rootZoom - window.innerWidth;
+          });
+
+        expect(await measureHorizontalOverflow(), 'Account detail must fit the 390px viewport at 100%').toBeLessThanOrEqual(2);
+
         await deepLink.evaluate(() => {
           document.documentElement.style.zoom = '0.8';
         });
-        const horizontalOverflow = await deepLink.evaluate(
-          () => Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) - window.innerWidth,
-        );
-        expect(horizontalOverflow).toBeLessThanOrEqual(2);
+        expect(await measureHorizontalOverflow(), 'Account detail must fit the 390px viewport at 80%').toBeLessThanOrEqual(2);
         await expect(
           deepLink.getByRole('button', { name: /Buka menu navigasi|Open navigation menu/i }),
         ).toBeVisible();
