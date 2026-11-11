@@ -115,7 +115,11 @@
         {{ $t('settings.backToSettings') }}
       </BackLink>
 
-      <router-view />
+      <router-view v-slot="{ Component, route }">
+        <Transition name="kasana-section" mode="out-in">
+          <component :is="Component" :key="route.matched[2]?.path ?? route.path" />
+        </Transition>
+      </router-view>
     </div>
   </div>
 </template>
