@@ -55,6 +55,7 @@ Changing the Compose project name without a migration creates a different resour
 
 - Do not run `docker compose down -v` against a data-bearing instance.
 - Back up PostgreSQL, attachments, and secrets, then verify a restore in an isolated environment.
+- CI executes [a disposable PostgreSQL and attachments backup/restore smoke test](tests/backup-restore-synthetic.sh) using **synthetic data**. This verifies basic `pg_dump`/gzip/`psql` and `tar` mechanics but **does not back up or restore your actual VPS**. Before production, separately test backup integrity, operator secret recovery, restored login, migrations, and every configured attachment storage backend.
 - Audit login, sessions, OAuth redirects, and HTTPS before exposing the app publicly.
 - Kasana has **no verified production auto-deployment**; inherited upstream deploy and backup workflows have been guarded against running here.
 

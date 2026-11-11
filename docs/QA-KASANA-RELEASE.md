@@ -43,6 +43,7 @@ Backend unit tests require the correct test environment and may need `NODE_OPTIO
 - Check the public-identity guard with `node scripts/check-public-identity.mjs`, including locale strings and outbound URLs, to prevent reintroducing inherited hosted services or original-developer support details.
 
 - Back up **both** the database and attachment volumes, along with securely stored application secrets. Perform a **restore test** in an isolated environment.
+- CI runs a **synthetic** two-database backup/restore + attachment-byte comparison using disposable PostgreSQL containers. A green synthetic test is not proof that a real VPS backup is complete, encrypted, restorable, or compatible with its application version.
 - On Windows, run `./scripts/run-local-private.ps1` followed by `./scripts/verify-local-private.ps1` in PowerShell, then inspect all container health statuses.
 - For VPS deployment, follow [Windows/VPS setup notes](LOCAL-VPS-ID.md) and verify `docker compose ... config --quiet` before `up -d --build`. Require HTTPS, correct origin/cookie settings, proxy headers or Cloudflare Tunnel configuration, and non-public database access.
 - Never run `docker compose down -v` on systems containing real data. Do not force-convert existing users' base currency.
