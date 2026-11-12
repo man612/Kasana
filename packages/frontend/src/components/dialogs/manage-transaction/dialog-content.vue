@@ -2007,7 +2007,7 @@ onUnmounted(() => {
               {{ $t('dialogs.loanPayment.overdrawWarning', { account: form.account?.name ?? '' }) }}
             </p>
 
-            <Transition name="lajur-form-panel" mode="out-in">
+            <Transition name="lajur-form-panel">
               <PaymentLegsField
                 v-if="isMultiAccount && !isTransferTx"
                 ref="paymentLegsFieldRef"

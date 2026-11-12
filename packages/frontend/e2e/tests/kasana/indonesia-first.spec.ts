@@ -259,8 +259,10 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       const multipleAccounts = txDialog.locator('[data-test="multi-account-toggle"]');
       await expect(multipleAccounts).toBeVisible();
       await multipleAccounts.click();
+      await expect(multipleAccounts).toHaveCount(1);
       await expect(multipleAccounts).toHaveAttribute('aria-pressed', 'true');
       await multipleAccounts.click();
+      await expect(multipleAccounts).toHaveCount(1);
       await expect(multipleAccounts).toHaveAttribute('aria-pressed', 'false');
 
       const saveTransaction = txDialog.getByRole('button', { name: /Buat transaksi|Create transaction/i });

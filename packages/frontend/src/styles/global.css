@@ -550,6 +550,10 @@
   opacity: 0;
   transform: translateY(-5px);
 }
+/* Leaving forms may coexist briefly with incoming forms. Ignore clicks on the fading copy. */
+.lajur-form-panel-leave-active {
+  pointer-events: none;
+}
 
 @layer base {
   html,
