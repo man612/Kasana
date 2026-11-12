@@ -75,7 +75,10 @@
                   <span class="font-semibold">{{
                     t('pages.integrations.instructionsDialog.step1.steps.appName')
                   }}</span>
-                  <ClickToCopy class="w-auto max-w-68.75 min-w-auto sm:max-w-125" value="Kasana self-hosted instance" />
+                  <ClickToCopy
+                    class="w-auto max-w-68.75 min-w-auto sm:max-w-125"
+                    :value="APP_BRAND.name + ' self-hosted instance'"
+                  />
                 </div>
                 <div class="flex flex-wrap gap-1">
                   <span class="font-semibold">{{
@@ -109,25 +112,33 @@
                   <span class="font-semibold">{{
                     t('pages.integrations.instructionsDialog.step1.steps.appDescription')
                   }}</span>
-                  <span class="text-muted-foreground text-xs">{{ t('pages.integrations.instructionsDialog.step1.steps.providedByOperator') }}</span>
+                  <span class="text-muted-foreground text-xs">{{
+                    t('pages.integrations.instructionsDialog.step1.steps.providedByOperator')
+                  }}</span>
                 </div>
                 <div class="flex flex-wrap gap-1">
                   <span class="font-semibold">{{
                     t('pages.integrations.instructionsDialog.step1.steps.emailProtection')
                   }}</span>
-                  <span class="text-muted-foreground text-xs">{{ t('pages.integrations.instructionsDialog.step1.steps.providedByOperator') }}</span>
+                  <span class="text-muted-foreground text-xs">{{
+                    t('pages.integrations.instructionsDialog.step1.steps.providedByOperator')
+                  }}</span>
                 </div>
                 <div class="flex flex-wrap gap-1">
                   <span class="font-semibold">{{
                     t('pages.integrations.instructionsDialog.step1.steps.privacyUrl')
                   }}</span>
-                  <span class="text-muted-foreground text-xs">{{ t('pages.integrations.instructionsDialog.step1.steps.providedByOperator') }}</span>
+                  <span class="text-muted-foreground text-xs">{{
+                    t('pages.integrations.instructionsDialog.step1.steps.providedByOperator')
+                  }}</span>
                 </div>
                 <div class="flex flex-wrap gap-1">
                   <span class="font-semibold">{{
                     t('pages.integrations.instructionsDialog.step1.steps.termsUrl')
                   }}</span>
-                  <span class="text-muted-foreground text-xs">{{ t('pages.integrations.instructionsDialog.step1.steps.providedByOperator') }}</span>
+                  <span class="text-muted-foreground text-xs">{{
+                    t('pages.integrations.instructionsDialog.step1.steps.providedByOperator')
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -275,6 +286,7 @@
 </template>
 
 <script lang="ts" setup>
+import { APP_BRAND } from '@/common/brand';
 import { type BankProvider, listProviders } from '@/api/bank-data-providers';
 import { config } from '@/common/config';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';

@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<ScrollAreaScrollbarProps>(), {
     v-bind="props"
     :class="
       cn(
-        'z-(--z-scrollbar) flex touch-none transition-colors select-none',
+        'z-(--z-scrollbar) flex touch-none bg-[var(--app-scrollbar-track)] transition-colors select-none',
         orientation === 'vertical' && 'h-full w-2.5 border-l border-l-transparent p-px',
         // flex-col so the thumb's flex-1 fills the cross axis, not the track.
         orientation === 'horizontal' && 'h-2.5 flex-col border-t border-t-transparent p-px',
@@ -20,6 +20,8 @@ const props = withDefaults(defineProps<ScrollAreaScrollbarProps>(), {
       )
     "
   >
-    <ScrollAreaThumb class="bg-primary/35 hover:bg-primary/60 relative flex-1 rounded-full transition-colors" />
+    <ScrollAreaThumb
+      class="relative flex-1 rounded-full bg-[var(--app-scrollbar-thumb)] transition-colors hover:bg-[var(--app-scrollbar-thumb-hover)]"
+    />
   </ScrollAreaScrollbar>
 </template>

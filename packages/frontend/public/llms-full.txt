@@ -1,6 +1,6 @@
-# Kasana
+# Lajur.
 
-Kasana is an open-source, self-hosted personal finance application with an Indonesia-first experience. It is independently maintained under the AGPL-3.0 license; see /legal.html for original project attribution.
+Lajur. is an open-source, self-hosted personal finance application with an Indonesia-first experience. It is independently maintained under the AGPL-3.0 license; see /legal.html for original project attribution.
 
 - Source code: https://github.com/man612/Kasana
 - Default local access after setup: http://localhost:8080

@@ -6,7 +6,7 @@
     }"
     class="relative w-full flex-1"
   >
-    <Popover.Popover v-model:open="isPopoverOpen">
+    <Dialog.Dialog v-model:open="isPopoverOpen">
       <FieldLabel :label="label" :only-template="Boolean($slots['label-right'])">
         <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
         <template v-if="$slots['label-after']" #label-after>
@@ -54,7 +54,7 @@
           <!-- Keep this overlay opaque: it covers the native picker icon Firefox
                draws inside datetime-local inputs, which no CSS pseudo-element hides.
                Disabled where Safari mobile's native picker covers it, so taps fall through. -->
-          <Popover.PopoverTrigger as-child>
+          <Dialog.DialogTrigger as-child>
             <Button
               class="border-input bg-muted text-muted-foreground hover:border-primary/50 hover:bg-muted hover:text-primary-text absolute top-0 right-0 flex h-10 w-12 items-center justify-center rounded-l-none rounded-r-md border md:h-9"
               variant="ghost"
@@ -65,14 +65,31 @@
             >
               <CalendarClockIcon class="size-5" />
             </Button>
-          </Popover.PopoverTrigger>
+          </Dialog.DialogTrigger>
         </div>
         <FieldError :error-message="errorMessage" />
-        <Popover.PopoverContent class="w-87.5 p-3" :side-offset="4" data-testid="transaction-date-popover">
-          <Calendar v-model="localValue" v-bind="calendarOptions" :mode="mode" is24hr type="single" />
-        </Popover.PopoverContent>
+        <Dialog.DialogContent
+          blur-overlay
+          class="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-105 gap-3 overflow-x-hidden overflow-y-auto p-4 sm:p-5"
+          data-testid="transaction-date-dialog"
+        >
+          <Dialog.DialogTitle class="pr-10 text-base font-semibold">
+            {{ i18n.global.t('common.dateSelector.dateTimeTitle') }}
+          </Dialog.DialogTitle>
+          <Dialog.DialogDescription class="text-muted-foreground text-xs leading-relaxed">
+            {{ i18n.global.t('common.dateSelector.dateTimeHint') }}
+          </Dialog.DialogDescription>
+          <div class="flex min-w-0 justify-center">
+            <Calendar v-model="localValue" v-bind="calendarOptions" :mode="mode" is24hr type="single" />
+          </div>
+          <div class="flex justify-end border-t pt-3">
+            <Button type="button" size="sm" @click="isPopoverOpen = false">
+              {{ i18n.global.t('common.actions.done') }}
+            </Button>
+          </div>
+        </Dialog.DialogContent>
       </FieldLabel>
-    </Popover.Popover>
+    </Dialog.Dialog>
   </div>
 </template>
 
@@ -81,7 +98,7 @@ import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Calendar } from '@/components/lib/ui/calendar';
-import * as Popover from '@/components/lib/ui/popover';
+import * as Dialog from '@/components/lib/ui/dialog';
 import { useSafariDetection } from '@/composable/detect-safari';
 import { i18n } from '@/i18n';
 import { cn } from '@/lib/utils';

@@ -354,6 +354,8 @@ const isSplitDialogOpen = ref(false);
 
 const hasSplits = computed(() => form.value.splits && form.value.splits.length > 0);
 
+// Animate changed form sections without remounting user-entered values.
+const transactionModeFieldsRef = ref<HTMLElement | null>(null);
 const isMultiAccount = computed(() => form.value.paymentLegs !== undefined);
 const isSavedMultiAccount = computed(() => hasPaymentParts({ transaction: transaction.value }));
 const hasLinkedPaymentLegs = computed(() => Boolean(form.value.paymentLegs?.some((leg) => leg.isLinked)));
@@ -535,6 +537,26 @@ const isMutable = computed(() => canMutateCurrentTx.value && !isReadOnly.value);
 const isFormFieldsDisabled = computed(() => isLoading.value || !isInitialRefundsDataLoaded.value || !isMutable.value);
 
 const currentTxType = computed(() => form.value.type);
+watch(
+  () => currentTxType.value,
+  async (next, previous) => {
+    if (next === previous) return;
+    await nextTick();
+    const container = transactionModeFieldsRef.value;
+    if (!container || typeof container.animate !== 'function') return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    container.getAnimations().forEach((animation) => animation.cancel());
+    container.animate(
+      [
+        { opacity: 0.5, transform: 'translateY(7px)' },
+        { opacity: 1, transform: 'translateY(0)' },
+      ],
+      { duration: 200, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+    );
+  },
+  { flush: 'post' },
+);
+
 const isTransferTx = computed(() => currentTxType.value === FORM_TYPES.transfer);
 
 const { data: userSettings } = useUserSettings();
@@ -1210,7 +1232,11 @@ const refundFieldRef = ref<InstanceType<typeof MarkAsRefundField> | null>(null);
 
 const moreOptionsRef = ref<HTMLElement | null>(null);
 
-const { shown: shownFields, chips: addFieldChips, hide: hideOptionalField } = useFieldReveal({
+const {
+  shown: shownFields,
+  chips: addFieldChips,
+  hide: hideOptionalField,
+} = useFieldReveal({
   form,
   hasPendingAttachments: () => pendingAttachments.value.length > 0,
   isMobileView,
@@ -1246,12 +1272,18 @@ const requestedOptionalName = computed(() =>
 );
 const isOptionalFilled = (field: MountableField): boolean => {
   switch (field) {
-    case 'tags': return !!form.value.tagIds?.length;
-    case 'attachments': return pendingAttachments.value.length > 0;
-    case 'externalUrl': return !!form.value.externalUrl?.trim();
-    case 'externalReference': return !!form.value.externalReference?.trim();
-    case 'location': return form.value.latitude != null || form.value.longitude != null;
-    case 'originalAmount': return form.value.originalAmount != null || !!form.value.originalCurrency;
+    case 'tags':
+      return !!form.value.tagIds?.length;
+    case 'attachments':
+      return pendingAttachments.value.length > 0;
+    case 'externalUrl':
+      return !!form.value.externalUrl?.trim();
+    case 'externalReference':
+      return !!form.value.externalReference?.trim();
+    case 'location':
+      return form.value.latitude != null || form.value.longitude != null;
+    case 'originalAmount':
+      return form.value.originalAmount != null || !!form.value.originalCurrency;
   }
 };
 const performOptionalRemoval = (field: MountableField) => {
@@ -1614,7 +1646,11 @@ onUnmounted(() => {
             :disabled="isFormFieldsDisabled"
           >
             <template #label-right>
-              <OptionalRemoveButton :label="t(optionalFieldNames.tags)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('tags')" />
+              <OptionalRemoveButton
+                :label="t(optionalFieldNames.tags)"
+                :disabled="isFormFieldsDisabled"
+                @remove="requestOptionalRemoval('tags')"
+              />
             </template>
           </TagSelectField>
         </FormRow>
@@ -1622,7 +1658,11 @@ onUnmounted(() => {
       <Transition name="kasana-feedback">
         <div v-if="isAttachmentsAvailable && shownFields.attachments" data-optional-field="attachments">
           <div class="-mb-1 flex justify-end">
-            <OptionalRemoveButton :label="t(optionalFieldNames.attachments)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('attachments')" />
+            <OptionalRemoveButton
+              :label="t(optionalFieldNames.attachments)"
+              :disabled="isFormFieldsDisabled"
+              @remove="requestOptionalRemoval('attachments')"
+            />
           </div>
           <AttachmentsSection
             v-model:pending="pendingAttachments"
@@ -1645,7 +1685,11 @@ onUnmounted(() => {
             non-label-wrapper
           >
             <template #label-right>
-              <OptionalRemoveButton :label="t(optionalFieldNames.externalUrl)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('externalUrl')" />
+              <OptionalRemoveButton
+                :label="t(optionalFieldNames.externalUrl)"
+                :disabled="isFormFieldsDisabled"
+                @remove="requestOptionalRemoval('externalUrl')"
+              />
             </template>
             <template v-if="externalUrlHref" #label-after>
               <DesktopOnlyTooltip :content="$t('common.transactions.record.externalLinkTooltip')">
@@ -1675,7 +1719,11 @@ onUnmounted(() => {
             non-label-wrapper
           >
             <template #label-right>
-              <OptionalRemoveButton :label="t(optionalFieldNames.externalReference)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('externalReference')" />
+              <OptionalRemoveButton
+                :label="t(optionalFieldNames.externalReference)"
+                :disabled="isFormFieldsDisabled"
+                @remove="requestOptionalRemoval('externalReference')"
+              />
             </template>
           </InputField>
         </FormRow>
@@ -1698,7 +1746,11 @@ onUnmounted(() => {
             </template>
             <template #label-right>
               <div class="flex items-center gap-1">
-                <OptionalRemoveButton :label="t(optionalFieldNames.location)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('location')" />
+                <OptionalRemoveButton
+                  :label="t(optionalFieldNames.location)"
+                  :disabled="isFormFieldsDisabled"
+                  @remove="requestOptionalRemoval('location')"
+                />
                 <Button
                   type="button"
                   variant="ghost-primary"
@@ -1791,7 +1843,11 @@ onUnmounted(() => {
             @apply-suggestion="applySuggestedOriginalAmount"
           >
             <template #label-right>
-              <OptionalRemoveButton :label="t(optionalFieldNames.originalAmount)" :disabled="isFormFieldsDisabled" @remove="requestOptionalRemoval('originalAmount')" />
+              <OptionalRemoveButton
+                :label="t(optionalFieldNames.originalAmount)"
+                :disabled="isFormFieldsDisabled"
+                @remove="requestOptionalRemoval('originalAmount')"
+              />
             </template>
           </AmountWithCurrencyField>
         </FormRow>
@@ -1910,7 +1966,7 @@ onUnmounted(() => {
             @change-tx-type="selectTransactionType"
           />
 
-          <div>
+          <div ref="transactionModeFieldsRef">
             <div :class="isMobileView && 'grid grid-cols-2 gap-x-3'">
               <form-row>
                 <input-field
@@ -1951,137 +2007,139 @@ onUnmounted(() => {
               {{ $t('dialogs.loanPayment.overdrawWarning', { account: form.account?.name ?? '' }) }}
             </p>
 
-            <PaymentLegsField
-              v-if="isMultiAccount && !isTransferTx"
-              ref="paymentLegsFieldRef"
-              v-model:account="form.account"
-              v-model:amount="form.amount"
-              :legs="form.paymentLegs ?? []"
-              :label="paymentLegsLabel"
-              :main-accounts="nonTransferSourceAccounts"
-              :leg-accounts="txTargetableSourceAccountsActiveFirst"
-              :currency-code="currencyCode"
-              :transaction-type="
-                currentTxType === FORM_TYPES.income ? TRANSACTION_TYPES.income : TRANSACTION_TYPES.expense
-              "
-              :time="form.time"
-              :main-transaction-id="transaction?.id"
-              :disabled="isFormFieldsDisabled"
-              :is-main-locked="!isEditableAsManual"
-              :hint="paymentLegsHint"
-              :main-amount-error="amountErrorMessage"
-              :show-leg-errors="showLegErrors"
-              @update:legs="setPaymentLegs"
-              @main-amount-blur="onAmountBlur"
-            >
-              <template #label-right>
-                <ReuseMultiAccountPill />
-              </template>
-            </PaymentLegsField>
+            <Transition name="lajur-form-panel" mode="out-in">
+              <PaymentLegsField
+                v-if="isMultiAccount && !isTransferTx"
+                ref="paymentLegsFieldRef"
+                v-model:account="form.account"
+                v-model:amount="form.amount"
+                :legs="form.paymentLegs ?? []"
+                :label="paymentLegsLabel"
+                :main-accounts="nonTransferSourceAccounts"
+                :leg-accounts="txTargetableSourceAccountsActiveFirst"
+                :currency-code="currencyCode"
+                :transaction-type="
+                  currentTxType === FORM_TYPES.income ? TRANSACTION_TYPES.income : TRANSACTION_TYPES.expense
+                "
+                :time="form.time"
+                :main-transaction-id="transaction?.id"
+                :disabled="isFormFieldsDisabled"
+                :is-main-locked="!isEditableAsManual"
+                :hint="paymentLegsHint"
+                :main-amount-error="amountErrorMessage"
+                :show-leg-errors="showLegErrors"
+                @update:legs="setPaymentLegs"
+                @main-amount-blur="onAmountBlur"
+              >
+                <template #label-right>
+                  <ReuseMultiAccountPill />
+                </template>
+              </PaymentLegsField>
 
-            <account-field
-              v-else
-              v-model:account="form.account"
-              v-model:to-account="form.toAccount"
-              v-model:to-portfolio="form.toPortfolio"
-              v-model:destination-type="transferDestinationType"
-              :disabled="isFormFieldsDisabled"
-              :is-transfer-transaction="isTransferTx"
-              :is-transaction-linking="!!linkedTransaction"
-              :transaction-type="transaction?.transactionType || TRANSACTION_TYPES.expense"
-              :accounts="isTransferTx ? txTargetableSourceAccountsActiveFirst : nonTransferSourceAccounts"
-              :from-account-disabled="fromAccountFieldDisabled"
-              :to-account-disabled="toAccountFieldDisabled"
-              :destination-type-disabled="isDestinationTypeLocked"
-              :filtered-accounts="transferDestinationAccounts"
-              :portfolios="portfolios ?? []"
-              :loan-accounts="loanDestinationAccounts"
-            >
-              <template v-if="isPlannedToggleVisible || isPlannedBadgeVisible" #account-field-right>
-                <PlannedToggle
-                  variant="addon"
-                  :model-value="Boolean(form.isPlanned)"
-                  :readonly="isPlannedBadgeVisible"
-                  :disabled="isFormFieldsDisabled"
-                  :tooltip-override="isPlannedBadgeVisible ? undefined : plannedTooltipOverride"
-                  @update:model-value="(value) => (form.isPlanned = value)"
-                />
-              </template>
-
-              <!-- The zero-accounts fallback renders an input-field, which has no field-right
-                   slot — the toggle stays in its label row (and toggling planned there is the
-                   path that unlocks connected accounts). -->
-              <template v-if="isPlannedToggleVisible || isPlannedBadgeVisible" #account-label-right>
-                <PlannedToggle
-                  :model-value="Boolean(form.isPlanned)"
-                  :readonly="isPlannedBadgeVisible"
-                  :disabled="isFormFieldsDisabled"
-                  :tooltip-override="isPlannedBadgeVisible ? undefined : plannedTooltipOverride"
-                  @update:model-value="(value) => (form.isPlanned = value)"
-                />
-              </template>
-
-              <template v-if="!isTransferTx" #account-label-pill>
-                <ReuseMultiAccountPill />
-              </template>
-
-              <template #account-hint>
-                <PlannedUnlockHint v-if="isFormCreation && form.isPlanned && hasConnectedAccountsToOffer">
-                  {{ $t('dialogs.manageTransaction.form.plannedAccountsUnlockedHint') }}
-                </PlannedUnlockHint>
-              </template>
-
-              <template #destination-bottom>
-                <div
-                  v-if="isTransferTx && form.toPortfolio && !isFormCreation && !linkedTransaction"
-                  class="flex items-center gap-2"
-                >
-                  <label class="flex cursor-pointer items-center gap-3">
-                    <Checkbox v-model="form.portfolioCashAlreadyReflected" :disabled="isFormFieldsDisabled" />
-                    <span class="text-sm leading-none font-medium">
-                      {{ $t('dialogs.manageTransaction.form.portfolioCashAlreadyReflectedLabel') }}
-                    </span>
-                  </label>
-                  <HintIcon :content="$t('dialogs.manageTransaction.form.portfolioCashAlreadyReflectedHint')" />
-                </div>
-
-                <template v-if="isTargetFieldVisible">
-                  <form-row>
-                    <FormattedAmountField
-                      ref="targetAmountFieldRef"
-                      v-model="form.targetAmount"
-                      :disabled="isFormFieldsDisabled || isTargetAmountFieldDisabled"
-                      :label="$t('dialogs.manageTransaction.form.targetAmountLabel')"
-                      :placeholder="$t('dialogs.manageTransaction.form.targetAmountPlaceholder')"
-                      :error-message="targetAmountErrorMessage"
-                      @blur="touchField('form.targetAmount')"
-                    >
-                      <template #iconTrailing>
-                        <CurrencyChip v-if="targetCurrency?.currency?.code" :code="targetCurrency.currency.code" />
-                      </template>
-                    </FormattedAmountField>
-                  </form-row>
+              <account-field
+                v-else
+                v-model:account="form.account"
+                v-model:to-account="form.toAccount"
+                v-model:to-portfolio="form.toPortfolio"
+                v-model:destination-type="transferDestinationType"
+                :disabled="isFormFieldsDisabled"
+                :is-transfer-transaction="isTransferTx"
+                :is-transaction-linking="!!linkedTransaction"
+                :transaction-type="transaction?.transactionType || TRANSACTION_TYPES.expense"
+                :accounts="isTransferTx ? txTargetableSourceAccountsActiveFirst : nonTransferSourceAccounts"
+                :from-account-disabled="fromAccountFieldDisabled"
+                :to-account-disabled="toAccountFieldDisabled"
+                :destination-type-disabled="isDestinationTypeLocked"
+                :filtered-accounts="transferDestinationAccounts"
+                :portfolios="portfolios ?? []"
+                :loan-accounts="loanDestinationAccounts"
+              >
+                <template v-if="isPlannedToggleVisible || isPlannedBadgeVisible" #account-field-right>
+                  <PlannedToggle
+                    variant="addon"
+                    :model-value="Boolean(form.isPlanned)"
+                    :readonly="isPlannedBadgeVisible"
+                    :disabled="isFormFieldsDisabled"
+                    :tooltip-override="isPlannedBadgeVisible ? undefined : plannedTooltipOverride"
+                    @update:model-value="(value) => (form.isPlanned = value)"
+                  />
                 </template>
 
-                <!-- Transfer linking on accounts shared *with* the caller isn't supported by
+                <!-- The zero-accounts fallback renders an input-field, which has no field-right
+                   slot — the toggle stays in its label row (and toggling planned there is the
+                   path that unlocks connected accounts). -->
+                <template v-if="isPlannedToggleVisible || isPlannedBadgeVisible" #account-label-right>
+                  <PlannedToggle
+                    :model-value="Boolean(form.isPlanned)"
+                    :readonly="isPlannedBadgeVisible"
+                    :disabled="isFormFieldsDisabled"
+                    :tooltip-override="isPlannedBadgeVisible ? undefined : plannedTooltipOverride"
+                    @update:model-value="(value) => (form.isPlanned = value)"
+                  />
+                </template>
+
+                <template v-if="!isTransferTx" #account-label-pill>
+                  <ReuseMultiAccountPill />
+                </template>
+
+                <template #account-hint>
+                  <PlannedUnlockHint v-if="isFormCreation && form.isPlanned && hasConnectedAccountsToOffer">
+                    {{ $t('dialogs.manageTransaction.form.plannedAccountsUnlockedHint') }}
+                  </PlannedUnlockHint>
+                </template>
+
+                <template #destination-bottom>
+                  <div
+                    v-if="isTransferTx && form.toPortfolio && !isFormCreation && !linkedTransaction"
+                    class="flex items-center gap-2"
+                  >
+                    <label class="flex cursor-pointer items-center gap-3">
+                      <Checkbox v-model="form.portfolioCashAlreadyReflected" :disabled="isFormFieldsDisabled" />
+                      <span class="text-sm leading-none font-medium">
+                        {{ $t('dialogs.manageTransaction.form.portfolioCashAlreadyReflectedLabel') }}
+                      </span>
+                    </label>
+                    <HintIcon :content="$t('dialogs.manageTransaction.form.portfolioCashAlreadyReflectedHint')" />
+                  </div>
+
+                  <template v-if="isTargetFieldVisible">
+                    <form-row>
+                      <FormattedAmountField
+                        ref="targetAmountFieldRef"
+                        v-model="form.targetAmount"
+                        :disabled="isFormFieldsDisabled || isTargetAmountFieldDisabled"
+                        :label="$t('dialogs.manageTransaction.form.targetAmountLabel')"
+                        :placeholder="$t('dialogs.manageTransaction.form.targetAmountPlaceholder')"
+                        :error-message="targetAmountErrorMessage"
+                        @blur="touchField('form.targetAmount')"
+                      >
+                        <template #iconTrailing>
+                          <CurrencyChip v-if="targetCurrency?.currency?.code" :code="targetCurrency.currency.code" />
+                        </template>
+                      </FormattedAmountField>
+                    </form-row>
+                  </template>
+
+                  <!-- Transfer linking on accounts shared *with* the caller isn't supported by
                    the backend yet – hide the linker for recipients rather than letting
                    them trigger a confusing server error. Loan payments never link two
                    pre-existing legs (single source → one loan), so it's irrelevant here. -->
-                <LinkTransactionSection
-                  v-if="transferDestinationType === 'account' && !isAccountSharedWithCaller"
-                  v-model:linked-transaction="linkedTransaction"
-                  :is-transfer-tx="isTransferTx"
-                  :is-form-creation="isFormCreation"
-                  :opposite-transaction="oppositeTransaction"
-                  :transaction-type="transaction?.transactionType"
-                  :disabled="isFormFieldsDisabled"
-                  :origin-transaction-id="transaction?.id"
-                  :origin-amount="form.amount ? Number(form.amount) : null"
-                  :origin-account-id="form.account?.id"
-                  @unlink="unlinkTransactions"
-                />
-              </template>
-            </account-field>
+                  <LinkTransactionSection
+                    v-if="transferDestinationType === 'account' && !isAccountSharedWithCaller"
+                    v-model:linked-transaction="linkedTransaction"
+                    :is-transfer-tx="isTransferTx"
+                    :is-form-creation="isFormCreation"
+                    :opposite-transaction="oppositeTransaction"
+                    :transaction-type="transaction?.transactionType"
+                    :disabled="isFormFieldsDisabled"
+                    :origin-transaction-id="transaction?.id"
+                    :origin-amount="form.amount ? Number(form.amount) : null"
+                    :origin-account-id="form.account?.id"
+                    @unlink="unlinkTransactions"
+                  />
+                </template>
+              </account-field>
+            </Transition>
 
             <!-- Picking a transaction to link collapses account-field to its single-account
                branch (no destination panel), so the pending linked leg gets its own panel. -->

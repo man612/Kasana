@@ -51,7 +51,7 @@
         "connectingButton": "Menghubungkan...",
         "connectButton": "Hubungkan",
         "loadingAccounts": "Memuat akun...",
-        "selectAccountsHint": "Pilih akun yang ingin disinkronkan dengan Kasana",
+        "selectAccountsHint": "Pilih akun yang ingin disinkronkan dengan Lajur.",
         "syncingButton": "Menyinkronkan...",
         "syncButton": "Sinkronkan {count} akun",
         "syncSuccess": "Berhasil menyinkronkan {count} akun",
@@ -84,7 +84,7 @@
           "authWarning": "Anda akan diarahkan ke situs web {bank} untuk login dan menyetujui koneksi.",
           "authorizeButton": "Otorisasi dengan {bank}",
           "loadingAccounts": "Memuat akun...",
-          "selectAccountsHint": "Pilih akun yang ingin disinkronkan dengan Kasana"
+          "selectAccountsHint": "Pilih akun yang ingin disinkronkan dengan Lajur."
         },
         "buttons": {
           "back": "Kembali",
@@ -129,14 +129,14 @@
             "privacyUrl": "URL Privasi:",
             "termsUrl": "URL Persyaratan:",
             "providedByOperator": "Diisi sendiri oleh pengelola instance",
-            "ownLegalDetails": "Gunakan alamat email kontak, halaman privasi, dan syarat layanan yang benar-benar kamu kelola untuk instance HTTPS ini. Kasana tidak menyediakan dokumen legal milik operator atau email kontak bawaan. Jangan memakai milik aplikasi lain.",
+            "ownLegalDetails": "Gunakan alamat email kontak, halaman privasi, dan syarat layanan yang benar-benar kamu kelola untuk instance HTTPS ini. Lajur. tidak menyediakan dokumen legal milik operator atau email kontak bawaan. Jangan memakai milik aplikasi lain.",
             "clickRegister": "Klik \"Register\"",
             "downloadKey": "Anda akan diminta mengunduh file. Itu adalah kunci RSA Anda yang harus disimpan karena ini bagian dari kredensial Anda"
           }
         },
         "step2": {
           "title": "Hubungkan Akun Bank Anda",
-          "intro": "Sebelum menggunakan aplikasi dengan Kasana, Anda harus menghubungkan akun bank melalui portal Enable Banking. Cari tombol \"Link accounts\" di dalam tile aplikasi yang dibuat dan ikuti semua langkah yang diperlukan.",
+          "intro": "Sebelum menggunakan aplikasi dengan Lajur., Anda harus menghubungkan akun bank melalui portal Enable Banking. Cari tombol \"Link accounts\" di dalam tile aplikasi yang dibuat dan ikuti semua langkah yang diperlukan.",
           "breakdown": "Berikut rinciannya:",
           "steps": {
             "clickLink": "Klik \"Link accounts\", tunggu spinner selesai",

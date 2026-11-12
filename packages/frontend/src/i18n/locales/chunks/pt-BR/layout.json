@@ -203,7 +203,7 @@
   },
   "dashboard": {
     "onboarding": {
-      "title": "Boas-vindas ao Kasana",
+      "title": "Boas-vindas ao Lajur.",
       "subtitle": "Comece configurando sua primeira conta",
       "createManualAccount": {
         "title": "Criar conta manual",
@@ -330,7 +330,7 @@
         },
         "ui": {
           "title": "Primeiros passos",
-          "subtitle": "Use nosso guia de primeiros passos para conhecer tudo o que o Kasana pode fazer por você.",
+          "subtitle": "Use nosso guia de primeiros passos para conhecer tudo o que o Lajur. pode fazer por você.",
           "dismissButton": "Dispensar de vez",
           "dismissConfirmTitle": "Dispensar os primeiros passos?",
           "dismissConfirmDescription": "Se mudar de ideia, você pode reabrir o guia de primeiros passos nas configurações.",

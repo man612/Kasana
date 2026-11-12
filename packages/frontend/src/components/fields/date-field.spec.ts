@@ -13,7 +13,7 @@ const CalendarStub = {
 };
 
 const SlotStub = { template: '<div><slot /></div>' };
-const PopoverStub = { name: 'PopoverStub', props: { open: Boolean }, template: '<div><slot /></div>' };
+const DialogStub = { name: 'DialogStub', props: { open: Boolean }, template: '<div><slot /></div>' };
 
 const mountComponent = (props: {
   modelValue: Date;
@@ -24,7 +24,14 @@ const mountComponent = (props: {
   mount(DateField, {
     props,
     global: {
-      stubs: { Popover: PopoverStub, PopoverTrigger: SlotStub, PopoverContent: SlotStub, Calendar: CalendarStub },
+      stubs: {
+        Dialog: DialogStub,
+        DialogTrigger: SlotStub,
+        DialogContent: SlotStub,
+        DialogTitle: SlotStub,
+        DialogDescription: SlotStub,
+        Calendar: CalendarStub,
+      },
     },
   });
 
@@ -55,20 +62,20 @@ describe('DateField component', () => {
     expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([new Date('2026-08-20T15:05:42')]);
   });
 
-  it('keeps the popover open while the time changes and closes it on a day pick', async () => {
+  it('keeps the calendar dialog open while time changes and closes it on a day pick', async () => {
     const wrapper = mountComponent({ modelValue: new Date(2026, 7, 22, 15, 5) });
-    const popover = wrapper.findComponent({ name: 'PopoverStub' });
+    const dialog = wrapper.findComponent({ name: 'DialogStub' });
     const calendar = wrapper.findComponent({ name: 'CalendarStub' });
     (wrapper.vm as unknown as { open: () => void }).open();
     await wrapper.vm.$nextTick();
 
     calendar.vm.$emit('update:modelValue', new Date(2026, 7, 22, 18, 5));
     await wrapper.vm.$nextTick();
-    expect(popover.props('open')).toBe(true);
+    expect(dialog.props('open')).toBe(true);
 
     calendar.vm.$emit('update:modelValue', new Date(2026, 7, 20, 18, 5));
     await wrapper.vm.$nextTick();
-    expect(popover.props('open')).toBe(false);
+    expect(dialog.props('open')).toBe(false);
   });
 
   it.each([
@@ -80,7 +87,7 @@ describe('DateField component', () => {
       safari.isSafariMobile = true;
       const wrapper = mountComponent({ modelValue: new Date(2026, 7, 22, 15, 5), hideInputTime });
 
-      const trigger = wrapper.findAll('button').at(-1)!;
+      const trigger = wrapper.get('[data-testid="date-field-calendar-trigger"]');
       expect(trigger.attributes('disabled') === undefined).toBe(isEnabled);
     },
   );

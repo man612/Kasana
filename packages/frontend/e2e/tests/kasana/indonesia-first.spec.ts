@@ -232,16 +232,37 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await expect(page).toHaveURL(/\/settings\/security\/sessions(?:\?.*)?$/);
       await expect(page.locator('[role="tablist"][data-kasana-tabs-persist="true"]')).toBeVisible();
 
-      // The transaction form has a native date input plus an anchored calendar.
-      // The popup must remain within the viewport, and the dialog's save action
+      // The transaction form has a native date input plus a centered calendar dialog.
+      // The nested dialog must fit the viewport, and the parent's save action
       // must remain visible outside the scrollable form region.
-      await page.setViewportSize({ width: 1280, height: 900 });
+      await page.setViewportSize({ width: 1280, height: 680 });
       await page.goto('/dashboard');
       const addTransaction = page.getByRole('button', { name: /Transaksi Baru|New transaction/i }).first();
       await expect(addTransaction).toBeVisible();
       await addTransaction.click();
       const txDialog = page.getByRole('dialog').first();
       await expect(txDialog).toBeVisible();
+
+      const manifestResponse = await page.request.get('/site.webmanifest');
+      expect(manifestResponse.ok()).toBe(true);
+      expect((await manifestResponse.json()).name).toBe(await page.title());
+
+      const modeSelector = txDialog.getByTestId('transaction-type-switcher');
+      const selectionIndicator = modeSelector.getByTestId('transaction-type-indicator');
+      const oldIndicatorPosition = await selectionIndicator.boundingBox();
+      await modeSelector.getByRole('button', { name: /Pemasukan|Income/i }).click();
+      await expect.poll(async () => (await selectionIndicator.boundingBox())?.x).not.toBe(oldIndicatorPosition?.x);
+      await modeSelector.getByRole('button', { name: /Pengeluaran|Expense/i }).click();
+
+      // Revealing the multiple-account payment editor should be reversible.
+      // No transaction is submitted during this visual interaction test.
+      const multipleAccounts = txDialog.locator('[data-test="multi-account-toggle"]');
+      await expect(multipleAccounts).toBeVisible();
+      await multipleAccounts.click();
+      await expect(multipleAccounts).toHaveAttribute('aria-pressed', 'true');
+      await multipleAccounts.click();
+      await expect(multipleAccounts).toHaveAttribute('aria-pressed', 'false');
+
       const saveTransaction = txDialog.getByRole('button', { name: /Buat transaksi|Create transaction/i });
       await expect(saveTransaction).toBeVisible();
       const footerBounds = await saveTransaction.boundingBox();
@@ -252,16 +273,21 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         expect(footerBounds.y + footerBounds.height).toBeLessThanOrEqual(dialogBounds.y + dialogBounds.height + 2);
       }
       await txDialog.getByTestId('date-field-calendar-trigger').first().click();
-      const txDatePopover = page.getByTestId('transaction-date-popover');
+      const txDatePopover = page.getByTestId('transaction-date-dialog');
       await expect(txDatePopover).toBeVisible();
       const pickerBounds = await txDatePopover.boundingBox();
       expect(pickerBounds).not.toBeNull();
       if (pickerBounds) {
+        // The picker is centered rather than squeezed into the field's remaining space.
+        expect(Math.abs(pickerBounds.x + pickerBounds.width / 2 - 640)).toBeLessThan(18);
+        expect(Math.abs(pickerBounds.y + pickerBounds.height / 2 - 340)).toBeLessThan(18);
         expect(pickerBounds.x).toBeGreaterThanOrEqual(-2);
         expect(pickerBounds.x + pickerBounds.width).toBeLessThanOrEqual(1282);
         expect(pickerBounds.y).toBeGreaterThanOrEqual(-2);
-        expect(pickerBounds.y + pickerBounds.height).toBeLessThanOrEqual(902);
+        expect(pickerBounds.y + pickerBounds.height).toBeLessThanOrEqual(682);
       }
+      const unusedScroll = await txDatePopover.evaluate((element) => element.scrollHeight - element.clientHeight);
+      expect(unusedScroll).toBeLessThanOrEqual(2);
       await page.keyboard.press('Escape');
       await expect(saveTransaction).toBeVisible();
     } finally {

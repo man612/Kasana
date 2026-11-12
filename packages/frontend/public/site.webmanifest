@@ -1,6 +1,6 @@
 {
-  "name": "Kasana",
-  "short_name": "Kasana",
+  "name": "Lajur.",
+  "short_name": "Lajur.",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
@@ -32,6 +32,6 @@
   "display": "standalone",
   "start_url": "/dashboard",
   "scope": "/",
-  "description": "Pencatatan keuangan pribadi yang nyaman untuk Indonesia.",
+  "description": "Catat transaksi dan kelola keuangan pribadi.",
   "lang": "id"
 }

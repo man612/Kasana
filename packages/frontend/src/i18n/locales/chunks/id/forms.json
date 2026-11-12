@@ -273,7 +273,7 @@
       "termMonthsPlaceholder": "mis. 3, 6, 12, atau 180 bulan",
       "startDateLabel": "Tanggal mulai",
       "startDatePlaceholder": "DD/MM/YYYY",
-      "startDateTooltip": "Tanggal perjanjian atau pencairan dimulai. Berbeda dari tanggal pertama kali saldo pinjaman dicatat ke Kasana.",
+      "startDateTooltip": "Tanggal perjanjian atau pencairan dimulai. Berbeda dari tanggal pertama kali saldo pinjaman dicatat ke Lajur..",
       "plannedPaymentLabel": "Cicilan bulanan sesuai tagihan",
       "plannedPaymentPlaceholder": "mis. 350000",
       "minPaymentLabel": "Pembayaran minimum (jika ada)",
@@ -462,7 +462,7 @@
       },
       "loanBalance": {
         "title": "Sisa pokok atau saldo terutang saat ini",
-        "meaning": "Angka positif ini menyatakan sisa utang pada tanggal kamu mulai mencatat. Kasana akan menyimpannya sebagai kewajiban (saldo negatif). Angka dapat berbeda dari total cicilan masa depan yang sudah memasukkan bunga atau admin.",
+        "meaning": "Angka positif ini menyatakan sisa utang pada tanggal kamu mulai mencatat. Lajur. akan menyimpannya sebagai kewajiban (saldo negatif). Angka dapat berbeda dari total cicilan masa depan yang sudah memasukkan bunga atau admin.",
         "example": "Pokok awal Rp1.000.000, sisa pokok setelah pembayaran sebelumnya Rp750.000: masukkan 750000. Periksa detail tagihan resmi karena 'total yang harus dibayar' bisa termasuk biaya yang belum jatuh tempo.",
         "important": "Jangan menambahkan pokok dan total tagihan secara bersamaan. Dalam sistem ini pembayaran tercatat dapat langsung mengurangi pokok, sehingga perlu rekonsiliasi dengan sisa pokok resmi jika ada biaya bunga di setiap angsuran."
       },
@@ -488,7 +488,7 @@
         "title": "Cicilan yang direncanakan",
         "meaning": "Jumlah yang ingin atau benar-benar kamu bayarkan per bulan. Dipakai untuk membuat perkiraan kapan pinjaman lunas, bukan instruksi pembayaran otomatis.",
         "example": "Tagihan cicilan KrediFazz Rp380.000 per bulan: rencanakan Rp380.000 dan cocokkan dengan jadwal resmi di aplikasi penyedia.",
-        "important": "Untuk cicilan flat, nilai bulanan bisa mengandung pokok, bunga dan biaya layanan. Proyeksi Kasana belum memisahkan ketiganya secara otomatis; jangan menganggap penurunan pokok sama dengan seluruh cicilan."
+        "important": "Untuk cicilan flat, nilai bulanan bisa mengandung pokok, bunga dan biaya layanan. Proyeksi Lajur. belum memisahkan ketiganya secara otomatis; jangan menganggap penurunan pokok sama dengan seluruh cicilan."
       },
       "loanMinimum": {
         "title": "Pembayaran minimum",

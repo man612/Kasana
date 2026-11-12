@@ -218,7 +218,9 @@
       "manualDate": "Masukkan tanggal atau rentang tanggal",
       "todayQuick": "Hari ini",
       "currentMonthQuick": "Bulan ini",
-      "previousMonthQuick": "Bulan lalu"
+      "previousMonthQuick": "Bulan lalu",
+      "dateTimeTitle": "Pilih tanggal & waktu",
+      "dateTimeHint": "Pilih tanggal, lalu atur jam dan menit bila diperlukan."
     },
     "appUpdate": {
       "title": "Pembaruan tersedia",
@@ -644,9 +646,9 @@
   },
   "kasana": {
     "feedback": {
-      "githubOnly": "Masukan dan laporan fitur Kasana diterima melalui issue GitHub resmi proyek.",
+      "githubOnly": "Masukan dan laporan fitur Lajur. diterima melalui issue GitHub resmi proyek.",
       "privacyWarning": "Issue GitHub bersifat publik. Jangan sertakan nomor rekening, transaksi, token login, atau informasi keuangan dan pribadi. Jangan melaporkan celah keamanan yang belum diumumkan melalui issue publik.",
-      "openIssues": "Buka GitHub Issues Kasana"
+      "openIssues": "Buka GitHub Issues Lajur."
     },
     "navigation": {
       "openMenu": "Buka menu navigasi"

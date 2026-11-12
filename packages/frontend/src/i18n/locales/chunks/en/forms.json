@@ -480,7 +480,7 @@
       },
       "loanStart": {
         "title": "Loan start date",
-        "meaning": "The contractual disbursement or purchase date, not when you first entered the loan in Kasana.",
+        "meaning": "The contractual disbursement or purchase date, not when you first entered the loan in Lajur..",
         "example": "An installment purchase made on 10 November 2026 may start then even if the first payment is in December.",
         "important": "This field does not itself record money received or correct the outstanding balance."
       },
@@ -488,7 +488,7 @@
         "title": "Planned monthly payment",
         "meaning": "The actual amount you intend to pay each month. It informs payoff estimates; it does not send a payment.",
         "example": "If the lender bills 380,000 monthly, enter 380000 and verify the provider schedule.",
-        "important": "For flat fees, payments include interest and charges; Kasana's projection does not automatically separate these."
+        "important": "For flat fees, payments include interest and charges; Lajur.'s projection does not automatically separate these."
       },
       "loanMinimum": {
         "title": "Minimum required payment",

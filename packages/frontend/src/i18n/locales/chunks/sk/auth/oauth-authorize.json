@@ -1,7 +1,7 @@
 {
   "oauth": {
     "authorize": {
-      "title": "{name} žiada o prístup k vašim údajom v Kasana",
+      "title": "{name} žiada o prístup k vašim údajom v Lajur.",
       "redirect_notice": "Po schválení budete presmerovaní na {host}. Pokračujte len vtedy, ak túto adresu poznáte.",
       "description": "Táto aplikácia žiada o tieto oprávnenia:",
       "approve": "Schváliť",
@@ -56,7 +56,7 @@
       },
       "unknown": {
         "label": "Dodatočné oprávnenia",
-        "desc": "Aplikácia požiadala o povolenie, ktoré aplikácia Kasana nerozpoznáva."
+        "desc": "Aplikácia požiadala o povolenie, ktoré aplikácia Lajur. nerozpoznáva."
       }
     }
   }

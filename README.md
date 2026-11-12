@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="docs/brand/logo.svg" width="88" alt="Kasana logo">
+<img src="packages/frontend/public/web-app-manifest-192x192.png" width="88" alt="Lajur. icon">
 
-# Kasana
+# Lajur.
 
 **A clearer view of your money.**
 
@@ -15,11 +15,13 @@ Open-source, self-hosted personal finance with an Indonesia-first experience.
 
 </div>
 
+The app display name is **Lajur.** (period included). The GitHub repository still uses **Kasana** for link continuity. To rename the display again, see [branding instructions](docs/BRANDING.md). Original MoneyMatter attribution and AGPL-3.0 remain intact.
+
 ## Overview
 
-**Kasana** brings accounts, spending, budgets, and your wider financial picture into one place. It prioritizes Indonesian language and currency defaults while retaining the multi-currency capabilities of its upstream codebase.
+**Lajur.** brings accounts, spending, budgets, and your wider financial picture into one place. It prioritizes Indonesian language and currency defaults while retaining the multi-currency capabilities of its upstream codebase.
 
-Kasana is an **independent adaptation** of [MoneyMatter](https://github.com/letehaha/moneymatter), initially based on **v0.33.14**. It is not an official MoneyMatter release, hosted service, or affiliated product. Original copyright notices and the [AGPL-3.0-only license](LICENSE) are preserved.
+Lajur. is an **independent adaptation** of [MoneyMatter](https://github.com/letehaha/moneymatter), initially based on **v0.33.14**. It is not an official MoneyMatter release, hosted service, or affiliated product. Original copyright notices and the [AGPL-3.0-only license](LICENSE) are preserved.
 
 ### What you can manage
 
@@ -38,7 +40,7 @@ Kasana is an **independent adaptation** of [MoneyMatter](https://github.com/lete
 
 ## Getting started
 
-Build Kasana **from this repository's source**. The base Compose file uses intentionally non-pullable placeholder images for the finance frontend and backend; it is **not** a standalone deployment. Always combine the base, build, and private-instance overlays as shown below.
+Build Lajur. **from this repository's source**. The base Compose file uses intentionally non-pullable placeholder images for the finance frontend and backend; it is **not** a standalone deployment. Always combine the base, build, and private-instance overlays as shown below.
 
 **Prerequisites:** Git, Docker Engine or Docker Desktop, Docker Compose, and sufficient memory and storage for a frontend source build.
 
@@ -67,7 +69,7 @@ From the repository root in PowerShell:
 .\scripts\verify-local-private.ps1
 ```
 
-These scripts generate local configuration, build Kasana from source, and perform a non-destructive health check. The historical `-private` filenames do **not** imply that this GitHub repository is private.
+These scripts generate local configuration, build Lajur. from source, and perform a non-destructive health check. The historical `-private` filenames do **not** imply that this GitHub repository is private.
 
 **Never commit** `.env`, database dumps, credentials, or actual financial data. Before exposing an instance to the internet, verify HTTPS, authentication, access controls, and backup **restoration**.
 

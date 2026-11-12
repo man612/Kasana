@@ -22,13 +22,15 @@ const props = defineProps<
   DialogContentProps & {
     class?: HTMLAttributes['class'];
     customClose?: boolean;
+    /** Only calendar dialogs use a softly blurred backdrop. */
+    blurOverlay?: boolean;
   }
 >();
 const emits = defineEmits<DialogContentEmits>();
 
 const delegatedProps = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { class: _, ...delegated } = props;
+  const { class: _, customClose: _customClose, blurOverlay: _blurOverlay, ...delegated } = props;
 
   return delegated;
 });
@@ -42,6 +44,7 @@ const describedByAttrs = useDescribedByAttrs();
     <DialogOverlay
       :class="[
         'fixed inset-0 z-(--z-dialog) bg-black/80',
+        props.blurOverlay && 'backdrop-blur-[3px]',
         'data-[state=open]:animate-in data-[state=open]:fade-in-0',
         'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
       ]"
