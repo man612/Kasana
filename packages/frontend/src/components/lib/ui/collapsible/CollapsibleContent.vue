@@ -16,7 +16,7 @@ const onAnimationEnd = (e: AnimationEvent) => {
   // Scrolling synchronously inside animationend is a no-op; it works one tick later.
   nextTick(() => {
     if (!el.isConnected || el.dataset.state !== 'open') return;
-    el.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion.value ? 'auto' : 'smooth' });
+    el.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion.value === 'reduce' ? 'auto' : 'smooth' });
   });
 };
 </script>
