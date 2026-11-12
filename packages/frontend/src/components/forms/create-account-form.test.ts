@@ -124,6 +124,14 @@ describe('CreateAccountForm', () => {
     createAccountMock.mockResolvedValue({} as Awaited<ReturnType<typeof api.createAccount>>);
   });
 
+  it('shows a standalone submit button but lets a dialog supply a fixed footer button instead', async () => {
+    const { wrapper } = await mountComponent();
+    expect(wrapper.find('button[type="submit"]').exists()).toBe(true);
+
+    await wrapper.setProps({ showSubmitButton: false });
+    expect(wrapper.find('button[type="submit"]').exists()).toBe(false);
+  });
+
   describe('1. User enters data — API is called with expected payload', () => {
     it('sends initialBalance and creditLimit as numbers in the payload', async () => {
       const { wrapper } = await mountComponent();

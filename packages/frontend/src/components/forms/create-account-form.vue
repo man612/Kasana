@@ -35,7 +35,9 @@ import { useRoute } from 'vue-router';
 
 const AddCurrencyDialog = defineAsyncComponent(() => import('@/components/dialogs/add-currency-dialog.vue'));
 
-const props = defineProps<{ formId?: string; showSubmitButton?: boolean }>();
+const props = withDefaults(defineProps<{ formId?: string; showSubmitButton?: boolean }>(), {
+  showSubmitButton: true,
+});
 const emit = defineEmits(['created']);
 
 const { t } = useI18n();
@@ -279,7 +281,7 @@ const submit = async () => {
     </FormattedAmountField>
 
     <!-- Keep the form reusable standalone; the dialog renders its action in a non-scrolling footer. -->
-    <div v-if="props.showSubmitButton !== false" class="flex">
+    <div v-if="props.showSubmitButton" class="flex">
       <ui-button type="submit" class="ml-auto min-w-30" :disabled="createAccountMutation.isPending.value">
         {{
           createAccountMutation.isPending.value
