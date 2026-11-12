@@ -5,6 +5,6 @@
  */
 export const APP_BRAND = {
   name: 'Kasana',
-  tagline: 'Keuangan lebih tertata',
+  tagline: '',
   description: 'Catat uangmu, pahami pengeluaran, dan rencanakan langkah berikutnya.',
 } as const;

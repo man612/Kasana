@@ -3,7 +3,8 @@ import { PillTabs } from '@/components/lib/ui/pill-tabs';
 import { useDateLocale } from '@/composable/use-date-locale';
 import { type Period } from '@/composable/use-period-navigation';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
-import { X } from '@lucide/vue';
+import { ChevronDownIcon, SlidersHorizontalIcon, X } from '@lucide/vue';
+import { endOfDay, endOfMonth, startOfDay, startOfMonth, subMonths } from 'date-fns';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -74,6 +75,30 @@ const periodTypeTabs = computed<{ value: DateSelectorPeriodType; label: string }
   { value: 'year', label: t('common.dateSelector.periodTypes.year') },
 ]);
 
+// Shared shortcuts when a page has not supplied its own (for example, dashboard
+// passes pay-period-aware shortcuts instead of generic calendar months).
+const quickPresets = computed<DateSelectorPreset[]>(() =>
+  props.presets?.length
+    ? props.presets
+    : [
+        {
+          label: t('common.dateSelector.todayQuick'),
+          getValue: () => ({ from: startOfDay(new Date()), to: endOfDay(new Date()) }),
+        },
+        {
+          label: t('common.dateSelector.currentMonthQuick'),
+          getValue: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }),
+        },
+        {
+          label: t('common.dateSelector.previousMonthQuick'),
+          getValue: () => {
+            const previous = subMonths(new Date(), 1);
+            return { from: startOfMonth(previous), to: endOfMonth(previous) };
+          },
+        },
+      ],
+);
+
 const YEAR_START = 2000;
 
 const years = computed(() => {
@@ -82,7 +107,11 @@ const years = computed(() => {
   return Array.from({ length: count }, (_, i) => currentYear - i);
 });
 
-const showPresetsSidebar = computed(() => !isMobile.value && activePeriodType.value !== 'day');
+// Simple first: operators and free-text syntax are available when requested.
+const showAdvancedFilters = ref(
+  activeFilterMode.value !== 'is' ||
+    Boolean(props.allowedFilterModes?.length && !props.allowedFilterModes.includes('is')),
+);
 
 const inputValue = ref('');
 
@@ -144,23 +173,19 @@ function setPeriodType(type: DateSelectorPeriodType) {
 </script>
 
 <template>
-  <div class="flex max-w-[calc(100vw-3rem)] flex-col gap-3">
-    <!-- Label + filter mode -->
-    <div class="flex items-center gap-3">
-      <span class="text-sm font-semibold whitespace-nowrap">{{ t('common.dateSelector.dueDate') }}</span>
-      <DateSelectorFilterMode v-model="activeFilterMode" :allowed-modes="allowedFilterModes" />
+  <div class="flex max-w-[calc(100vw-3rem)] min-w-0 flex-col gap-3">
+    <div class="space-y-1">
+      <p class="text-sm font-semibold">{{ t('common.dateSelector.simpleTitle') }}</p>
+      <p class="text-muted-foreground text-xs leading-relaxed">{{ t('common.dateSelector.simpleHint') }}</p>
     </div>
 
-    <!-- Text input with format placeholder -->
-    <input
-      v-model="inputValue"
-      type="text"
-      :placeholder="placeholderText"
-      class="border-input bg-input-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
-      @keydown.enter="handleInputSubmit"
-    />
+    <!-- One-tap choices, shared between the dashboard and other date selectors. -->
+    <div v-if="quickPresets.length" class="bg-muted/40 space-y-1 rounded-lg border p-2">
+      <p class="text-muted-foreground px-2 text-xs font-medium">{{ t('common.dateSelector.quickSelect') }}</p>
+      <DateSelectorPresets horizontal :presets="quickPresets" :current-period="period" @apply="handlePresetApply" />
+    </div>
 
-    <!-- Period type tabs -->
+    <!-- Keep period granularity visible; uncommon query operators are optional. -->
     <PillTabs
       :items="periodTypeTabs"
       :model-value="activePeriodType"
@@ -169,43 +194,63 @@ function setPeriodType(type: DateSelectorPeriodType) {
       @update:model-value="setPeriodType($event as DateSelectorPeriodType)"
     />
 
-    <!-- Main content area -->
-    <div class="flex gap-4">
-      <!-- Presets sidebar — hidden on mobile and when Day tab is active -->
-      <div v-if="showPresetsSidebar && presets?.length" class="shrink-0 border-r pr-4">
-        <DateSelectorPresets :presets="presets" :current-period="period" @apply="handlePresetApply" />
-      </div>
+    <Button
+      variant="ghost"
+      size="sm"
+      class="text-muted-foreground h-8 gap-1.5 self-start px-1 text-xs"
+      :aria-expanded="showAdvancedFilters"
+      @click="showAdvancedFilters = !showAdvancedFilters"
+    >
+      <SlidersHorizontalIcon class="size-3.5" />
+      {{ t('common.dateSelector.advancedOptions') }}
+      <ChevronDownIcon
+        class="size-3.5 transition-transform duration-200"
+        :class="showAdvancedFilters && 'rotate-180'"
+      />
+    </Button>
 
-      <!-- Active panel -->
-      <div class="min-w-0 flex-1">
-        <Transition name="kasana-section" mode="out-in">
-          <DateSelectorDayPanel
-            key="day"
-            v-if="activePeriodType === 'day'"
-            :start="draftDayRange.start"
-            :end="draftDayRange.end"
-            :number-of-months="numberOfMonths"
-            :single-select="isDaySingleSelect"
-            @update:range="handleDayRangeUpdate"
-          />
-          <DateSelectorPeriodGrid
-            :key="activePeriodType"
-            v-else
-            :period-type="activePeriodType"
-            :years="years"
-            :get-cell-state="getCellState"
-            @select-cell="selectCell"
-          />
-        </Transition>
+    <Transition name="kasana-feedback">
+      <div
+        v-if="showAdvancedFilters"
+        class="border-border bg-muted/30 flex min-w-0 flex-col gap-2 rounded-lg border p-3"
+      >
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-medium">{{ t('common.dateSelector.dueDate') }}</span>
+          <DateSelectorFilterMode v-model="activeFilterMode" :allowed-modes="allowedFilterModes" />
+        </div>
+        <input
+          v-model="inputValue"
+          type="text"
+          :placeholder="placeholderText"
+          :aria-label="t('common.dateSelector.manualDate')"
+          class="border-input bg-input-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
+          @keydown.enter="handleInputSubmit"
+        />
       </div>
+    </Transition>
+
+    <div class="min-w-0">
+      <Transition name="kasana-section" mode="out-in">
+        <DateSelectorDayPanel
+          v-if="activePeriodType === 'day'"
+          key="day"
+          :start="draftDayRange.start"
+          :end="draftDayRange.end"
+          :number-of-months="numberOfMonths"
+          :single-select="isDaySingleSelect"
+          @update:range="handleDayRangeUpdate"
+        />
+        <DateSelectorPeriodGrid
+          v-else
+          :key="activePeriodType"
+          :period-type="activePeriodType"
+          :years="years"
+          :get-cell-state="getCellState"
+          @select-cell="selectCell"
+        />
+      </Transition>
     </div>
 
-    <!-- Mobile presets — shown below the panel on mobile -->
-    <div v-if="isMobile && presets?.length" class="border-t pt-3">
-      <DateSelectorPresets horizontal :presets="presets" :current-period="period" @apply="handlePresetApply" />
-    </div>
-
-    <!-- Footer -->
     <DateSelectorFooter :apply-disabled="!hasSelection" @cancel="emit('cancel')" @apply="handleApply">
       <Button
         v-if="displayText"
@@ -215,10 +260,9 @@ function setPeriodType(type: DateSelectorPeriodType) {
         @click="clearSelection"
       >
         <span class="grow truncate">{{ displayText }}</span>
-
-        <Button as="div" variant="ghost" size="icon-sm" class="ml-auto size-5 shrink-0">
+        <span class="ml-auto flex size-5 shrink-0 items-center justify-center" aria-hidden="true">
           <X class="size-3" />
-        </Button>
+        </span>
       </Button>
     </DateSelectorFooter>
   </div>

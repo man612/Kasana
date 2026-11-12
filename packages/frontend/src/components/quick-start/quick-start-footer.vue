@@ -8,12 +8,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/common/dropdown-menu';
 import { useOnboardingStore } from '@/stores/onboarding';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { EyeOffIcon, MoveIcon, RotateCcwIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const onboardingStore = useOnboardingStore();
 const { isAtDefaultPosition } = storeToRefs(onboardingStore);
 
@@ -28,7 +30,7 @@ const handleConfirm = () => {
 
 <template>
   <div class="border-t p-4">
-    <div class="mb-2 grid grid-cols-2 gap-2">
+    <div :class="isMobile ? 'mb-2 grid grid-cols-2 gap-2' : 'mb-2 grid grid-cols-1 gap-2'">
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <Button variant="outline" size="sm" class="w-full">
@@ -48,7 +50,7 @@ const handleConfirm = () => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <DropdownMenu>
+      <DropdownMenu v-if="isMobile">
         <DropdownMenuTrigger as-child>
           <Button variant="outline" size="sm" class="w-full">
             <MoveIcon class="size-4" />
@@ -72,6 +74,7 @@ const handleConfirm = () => {
       </DropdownMenu>
     </div>
     <Button
+      v-if="isMobile"
       variant="ghost"
       size="sm"
       class="mb-2 w-full"
@@ -81,7 +84,7 @@ const handleConfirm = () => {
       <RotateCcwIcon class="size-4" />
       {{ t('kasana.quickStart.resetPosition') }}
     </Button>
-    <p class="text-muted-foreground mb-3 text-xs leading-relaxed">
+    <p v-if="isMobile" class="text-muted-foreground mb-3 text-xs leading-relaxed">
       {{ t('kasana.quickStart.hideExplanation') }}
     </p>
     <Button variant="ghost-destructive" class="w-full" @click="isConfirmOpen = true">

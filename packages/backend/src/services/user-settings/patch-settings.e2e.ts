@@ -147,6 +147,20 @@ describe('Patch user settings', () => {
     expect(invalid.statusCode).toBe(ERROR_CODES.ValidationError);
   });
 
+  it('persists the per-account accent and rejects unknown colors', async () => {
+    const first = await helpers.patchUserSettings({ raw: true, patch: { accentTheme: 'blue' } });
+    expect(first.accentTheme).toBe('blue');
+    expect((await helpers.getUserSettings({ raw: true })).accentTheme).toBe('blue');
+
+    const invalid = await helpers.patchUserSettings({ patch: { accentTheme: 'neon' } });
+    expect(invalid.statusCode).toBe(ERROR_CODES.ValidationError);
+    expect((await helpers.getUserSettings({ raw: true })).accentTheme).toBe('blue');
+
+    const changed = await helpers.patchUserSettings({ raw: true, patch: { accentTheme: 'green' } });
+    expect(changed.accentTheme).toBe('green');
+    expect((await helpers.getUserSettings({ raw: true })).accentTheme).toBe('green');
+  });
+
   it('persists currencyDisplay in both directions and keeps it through a rejected patch', async () => {
     const patched = await helpers.patchUserSettings({ raw: true, patch: { currencyDisplay: 'narrowSymbol' } });
     expect(patched.currencyDisplay).toBe('narrowSymbol');

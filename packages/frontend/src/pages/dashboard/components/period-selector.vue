@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-center gap-0.5">
+  <div class="flex min-w-0 items-center justify-center gap-0.5">
     <Button size="icon-sm" variant="ghost" @click="selectPrevPeriod">
       <ChevronLeft :size="16" />
     </Button>
@@ -11,15 +11,26 @@
       popover-class-name="md:min-w-[600px]"
     >
       <template #trigger="{ triggerText }">
-        <Button variant="ghost" size="sm" class="min-w-48 font-medium">
-          <CalendarIcon class="mr-1.5 size-3.5" />
-          {{ triggerText }}
+        <Button variant="ghost" size="sm" class="min-w-0 px-2 font-medium sm:min-w-40">
+          <CalendarIcon class="mr-1.5 size-3.5 shrink-0" />
+          <Transition name="kasana-period" mode="out-in">
+            <span :key="triggerText" class="inline-block min-w-0 truncate whitespace-nowrap">{{ triggerText }}</span>
+          </Transition>
         </Button>
       </template>
     </DateSelector>
 
     <Button size="icon-sm" variant="ghost" :disabled="isNextDisabled" @click="selectNextPeriod">
       <ChevronRight :size="16" />
+    </Button>
+    <Button
+      size="sm"
+      variant="ghost"
+      class="ml-1 shrink-0 px-2 text-xs"
+      :disabled="isCurrentPayPeriod(period)"
+      @click="period = getCurrentPayPeriod()"
+    >
+      {{ t('dashboard.periodSelector.backToCurrent') }}
     </Button>
   </div>
 </template>

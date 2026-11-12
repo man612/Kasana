@@ -116,7 +116,7 @@ const vCalendarSlots = computed(() =>
       :locale="calendarLocale"
       class="calendar"
       trim-weeks
-      :transition="'none'"
+      :transition="'slide-h'"
       :columns="columns"
     >
       <template v-for="(_, slot) of vCalendarSlots" #[slot]="scope">

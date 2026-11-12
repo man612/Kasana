@@ -87,6 +87,35 @@
               </Button>
             </Popover.PopoverContent>
           </Popover.Popover>
+
+          <Popover.Popover>
+            <Popover.PopoverTrigger as-child>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                class="text-muted-foreground ml-1 shrink-0"
+                :aria-label="$t('header.moreActionsHelpTitle')"
+                :title="$t('header.moreActionsHelpTitle')"
+              >
+                <CircleHelpIcon class="size-4" />
+              </Button>
+            </Popover.PopoverTrigger>
+            <Popover.PopoverContent
+              align="start"
+              class="w-80 max-w-[calc(100vw-2rem)] space-y-3 p-4 text-sm leading-relaxed"
+            >
+              <p class="font-semibold">{{ $t('header.moreActionsHelpTitle') }}</p>
+              <p class="text-muted-foreground">{{ $t('header.moreActionsHelpIntro') }}</p>
+              <div class="space-y-1">
+                <p class="font-semibold">{{ $t('header.importData') }}</p>
+                <p class="text-muted-foreground">{{ $t('header.moreActionsHelpImport') }}</p>
+              </div>
+              <div class="space-y-1">
+                <p class="font-semibold">{{ $t('header.attachInvoice') }}</p>
+                <p class="text-muted-foreground">{{ $t('header.moreActionsHelpInvoice') }}</p>
+              </div>
+            </Popover.PopoverContent>
+          </Popover.Popover>
         </div>
 
         <AttachInvoiceDialog v-if="isAttachInvoiceMounted" v-model:open="isAttachInvoiceOpen" />
@@ -99,13 +128,16 @@
           <Button
             :variant="isSettingsRoute ? 'ghost-primary' : 'secondary'"
             size="icon"
-            :class="isSettingsRoute && 'bg-primary/15 text-primary-text ring-1 ring-primary/50'"
+            :class="isSettingsRoute && 'bg-primary/15 text-primary-text ring-primary/50 ring-1'"
             :aria-label="isSettingsRoute ? t('kasana.settings.exit') : t('header.settings')"
             :aria-pressed="isSettingsRoute"
             @click="toggleSettings"
           >
             <SettingsIcon
-              :class="['size-4 origin-center transition-transform duration-300 ease-out motion-reduce:transition-none', isSettingsRoute && 'rotate-90']"
+              :class="[
+                'size-4 origin-center transition-transform duration-300 ease-out motion-reduce:transition-none',
+                isSettingsRoute && 'rotate-90',
+              ]"
             />
           </Button>
         </DesktopOnlyTooltip>
@@ -136,6 +168,7 @@ import { useUserStore } from '@/stores';
 import {
   ArrowLeftIcon,
   ChevronDownIcon,
+  CircleHelpIcon,
   ImportIcon,
   MenuIcon,
   PlusIcon,

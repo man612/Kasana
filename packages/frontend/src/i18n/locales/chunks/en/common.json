@@ -211,7 +211,14 @@
         "halfYear": "Try: H1, H2 2025",
         "year": "Try: 2025, 2024",
         "default": "Try: 2025, Q4, Jan 2025"
-      }
+      },
+      "simpleTitle": "Choose a date range",
+      "simpleHint": "Choose a month or year. For individual dates, select Day.",
+      "advancedOptions": "Advanced date options",
+      "manualDate": "Enter a date or date range",
+      "todayQuick": "Today",
+      "currentMonthQuick": "This month",
+      "previousMonthQuick": "Last month"
     },
     "appUpdate": {
       "title": "Update available",

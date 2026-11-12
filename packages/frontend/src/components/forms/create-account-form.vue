@@ -35,6 +35,7 @@ import { useRoute } from 'vue-router';
 
 const AddCurrencyDialog = defineAsyncComponent(() => import('@/components/dialogs/add-currency-dialog.vue'));
 
+const props = defineProps<{ formId?: string }>();
 const emit = defineEmits(['created']);
 
 const { t } = useI18n();
@@ -115,6 +116,8 @@ const selectableAccountCategories = computed(() =>
 );
 
 const createAccountMutation = useMutation({ mutationFn: createAccount });
+const isSubmitting = computed(() => createAccountMutation.isPending.value);
+defineExpose({ isSubmitting });
 
 const submit = async () => {
   if (createAccountMutation.isPending.value || !isFormValid()) return;
@@ -162,7 +165,7 @@ const submit = async () => {
 </script>
 
 <template>
-  <form class="grid gap-6" @submit.prevent="submit">
+  <form :id="props.formId" class="grid gap-6" @submit.prevent="submit">
     <div class="flex items-start gap-3">
       <div class="min-w-0 flex-1">
         <input-field
@@ -183,11 +186,11 @@ const submit = async () => {
         v-model="form.logo"
         :name-for-search="form.name"
         :reset-label="$t('common.logo.remove')"
-        size-class="size-10 rounded-lg"
+        size-class="size-10 rounded-lg md:size-9"
         align="with-help-labeled-field"
       >
         <template #placeholder>
-          <AccountLogo :account="logoPlaceholderAccount" class="size-10 rounded-lg" />
+          <AccountLogo :account="logoPlaceholderAccount" class="size-10 rounded-lg md:size-9" />
         </template>
       </LogoSquareField>
     </div>
@@ -275,14 +278,6 @@ const submit = async () => {
       </template>
     </FormattedAmountField>
 
-    <div class="flex">
-      <ui-button type="submit" class="ml-auto min-w-30" :disabled="createAccountMutation.isPending.value">
-        {{
-          createAccountMutation.isPending.value
-            ? $t('forms.createAccount.submitButtonLoading')
-            : $t('forms.createAccount.submitButton')
-        }}
-      </ui-button>
-    </div>
+    <!-- Action belongs in ResponsiveDialog's fixed footer, outside the scrolling form. -->
   </form>
 </template>

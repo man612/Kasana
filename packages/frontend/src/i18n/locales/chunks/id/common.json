@@ -211,7 +211,14 @@
         "halfYear": "Coba: H1, H2 2025",
         "year": "Coba: 2025, 2024",
         "default": "Coba: 2025, Q4, Jan 2025"
-      }
+      },
+      "simpleTitle": "Pilih rentang waktu",
+      "simpleHint": "Pilih bulan atau tahun. Untuk tanggal tertentu, pilih tab Hari.",
+      "advancedOptions": "Opsi tanggal lanjutan",
+      "manualDate": "Masukkan tanggal atau rentang tanggal",
+      "todayQuick": "Hari ini",
+      "currentMonthQuick": "Bulan ini",
+      "previousMonthQuick": "Bulan lalu"
     },
     "appUpdate": {
       "title": "Pembaruan tersedia",

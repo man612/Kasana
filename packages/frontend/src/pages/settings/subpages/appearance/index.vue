@@ -41,9 +41,13 @@
             :aria-pressed="accentTheme === option.value"
             class="border-input hover:bg-accent focus-visible:ring-ring inline-flex min-h-10 items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
             :class="accentTheme === option.value && 'border-primary bg-primary/10 text-primary-text'"
-            @click="setAccentTheme(option.value)"
+            @click="updateAccentTheme(option.value)"
           >
-            <span class="size-4 shrink-0 rounded-full ring-1 ring-black/10" :style="{ backgroundColor: option.swatch }" aria-hidden="true" />
+            <span
+              class="size-4 shrink-0 rounded-full ring-1 ring-black/10"
+              :style="{ backgroundColor: option.swatch }"
+              aria-hidden="true"
+            />
             {{ $t('settings.appearance.accent.' + option.value) }}
             <CheckIcon v-if="accentTheme === option.value" class="size-4" aria-hidden="true" />
           </button>
@@ -111,7 +115,11 @@
               {{ $t(item.labelKey) }}
             </span>
             <Switch
-              :model-value="item.settingKey === 'venture' ? userSettings?.sidebarNav?.venture === true : userSettings?.sidebarNav?.[item.settingKey] !== false"
+              :model-value="
+                item.settingKey === 'venture'
+                  ? userSettings?.sidebarNav?.venture === true
+                  : userSettings?.sidebarNav?.[item.settingKey] !== false
+              "
               :disabled="isPatching"
               @update:model-value="(v) => patch({ sidebarNav: { [item.settingKey]: !!v } })"
             />
@@ -170,7 +178,7 @@
 
 <script setup lang="ts">
 import { ThemePreference, setThemePreference, themePreference } from '@/common/utils/color-theme';
-import { ACCENT_OPTIONS, accentTheme, setAccentTheme } from '@/common/utils/accent-theme';
+import { ACCENT_OPTIONS, accentTheme, setAccentTheme, type AccentTheme } from '@/common/utils/accent-theme';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import Button from '@/components/lib/ui/button/Button.vue';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
@@ -191,6 +199,12 @@ const {
   isUpdating: isSupportButtonUpdating,
 } = useSupportButton();
 const { data: userSettings, patch, isPatching } = useUserSettings();
+
+function updateAccentTheme(value: AccentTheme): void {
+  setAccentTheme(value);
+  // The shared settings endpoint persists this per user for reloads and other devices.
+  patch({ accentTheme: value });
+}
 
 interface ThemeOption {
   value: ThemePreference;

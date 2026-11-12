@@ -72,3 +72,7 @@ export interface SidebarSectionsConfig {
 // user-settings JSONB; the backend Zod enum is built straight off this tuple.
 export const CURRENCY_DISPLAY_PREFERENCES = ['symbol', 'narrowSymbol'] as const;
 export type CurrencyDisplayPreference = (typeof CURRENCY_DISPLAY_PREFERENCES)[number];
+
+// Per-account accent preference stored in the existing user-settings JSONB.
+export const ACCENT_THEME_PREFERENCES = ['purple', 'green', 'blue'] as const;
+export type AccentThemePreference = (typeof ACCENT_THEME_PREFERENCES)[number];

@@ -116,7 +116,7 @@ function handleCancel() {
       <PopoverContent
         :class="cn(['w-auto max-w-[calc(100vw-1rem)] p-4 md:min-w-150', popoverClassName])"
         align="center"
-        side="top"
+        side="bottom"
         :side-offset="8"
       >
         <SlotContent />

@@ -93,7 +93,11 @@
       "allSkipped": "AI couldn't confidently categorize the transaction | AI couldn't confidently categorize any of the {count} transactions",
       "queued": "Waiting to start...",
       "transactions": "transactions"
-    }
+    },
+    "moreActionsHelpTitle": "Other ways to add transactions",
+    "moreActionsHelpIntro": "Choose based on the records you already have. You don't have to type every transaction.",
+    "moreActionsHelpImport": "For example, upload a CSV bank statement, review the entries, and choose what to import. Check for duplicates before saving.",
+    "moreActionsHelpInvoice": "For example, attach an internet bill or receipt to help find its matching transaction. Review the match before linking."
   },
   "themeSelector": {
     "light": "Light",

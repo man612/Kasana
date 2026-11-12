@@ -26,13 +26,15 @@ import { useAiCategorizationEvents } from '@/composable/use-ai-categorization-ev
 import { useSSE } from '@/composable/use-sse';
 import { currencyDisplayPreference } from '@/js/helpers';
 import { ROUTES_NAMES } from '@/routes';
-import { useAuthStore, useCurrenciesStore, useRootStore } from '@/stores';
+import { useAuthStore, useCurrenciesStore, useRootStore, useUserStore } from '@/stores';
+import { identifyAccentThemeForUser } from '@/common/utils/accent-theme';
 import { storeToRefs } from 'pinia';
 import { watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const rootStore = useRootStore();
 const userCurrenciesStore = useCurrenciesStore();
 
@@ -44,6 +46,17 @@ const { isBaseCurrencyExists } = storeToRefs(userCurrenciesStore);
 useExchangeRates({ enabled: isLoggedIn });
 
 const { data: userSettings } = useUserSettings({ enabled: isLoggedIn });
+// Reconcile stored accent on login, account swap and server settings refresh.
+watch(
+  [() => userStore.user?.id, isLoggedIn, () => userSettings.value?.accentTheme],
+  ([id, loggedIn, serverPreference]) => {
+    identifyAccentThemeForUser({
+      userId: loggedIn && id !== undefined ? id : null,
+      serverPreference: loggedIn && id !== undefined ? serverPreference : undefined,
+    });
+  },
+  { immediate: true },
+);
 watch(
   () => userSettings.value?.currencyDisplay,
   (value) => {
