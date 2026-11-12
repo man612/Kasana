@@ -60,7 +60,7 @@
               variant="ghost"
               size="icon"
               :disabled="disabled || !isPopoverAvailable"
-              :aria-label="label || $t('common.dateSelector.simpleTitle')"
+              :aria-label="label || i18n.global.t('common.dateSelector.simpleTitle')"
               data-testid="date-field-calendar-trigger"
             >
               <CalendarClockIcon class="size-5" />
@@ -83,6 +83,7 @@ import { Button } from '@/components/lib/ui/button';
 import { Calendar } from '@/components/lib/ui/calendar';
 import * as Popover from '@/components/lib/ui/popover';
 import { useSafariDetection } from '@/composable/detect-safari';
+import { i18n } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { format, getDate, getMonth, getYear, isSameDay, parse, set } from 'date-fns';
 import { CalendarClockIcon, XIcon } from '@lucide/vue';
