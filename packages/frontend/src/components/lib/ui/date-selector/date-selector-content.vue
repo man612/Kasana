@@ -178,21 +178,25 @@ function setPeriodType(type: DateSelectorPeriodType) {
 
       <!-- Active panel -->
       <div class="min-w-0 flex-1">
-        <DateSelectorDayPanel
-          v-if="activePeriodType === 'day'"
-          :start="draftDayRange.start"
-          :end="draftDayRange.end"
-          :number-of-months="numberOfMonths"
-          :single-select="isDaySingleSelect"
-          @update:range="handleDayRangeUpdate"
-        />
-        <DateSelectorPeriodGrid
-          v-else
-          :period-type="activePeriodType"
-          :years="years"
-          :get-cell-state="getCellState"
-          @select-cell="selectCell"
-        />
+        <Transition name="kasana-section" mode="out-in">
+          <DateSelectorDayPanel
+            key="day"
+            v-if="activePeriodType === 'day'"
+            :start="draftDayRange.start"
+            :end="draftDayRange.end"
+            :number-of-months="numberOfMonths"
+            :single-select="isDaySingleSelect"
+            @update:range="handleDayRangeUpdate"
+          />
+          <DateSelectorPeriodGrid
+            :key="activePeriodType"
+            v-else
+            :period-type="activePeriodType"
+            :years="years"
+            :get-cell-state="getCellState"
+            @select-cell="selectCell"
+          />
+        </Transition>
       </div>
     </div>
 

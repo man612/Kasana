@@ -73,11 +73,13 @@ scrollable infinite lists, or screen-sized layouts without profiling.
 7. Form validation, transaction optional fields, investment settlement panels and Quick Start
    task completion: legible immediate feedback without disrupting focus.
 8. Combobox popups and checkbox/radio indicators: open/close presence, keyboard selection and Escape.
+   The Date Selector's day/month/quarter/half-year/year panels use keyed, out-in transitions.
 9. OS Reduce Motion on and off: compare CSS computed durations and keyboard usability.
 10. Mobile 360/390 px, desktop 1280 px, browser zoom 80%/100%/125%: no clipping.
 11. Virtualized 100+ transactions, slow Android hardware, fast repeated navigation and
     interrupted drawer gestures: watch for dropped frames, layout shifts and broken focus.
 
 The isolated Playwright smoke exercises computed route motion durations at normal/reduced
-preferences and verifies desktop settings navigation and nested AI/Security tab persistence. It does **not** validate
+preferences, checks selection-indicator CSS timing, and verifies desktop settings navigation
+and nested AI/Security tab persistence. It does **not** validate
 every component or real low-end Android GPU performance; those remain release gates.

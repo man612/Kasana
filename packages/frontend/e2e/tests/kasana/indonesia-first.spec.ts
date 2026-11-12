@@ -150,10 +150,23 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
           probe.remove();
           return Math.max(...durations);
         });
+      const readSelectionMotionSeconds = () =>
+        page.evaluate(() => {
+          const indicator = document.createElement('span');
+          indicator.className = 'kasana-selection-indicator';
+          indicator.dataset.state = 'checked';
+          document.body.appendChild(indicator);
+          const duration = getComputedStyle(indicator).animationDuration.trim();
+          indicator.remove();
+          const number = Number.parseFloat(duration);
+          return duration.endsWith('ms') ? number / 1000 : number;
+        });
       await page.emulateMedia({ reducedMotion: 'no-preference' });
       expect(await readRouteMotionSeconds()).toBeGreaterThan(0.1);
+      expect(await readSelectionMotionSeconds()).toBeGreaterThan(0.1);
       await page.emulateMedia({ reducedMotion: 'reduce' });
       expect(await readRouteMotionSeconds()).toBeLessThan(0.005);
+      expect(await readSelectionMotionSeconds()).toBeLessThan(0.005);
       await page.emulateMedia({ reducedMotion: 'no-preference' });
 
       // On desktop, navigating between settings sections must keep the parent
