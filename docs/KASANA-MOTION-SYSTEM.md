@@ -61,6 +61,33 @@ scrollable infinite lists, or screen-sized layouts without profiling.
   loading, financial totals that must remain legible, and destructive confirmation states
   where movement would distract from the consequence.
 
+## Modal sizing and calendar popup audit — November 12
+
+The shared Reka popover previously imposed a fixed **36rem (576px)** maximum height,
+even on a large display with more available space. It now uses
+`--reka-popover-content-available-height` and the dynamic viewport instead.
+This prevents unnecessary internal scrolling when a calendar can fit, while
+allowing scrolling on short viewports and respecting Floating UI's collision
+positioning. The transaction date popover also uses smaller padding/offset.
+Source: [Reka Popover sizing](https://reka-ui.com/docs/components/popover).
+
+On desktop, small changes to an open dialog's intrinsic height are eased with
+`ResizeObserver` and the native Web Animations API. Observing the **dialog shell**,
+rather than changing its child layout, leaves footer buttons, existing scroll
+areas, and Reka's focus trap untouched. Large layout jumps, viewport-capped
+dialogs, initial mount and OS reduced-motion bypass the animation. No new
+animation dependency was introduced. Sources:
+[MDN ResizeObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver),
+[MDN interpolate-size limitations](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/interpolate-size),
+[WAI-ARIA modal guidance](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/).
+
+New regression coverage includes unit checks for dialog height and reduced motion,
+along with Chromium geometry assertions for the transaction calendar, dialog
+submit button, and actual horizontal movement of the selected AI tab indicator.
+A successful synthetic browser run is still **not** physical-device visual QA.
+Check the 360px/390px drawer, desktop 768px/1280px, browser zoom, keyboard and
+real touch behavior separately before merging.
+
 ## Verification map
 
 1. Auth -> dashboard and back: shell fade, correct focus and authentication redirects.

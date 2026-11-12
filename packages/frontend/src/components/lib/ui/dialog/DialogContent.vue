@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/lib/ui/button';
 import { useDescribedByAttrs } from '@/components/lib/ui/dialog/described-by';
+import { vAnimateDialogHeight } from '@/composable/animate-dialog-height';
 import { cn } from '@/lib/utils';
 import { X } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
@@ -46,6 +47,7 @@ const describedByAttrs = useDescribedByAttrs();
       ]"
     />
     <DialogContent
+      v-animate-dialog-height
       v-bind="{ ...forwarded, ...describedByAttrs }"
       :class="
         cn(

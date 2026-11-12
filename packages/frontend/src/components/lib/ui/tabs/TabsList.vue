@@ -25,6 +25,7 @@ provide(TabsVariantKey, variant);
   >
     <slot />
     <TabsIndicator
+      data-testid="kasana-active-tab-indicator"
       :class="
         cn(
           'pointer-events-none absolute left-0 transition-[width,transform] duration-200 ease-out motion-reduce:transition-none',

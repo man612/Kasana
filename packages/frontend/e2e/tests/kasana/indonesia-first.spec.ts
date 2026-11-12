@@ -210,9 +210,15 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await aiTabs.evaluate((node) => {
         node.dataset.kasanaTabsPersist = 'true';
       });
+      const aiIndicator = aiTabs.getByTestId('kasana-active-tab-indicator');
+      await expect(aiIndicator).toBeVisible();
+      const aiIndicatorBefore = await aiIndicator.boundingBox();
+      expect(aiIndicatorBefore?.width).toBeGreaterThan(0);
       await aiTabs.locator('a[href="/settings/ai/models"]').click();
       await expect(page).toHaveURL(/\/settings\/ai\/models(?:\?.*)?$/);
       await expect(page.locator('[role="tablist"][data-kasana-tabs-persist="true"]')).toBeVisible();
+      // Verify physical position, not merely CSS class changes or selected tab text.
+      await expect.poll(async () => (await aiIndicator.boundingBox())?.x).not.toBe(aiIndicatorBefore?.x);
 
       await page.goto('/settings/security/login-methods');
       const securityTabs = page.getByRole('tablist').filter({
@@ -225,6 +231,39 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await securityTabs.locator('a[href="/settings/security/sessions"]').click();
       await expect(page).toHaveURL(/\/settings\/security\/sessions(?:\?.*)?$/);
       await expect(page.locator('[role="tablist"][data-kasana-tabs-persist="true"]')).toBeVisible();
+
+      // The transaction form has a native date input plus an anchored calendar.
+      // The popup must remain within the viewport, and the dialog's save action
+      // must remain visible outside the scrollable form region.
+      await page.setViewportSize({ width: 1280, height: 900 });
+      await page.goto('/dashboard');
+      const addTransaction = page.getByRole('button', { name: /Transaksi Baru|New transaction/i }).first();
+      await expect(addTransaction).toBeVisible();
+      await addTransaction.click();
+      const txDialog = page.getByRole('dialog').first();
+      await expect(txDialog).toBeVisible();
+      const saveTransaction = txDialog.getByRole('button', { name: /Buat transaksi|Create transaction/i });
+      await expect(saveTransaction).toBeVisible();
+      const footerBounds = await saveTransaction.boundingBox();
+      const dialogBounds = await txDialog.boundingBox();
+      expect(footerBounds).not.toBeNull();
+      expect(dialogBounds).not.toBeNull();
+      if (footerBounds && dialogBounds) {
+        expect(footerBounds.y + footerBounds.height).toBeLessThanOrEqual(dialogBounds.y + dialogBounds.height + 2);
+      }
+      await txDialog.getByTestId('date-field-calendar-trigger').first().click();
+      const txDatePopover = page.getByTestId('transaction-date-popover');
+      await expect(txDatePopover).toBeVisible();
+      const pickerBounds = await txDatePopover.boundingBox();
+      expect(pickerBounds).not.toBeNull();
+      if (pickerBounds) {
+        expect(pickerBounds.x).toBeGreaterThanOrEqual(-2);
+        expect(pickerBounds.x + pickerBounds.width).toBeLessThanOrEqual(1282);
+        expect(pickerBounds.y).toBeGreaterThanOrEqual(-2);
+        expect(pickerBounds.y + pickerBounds.height).toBeLessThanOrEqual(902);
+      }
+      await page.keyboard.press('Escape');
+      await expect(saveTransaction).toBeVisible();
     } finally {
       await api.dispose();
     }

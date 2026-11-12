@@ -60,13 +60,15 @@
               variant="ghost"
               size="icon"
               :disabled="disabled || !isPopoverAvailable"
+              :aria-label="label || $t('common.dateSelector.simpleTitle')"
+              data-testid="date-field-calendar-trigger"
             >
               <CalendarClockIcon class="size-5" />
             </Button>
           </Popover.PopoverTrigger>
         </div>
         <FieldError :error-message="errorMessage" />
-        <Popover.PopoverContent class="w-87.5">
+        <Popover.PopoverContent class="w-87.5 p-3" :side-offset="4" data-testid="transaction-date-popover">
           <Calendar v-model="localValue" v-bind="calendarOptions" :mode="mode" is24hr type="single" />
         </Popover.PopoverContent>
       </FieldLabel>
