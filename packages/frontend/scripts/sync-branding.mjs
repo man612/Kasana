@@ -47,7 +47,21 @@ for (const filename of [
   'skills/connect-kasana/SKILL.md',
 ]) {
   const file = path.join(dir, 'public', filename);
-  fs.writeFileSync(file, rename(fs.readFileSync(file, 'utf8')));
+  const source = fs.readFileSync(file, 'utf8');
+  // The MCP tool tables are generated from backend definitions; a display
+  // rename must never modify those rows or backend metadata tests will drift.
+  const begin = '<!-- BEGIN GENERATED TOOL TABLES: npm run mcp:generate-metadata -->';
+  const end = '<!-- END GENERATED TOOL TABLES -->';
+  let updated;
+  if (filename.includes('skills/connect-kasana/') && source.includes(begin) && source.includes(end)) {
+    const start = source.indexOf(begin) + begin.length;
+    const stop = source.indexOf(end, start);
+    updated = rename(source.slice(0, start)) + source.slice(start, stop) + rename(source.slice(stop));
+  } else {
+    updated = rename(source);
+  }
+  if (b.name.endsWith('.')) updated = updated.replaceAll(b.name + '.', b.name);
+  if (source !== updated) fs.writeFileSync(file, updated);
 }
 b.lastSyncedName = b.name;
 fs.writeFileSync(filename, JSON.stringify(b, null, 2) + '\n');
