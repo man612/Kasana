@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { reactiveOmit } from '@vueuse/core';
+import { reactiveOmit, usePreferredReducedMotion } from '@vueuse/core';
 import { CollapsibleContent, type CollapsibleContentProps } from 'reka-ui';
 import { nextTick } from 'vue';
 
 const props = defineProps<CollapsibleContentProps & { scrollIntoView?: boolean }>();
 const contentProps = reactiveOmit(props, 'scrollIntoView');
+const prefersReducedMotion = usePreferredReducedMotion();
 
 // Height animates from 0, so the content only has its real size once the open animation ends.
 const onAnimationEnd = (e: AnimationEvent) => {
@@ -14,7 +15,8 @@ const onAnimationEnd = (e: AnimationEvent) => {
 
   // Scrolling synchronously inside animationend is a no-op; it works one tick later.
   nextTick(() => {
-    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (!el.isConnected || el.dataset.state !== 'open') return;
+    el.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion.value ? 'auto' : 'smooth' });
   });
 };
 </script>

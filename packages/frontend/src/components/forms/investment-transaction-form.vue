@@ -368,8 +368,8 @@ const onSubmit = async () => {
         </span>
       </label>
 
-      <template v-if="useSettlement">
-        <div class="grid gap-4 px-4 pb-4">
+      <Transition name="kasana-feedback">
+        <div v-if="useSettlement" class="grid gap-4 px-4 pb-4">
           <div class="grid grid-cols-1 gap-4 @md:grid-cols-2">
             <SelectField
               v-model="form.settlementCurrency"
@@ -496,7 +496,7 @@ const onSubmit = async () => {
             </div>
           </template>
         </div>
-      </template>
+      </Transition>
     </div>
 
     <TextareaField

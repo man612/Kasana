@@ -7,7 +7,11 @@
 
     <CardContent class="mt-6 flex flex-col gap-6">
       <RouterTabs :items="tabs" />
-      <router-view />
+      <router-view v-slot="{ Component, route }">
+        <Transition name="kasana-section" mode="out-in">
+          <component :is="Component" :key="route.name ?? route.path" />
+        </Transition>
+      </router-view>
     </CardContent>
   </Card>
 </template>

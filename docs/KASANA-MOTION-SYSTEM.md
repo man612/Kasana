@@ -37,7 +37,9 @@ All values are in `packages/frontend/src/styles/global.css`:
 `kasana-section` handles nested routes. Dashboard uses the **matched parent route** as its
 key so moving between settings/analytics subpages doesn't destroy sidebar state.
 `kasana-tab-content` reveals active Reka tabs; `kasana-feedback` and `kasana-icon`
-animate short-lived messages and task completion states.
+animate short-lived messages and task completion states. Nested AI/Security tab routes use
+independent child keys so their parent tab bars stay mounted. Compact settings/analytics
+navigation uses `kasana-section` on its sidebar presence.
 
 `kasana-list` is an *opt-in* FLIP (First–Last–Invert–Play) transition for keyed DOM children.
 Tag and tracker lists use it only when the displayed collection has **40 or fewer** rows.
@@ -49,6 +51,7 @@ scrollable infinite lists, or screen-sized layouts without profiling.
 
 - The app honors OS `prefers-reduced-motion: reduce`: nonessential CSS motion lasts at
   most 0.01 ms; existing sliding panels also set duration to zero via VueUse.
+  Collapsible auto-scrolling uses instant behavior under this preference.
 - Never animate essential information so slowly that submitting, navigation, validation or
   keyboard focus is delayed. Do not animate focus rings out of view or move a dragged item
   using a generic hover/press transform.
@@ -67,12 +70,14 @@ scrollable infinite lists, or screen-sized layouts without profiling.
 4. Active tab content and underline/pill tabs: no double entrance or hidden/overlapping inputs.
 5. Scrollable dialogs, select, popover, drawers: open/close geometry, Escape, swipe, focus trap.
 6. Tag/tracker lists (empty, 1, 10, 40, 41+ rows): responsive insert/remove/reorder.
-7. Form validation and Quick Start task completion: legible immediate feedback.
-8. OS Reduce Motion on and off: compare CSS computed durations and keyboard usability.
-9. Mobile 360/390 px, desktop 1280 px, browser zoom 80%/100%/125%: no clipping.
-10. Virtualized 100+ transactions, slow Android hardware, fast repeated navigation and
+7. Form validation, transaction optional fields, investment settlement panels and Quick Start
+   task completion: legible immediate feedback without disrupting focus.
+8. Combobox popups and checkbox/radio indicators: open/close presence, keyboard selection and Escape.
+9. OS Reduce Motion on and off: compare CSS computed durations and keyboard usability.
+10. Mobile 360/390 px, desktop 1280 px, browser zoom 80%/100%/125%: no clipping.
+11. Virtualized 100+ transactions, slow Android hardware, fast repeated navigation and
     interrupted drawer gestures: watch for dropped frames, layout shifts and broken focus.
 
 The isolated Playwright smoke exercises computed route motion durations at normal/reduced
-preferences and verifies desktop settings navigation persistence. It does **not** validate
+preferences and verifies desktop settings navigation and nested AI/Security tab persistence. It does **not** validate
 every component or real low-end Android GPU performance; those remain release gates.

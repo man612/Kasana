@@ -170,6 +170,31 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await settingsNavigation.locator('a[href="/settings/general"]').click();
       await expect(page).toHaveURL(/\/settings\/general(?:\?.*)?$/);
       await expect(page.locator('nav[data-kasana-nav-persist="true"]')).toBeVisible();
+\n      // Switching the nested AI/Security tabs should not recreate their parent tab bar.
+      // The child view is keyed independently from the persistent Settings shell.
+      await page.goto('/settings/ai/features');
+      const aiTabs = page.getByRole('tablist').filter({
+        has: page.locator('a[href="/settings/ai/models"]'),
+      });
+      await expect(aiTabs).toBeVisible();
+      await aiTabs.evaluate((node) => {
+        node.dataset.kasanaTabsPersist = 'true';
+      });
+      await aiTabs.locator('a[href="/settings/ai/models"]').click();
+      await expect(page).toHaveURL(/\/settings\/ai\/models(?:\?.*)?$/);
+      await expect(page.locator('[role="tablist"][data-kasana-tabs-persist="true"]')).toBeVisible();
+
+      await page.goto('/settings/security/login-methods');
+      const securityTabs = page.getByRole('tablist').filter({
+        has: page.locator('a[href="/settings/security/sessions"]'),
+      });
+      await expect(securityTabs).toBeVisible();
+      await securityTabs.evaluate((node) => {
+        node.dataset.kasanaTabsPersist = 'true';
+      });
+      await securityTabs.locator('a[href="/settings/security/sessions"]').click();
+      await expect(page).toHaveURL(/\/settings\/security\/sessions(?:\?.*)?$/);
+      await expect(page.locator('[role="tablist"][data-kasana-tabs-persist="true"]')).toBeVisible();
     } finally {
       await api.dispose();
     }
