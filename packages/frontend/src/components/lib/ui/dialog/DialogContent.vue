@@ -16,6 +16,9 @@ import {
 } from 'reka-ui';
 import { type HTMLAttributes, computed } from 'vue';
 
+// Fallthrough attributes belong to the actual dialog element, not its Portal.
+defineOptions({ inheritAttrs: false });
+
 const { t } = useI18n();
 
 const props = defineProps<
@@ -51,7 +54,7 @@ const describedByAttrs = useDescribedByAttrs();
     />
     <DialogContent
       v-animate-dialog-height
-      v-bind="{ ...forwarded, ...describedByAttrs }"
+      v-bind="{ ...forwarded, ...describedByAttrs, ...$attrs }"
       :class="
         cn(
           'bg-dialog fixed top-1/2 left-1/2 z-(--z-dialog) flex max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col border p-6 shadow-lg duration-200 sm:rounded-lg',
