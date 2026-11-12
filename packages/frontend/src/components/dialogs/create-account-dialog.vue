@@ -33,7 +33,7 @@ const onAccountCreation = () => {
 
     <template #title> {{ $t('common.dialogs.createAccount') }} </template>
 
-    <CreateAccountForm ref="formRef" :form-id="formId" @created="onAccountCreation" />
+    <CreateAccountForm ref="formRef" :form-id="formId" :show-submit-button="false" @created="onAccountCreation" />
 
     <template #footer>
       <UiButton type="submit" :form="formId" class="ml-auto min-w-30" :disabled="formRef?.isSubmitting">

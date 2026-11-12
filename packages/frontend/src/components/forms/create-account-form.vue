@@ -35,7 +35,7 @@ import { useRoute } from 'vue-router';
 
 const AddCurrencyDialog = defineAsyncComponent(() => import('@/components/dialogs/add-currency-dialog.vue'));
 
-const props = defineProps<{ formId?: string }>();
+const props = defineProps<{ formId?: string; showSubmitButton?: boolean }>();
 const emit = defineEmits(['created']);
 
 const { t } = useI18n();
@@ -278,6 +278,15 @@ const submit = async () => {
       </template>
     </FormattedAmountField>
 
-    <!-- Action belongs in ResponsiveDialog's fixed footer, outside the scrolling form. -->
+    <!-- Keep the form reusable standalone; the dialog renders its action in a non-scrolling footer. -->
+    <div v-if="props.showSubmitButton !== false" class="flex">
+      <ui-button type="submit" class="ml-auto min-w-30" :disabled="createAccountMutation.isPending.value">
+        {{
+          createAccountMutation.isPending.value
+            ? $t('forms.createAccount.submitButtonLoading')
+            : $t('forms.createAccount.submitButton')
+        }}
+      </ui-button>
+    </div>
   </form>
 </template>
