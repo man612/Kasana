@@ -82,9 +82,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         expect(viewportGeometry.shellRight, 'Dashboard shell must fill viewport width').toBeGreaterThanOrEqual(389);
         expect(viewportGeometry.shellBottom, 'Dashboard shell must fill viewport height').toBeGreaterThanOrEqual(843);
 
-        await expect(
-          deepLink.getByRole('button', { name: /Buka menu navigasi|Open navigation menu/i }),
-        ).toBeVisible();
+        await expect(deepLink.getByRole('button', { name: /Buka menu navigasi|Open navigation menu/i })).toBeVisible();
 
         await back.click();
         await expect(deepLink).toHaveURL(/\/accounts(?:\?.*)?$/);
@@ -98,12 +96,27 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       const accents = page.getByRole('group', { name: /Warna aksen|Accent color/i });
       await expect(accents).toBeVisible();
       await expect(accents.getByRole('button', { name: /Ungu|Purple/i })).toHaveAttribute('aria-pressed', 'true');
+      const accentSaved = page.waitForResponse(
+        (response) =>
+          response.request().method() === 'PATCH' &&
+          response.url().includes('/api/v1/user/settings') &&
+          response.status() === 200,
+      );
       await accents.getByRole('button', { name: /Hijau|Green/i }).click();
+      await accentSaved;
       await expect(accents.getByRole('button', { name: /Hijau|Green/i })).toHaveAttribute('aria-pressed', 'true');
-      expect(await page.evaluate(() => localStorage.getItem('kasana-accent'))).toBe('green');
+      const perAccountAccents = await page.evaluate(() =>
+        Object.keys(localStorage)
+          .filter((key) => key.startsWith('kasana-accent:user:'))
+          .map((key) => localStorage.getItem(key)),
+      );
+      expect(perAccountAccents).toContain('green');
       await page.reload();
       const restoredAccents = page.getByRole('group', { name: /Warna aksen|Accent color/i });
-      await expect(restoredAccents.getByRole('button', { name: /Hijau|Green/i })).toHaveAttribute('aria-pressed', 'true');
+      await expect(restoredAccents.getByRole('button', { name: /Hijau|Green/i })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
       await restoredAccents.getByRole('button', { name: /Ungu|Purple/i }).click();
 
       // A portal is expected, but the dropdown must still visually touch its
@@ -173,9 +186,12 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       // navigator mounted. The former dashboard route.path key re-created it.
       await page.setViewportSize({ width: 1280, height: 800 });
       await page.goto('/settings/appearance');
-      const settingsNavigation = page.locator('nav').filter({
-        has: page.locator('a[href="/settings/general"]'),
-      }).first();
+      const settingsNavigation = page
+        .locator('nav')
+        .filter({
+          has: page.locator('a[href="/settings/general"]'),
+        })
+        .first();
       await expect(settingsNavigation).toBeVisible();
       await settingsNavigation.evaluate((node) => {
         node.dataset.kasanaNavPersist = 'true';
