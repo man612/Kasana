@@ -170,7 +170,8 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await settingsNavigation.locator('a[href="/settings/general"]').click();
       await expect(page).toHaveURL(/\/settings\/general(?:\?.*)?$/);
       await expect(page.locator('nav[data-kasana-nav-persist="true"]')).toBeVisible();
-\n      // Switching the nested AI/Security tabs should not recreate their parent tab bar.
+
+      // Switching the nested AI/Security tabs should not recreate their parent tab bar.
       // The child view is keyed independently from the persistent Settings shell.
       await page.goto('/settings/ai/features');
       const aiTabs = page.getByRole('tablist').filter({
