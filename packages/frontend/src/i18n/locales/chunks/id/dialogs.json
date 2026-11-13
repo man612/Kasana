@@ -100,7 +100,7 @@
         "selectTransfer": "Pilih transfer",
         "expenseHint": "Uang keluar untuk belanja, tagihan, atau pembayaran kepada pihak lain.",
         "incomeHint": "Uang dari luar masuk, misalnya gaji, honor, hadiah, atau hasil jualan.",
-        "transferHint": "Pindahkan dana antarrekening sendiri atau ke aset yang dilacak. Kirim ke orang lain sebagai pembayaran dicatat sebagai Pengeluaran."
+        "transferHint": "Pindahkan uang antarrekening sendiri. Bayar orang lain? Gunakan Pengeluaran."
       },
       "recordList": {},
       "form": {
@@ -292,8 +292,21 @@
             "planned": "Transaksi terjadwal tidak dapat ditautkan",
             "differentType": "Jenis transaksi berbeda",
             "submit": "Tautkan {count} transaksi"
-          }
-        }
+          },
+          "amountLockedHint": "Jumlah utama dihitung otomatis dari tiap rekening. Ubah nominal pada bagian rekening yang dibagi, bukan di kolom ini."
+        },
+        "targetAmountHelp": "Jumlah yang masuk ke tujuan. Contoh: transfer Rp100.000 ke rekening rupiah berarti target Rp100.000. Untuk beda mata uang, isi jumlah yang benar-benar diterima setelah kurs/biaya.",
+        "externalUrlPaste": "Tempel tautan dari clipboard",
+        "externalUrlCopy": "Salin tautan",
+        "externalUrlClear": "Kosongkan tautan",
+        "externalUrlClearTitle": "Hapus tautan dari formulir?",
+        "externalUrlClearDescription": "Tautan yang sudah diisi akan dikosongkan. Perubahan transaksi belum disimpan.",
+        "externalUrlCopied": "Tautan disalin.",
+        "externalUrlClipboardFailed": "Clipboard tidak bisa diakses. Coba salin atau tempel manual.",
+        "requiredSubmitHelp": "Masih ada kolom wajib yang belum diisi. Klik Buat untuk menampilkan petunjuk pada kolom tersebut.",
+        "discardAction": "Buang perubahan",
+        "discardTitle": "Tutup tanpa menyimpan?",
+        "discardDetails": "Isian transaksi yang sudah diubah akan hilang. Pilih Tetap Mengedit jika ingin melanjutkan, atau Buang Perubahan untuk menutup tanpa menyimpan."
       },
       "refundRecordsList": {
         "filtersDialogTitle": "Pilih filter",
@@ -504,7 +517,28 @@
           "create": "Tidak dapat menyimpan templat. Silakan coba lagi.",
           "update": "Tidak dapat memperbarui templat. Silakan coba lagi.",
           "delete": "Tidak dapat menghapus templat. Silakan coba lagi."
-        }
+        },
+        "dialogTitle": "Templat transaksi",
+        "dialogScenario": "Templat menyimpan pola transaksi yang sering berulang agar tidak perlu mengisi formulir dari awal. Contoh: belanja bulanan atau pembayaran parkir. “Simpan yang sekarang” menggunakan isian formulir ini; “Templat baru” membuat pola dari awal. Templat tidak langsung membuat transaksi dan tidak menggantikan transaksi terencana."
+      },
+      "paymentMethodHelp": {
+        "title": "Metode pembayaran atau penerimaan",
+        "overview": "Ini menjelaskan cara uang dibayar atau diterima, bukan rekening mana yang dipakai. Contoh: QRIS bisa memotong saldo bank maupun dompet digital; pilih sumber saldonya di kolom Akun. Memindahkan uang antarrekening sendiri termasuk Transfer, bukan Pengeluaran.",
+        "placeholder": "Pilih metode",
+        "learnMore": "Penjelasan {name}",
+        "qris": "Pindai QRIS lewat aplikasi bank atau dompet digital. Sumber dana ditentukan dari rekening pada kolom Akun.",
+        "bankTransfer": "Bayar ke pihak lain lewat transfer bank. Memindahkan uang antar rekening milik sendiri gunakan mode Transfer.",
+        "eWallet": "Bayar atau terima uang melalui DANA, GoPay, OVO, ShopeePay, dan sejenisnya.",
+        "cash": "Uang tunai berupa uang kertas atau logam yang dibayarkan atau diterima langsung.",
+        "debitCard": "Bayar dengan kartu debit; saldo biasanya langsung terpotong dari rekening bank.",
+        "creditCard": "Bayar dengan kartu kredit; bisa menimbulkan tagihan yang harus dibayar kemudian.",
+        "virtualAccount": "Bayar tagihan menggunakan nomor Virtual Account khusus; sumber dana bisa tetap rekening bank biasa.",
+        "emoneyCard": "Bayar dengan menempel kartu e-Money, Flazz, TapCash, dan sejenisnya; menggunakan saldo kartu.",
+        "autoDebit": "Tagihan dibayar otomatis dari rekening sesuai izin yang sudah diberikan.",
+        "payLater": "Pembayaran ditunda atau dicicil melalui layanan seperti SPayLater atau Kredivo; utangnya tetap perlu dicatat jika dilacak.",
+        "mobilePayment": "Pembayaran lewat aplikasi seluler lain yang tidak masuk QRIS atau dompet digital.",
+        "webPayment": "Pembayaran melalui layanan checkout online lain yang tidak termasuk metode di atas.",
+        "voucher": "Bayar dengan voucher, saldo hadiah, atau instrumen diskon dari penyedia layanan."
       }
     },
     "portfolioTransfer": {

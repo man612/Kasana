@@ -239,7 +239,7 @@ const props = defineProps<{
   selectedPeriod: { from: Date; to: Date };
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 type BalanceTypeValue = 'total' | 'accounts' | 'portfolios' | 'ventures' | 'vehicles' | 'loans';
 type BalanceTypeOption = { value: BalanceTypeValue; label: string };
@@ -811,7 +811,8 @@ const getColors = () => {
   return { grid, text, primary };
 };
 
-const formatAxisValue = (value: number) => formatAxisCurrency({ value, symbol: getCurrencySymbol() });
+const formatAxisValue = (value: number, step?: number) =>
+  formatAxisCurrency({ value, symbol: getCurrencySymbol(), currencyCode: baseCurrency.value?.currency?.code, step });
 
 const renderChart = () => {
   if (!svgRef.value || !containerRef.value || chartData.value.length === 0) return;
@@ -824,12 +825,18 @@ const renderChart = () => {
   const height = containerRef.value.clientHeight;
   const isMobile = width < 500;
 
-  // Increased margins: more space at bottom for x-axis, right for last label
+  // Size the margin from translated Y-labels to prevent clipping the Rp prefix.
+  const [dataMin = 0, dataMax = 0] = d3.extent(chartData.value, (item) => item.value);
+  const approxTickStep = Math.max(1, (dataMax - dataMin) / 4 || 500);
+  const longestLabel = Math.max(
+    6,
+    ...[dataMin, dataMin + approxTickStep, dataMax].map((value) => formatAxisValue(value, approxTickStep).length),
+  );
   const margin = {
     top: 10,
     right: isMobile ? 30 : 40,
     bottom: 35,
-    left: isMobile ? 40 : 48,
+    left: Math.min(Math.max(isMobile ? 56 : 64, Math.ceil(longestLabel * 6.5 + 16)), width * 0.4),
   };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -935,7 +942,7 @@ const renderChart = () => {
         .tickSize(6)
         .tickFormat((d) => {
           const date = new Date(d as number);
-          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          return date.toLocaleDateString(locale.value, { month: 'short', day: 'numeric' });
         }),
     )
     .call((axis) => {
@@ -951,7 +958,7 @@ const renderChart = () => {
       d3
         .axisLeft(yScale)
         .tickValues(yTickValues)
-        .tickFormat((d) => formatAxisValue(d as number)),
+        .tickFormat((d) => formatAxisValue(d as number, yTickStep)),
     )
     .call((axis) => {
       axis.select('.domain').remove();

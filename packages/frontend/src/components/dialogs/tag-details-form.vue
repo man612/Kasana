@@ -5,8 +5,12 @@
       :label="$t('settings.tags.form.name')"
       :placeholder="$t('settings.tags.form.namePlaceholder')"
       autofocus
+      :disabled="isCoreTag"
     />
 
+    <p v-if="isCoreTag" class="text-muted-foreground text-xs leading-relaxed">
+      {{ $t('settings.tags.defaultTagHint') }}
+    </p>
     <div class="grid grid-cols-2 gap-4">
       <ColorSelectField v-model="form.color" :label="$t('settings.tags.form.color')" />
 
@@ -63,7 +67,7 @@
     />
 
     <div class="mt-2 flex items-center" :class="isEditMode ? 'justify-between' : 'justify-end'">
-      <AlertDialog v-if="isEditMode">
+      <AlertDialog v-if="isEditMode && !isCoreTag">
         <AlertDialogTrigger as-child>
           <Button type="button" variant="destructive" :disabled="isSubmitting">
             {{ $t('common.actions.delete') }}
@@ -114,11 +118,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/pop
 import { cn } from '@/lib/utils';
 import { TagModel } from '@bt/shared/types';
 import { ChevronsUpDownIcon } from '@lucide/vue';
-import { defineAsyncComponent, ref } from 'vue';
+import { defineAsyncComponent, ref, computed } from 'vue';
+import { isCoreTagName } from '@/common/const/indonesian-tag-suggestions';
 
 const IconPickerDropdown = defineAsyncComponent(() => import('@/components/common/icons/icon-picker-dropdown.vue'));
 
-defineProps<{
+const props = defineProps<{
   form: {
     name: string;
     color: string;
@@ -137,4 +142,5 @@ defineEmits<{
 }>();
 
 const iconPickerOpen = ref(false);
+const isCoreTag = computed(() => !!props.tag && isCoreTagName(props.tag.name));
 </script>

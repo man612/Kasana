@@ -534,6 +534,41 @@
   background: var(--app-scrollbar-track);
 }
 
+/* Lajur calendar: soft selection feedback and stable 36px touch targets.
+   The library handles month slide motion; keep the selected-day motion separate. */
+[data-testid='transaction-date-dialog'] .vc-day-content {
+  border-radius: 0.65rem;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-testid='transaction-date-dialog'] .vc-day-content:hover:not(.vc-disabled) {
+  transform: scale(1.06);
+}
+[data-testid='transaction-date-dialog'] .vc-day:has(.vc-highlight) .vc-day-content {
+  animation: lajur-calendar-selected 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+[data-testid='transaction-date-dialog'] .vc-highlight {
+  border-radius: 0.65rem !important;
+}
+@keyframes lajur-calendar-selected {
+  from {
+    transform: scale(0.84);
+    opacity: 0.65;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-testid='transaction-date-dialog'] .vc-day-content {
+    transition: none;
+    animation: none !important;
+  }
+}
+
 /* Payee, account and payment-leg regions exit/enter independently.
    Does not discard reactive form state or change financial values. */
 .lajur-form-panel-enter-active,

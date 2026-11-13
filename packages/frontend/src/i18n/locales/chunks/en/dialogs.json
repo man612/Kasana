@@ -100,7 +100,7 @@
         "selectTransfer": "Select transfer",
         "expenseHint": "Money leaving an account for purchases, bills, or payments to someone else.",
         "incomeHint": "Money received from outside, such as salary, freelance fees, gifts, or sales.",
-        "transferHint": "Move money between your own accounts or tracked assets. Paying someone else is an expense."
+        "transferHint": "Move funds between your own accounts. Paying someone else is an expense."
       },
       "recordList": {},
       "form": {
@@ -292,8 +292,21 @@
             "planned": "Planned transactions can't be linked",
             "differentType": "Different type from this transaction",
             "submit": "Link {count} transaction | Link {count} transactions"
-          }
-        }
+          },
+          "amountLockedHint": "The main total is calculated from each account amount. Edit the amounts in the multiple-account section instead of this field."
+        },
+        "targetAmountHelp": "Amount received at the destination. For example, a transfer of 100,000 IDR to another IDR account has a target of 100,000 IDR. For different currencies, enter the amount actually received after conversion and fees.",
+        "externalUrlPaste": "Paste link from clipboard",
+        "externalUrlCopy": "Copy link",
+        "externalUrlClear": "Clear link",
+        "externalUrlClearTitle": "Clear the link?",
+        "externalUrlClearDescription": "The current link will be cleared. The transaction has not been saved yet.",
+        "externalUrlCopied": "Link copied.",
+        "externalUrlClipboardFailed": "Clipboard access is unavailable. Copy or paste manually instead.",
+        "requiredSubmitHelp": "Some required fields are missing. Click Create to show the missing-field messages.",
+        "discardAction": "Discard changes",
+        "discardTitle": "Close without saving?",
+        "discardDetails": "Any transaction details you have entered will be lost. Keep editing to continue, or discard changes to close without saving."
       },
       "refundRecordsList": {
         "filtersDialogTitle": "Select filters",
@@ -504,7 +517,28 @@
           "create": "Couldn't save the template. Please try again.",
           "update": "Couldn't update the template. Please try again.",
           "delete": "Couldn't delete the template. Please try again."
-        }
+        },
+        "dialogTitle": "Transaction templates",
+        "dialogScenario": "Templates remember details for transactions you enter repeatedly, such as groceries or parking. “Save current” uses the form you have filled; “New template” starts a pattern from scratch. A template does not create a transaction automatically and is not a scheduled transaction."
+      },
+      "paymentMethodHelp": {
+        "title": "Payment or receipt method",
+        "overview": "This describes how money moves, not which account the amount belongs to. QRIS, for instance, may debit a bank account or e-wallet. Choose the account separately. Moving funds between your own accounts is a Transfer, not an Expense.",
+        "placeholder": "Choose a method",
+        "learnMore": "How does {name} work?",
+        "qris": "Scan a QRIS code in a bank app or e-wallet. The funding account is chosen in the Account field.",
+        "bankTransfer": "Pay another party through a bank transfer. For moving between your own accounts, use Transfer instead.",
+        "eWallet": "Pay or receive money using an e-wallet such as DANA, GoPay, OVO, or ShopeePay.",
+        "cash": "Pay or receive physical banknotes and coins.",
+        "debitCard": "Pay with a debit card, usually charged directly against a bank account.",
+        "creditCard": "Pay with a credit card; the charge may create a debt to repay later.",
+        "virtualAccount": "Pay a bill using its dedicated virtual-account number; the money may come from a regular bank account.",
+        "emoneyCard": "Tap a stored-value card such as e-Money, Flazz, or TapCash; the card balance is the source.",
+        "autoDebit": "A bill is charged automatically to an account by a merchant or service.",
+        "payLater": "Pay through a digital installment or deferred-payment service; track the liability separately if needed.",
+        "mobilePayment": "Other mobile-app payment methods not covered by QRIS or e-wallet.",
+        "webPayment": "Other online checkout payments not covered by other methods.",
+        "voucher": "A merchant voucher, gift credit, or discount instrument used for payment."
       }
     },
     "portfolioTransfer": {

@@ -26,7 +26,7 @@
                   :key="tag.id"
                   class="group inline-flex cursor-pointer items-center justify-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white transition-opacity hover:opacity-80"
                   :style="{ backgroundColor: tag.color }"
-                  @click.stop="toggleTag(tag)"
+                  @click.stop="requestTagToggle(tag)"
                 >
                   <XIcon class="absolute hidden size-3 group-hover:block" />
                   <span class="inline-flex items-center gap-1 group-hover:invisible">
@@ -46,7 +46,7 @@
                   @focus="isOpen = true"
                   @keydown.up.down.home.end="hasNavigated = true"
                   @keydown.enter.prevent
-                  @keydown.backspace="!searchQuery && selectedTags.at(-1) && toggleTag(selectedTags.at(-1)!)"
+                  @keydown.backspace="!searchQuery && selectedTags.at(-1) && requestTagToggle(selectedTags.at(-1)!)"
                 />
               </div>
               <span class="-m-2 shrink-0 p-2" aria-hidden="true" @click.stop="toggleList">
@@ -77,7 +77,7 @@
                   class="group responsive data-highlighted:ring-ring inline-flex cursor-pointer items-center justify-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white transition-opacity data-highlighted:opacity-90 data-highlighted:ring-2 data-[state=checked]:opacity-50 data-[state=checked]:data-highlighted:opacity-100"
                   :style="{ backgroundColor: tag.color }"
                   @mousedown.prevent
-                  @select="toggleTag(tag)"
+                  @select="requestTagToggle(tag)"
                 >
                   <template v-if="isSelected(tag.id)">
                     <XIcon class="absolute hidden size-3 group-hover:block" />
@@ -96,7 +96,8 @@
             <div v-if="recommendedTags.length" class="border-border mt-3 border-t pt-3">
               <p class="text-foreground text-xs font-semibold">Saran tag Indonesia</p>
               <p class="text-muted-foreground mt-0.5 mb-2 text-xs">
-                Pilih untuk membuat dan menggunakan tag. Tidak ditambahkan otomatis.
+                Pilih untuk menambah. Tag tambahan bisa dihapus melalui Pengaturan → Tag, sedangkan tiga tag utama tetap
+                tersedia.
               </p>
               <div class="flex flex-wrap gap-1.5">
                 <button
@@ -121,12 +122,25 @@
         </Popover>
       </ListboxRoot>
     </FieldLabel>
+    <ResponsiveAlertDialog
+      v-model:open="isUnselectConfirmOpen"
+      :confirm-label="$t('fields.tagSelect.removeConfirmAction')"
+      confirm-variant="destructive"
+      @confirm="confirmTagUnselect"
+      @cancel="pendingTagUnselect = null"
+    >
+      <template #title>{{ $t('fields.tagSelect.removeConfirmTitle') }}</template>
+      <template #description>{{
+        $t('fields.tagSelect.removeConfirmDetail', { name: pendingTagUnselect?.name })
+      }}</template>
+    </ResponsiveAlertDialog>
     <FieldError :error-message="errorMessage" />
   </div>
 </template>
 
 <script setup lang="ts">
 import TagIcon from '@/components/common/icons/tag-icon.vue';
+import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import { availableTagSuggestions, type TagSuggestion } from '@/common/const/indonesian-tag-suggestions';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
@@ -223,6 +237,22 @@ const selectedTags = computed(() => {
 });
 
 const placeholder = computed(() => props.placeholder ?? t('fields.tagSelect.placeholder'));
+const pendingTagUnselect = ref<TagModel | null>(null);
+const isUnselectConfirmOpen = ref(false);
+const requestTagToggle = (tag: TagModel) => {
+  if (props.disabled) return;
+  if (!selectedTagIds.value.has(tag.id)) {
+    toggleTag(tag);
+    return;
+  }
+  pendingTagUnselect.value = tag;
+  isOpen.value = false;
+  isUnselectConfirmOpen.value = true;
+};
+const confirmTagUnselect = () => {
+  if (pendingTagUnselect.value) toggleTag(pendingTagUnselect.value);
+  pendingTagUnselect.value = null;
+};
 
 // Focusing the input is what opens the list.
 defineExpose({ open: focusInput });

@@ -40,3 +40,8 @@ export function availableTagSuggestions(existing: readonly string[], search: str
     (item) => !names.has(normalized(item.name)) && normalized(item.name).includes(query),
   );
 }
+
+/** Core account tags are always available. User-created recommendations remain removable. */
+export const CORE_TAG_NAMES = ['Keinginan', 'Kebutuhan', 'Prioritas'] as const;
+export const isCoreTagName = (name: string): boolean =>
+  CORE_TAG_NAMES.some((item) => item.toLocaleLowerCase('id-ID') === name.trim().toLocaleLowerCase('id-ID'));

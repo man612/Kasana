@@ -30,7 +30,7 @@
 
       <form-row>
         <DestinationPanel :label="$t('dialogs.manageTransaction.form.destinationGroupLabel')">
-          <form-row>
+          <form-row class="bg-dialog sticky top-0 z-5 pb-1">
             <PillTabs
               :model-value="destinationType"
               :items="destinationTypeItems"
@@ -41,64 +41,66 @@
             />
           </form-row>
 
-          <form-row v-if="destinationType === 'account'">
-            <AccountSelectField
-              :label="$t('dialogs.manageTransaction.form.toAccountLabel')"
-              :placeholder="$t('dialogs.manageTransaction.form.selectAccountPlaceholder')"
-              :accounts="filteredAccounts"
-              :include-out-of-wallet="account?.id !== OUT_OF_WALLET_ACCOUNT_MOCK.id"
-              :disabled="disabled || toAccountDisabled"
-              :model-value="toAccount"
-              @update:model-value="updateToAccount"
-            >
-              <template v-if="toAccount?.id === OUT_OF_WALLET_ACCOUNT_MOCK.id" #label-right>
-                <DocsLink :path="OUT_OF_WALLET_DOCS_PATH" class="text-xs">
-                  {{ $t('dialogs.manageTransaction.form.outOfWalletDocsLink') }}
-                </DocsLink>
-              </template>
-              <template #select-bottom-content>
-                <CreateAccountDialog>
-                  <UiButton type="button" class="w-full justify-start" variant="ghost-primary" size="sm">
-                    <PlusIcon class="size-4" />
-                    {{ $t('dialogs.manageTransaction.form.addNewAccountButton') }}
-                  </UiButton>
-                </CreateAccountDialog>
-              </template>
-            </AccountSelectField>
-          </form-row>
+          <Transition name="lajur-form-panel" mode="out-in">
+            <form-row v-if="destinationType === 'account'" key="account">
+              <AccountSelectField
+                :label="$t('dialogs.manageTransaction.form.toAccountLabel')"
+                :placeholder="$t('dialogs.manageTransaction.form.selectAccountPlaceholder')"
+                :accounts="filteredAccounts"
+                :include-out-of-wallet="account?.id !== OUT_OF_WALLET_ACCOUNT_MOCK.id"
+                :disabled="disabled || toAccountDisabled"
+                :model-value="toAccount"
+                @update:model-value="updateToAccount"
+              >
+                <template v-if="toAccount?.id === OUT_OF_WALLET_ACCOUNT_MOCK.id" #label-right>
+                  <DocsLink :path="OUT_OF_WALLET_DOCS_PATH" class="text-xs">
+                    {{ $t('dialogs.manageTransaction.form.outOfWalletDocsLink') }}
+                  </DocsLink>
+                </template>
+                <template #select-bottom-content>
+                  <CreateAccountDialog>
+                    <UiButton type="button" class="w-full justify-start" variant="ghost-primary" size="sm">
+                      <PlusIcon class="size-4" />
+                      {{ $t('dialogs.manageTransaction.form.addNewAccountButton') }}
+                    </UiButton>
+                  </CreateAccountDialog>
+                </template>
+              </AccountSelectField>
+            </form-row>
 
-          <form-row v-else-if="destinationType === 'portfolio'">
-            <select-field
-              :label="$t('dialogs.manageTransaction.form.toPortfolioLabel')"
-              :placeholder="
-                portfolios.length
-                  ? $t('dialogs.manageTransaction.form.selectPortfolioPlaceholder')
-                  : $t('dialogs.manageTransaction.form.noPortfoliosExist')
-              "
-              :values="portfolios"
-              label-key="name"
-              value-key="id"
-              with-search
-              :disabled="disabled || toAccountDisabled || !portfolios.length"
-              :model-value="toPortfolio"
-              @update:model-value="updateToPortfolio"
-            />
-          </form-row>
+            <form-row v-else-if="destinationType === 'portfolio'" key="portfolio">
+              <select-field
+                :label="$t('dialogs.manageTransaction.form.toPortfolioLabel')"
+                :placeholder="
+                  portfolios.length
+                    ? $t('dialogs.manageTransaction.form.selectPortfolioPlaceholder')
+                    : $t('dialogs.manageTransaction.form.noPortfoliosExist')
+                "
+                :values="portfolios"
+                label-key="name"
+                value-key="id"
+                with-search
+                :disabled="disabled || toAccountDisabled || !portfolios.length"
+                :model-value="toPortfolio"
+                @update:model-value="updateToPortfolio"
+              />
+            </form-row>
 
-          <form-row v-else>
-            <AccountSelectField
-              :label="$t('dialogs.manageTransaction.form.toLoanLabel')"
-              :placeholder="
-                loanAccounts.length
-                  ? $t('dialogs.manageTransaction.form.selectLoanPlaceholder')
-                  : $t('dialogs.manageTransaction.form.noLoansExist')
-              "
-              :accounts="loanAccounts"
-              :disabled="disabled || toAccountDisabled || !loanAccounts.length"
-              :model-value="toAccount"
-              @update:model-value="updateToAccount"
-            />
-          </form-row>
+            <form-row v-else key="loan">
+              <AccountSelectField
+                :label="$t('dialogs.manageTransaction.form.toLoanLabel')"
+                :placeholder="
+                  loanAccounts.length
+                    ? $t('dialogs.manageTransaction.form.selectLoanPlaceholder')
+                    : $t('dialogs.manageTransaction.form.noLoansExist')
+                "
+                :accounts="loanAccounts"
+                :disabled="disabled || toAccountDisabled || !loanAccounts.length"
+                :model-value="toAccount"
+                @update:model-value="updateToAccount"
+              />
+            </form-row>
+          </Transition>
 
           <slot name="destination-bottom" />
         </DestinationPanel>

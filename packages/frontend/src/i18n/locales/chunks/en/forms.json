@@ -533,7 +533,8 @@
       "sharedOwnerNotice": "Showing {owner}'s categories",
       "unlistedNotice": "Search to find any category",
       "sharedOwnerNoticeTooltip": "Transactions on a shared account always use the owner's categories. Anything you save here will be filed under {owner}'s set so both of you see consistent totals.",
-      "sharedOwnerCategoriesLoadError": "Couldn't load categories for the shared account. Please try again."
+      "sharedOwnerCategoriesLoadError": "Couldn't load categories for the shared account. Please try again.",
+      "dialogHint": "Search by name or choose a category. For example: Groceries for everyday purchases, Transportation for travel costs. Categories organize expense/income reporting."
     },
     "select": {
       "selectOption": "Select an option",
@@ -565,7 +566,10 @@
     },
     "tagSelect": {
       "placeholder": "Select tags...",
-      "noTagsAvailable": "No tags available"
+      "noTagsAvailable": "No tags available",
+      "removeConfirmAction": "Remove tag",
+      "removeConfirmTitle": "Remove tag?",
+      "removeConfirmDetail": "Remove “{name}” from this transaction? The tag remains available for other transactions."
     },
     "categoryMultiSelect": {
       "placeholder": "Select categories...",

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Button } from '@/components/lib/ui/button';
-import * as Popover from '@/components/lib/ui/popover';
+import * as Dialog from '@/components/lib/ui/dialog';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -102,8 +102,8 @@ const onFilterKeydown = (event: KeyboardEvent) => {
 
 <template>
   <div class="flex items-center gap-1">
-    <Popover.Popover v-model:open="isOpen">
-      <Popover.PopoverTrigger as-child>
+    <Dialog.Dialog v-model:open="isOpen">
+      <Dialog.DialogTrigger as-child>
         <Button
           variant="secondary"
           size="sm"
@@ -123,14 +123,28 @@ const onFilterKeydown = (event: KeyboardEvent) => {
           </span>
           <ChevronDownIcon class="size-3.5" />
         </Button>
-      </Popover.PopoverTrigger>
+      </Dialog.DialogTrigger>
 
-      <Popover.PopoverContent
-        align="start"
-        :class="cn('p-0', templates.length || isLoading ? 'flex min-h-95 w-142.5 flex-col' : 'w-96')"
+      <Dialog.DialogContent
+        blur-overlay
+        :class="
+          cn(
+            'w-[calc(100vw-2rem)] max-w-162.5 gap-0 overflow-hidden p-0',
+            templates.length || isLoading ? 'flex min-h-95 flex-col' : 'flex flex-col',
+          )
+        "
         @close-auto-focus="onCloseAutoFocus"
         @open-auto-focus.prevent
       >
+        <div class="border-border border-b px-4 py-3 pr-14">
+          <Dialog.DialogTitle class="flex items-center gap-2 text-base font-semibold">
+            <LayoutTemplateIcon class="text-primary size-4 shrink-0" />
+            {{ $t('dialogs.manageTransaction.templates.dialogTitle') }}
+          </Dialog.DialogTitle>
+          <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
+            {{ $t('dialogs.manageTransaction.templates.dialogScenario') }}
+          </Dialog.DialogDescription>
+        </div>
         <div v-if="isLoading" aria-busy="true" class="grid min-h-0 flex-1 grid-cols-[270px_minmax(0,1fr)]">
           <div class="border-border flex flex-col gap-2 border-r p-3">
             <div v-for="index in 4" :key="index" class="bg-muted h-6 animate-pulse rounded" />
@@ -144,7 +158,7 @@ const onFilterKeydown = (event: KeyboardEvent) => {
         </div>
 
         <template v-else-if="templates.length">
-          <div class="grid min-h-0 flex-1 grid-cols-[270px_minmax(0,1fr)]">
+          <div class="grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-[230px_minmax(0,1fr)]">
             <div class="border-border flex min-h-0 flex-col border-r">
               <!-- Raw input: InputField wraps the control in two elements, which breaks this
                    column's flush bottom border. -->
@@ -216,13 +230,18 @@ const onFilterKeydown = (event: KeyboardEvent) => {
           {{ $t('dialogs.manageTransaction.templates.emptyState') }}
         </p>
 
-        <div class="border-border flex flex-wrap items-center gap-1 border-t p-2">
+        <div class="border-border flex flex-wrap items-center gap-2 border-t p-3">
           <Button
             v-for="action in footerActions"
             :key="action.key"
             :variant="action.variant"
             size="sm"
-            :class="cn('font-normal', action.key === 'new' && 'ml-auto')"
+            :class="
+              cn(
+                'h-auto min-h-9 max-w-full text-left text-xs font-medium whitespace-normal',
+                action.key === 'new' && 'ml-auto',
+              )
+            "
             :disabled="action.disabled"
             @click="closeAnd({ run: action.run })"
           >
@@ -230,8 +249,8 @@ const onFilterKeydown = (event: KeyboardEvent) => {
             {{ action.label }}
           </Button>
         </div>
-      </Popover.PopoverContent>
-    </Popover.Popover>
+      </Dialog.DialogContent>
+    </Dialog.Dialog>
 
     <DesktopOnlyTooltip v-if="applied" :content="$t('dialogs.manageTransaction.templates.removeAriaLabel')">
       <Button

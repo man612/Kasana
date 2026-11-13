@@ -231,7 +231,8 @@
       "timeLabel": "Time",
       "nowQuick": "Now",
       "saveDate": "Save date & time",
-      "invalidTime": "Enter a valid 24-hour time such as 14:30."
+      "invalidTime": "Enter a valid 24-hour time such as 14:30.",
+      "nowHelp": "Set the transaction date and time to right now, using your device time zone."
     },
     "appUpdate": {
       "title": "Update available",

@@ -50,10 +50,10 @@
       <!-- PopoverRoot renders no DOM element, so with `field-right` content the trigger button
            and the addon become direct flex children and share one joined outline. -->
       <div :class="cn($slots['field-right'] && 'flex items-stretch')">
-        <!-- Desktop: Popover -->
+        <!-- Desktop: accessible centered category dialog -->
         <template v-if="!isMobile">
-          <Popover.Popover :open="isOpen" @update:open="(open: boolean) => (isOpen = open)">
-            <Popover.PopoverTrigger as-child>
+          <Dialog.Dialog :open="isOpen" @update:open="(open: boolean) => (isOpen = open)">
+            <Dialog.DialogTrigger as-child>
               <button
                 ref="triggerRef"
                 type="button"
@@ -93,22 +93,23 @@
                 >
                   <XIcon class="size-4" />
                 </span>
-                <ChevronDownIcon
-                  class="text-popover-foreground size-5 shrink-0 transition-transform duration-150 ease-out"
-                  :class="{ 'rotate-180': isOpen }"
-                />
+                <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
               </button>
-            </Popover.PopoverTrigger>
-            <Popover.PopoverContent
-              align="start"
+            </Dialog.DialogTrigger>
+            <Dialog.DialogContent
+              blur-overlay
               :class="
-                cn(
-                  'w-(--reka-popover-trigger-width) max-w-(--reka-popover-trigger-width) min-w-(--reka-popover-trigger-width) p-0',
-                  popoverClassName,
-                )
+                cn('max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden p-0', popoverClassName)
               "
-              @open-auto-focus.prevent
             >
+              <div class="border-border border-b px-4 py-4 pr-14">
+                <Dialog.DialogTitle class="text-base font-semibold">
+                  {{ $t('fields.categorySelect.selectCategoryLabel') }}
+                </Dialog.DialogTitle>
+                <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
+                  {{ $t('fields.categorySelect.dialogHint') }}
+                </Dialog.DialogDescription>
+              </div>
               <div
                 v-if="sharedOwnerHandle"
                 class="bg-muted/40 text-foreground flex items-center gap-2 border-b px-3 py-2 text-xs"
@@ -130,16 +131,16 @@
                 <ListboxFilter
                   v-model="searchQuery"
                   auto-focus
-                  class="w-full border-b bg-transparent px-3 py-2 text-sm outline-none"
+                  class="border-border w-full border-b bg-transparent px-4 py-3 text-sm outline-none"
                   :placeholder="$t('fields.categorySelect.searchPlaceholder')"
                   :aria-label="$t('fields.categorySelect.searchCategoryLabel')"
                 />
-                <div class="max-h-87.5 overflow-y-auto overscroll-contain" :style="{ maxHeight: 'min(20rem, calc(100dvh - 9rem))' }">
+                <div class="max-h-[min(54dvh,390px)] overflow-y-auto overscroll-contain p-2">
                   <CategoryListContent />
                 </div>
               </ListboxRoot>
-            </Popover.PopoverContent>
-          </Popover.Popover>
+            </Dialog.DialogContent>
+          </Dialog.Dialog>
         </template>
 
         <!-- Mobile: Button + Drawer -->
@@ -261,12 +262,12 @@ import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import * as Drawer from '@/components/lib/ui/drawer';
-import * as Popover from '@/components/lib/ui/popover';
+import * as Dialog from '@/components/lib/ui/dialog';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { cn } from '@/lib/utils';
 import { CATEGORY_TYPES, type CategoryModel } from '@bt/shared/types';
 import { createReusableTemplate } from '@vueuse/core';
-import { ChevronDownIcon, InfoIcon, XIcon } from '@lucide/vue';
+import { ChevronDownIcon, InfoIcon, SearchIcon, XIcon } from '@lucide/vue';
 import { ListboxContent, ListboxFilter, ListboxItem, ListboxRoot } from 'reka-ui';
 import { computed, ref, watch } from 'vue';
 

@@ -114,9 +114,12 @@
             />
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-foreground text-sm font-medium">
-              {{ $t('payees.form.categorizationMode.label') }}
-            </label>
+            <div class="flex items-center gap-1.5">
+              <label class="text-foreground text-sm font-medium">
+                {{ $t('payees.form.categorizationMode.label') }}
+              </label>
+              <HintIcon :content="$t('payees.form.categorizationMode.fullExplanation')" />
+            </div>
             <SelectField
               v-model="categorizationModeProxy"
               :values="categorizationModeOptions"
@@ -317,6 +320,7 @@
 </template>
 
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import {
   useApplyPayeeTagsToExisting,
   useCreatePayeeAlias,

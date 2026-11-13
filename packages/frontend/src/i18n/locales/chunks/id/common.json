@@ -231,7 +231,8 @@
       "timeLabel": "Jam",
       "nowQuick": "Sekarang",
       "saveDate": "Simpan tanggal & waktu",
-      "invalidTime": "Isi jam dengan format 24 jam yang benar, misalnya 14:30."
+      "invalidTime": "Isi jam dengan format 24 jam yang benar, misalnya 14:30.",
+      "nowHelp": "Atur tanggal dan jam transaksi ke waktu saat ini. Waktu menggunakan zona waktu perangkat."
     },
     "appUpdate": {
       "title": "Pembaruan tersedia",

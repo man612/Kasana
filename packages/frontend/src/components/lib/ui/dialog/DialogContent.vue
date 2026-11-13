@@ -67,8 +67,8 @@ const describedByAttrs = useDescribedByAttrs();
       <slot />
 
       <template v-if="!customClose">
-        <DialogClose class="absolute top-6 right-6" as-child>
-          <Button variant="ghost" size="icon">
+        <DialogClose class="absolute top-3.5 right-3.5 z-20" as-child>
+          <Button variant="ghost" size="icon" class="size-8 shrink-0 rounded-md" :aria-label="t('common.ui.close')">
             <X class="size-4" />
             <span class="sr-only">{{ t('common.ui.close') }}</span>
           </Button>

@@ -33,9 +33,25 @@
           label-key="name"
         />
 
+        <div class="mb-1 flex items-center gap-1.5">
+          <span class="text-muted-foreground text-sm font-medium">{{
+            $t('payees.form.categorizationMode.label')
+          }}</span>
+          <ResponsiveTooltip
+            :content="$t('payees.form.categorizationMode.fullExplanation')"
+            content-class-name="max-w-80 whitespace-pre-line leading-relaxed"
+          >
+            <button
+              type="button"
+              class="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex size-7 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+              :aria-label="$t('payees.form.categorizationMode.fullExplanationLabel')"
+            >
+              <InfoIcon class="size-4" />
+            </button>
+          </ResponsiveTooltip>
+        </div>
         <SelectField
           v-model="form.categorizationMode"
-          :label="$t('payees.form.categorizationMode.label')"
           :values="categorizationModeOptions"
           label-key="label"
           value-key="value"

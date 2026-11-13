@@ -124,6 +124,7 @@
 
 <script setup lang="ts">
 import * as tagsApi from '@/api/tags';
+import { isCoreTagName } from '@/common/const/indonesian-tag-suggestions';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import TagDetailsForm from '@/components/dialogs/tag-details-form.vue';
 import TagReminderForm from '@/components/dialogs/tag-reminder-form.vue';
@@ -374,7 +375,7 @@ const handleSubmit = async () => {
 };
 
 const handleDelete = async () => {
-  if (!props.tag) return;
+  if (!props.tag || isCoreTagName(props.tag.name)) return;
 
   isSubmitting.value = true;
 

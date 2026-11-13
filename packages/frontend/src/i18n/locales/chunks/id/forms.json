@@ -533,7 +533,8 @@
       "sharedOwnerNotice": "Menampilkan kategori {owner}",
       "unlistedNotice": "Search to find any category",
       "sharedOwnerNoticeTooltip": "Transaksi di akun bersama selalu menggunakan kategori pemilik. Apa pun yang Anda simpan di sini akan diajukan di bawah set {owner} sehingga Anda berdua melihat total yang konsisten.",
-      "sharedOwnerCategoriesLoadError": "Tidak dapat memuat kategori untuk akun bersama. Silakan coba lagi."
+      "sharedOwnerCategoriesLoadError": "Tidak dapat memuat kategori untuk akun bersama. Silakan coba lagi.",
+      "dialogHint": "Cari berdasarkan nama atau pilih kategori. Contoh: Belanja untuk kebutuhan sehari-hari, Transportasi untuk ongkos perjalanan. Kategori menentukan laporan pengeluaran/pemasukan."
     },
     "select": {
       "selectOption": "Pilih opsi",
@@ -565,7 +566,10 @@
     },
     "tagSelect": {
       "placeholder": "Pilih tag...",
-      "noTagsAvailable": "Tidak ada tag tersedia"
+      "noTagsAvailable": "Tidak ada tag tersedia",
+      "removeConfirmAction": "Lepaskan tag",
+      "removeConfirmTitle": "Lepaskan tag?",
+      "removeConfirmDetail": "Lepaskan tag “{name}” dari transaksi ini? Tag tetap tersedia untuk transaksi lain dan tidak dihapus dari daftar tag."
     },
     "categoryMultiSelect": {
       "placeholder": "Pilih kategori...",

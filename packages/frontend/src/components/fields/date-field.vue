@@ -16,6 +16,7 @@
           <div class="relative min-w-0 flex-1">
             <!-- Without a 4-digit-year max, Chrome accepts 6-digit years and never auto-advances past the year segment. -->
             <input
+              v-if="!showWeekday"
               :value="inputValue"
               type="date"
               :max="nativeMax"
@@ -38,6 +39,17 @@
               @input="handleLocalInputUpdate"
               @blur="handleBlur"
             />
+            <button
+              v-else
+              type="button"
+              :disabled="disabled"
+              data-testid="date-field-weekday-trigger"
+              :aria-label="friendlyDate || label"
+              class="border-input bg-input-background ring-offset-background focus-visible:ring-ring h-10 w-full truncate rounded-md border py-2 pr-13 pl-3 text-left text-xs font-medium focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-9"
+              @click="isPopoverOpen = true"
+            >
+              {{ friendlyDate || i18n.global.t('common.dateSelector.simpleTitle') }}
+            </button>
 
             <!-- Opaque instead of padding the input, so Firefox's native icon stays under the trigger. -->
             <Button
@@ -85,19 +97,31 @@
               @keydown.enter.prevent="commitTimeInput"
             />
             <span class="text-muted-foreground min-w-7 text-xs">{{ timeZoneLabel }}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              class="text-muted-foreground hover:text-foreground"
-              :disabled="disabled"
-              :aria-label="i18n.global.t('common.dateSelector.nowQuick')"
-              :title="i18n.global.t('common.dateSelector.nowQuick')"
-              data-testid="date-field-now-button"
-              @click="applyNow"
+            <Transition
+              enter-active-class="transition-all duration-200 ease-out"
+              enter-from-class="opacity-0 -translate-x-1 scale-90"
+              enter-to-class="opacity-100 translate-x-0 scale-100"
+              leave-active-class="transition-all duration-150 ease-in"
+              leave-from-class="opacity-100 translate-x-0 scale-100"
+              leave-to-class="opacity-0 -translate-x-1 scale-90"
             >
-              <Clock3Icon class="size-4" />
-            </Button>
+              <DesktopOnlyTooltip
+                v-if="!isNowInField && !disabled"
+                :content="i18n.global.t('common.dateSelector.nowHelp')"
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  class="text-muted-foreground hover:text-foreground shrink-0"
+                  :aria-label="i18n.global.t('common.dateSelector.nowQuick')"
+                  data-testid="date-field-now-button"
+                  @click="applyNow"
+                >
+                  <Clock3Icon class="size-4" />
+                </Button>
+              </DesktopOnlyTooltip>
+            </Transition>
           </div>
         </div>
         <FieldError :error-message="errorMessage" />
@@ -106,10 +130,10 @@
           class="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-105 gap-3 overflow-x-hidden overflow-y-auto p-4 sm:p-5"
           data-testid="transaction-date-dialog"
         >
-          <Dialog.DialogTitle class="pr-10 text-base font-semibold">
+          <Dialog.DialogTitle class="pr-12 text-base font-semibold">
             {{ i18n.global.t('common.dateSelector.dateTimeTitle') }}
           </Dialog.DialogTitle>
-          <Dialog.DialogDescription class="text-muted-foreground text-xs leading-relaxed">
+          <Dialog.DialogDescription class="text-muted-foreground pr-12 text-xs leading-relaxed">
             {{ i18n.global.t('common.dateSelector.dateTimeHint') }}
           </Dialog.DialogDescription>
           <div class="flex min-w-0 justify-center">
@@ -139,15 +163,29 @@
             <p v-if="dialogTimeError" class="text-destructive text-xs" role="alert">
               {{ i18n.global.t('common.dateSelector.invalidTime') }}
             </p>
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <Button type="button" variant="outline" size="sm" data-testid="date-dialog-now" @click="setDialogNow">
-                <Clock3Icon class="mr-1.5 size-4" />
-                {{ i18n.global.t('common.dateSelector.nowQuick') }}
-              </Button>
-              <div class="flex gap-2">
-                <Button type="button" variant="ghost" size="sm" @click="isPopoverOpen = false">
-                  {{ i18n.global.t('common.actions.cancel') }}
+            <div class="flex min-h-9 flex-wrap items-center justify-end gap-2">
+              <Transition
+                enter-active-class="transition-all duration-200 ease-out"
+                enter-from-class="opacity-0 scale-95"
+                enter-to-class="opacity-100 scale-100"
+                leave-active-class="transition-all duration-150 ease-in"
+                leave-from-class="opacity-100 scale-100"
+                leave-to-class="opacity-0 scale-95"
+              >
+                <Button
+                  v-if="!isDialogNow"
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  class="text-muted-foreground mr-auto px-2"
+                  data-testid="date-dialog-now"
+                  @click="setDialogNow"
+                >
+                  <Clock3Icon class="mr-1.5 size-3.5" />
+                  {{ i18n.global.t('common.dateSelector.nowQuick') }}
                 </Button>
+              </Transition>
+              <div class="ml-auto flex gap-2">
                 <Button
                   type="button"
                   size="sm"
@@ -177,6 +215,8 @@ import { cn } from '@/lib/utils';
 import { format, getDate, getMonth, getYear, parse, set } from 'date-fns';
 import { CalendarClockIcon, Clock3Icon, XIcon } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import { useNow } from '@vueuse/core';
+import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { getDateFnsLocale } from '@/composable/use-date-locale';
 import { getLocalTimeZoneLabel } from '@/common/utils/indonesian-time';
 
@@ -199,6 +239,8 @@ const props = withDefaults(
     clearable?: boolean;
     /** The input shows only the date; the time stays editable in the calendar popover. */
     hideInputTime?: boolean;
+    /** Use a localized weekday+date trigger instead of the OS-dependent native date text. */
+    showWeekday?: boolean;
   }>(),
   {
     label: undefined,
@@ -212,6 +254,7 @@ const props = withDefaults(
     mode: 'dateTime',
     clearable: false,
     hideInputTime: false,
+    showWeekday: false,
   },
 );
 
@@ -255,9 +298,22 @@ const emit = defineEmits<{
 const localValue = ref<Date | null>(props.modelValue ?? (props.clearable ? null : new Date()));
 const isPopoverOpen = ref(false);
 const timeZoneLabel = getLocalTimeZoneLabel();
+const clock = useNow({ interval: 30000 });
+const friendlyDate = computed(() =>
+  props.modelValue ? format(props.modelValue, 'EEEE, d MMMM yyyy', { locale: getDateFnsLocale() }) : '',
+);
+const isSameMinute = (date: Date | null | undefined, time: string, now: Date) =>
+  Boolean(date) &&
+  date!.getFullYear() === now.getFullYear() &&
+  date!.getMonth() === now.getMonth() &&
+  date!.getDate() === now.getDate() &&
+  time === format(now, 'HH:mm');
+const isNowInField = computed(() => isSameMinute(props.modelValue, timeValue.value, clock.value));
+const isDialogNow = computed(() => isSameMinute(localValue.value, dialogTimeValue.value, clock.value));
+
 const timeValue = ref(props.modelValue ? format(props.modelValue, 'HH:mm') : '');
 const dialogTimeValue = ref(props.modelValue ? format(props.modelValue, 'HH:mm') : format(new Date(), 'HH:mm'));
-const todayLabel = computed(() => format(new Date(), 'EEEE, d MMMM yyyy', { locale: getDateFnsLocale() }));
+const todayLabel = computed(() => format(clock.value, 'EEEE, d MMMM yyyy', { locale: getDateFnsLocale() }));
 const parsedTime = (text: string) => {
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(text)) return null;
   const [hours, minutes] = text.split(':').map(Number);
