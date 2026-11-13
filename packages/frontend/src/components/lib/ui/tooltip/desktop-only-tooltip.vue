@@ -22,19 +22,24 @@ const hasHover = ref(false);
 
 // Using matchMedia to detect hover capability - most reliable method
 const updateHoverCapability = () => {
-  hasHover.value = window.matchMedia('(hover: hover)').matches;
+  hasHover.value = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(hover: hover)').matches
+    : false;
 };
 
 let mediaQuery: MediaQueryList | null = null;
 
 onMounted(() => {
+  // matchMedia is unavailable in some embedded browsers and the jsdom test
+  // environment. Treat hover capability as absent instead of crashing.
+  if (typeof window.matchMedia !== 'function') return;
   mediaQuery = window.matchMedia('(hover: hover)');
   hasHover.value = mediaQuery.matches;
-  mediaQuery.addEventListener('change', updateHoverCapability);
+  mediaQuery.addEventListener?.('change', updateHoverCapability);
 });
 
 onUnmounted(() => {
-  mediaQuery?.removeEventListener('change', updateHoverCapability);
+  mediaQuery?.removeEventListener?.('change', updateHoverCapability);
 });
 
 // Starts armed so the first hover, which lands before the open delay, decides.
