@@ -39,12 +39,15 @@
               <PanelLeftCloseIcon v-if="!isCollapsed" class="size-4 shrink-0" />
               <PanelLeftOpenIcon v-else class="size-4 shrink-0" />
               <span
-                :class="['whitespace-nowrap transition-opacity duration-200', isCollapsed ? 'opacity-0' : 'opacity-100']"
+                :class="[
+                  'whitespace-nowrap transition-opacity duration-200',
+                  isCollapsed ? 'opacity-0' : 'opacity-100',
+                ]"
               >
                 {{ $t('settings.navigation.collapse') }}
               </span>
             </button>
-  
+
             <div v-for="(group, groupIndex) in groups" :key="group.key" class="flex flex-col gap-1">
               <div
                 v-if="!isIconOnly"
@@ -82,7 +85,7 @@
                 </li>
               </ul>
             </div>
-  
+
             <div class="border-border border-t pt-2">
               <DesktopOnlyTooltip :content="$t('navigation.helpAndDocs')" :disabled="!isIconOnly" side="right">
                 <a
@@ -111,7 +114,7 @@
     </Transition>
 
     <!-- Content Area (wide: always visible, compact: only on child routes) -->
-    <div v-if="isOnChildRoute || !isCompactLayout" class="min-w-0 flex-1">
+    <div v-if="isOnChildRoute || !isCompactLayout" class="w-full min-w-0 flex-1">
       <!-- Back button (compact layout only) -->
       <BackLink v-if="isCompactLayout" :to="{ name: ROUTES_NAMES.settings }">
         {{ $t('settings.backToSettings') }}

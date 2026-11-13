@@ -15,6 +15,7 @@ const mountField = (props: {
   mode?: 'date' | 'dateTime';
   calendarOptions?: { minDate?: Date; maxDate?: Date };
   hideInputTime?: boolean;
+  showWeekday?: boolean;
 }) =>
   mount(DateField, {
     props,
@@ -111,5 +112,15 @@ describe('DateField with explicit calendar confirmation and 24-hour time input',
     await wrapper.vm.$nextTick();
     expect(wrapper.emitted('update:modelValue')).toBeUndefined();
     expect(wrapper.findComponent({ name: 'CalendarStub' }).props('modelValue')).toEqual(initial);
+  });
+
+  it('keeps a directly editable dd/MM/yyyy field with localized weekday and separate calendar icon', async () => {
+    const wrapper = mountField({ modelValue: initial, showWeekday: true });
+    const input = wrapper.get('[data-testid="date-field-numeric-input"]');
+    expect((input.element as HTMLInputElement).value).toBe('12/11/2026');
+    expect(wrapper.find('[data-testid="date-field-weekday-trigger"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="date-field-calendar-trigger"]').exists()).toBe(true);
+    await input.setValue('13/11/2026');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([new Date(2026, 10, 13, 10, 2)]);
   });
 });

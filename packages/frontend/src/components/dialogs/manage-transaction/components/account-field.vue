@@ -43,29 +43,32 @@
 
           <Transition name="lajur-form-panel" mode="out-in">
             <form-row v-if="destinationType === 'account'" key="account">
-              <AccountSelectField
-                :label="$t('dialogs.manageTransaction.form.toAccountLabel')"
-                :placeholder="$t('dialogs.manageTransaction.form.selectAccountPlaceholder')"
-                :accounts="filteredAccounts"
-                :include-out-of-wallet="account?.id !== OUT_OF_WALLET_ACCOUNT_MOCK.id"
-                :disabled="disabled || toAccountDisabled"
-                :model-value="toAccount"
-                @update:model-value="updateToAccount"
-              >
-                <template v-if="toAccount?.id === OUT_OF_WALLET_ACCOUNT_MOCK.id" #label-right>
-                  <DocsLink :path="OUT_OF_WALLET_DOCS_PATH" class="text-xs">
-                    {{ $t('dialogs.manageTransaction.form.outOfWalletDocsLink') }}
-                  </DocsLink>
-                </template>
-                <template #select-bottom-content>
-                  <CreateAccountDialog>
-                    <UiButton type="button" class="w-full justify-start" variant="ghost-primary" size="sm">
-                      <PlusIcon class="size-4" />
-                      {{ $t('dialogs.manageTransaction.form.addNewAccountButton') }}
-                    </UiButton>
-                  </CreateAccountDialog>
-                </template>
-              </AccountSelectField>
+              <div class="grid min-w-0 grid-cols-1 items-end gap-2" :class="showTargetAmount && 'sm:grid-cols-2'">
+                <AccountSelectField
+                  :label="$t('dialogs.manageTransaction.form.toAccountLabel')"
+                  :placeholder="$t('dialogs.manageTransaction.form.selectAccountPlaceholder')"
+                  :accounts="filteredAccounts"
+                  :include-out-of-wallet="account?.id !== OUT_OF_WALLET_ACCOUNT_MOCK.id"
+                  :disabled="disabled || toAccountDisabled"
+                  :model-value="toAccount"
+                  @update:model-value="updateToAccount"
+                >
+                  <template v-if="toAccount?.id === OUT_OF_WALLET_ACCOUNT_MOCK.id" #label-right>
+                    <DocsLink :path="OUT_OF_WALLET_DOCS_PATH" class="text-xs">
+                      {{ $t('dialogs.manageTransaction.form.outOfWalletDocsLink') }}
+                    </DocsLink>
+                  </template>
+                  <template #select-bottom-content>
+                    <CreateAccountDialog>
+                      <UiButton type="button" class="w-full justify-start" variant="ghost-primary" size="sm">
+                        <PlusIcon class="size-4" />
+                        {{ $t('dialogs.manageTransaction.form.addNewAccountButton') }}
+                      </UiButton>
+                    </CreateAccountDialog>
+                  </template>
+                </AccountSelectField>
+                <slot name="account-target-amount" />
+              </div>
             </form-row>
 
             <form-row v-else-if="destinationType === 'portfolio'" key="portfolio">
@@ -213,6 +216,7 @@ const props = withDefaults(
     toAccountDisabled?: boolean;
     /** Locks the destination-type pills while keeping the pickers themselves usable. */
     destinationTypeDisabled?: boolean;
+    showTargetAmount?: boolean;
     disabled?: boolean;
   }>(),
   {

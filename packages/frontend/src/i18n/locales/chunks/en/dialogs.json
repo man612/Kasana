@@ -293,7 +293,10 @@
             "differentType": "Different type from this transaction",
             "submit": "Link {count} transaction | Link {count} transactions"
           },
-          "amountLockedHint": "The main total is calculated from each account amount. Edit the amounts in the multiple-account section instead of this field."
+          "amountLockedHint": "The main total is calculated from each account amount. Edit the amounts in the multiple-account section instead of this field.",
+          "confirmRemoveTitle": "Remove account from this split?",
+          "confirmRemoveDescription": "The entered amount for this account will be removed from this split. Review the transaction total afterward.",
+          "confirmRemoveAction": "Remove account"
         },
         "targetAmountHelp": "Amount received at the destination. For example, a transfer of 100,000 IDR to another IDR account has a target of 100,000 IDR. For different currencies, enter the amount actually received after conversion and fees.",
         "externalUrlPaste": "Paste link from clipboard",
@@ -523,7 +526,7 @@
       },
       "paymentMethodHelp": {
         "title": "Payment or receipt method",
-        "overview": "This describes how money moves, not which account the amount belongs to. QRIS, for instance, may debit a bank account or e-wallet. Choose the account separately. Moving funds between your own accounts is a Transfer, not an Expense.",
+        "overview": "Choose how money was paid or received.",
         "placeholder": "Choose a method",
         "learnMore": "How does {name} work?",
         "qris": "Scan a QRIS code in a bank app or e-wallet. The funding account is chosen in the Account field.",
@@ -538,7 +541,8 @@
         "payLater": "Pay through a digital installment or deferred-payment service; track the liability separately if needed.",
         "mobilePayment": "Other mobile-app payment methods not covered by QRIS or e-wallet.",
         "webPayment": "Other online checkout payments not covered by other methods.",
-        "voucher": "A merchant voucher, gift credit, or discount instrument used for payment."
+        "voucher": "A merchant voucher, gift credit, or discount instrument used for payment.",
+        "longExplanation": "The payment method is separate from the funding account. For example, QRIS can draw money from a bank account or e-wallet. Select the actual account in the Account field. Transfers between your own accounts are Transfer transactions; payments to other people are Expenses."
       }
     },
     "portfolioTransfer": {

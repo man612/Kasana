@@ -8,6 +8,7 @@ const props = defineProps<{
   content?: string;
   contentClassName?: string;
   disabled?: boolean;
+  delayDuration?: number;
   side?: 'top' | 'right' | 'bottom' | 'left';
   /**
    * Only show the tooltip when the trigger's text is actually clipped. The
@@ -22,9 +23,10 @@ const hasHover = ref(false);
 
 // Using matchMedia to detect hover capability - most reliable method
 const updateHoverCapability = () => {
-  hasHover.value = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-    ? window.matchMedia('(hover: hover)').matches
-    : false;
+  hasHover.value =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(hover: hover)').matches
+      : false;
 };
 
 let mediaQuery: MediaQueryList | null = null;
@@ -53,7 +55,7 @@ const measureTruncation = (event: MouseEvent) => {
 </script>
 
 <template>
-  <TooltipProvider v-if="hasHover && !props.disabled" :delay-duration="100">
+  <TooltipProvider v-if="hasHover && !props.disabled" :delay-duration="props.delayDuration ?? 850">
     <Tooltip>
       <TooltipTrigger as-child @mouseenter="measureTruncation">
         <slot />

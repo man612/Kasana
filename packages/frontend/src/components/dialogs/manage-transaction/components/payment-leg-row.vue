@@ -35,54 +35,57 @@ defineExpose({
 
 <template>
   <div class="@container">
-    <div
-      :class="
-        cn(
-          'border-input bg-input-background focus-within:border-ring flex h-10 w-full items-stretch overflow-hidden rounded-md border md:h-9',
-          errorMessage && 'border-destructive',
-        )
-      "
-    >
-      <div class="flex min-w-0 flex-1 items-center overflow-hidden">
-        <AccountSelectField
-          class="min-w-0 flex-1"
-          embedded
-          :model-value="account"
-          :accounts="accounts"
-          :placeholder="accountPlaceholder"
-          :disabled="disabled || locked"
-          @update:model-value="emit('update:account', $event)"
-        />
-        <slot name="account-addon" />
-      </div>
-
-      <div class="border-input flex w-32 shrink-0 items-center border-l pr-2 @sm:w-40 [&_input]:px-2">
-        <FormattedAmountField
-          ref="amountFieldRef"
-          class="min-w-0 flex-1"
-          :model-value="amount"
-          embedded
-          :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
-          :aria-label="$t('dialogs.manageTransaction.form.amountLabel')"
-          :disabled="disabled || locked"
-          @update:model-value="emit('update:amount', $event)"
-          @blur="emit('amount-blur')"
-        />
-        <CurrencyChip v-if="currencyCode" :code="currencyCode" />
-      </div>
-
+    <div class="flex min-w-0 items-start gap-1.5">
       <div
-        v-if="$slots.converted"
-        class="border-input flex w-28 shrink-0 items-center gap-1 border-l pr-1 pl-2 @sm:w-36 [&_input]:px-1"
+        :class="
+          cn(
+            'border-input bg-input-background focus-within:border-ring flex h-10 min-w-0 flex-1 items-stretch overflow-hidden rounded-md border md:h-9',
+            errorMessage && 'border-destructive',
+          )
+        "
       >
-        <slot name="converted" />
-      </div>
+        <div class="flex min-w-0 flex-[2] items-center overflow-hidden">
+          <AccountSelectField
+            class="min-w-0 flex-1"
+            embedded
+            :model-value="account"
+            :accounts="accounts"
+            :placeholder="accountPlaceholder"
+            :disabled="disabled || locked"
+            @update:model-value="emit('update:account', $event)"
+          />
+          <slot name="account-addon" />
+        </div>
 
-      <div v-if="$slots.actions" class="flex shrink-0 items-center gap-0.5 pr-1">
+        <div class="border-input flex min-w-0 flex-[3] items-center border-l pr-1 pl-1 [&_input]:px-1.5">
+          <span v-if="currencyCode === 'IDR'" class="text-muted-foreground shrink-0 pl-1 text-xs font-semibold"
+            >Rp</span
+          >
+          <FormattedAmountField
+            ref="amountFieldRef"
+            class="min-w-0 flex-1"
+            :model-value="amount"
+            embedded
+            :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
+            :aria-label="$t('dialogs.manageTransaction.form.amountLabel')"
+            :disabled="disabled || locked"
+            @update:model-value="emit('update:amount', $event)"
+            @blur="emit('amount-blur')"
+          />
+          <CurrencyChip v-if="currencyCode && currencyCode !== 'IDR'" :code="currencyCode" />
+        </div>
+
+        <div
+          v-if="$slots.converted"
+          class="border-input flex min-w-0 flex-[2] items-center gap-1 border-l pr-1 pl-2 [&_input]:px-1"
+        >
+          <slot name="converted" />
+        </div>
+      </div>
+      <div v-if="$slots.actions" class="flex size-9 shrink-0 items-center justify-end">
         <slot name="actions" />
       </div>
     </div>
-
     <FieldError :error-message="errorMessage" />
   </div>
 </template>

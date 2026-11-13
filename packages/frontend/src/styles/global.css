@@ -970,3 +970,117 @@ select:focus-visible,
   --ph-survey-rating-active-bg-color: var(--primary) !important;
   --ph-survey-rating-active-text-color: var(--primary-foreground) !important;
 }
+
+/* Smooth height changes for planned-date notices and multi-account panels. */
+.lajur-form-panel-enter-active,
+.lajur-form-panel-leave-active {
+  overflow: clip;
+  transition:
+    opacity 230ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 230ms cubic-bezier(0.22, 1, 0.36, 1),
+    max-height 270ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+.lajur-form-panel-enter-from,
+.lajur-form-panel-leave-to {
+  max-height: 0 !important;
+}
+.lajur-form-panel-enter-to,
+.lajur-form-panel-leave-from {
+  max-height: 1750px;
+}
+
+.lajur-payment-rows-enter-active,
+.lajur-payment-rows-leave-active,
+.lajur-payment-rows-move {
+  transition:
+    opacity 230ms ease,
+    transform 250ms ease,
+    max-height 260ms ease,
+    margin 260ms ease;
+}
+.lajur-payment-rows-enter-from,
+.lajur-payment-rows-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.985);
+  max-height: 0;
+  margin: 0;
+}
+.lajur-payment-rows-enter-to,
+.lajur-payment-rows-leave-from {
+  opacity: 1;
+  max-height: 260px;
+}
+.lajur-payment-rows-leave-active {
+  pointer-events: none;
+}
+
+.lajur-category-items-enter-active,
+.lajur-category-items-leave-active,
+.lajur-category-items-move {
+  transition:
+    opacity 180ms ease,
+    transform 190ms ease;
+}
+.lajur-category-items-enter-from,
+.lajur-category-items-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+.lajur-category-items-leave-active {
+  position: absolute;
+  pointer-events: none;
+}
+
+.lajur-sidebar-enter-active,
+.lajur-sidebar-leave-active {
+  transition:
+    opacity 200ms ease,
+    transform 220ms ease;
+}
+.lajur-sidebar-enter-from,
+.lajur-sidebar-leave-to {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lajur-form-panel-enter-active,
+  .lajur-form-panel-leave-active,
+  .lajur-payment-rows-enter-active,
+  .lajur-payment-rows-leave-active,
+  .lajur-payment-rows-move,
+  .lajur-category-items-enter-active,
+  .lajur-category-items-leave-active,
+  .lajur-category-items-move,
+  .lajur-sidebar-enter-active,
+  .lajur-sidebar-leave-active {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Dashboard: soften widget rearrangement when leaving edit mode. */
+.kasana-dashboard-edit-return > [data-widget-id] {
+  animation: lajur-dashboard-return 330ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.kasana-dashboard-edit-return > [data-widget-id]:nth-child(2n) {
+  animation-delay: 35ms;
+}
+.kasana-dashboard-edit-return > [data-widget-id]:nth-child(3n) {
+  animation-delay: 70ms;
+}
+@keyframes lajur-dashboard-return {
+  from {
+    opacity: 0.68;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kasana-dashboard-edit-return > [data-widget-id] {
+    animation: none !important;
+  }
+}

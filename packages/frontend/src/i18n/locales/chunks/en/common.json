@@ -226,13 +226,15 @@
       "currentMonthQuick": "This month",
       "previousMonthQuick": "Last month",
       "dateTimeTitle": "Choose date & time",
-      "dateTimeHint": "Changes apply only after pressing Save.",
+      "dateTimeHint": "Changes apply when you select Save.",
       "todayIndicator": "Today",
       "timeLabel": "Time",
       "nowQuick": "Now",
       "saveDate": "Save date & time",
       "invalidTime": "Enter a valid 24-hour time such as 14:30.",
-      "nowHelp": "Set the transaction date and time to right now, using your device time zone."
+      "nowHelp": "Set the transaction date and time to right now, using your device time zone.",
+      "numericInputHelp": "Date in day/month/year format",
+      "alreadyNow": "Already set to the current minute."
     },
     "appUpdate": {
       "title": "Update available",

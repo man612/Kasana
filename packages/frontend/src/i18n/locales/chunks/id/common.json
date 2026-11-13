@@ -226,13 +226,15 @@
       "currentMonthQuick": "Bulan ini",
       "previousMonthQuick": "Bulan lalu",
       "dateTimeTitle": "Pilih tanggal & waktu",
-      "dateTimeHint": "Tanggal dan jam baru akan diterapkan setelah kamu memilih Simpan.",
+      "dateTimeHint": "Perubahan diterapkan setelah Simpan.",
       "todayIndicator": "Hari ini",
       "timeLabel": "Jam",
       "nowQuick": "Sekarang",
       "saveDate": "Simpan tanggal & waktu",
       "invalidTime": "Isi jam dengan format 24 jam yang benar, misalnya 14:30.",
-      "nowHelp": "Atur tanggal dan jam transaksi ke waktu saat ini. Waktu menggunakan zona waktu perangkat."
+      "nowHelp": "Atur tanggal dan jam transaksi ke waktu saat ini. Waktu menggunakan zona waktu perangkat.",
+      "numericInputHelp": "Tanggal, format tanggal/bulan/tahun",
+      "alreadyNow": "Sudah menunjukkan waktu saat ini."
     },
     "appUpdate": {
       "title": "Pembaruan tersedia",

@@ -3,7 +3,6 @@ import type { VerbosePaymentType } from '@/common/const';
 import { VERBOSE_PAYMENT_TYPES } from '@/common/const';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import * as Dialog from '@/components/lib/ui/dialog';
-import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import { PAYMENT_TYPES } from '@bt/shared/types';
 import {
   ArrowLeftRightIcon,
@@ -37,6 +36,23 @@ const props = withDefaults(
 const emit = defineEmits<{ 'update:modelValue': [value: VerbosePaymentType | null] }>();
 const { t } = useI18n();
 const isOpen = ref(false);
+const isHelpOpen = ref(false);
+const helpMethod = ref<PAYMENT_TYPES | null>(null);
+const openHelp = (method: PAYMENT_TYPES | null) => {
+  helpMethod.value = method;
+  isHelpOpen.value = true;
+};
+const iconColors = [
+  'bg-blue-500/15 text-blue-500 dark:text-blue-300',
+  'bg-emerald-500/15 text-emerald-500 dark:text-emerald-300',
+  'bg-violet-500/15 text-violet-500 dark:text-violet-300',
+  'bg-amber-500/15 text-amber-500 dark:text-amber-300',
+  'bg-cyan-500/15 text-cyan-500 dark:text-cyan-300',
+  'bg-pink-500/15 text-pink-500 dark:text-pink-300',
+  'bg-orange-500/15 text-orange-500 dark:text-orange-300',
+  'bg-teal-500/15 text-teal-500 dark:text-teal-300',
+];
+const iconClass = (key: PAYMENT_TYPES) => iconColors[Math.max(0, orderedTypes.indexOf(key)) % iconColors.length];
 
 const icons: Partial<Record<PAYMENT_TYPES, Component>> = {
   [PAYMENT_TYPES.qris]: QrCodeIcon,
@@ -103,7 +119,19 @@ const pick = (value: VerbosePaymentType | null) => {
           class="max-h-[88dvh] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden p-0"
           data-testid="payment-method-dialog"
         >
-          <div class="border-border border-b px-4 py-4 pr-14">
+          <div class="border-border relative border-b px-4 py-4 pr-23">
+            <button
+              type="button"
+              class="text-muted-foreground hover:text-foreground hover:bg-muted absolute top-3.5 right-12 flex size-8 items-center justify-center rounded-md"
+              :aria-label="
+                t('dialogs.manageTransaction.paymentMethodHelp.learnMore', {
+                  name: t('dialogs.manageTransaction.paymentMethodHelp.title'),
+                })
+              "
+              @click="openHelp(null)"
+            >
+              <CircleHelpIcon class="size-4" />
+            </button>
             <Dialog.DialogTitle class="text-base font-semibold">
               {{ t('dialogs.manageTransaction.paymentMethodHelp.title') }}
             </Dialog.DialogTitle>
@@ -115,7 +143,7 @@ const pick = (value: VerbosePaymentType | null) => {
             <div
               v-for="option in options"
               :key="option.value"
-              class="group hover:bg-muted/40 focus-within:bg-muted/40 flex items-stretch gap-1 rounded-lg border border-transparent transition-colors"
+              class="group hover:bg-muted/40 focus-within:bg-muted/40 flex items-stretch gap-1 rounded-lg border border-transparent transition-[background-color,border-color,transform] duration-200"
               :class="modelValue?.value === option.value && 'border-primary/40 bg-primary/10'"
             >
               <button
@@ -125,25 +153,22 @@ const pick = (value: VerbosePaymentType | null) => {
                 @click="pick(option)"
               >
                 <span
-                  class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg"
+                  class="flex size-9 shrink-0 items-center justify-center rounded-lg"
+                  :class="iconClass(option.value)"
                 >
                   <component :is="icons[option.value] || LandmarkIcon" class="size-4" />
                 </span>
-                <span class="min-w-0 flex-1">
-                  <span class="block text-sm font-medium">{{ t(option.label) }}</span>
-                  <span class="text-muted-foreground block truncate text-xs">{{ optionHelp(option.value) }}</span>
-                </span>
+                <span class="min-w-0 flex-1 text-sm font-medium">{{ t(option.label) }}</span>
                 <CheckIcon v-if="modelValue?.value === option.value" class="text-primary size-4 shrink-0" />
               </button>
-              <ResponsiveTooltip :content="optionHelp(option.value)" content-class-name="max-w-76 leading-relaxed">
-                <button
-                  type="button"
-                  class="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex size-10 shrink-0 items-center justify-center self-center rounded-lg focus-visible:ring-2 focus-visible:outline-none"
-                  :aria-label="t('dialogs.manageTransaction.paymentMethodHelp.learnMore', { name: t(option.label) })"
-                >
-                  <CircleHelpIcon class="size-4" />
-                </button>
-              </ResponsiveTooltip>
+              <button
+                type="button"
+                class="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring flex size-9 shrink-0 items-center justify-center self-center rounded-lg focus-visible:ring-2 focus-visible:outline-none"
+                :aria-label="t('dialogs.manageTransaction.paymentMethodHelp.learnMore', { name: t(option.label) })"
+                @click.stop="openHelp(option.value)"
+              >
+                <CircleHelpIcon class="size-4" />
+              </button>
             </div>
             <button
               type="button"
@@ -155,18 +180,20 @@ const pick = (value: VerbosePaymentType | null) => {
           </div>
         </Dialog.DialogContent>
       </Dialog.Dialog>
-      <ResponsiveTooltip
-        :content="t('dialogs.manageTransaction.paymentMethodHelp.overview')"
-        content-class-name="max-w-76 leading-relaxed"
-      >
-        <button
-          type="button"
-          class="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex size-9 shrink-0 items-center justify-center rounded-md border border-transparent focus-visible:ring-2 focus-visible:outline-none"
-          :aria-label="t('dialogs.manageTransaction.paymentMethodHelp.title')"
-        >
-          <CircleHelpIcon class="size-4" />
-        </button>
-      </ResponsiveTooltip>
     </div>
   </FieldLabel>
+  <Dialog.Dialog v-model:open="isHelpOpen">
+    <Dialog.DialogContent blur-overlay class="w-[calc(100vw-2rem)] max-w-md gap-3 p-5">
+      <Dialog.DialogTitle class="pr-12 text-base font-semibold">
+        {{
+          helpMethod
+            ? t(options.find((x) => x.value === helpMethod)?.label ?? '')
+            : t('dialogs.manageTransaction.paymentMethodHelp.title')
+        }}
+      </Dialog.DialogTitle>
+      <Dialog.DialogDescription class="text-muted-foreground pr-5 text-sm leading-relaxed">
+        {{ helpMethod ? optionHelp(helpMethod) : t('dialogs.manageTransaction.paymentMethodHelp.longExplanation') }}
+      </Dialog.DialogDescription>
+    </Dialog.DialogContent>
+  </Dialog.Dialog>
 </template>

@@ -39,17 +39,29 @@
               @input="handleLocalInputUpdate"
               @blur="handleBlur"
             />
-            <button
-              v-else
-              type="button"
-              :disabled="disabled"
-              data-testid="date-field-weekday-trigger"
-              :aria-label="friendlyDate || label"
-              class="border-input bg-input-background ring-offset-background focus-visible:ring-ring h-10 w-full truncate rounded-md border py-2 pr-13 pl-3 text-left text-xs font-medium focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-9"
-              @click="isPopoverOpen = true"
-            >
-              {{ friendlyDate || i18n.global.t('common.dateSelector.simpleTitle') }}
-            </button>
+            <div v-else class="relative">
+              <input
+                :value="inputValue"
+                type="text"
+                inputmode="numeric"
+                maxlength="10"
+                placeholder="dd/MM/yyyy"
+                :disabled="disabled"
+                data-testid="date-field-numeric-input"
+                :aria-label="i18n.global.t('common.dateSelector.numericInputHelp')"
+                class="border-input bg-input-background focus-visible:ring-ring h-10 w-full rounded-md border py-2 pr-36 pl-3 text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-9"
+                @input="handleLocalInputUpdate"
+                @blur="handleBlur"
+                @keydown.enter.prevent="handleBlur($event)"
+              />
+              <span
+                v-if="friendlyWeekday"
+                aria-hidden="true"
+                class="text-muted-foreground pointer-events-none absolute top-1/2 right-14 -translate-y-1/2 truncate text-xs"
+              >
+                {{ friendlyWeekday }}
+              </span>
+            </div>
 
             <!-- Opaque instead of padding the input, so Firefox's native icon stays under the trigger. -->
             <Button
@@ -97,31 +109,30 @@
               @keydown.enter.prevent="commitTimeInput"
             />
             <span class="text-muted-foreground min-w-7 text-xs">{{ timeZoneLabel }}</span>
-            <Transition
-              enter-active-class="transition-all duration-200 ease-out"
-              enter-from-class="opacity-0 -translate-x-1 scale-90"
-              enter-to-class="opacity-100 translate-x-0 scale-100"
-              leave-active-class="transition-all duration-150 ease-in"
-              leave-from-class="opacity-100 translate-x-0 scale-100"
-              leave-to-class="opacity-0 -translate-x-1 scale-90"
+            <DesktopOnlyTooltip
+              :content="
+                isNowInField
+                  ? i18n.global.t('common.dateSelector.alreadyNow')
+                  : i18n.global.t('common.dateSelector.nowHelp')
+              "
+              :delay-duration="isNowInField ? 850 : 0"
             >
-              <DesktopOnlyTooltip
-                v-if="!isNowInField && !disabled"
-                :content="i18n.global.t('common.dateSelector.nowHelp')"
-              >
+              <span class="inline-flex shrink-0">
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  class="text-muted-foreground hover:text-foreground shrink-0"
+                  class="text-muted-foreground transition-[opacity,color,transform] duration-200"
+                  :class="isNowInField && 'opacity-35'"
+                  :disabled="disabled || isNowInField"
                   :aria-label="i18n.global.t('common.dateSelector.nowQuick')"
                   data-testid="date-field-now-button"
                   @click="applyNow"
                 >
                   <Clock3Icon class="size-4" />
                 </Button>
-              </DesktopOnlyTooltip>
-            </Transition>
+              </span>
+            </DesktopOnlyTooltip>
           </div>
         </div>
         <FieldError :error-message="errorMessage" />
@@ -137,7 +148,7 @@
             {{ i18n.global.t('common.dateSelector.dateTimeHint') }}
           </Dialog.DialogDescription>
           <div class="flex min-w-0 justify-center">
-            <Calendar v-model="localValue" v-bind="calendarOptions" mode="date" type="single" />
+            <Calendar :key="calendarPageKey" v-model="localValue" v-bind="calendarOptions" mode="date" type="single" />
           </div>
           <div class="border-border grid gap-3 border-t pt-3">
             <div class="text-muted-foreground flex items-center gap-2 text-xs">
@@ -266,16 +277,15 @@ const isValidDate = (value: unknown): value is Date =>
   value instanceof Date && !isNaN(value.getTime()) && value >= MIN_DATE;
 
 const DATE_PATTERN = 'yyyy-MM-dd';
+const LOCAL_DATE_PATTERN = 'dd/MM/yyyy';
 
 const isDateOnlyInput = computed(() => props.mode === 'date');
 // Safari mobile relies on its native picker, except when the input hides the time the popover still sets.
 const isPopoverAvailable = computed(() => true);
 
-const formatToInput = (value: Date) => format(value, DATE_PATTERN);
-
 // `new Date('yyyy-MM-dd')` is UTC midnight, the previous day in negative-offset timezones.
 const parseInput = ({ value }: { value: string }) => {
-  const date = parse(value, DATE_PATTERN, new Date());
+  const date = parse(value, props.showWeekday ? LOCAL_DATE_PATTERN : DATE_PATTERN, new Date());
   if (props.mode === 'date' || !props.modelValue) return date;
   return set(props.modelValue, { year: getYear(date), month: getMonth(date), date: getDate(date) });
 };
@@ -289,7 +299,8 @@ const nativeMin = computed(() => {
   return minDate ? format(minDate, DATE_PATTERN) : undefined;
 });
 
-const inputValue = ref(props.modelValue ? formatToInput(props.modelValue) : '');
+const toDisplayInput = (date: Date) => format(date, props.showWeekday ? LOCAL_DATE_PATTERN : DATE_PATTERN);
+const inputValue = ref(props.modelValue ? toDisplayInput(props.modelValue) : '');
 
 const emit = defineEmits<{
   (e: 'update:modelValue', payload: Date): void;
@@ -297,10 +308,11 @@ const emit = defineEmits<{
 }>();
 const localValue = ref<Date | null>(props.modelValue ?? (props.clearable ? null : new Date()));
 const isPopoverOpen = ref(false);
+const calendarPageKey = ref(0);
 const timeZoneLabel = getLocalTimeZoneLabel();
 const clock = useNow({ interval: 30000 });
-const friendlyDate = computed(() =>
-  props.modelValue ? format(props.modelValue, 'EEEE, d MMMM yyyy', { locale: getDateFnsLocale() }) : '',
+const friendlyWeekday = computed(() =>
+  props.modelValue ? format(props.modelValue, 'EEEE', { locale: getDateFnsLocale() }) : '',
 );
 const isSameMinute = (date: Date | null | undefined, time: string, now: Date) =>
   Boolean(date) &&
@@ -338,6 +350,9 @@ const setDialogNow = () => {
   const now = new Date();
   localValue.value = now;
   dialogTimeValue.value = format(now, 'HH:mm');
+  // Force the calendar viewport back to the current month/year, not just the
+  // selected date when the user had browsed elsewhere.
+  calendarPageKey.value += 1;
 };
 const saveDialogDate = () => {
   if (!isValidDate(localValue.value) || dialogTimeError.value) return;
@@ -373,7 +388,7 @@ const handleLocalInputUpdate = (event: Event) => {
   // This prevents validation errors during typing
 };
 
-const handleBlur = (event: FocusEvent) => {
+const handleBlur = (event: Event) => {
   const inputVal = (event.target as HTMLInputElement).value;
 
   // On blur, validate the final input value
@@ -382,7 +397,7 @@ const handleBlur = (event: FocusEvent) => {
     emit('update:modelValue', parseInput({ value: inputVal }));
   } else if (inputVal) {
     // Invalid date - revert to last valid value
-    inputValue.value = props.modelValue ? formatToInput(props.modelValue) : '';
+    inputValue.value = props.modelValue ? toDisplayInput(props.modelValue) : '';
   }
   // If empty, keep it empty
 };
@@ -392,7 +407,7 @@ const isCleared = () => props.clearable && !props.modelValue;
 watch(
   () => [props.modelValue, isDateOnlyInput.value] as const,
   ([value]) => {
-    inputValue.value = value ? formatToInput(value) : '';
+    inputValue.value = value ? toDisplayInput(value) : '';
     timeValue.value = value ? format(value, 'HH:mm') : '';
     if (isValidDate(value) && !isPopoverOpen.value) localValue.value = value;
     else if (isCleared() && !isPopoverOpen.value) localValue.value = null;

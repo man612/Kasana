@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CurrencyChip from '@/components/common/currency-chip.vue';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
+import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import { useExchangeRates } from '@/composable/data-queries/currencies';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
@@ -161,6 +162,24 @@ const excludedLinkIds = computed(() =>
 const toAmount = ({ value }: { value: string | number | null }) =>
   value === null || value === '' ? null : Number(value);
 
+const confirmRemoveOpen = ref(false);
+const pendingRemoval = ref<{ type: 'main' | 'leg'; index?: number } | null>(null);
+const requestRemove = (pending: { type: 'main' | 'leg'; index?: number }) => {
+  const value = pending.type === 'main' ? amount.value : legs.value[pending.index!]?.amount;
+  if (value !== null && value !== undefined && value !== 0) {
+    pendingRemoval.value = pending;
+    confirmRemoveOpen.value = true;
+    return;
+  }
+  if (pending.type === 'main') removeMain();
+  else removeLeg({ index: pending.index! });
+};
+const confirmRemove = () => {
+  if (!pendingRemoval.value) return;
+  if (pendingRemoval.value.type === 'main') removeMain();
+  else removeLeg({ index: pendingRemoval.value.index! });
+  pendingRemoval.value = null;
+};
 const removeLeg = ({ index }: { index: number }) => {
   // A locked main's amount is never sent, so a merged total would show but not save.
   if (legs.value.length === 1 && !props.isMainLocked) {
@@ -285,7 +304,7 @@ defineExpose({
                 class="size-6"
                 :disabled="disabled || firstCreatedIndex === -1"
                 :aria-label="$t('dialogs.manageTransaction.form.paymentLegs.removeRow')"
-                @click="removeMain"
+                @click="requestRemove({ type: 'main' })"
               >
                 <XIcon class="size-3.5" />
               </Button>
@@ -293,137 +312,138 @@ defineExpose({
           </template>
         </PaymentLegRow>
 
-        <div v-for="(leg, index) in legs" :key="leg.transactionId ?? index">
-          <PaymentLegRow
-            :account="leg.account"
-            :accounts="leg.isLinked ? (leg.account ? [leg.account] : []) : legOptions({ leg })"
-            :account-placeholder="legAccountPlaceholder({ leg })"
-            :amount="leg.amount"
-            :currency-code="leg.currencyCode ?? currencyCode"
-            :locked="leg.isLinked"
-            :disabled="disabled"
-            :error-message="legError({ leg })"
-            @update:account="setLegAccount({ index, value: $event })"
-            @update:amount="setLegAmount({ index, value: $event })"
-          >
-            <template v-if="leg.isLinked" #account-addon>
-              <ResponsiveTooltip content-class-name="max-w-72">
-                <template #content>
-                  <p class="mb-1 font-medium">
-                    {{ $t('dialogs.manageTransaction.form.paymentLegs.linkedChangesTitle') }}
-                  </p>
-                  <p>
-                    {{ $t('dialogs.manageTransaction.form.paymentLegs.linkedChangesTakes') }}
-                  </p>
-                  <p>
-                    {{ $t('dialogs.manageTransaction.form.paymentLegs.linkedChangesKeeps') }}
-                  </p>
-                  <p>
-                    {{ $t('dialogs.manageTransaction.form.paymentLegs.linkedChangesUnlink') }}
-                  </p>
-                </template>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  class="text-primary-text hover:text-primary-text mr-1 size-6 shrink-0"
-                  :aria-label="$t('dialogs.manageTransaction.form.paymentLegs.linkedChangesTitle')"
-                >
-                  <LinkIcon class="size-3.5" />
-                </Button>
-              </ResponsiveTooltip>
-            </template>
-
-            <template v-if="legRateInfos[index]" #converted>
-              <span class="text-muted-foreground" aria-hidden="true">≈</span>
-              <FormattedAmountField
-                class="min-w-0 flex-1"
-                :model-value="leg.paymentAmount ?? null"
-                embedded
-                :aria-label="
-                  $t('dialogs.manageTransaction.form.paymentLegs.convertedAmountLabel', { currency: currencyCode })
-                "
-                :disabled="disabled"
-                @update:model-value="
-                  updateLeg({
-                    index,
-                    patch: {
-                      paymentAmount: toAmount({ value: $event }),
-                      isPaymentAmountEdited: true,
-                    },
-                  })
-                "
-              />
-              <CurrencyChip v-if="currencyCode" class="hidden @sm:inline" :code="currencyCode" />
-              <ResponsiveTooltip content-class-name="max-w-72">
-                <template #content>
-                  <div class="grid gap-2">
-                    <div v-if="legRateInfos[index]!.conversion">
-                      <p class="font-medium">
-                        {{ $t('dialogs.manageTransaction.form.paymentLegs.rateFromAmounts') }}
-                      </p>
-                      <p class="tabular-nums">
-                        {{ legRateInfos[index]!.conversion!.text }}
-                      </p>
-                      <p class="tabular-nums">
-                        {{ legRateInfos[index]!.conversion!.rate }}
-                      </p>
-                    </div>
-                    <div v-if="legRateInfos[index]!.market">
-                      <p class="font-medium">
-                        {{ $t('dialogs.manageTransaction.form.paymentLegs.marketRate') }}
-                      </p>
-                      <p class="tabular-nums">
-                        {{ legRateInfos[index]!.market }}
-                      </p>
-                    </div>
-                    <p v-if="!leg.isPaymentAmountEdited" class="text-muted-foreground">
-                      {{ $t('dialogs.manageTransaction.form.paymentLegs.convertedHint', { currency: currencyCode }) }}
+        <TransitionGroup name="lajur-payment-rows" tag="div" class="relative grid gap-2">
+          <div v-for="(leg, index) in legs" :key="leg.transactionId ?? leg.account?.id ?? index">
+            <PaymentLegRow
+              :account="leg.account"
+              :accounts="leg.isLinked ? (leg.account ? [leg.account] : []) : legOptions({ leg })"
+              :account-placeholder="legAccountPlaceholder({ leg })"
+              :amount="leg.amount"
+              :currency-code="leg.currencyCode ?? currencyCode"
+              :locked="leg.isLinked"
+              :disabled="disabled"
+              :error-message="legError({ leg })"
+              @update:account="setLegAccount({ index, value: $event })"
+              @update:amount="setLegAmount({ index, value: $event })"
+            >
+              <template v-if="leg.isLinked" #account-addon>
+                <ResponsiveTooltip content-class-name="max-w-72">
+                  <template #content>
+                    <p class="mb-1 font-medium">
+                      {{ $t('dialogs.manageTransaction.form.paymentLegs.linkedChangesTitle') }}
                     </p>
-                  </div>
-                </template>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  class="text-muted-foreground size-6 shrink-0"
-                  :aria-label="$t('dialogs.manageTransaction.form.paymentLegs.rateInfo')"
-                >
-                  <InfoIcon class="size-3.5" />
-                </Button>
-              </ResponsiveTooltip>
-            </template>
+                    <p>
+                      {{ $t('dialogs.manageTransaction.form.paymentLegs.linkedChangesTakes') }}
+                    </p>
+                    <p>
+                      {{ $t('dialogs.manageTransaction.form.paymentLegs.linkedChangesKeeps') }}
+                    </p>
+                    <p>
+                      {{ $t('dialogs.manageTransaction.form.paymentLegs.linkedChangesUnlink') }}
+                    </p>
+                  </template>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    class="text-primary-text hover:text-primary-text mr-1 size-6 shrink-0"
+                    :aria-label="$t('dialogs.manageTransaction.form.paymentLegs.linkedChangesTitle')"
+                  >
+                    <LinkIcon class="size-3.5" />
+                  </Button>
+                </ResponsiveTooltip>
+              </template>
 
-            <template #actions>
-              <DesktopOnlyTooltip :content="legRemoveLabel({ leg })">
-                <Button
-                  type="button"
-                  variant="soft-destructive"
-                  size="icon-sm"
-                  class="size-6"
+              <template v-if="legRateInfos[index]" #converted>
+                <span class="text-muted-foreground" aria-hidden="true">≈</span>
+                <FormattedAmountField
+                  class="min-w-0 flex-1"
+                  :model-value="leg.paymentAmount ?? null"
+                  embedded
+                  :aria-label="
+                    $t('dialogs.manageTransaction.form.paymentLegs.convertedAmountLabel', { currency: currencyCode })
+                  "
                   :disabled="disabled"
-                  :aria-label="legRemoveLabel({ leg })"
-                  @click="removeLeg({ index })"
-                >
-                  <Link2OffIcon v-if="leg.isLinked" class="size-3.5" />
-                  <XIcon v-else class="size-3.5" />
-                </Button>
-              </DesktopOnlyTooltip>
-            </template>
-          </PaymentLegRow>
+                  @update:model-value="
+                    updateLeg({
+                      index,
+                      patch: {
+                        paymentAmount: toAmount({ value: $event }),
+                        isPaymentAmountEdited: true,
+                      },
+                    })
+                  "
+                />
+                <CurrencyChip v-if="currencyCode" class="hidden @sm:inline" :code="currencyCode" />
+                <ResponsiveTooltip content-class-name="max-w-72">
+                  <template #content>
+                    <div class="grid gap-2">
+                      <div v-if="legRateInfos[index]!.conversion">
+                        <p class="font-medium">
+                          {{ $t('dialogs.manageTransaction.form.paymentLegs.rateFromAmounts') }}
+                        </p>
+                        <p class="tabular-nums">
+                          {{ legRateInfos[index]!.conversion!.text }}
+                        </p>
+                        <p class="tabular-nums">
+                          {{ legRateInfos[index]!.conversion!.rate }}
+                        </p>
+                      </div>
+                      <div v-if="legRateInfos[index]!.market">
+                        <p class="font-medium">
+                          {{ $t('dialogs.manageTransaction.form.paymentLegs.marketRate') }}
+                        </p>
+                        <p class="tabular-nums">
+                          {{ legRateInfos[index]!.market }}
+                        </p>
+                      </div>
+                      <p v-if="!leg.isPaymentAmountEdited" class="text-muted-foreground">
+                        {{ $t('dialogs.manageTransaction.form.paymentLegs.convertedHint', { currency: currencyCode }) }}
+                      </p>
+                    </div>
+                  </template>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    class="text-muted-foreground size-6 shrink-0"
+                    :aria-label="$t('dialogs.manageTransaction.form.paymentLegs.rateInfo')"
+                  >
+                    <InfoIcon class="size-3.5" />
+                  </Button>
+                </ResponsiveTooltip>
+              </template>
 
-          <p
-            v-if="legRateInfos[index] && !legRateInfos[index]!.hasMarketRate && !leg.isPaymentAmountEdited"
-            class="text-muted-foreground mt-1 px-1 text-right text-xs"
-          >
-            {{
-              $t('dialogs.manageTransaction.form.paymentLegs.noMarketRate', {
-                currency: leg.currencyCode,
-              })
-            }}
-          </p>
-        </div>
+              <template #actions>
+                <DesktopOnlyTooltip :content="legRemoveLabel({ leg })">
+                  <Button
+                    type="button"
+                    variant="soft-destructive"
+                    size="icon-sm"
+                    class="size-6"
+                    :disabled="disabled"
+                    :aria-label="legRemoveLabel({ leg })"
+                    @click="requestRemove({ type: 'leg', index })"
+                  >
+                    <Link2OffIcon v-if="leg.isLinked" class="size-3.5" />
+                    <XIcon v-else class="size-3.5" />
+                  </Button>
+                </DesktopOnlyTooltip>
+              </template>
+            </PaymentLegRow>
 
+            <p
+              v-if="legRateInfos[index] && !legRateInfos[index]!.hasMarketRate && !leg.isPaymentAmountEdited"
+              class="text-muted-foreground mt-1 px-1 text-right text-xs"
+            >
+              {{
+                $t('dialogs.manageTransaction.form.paymentLegs.noMarketRate', {
+                  currency: leg.currencyCode,
+                })
+              }}
+            </p>
+          </div>
+        </TransitionGroup>
         <div v-if="canAddRow" class="grid grid-cols-2 gap-2">
           <Button
             type="button"
@@ -458,4 +478,14 @@ defineExpose({
       </div>
     </FieldLabel>
   </FormRow>
+  <ResponsiveAlertDialog
+    v-model:open="confirmRemoveOpen"
+    :confirm-label="$t('dialogs.manageTransaction.form.paymentLegs.confirmRemoveAction')"
+    confirm-variant="destructive"
+    @confirm="confirmRemove"
+    @cancel="pendingRemoval = null"
+  >
+    <template #title>{{ $t('dialogs.manageTransaction.form.paymentLegs.confirmRemoveTitle') }}</template>
+    <template #description>{{ $t('dialogs.manageTransaction.form.paymentLegs.confirmRemoveDescription') }}</template>
+  </ResponsiveAlertDialog>
 </template>

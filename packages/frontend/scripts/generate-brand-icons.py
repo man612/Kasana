@@ -7,7 +7,7 @@ Install Pillow with: python -m pip install Pillow
 from pathlib import Path
 import base64
 import io
-from PIL import Image
+from PIL import Image, ImageDraw, ImageChops
 
 frontend = Path(__file__).resolve().parent.parent
 source = frontend / "assets/app-icon-source.png"
@@ -31,11 +31,17 @@ if not bounds:
 left, top, right, bottom = bounds
 center_x = (left + right) / 2
 center_y = (top + bottom) / 2
-side = int(max(right - left, bottom - top) * 1.20)
+side = int(max(right - left, bottom - top) * 1.42)
 crop_box = (int(center_x - side / 2), int(center_y - side / 2), int(center_x + side / 2), int(center_y + side / 2))
 browser_image = image.crop(crop_box)
 def browser_resized(size: int) -> Image.Image:
-    return browser_image.resize((size, size), Image.Resampling.LANCZOS)
+    # Rounded square background with antialiased alpha corners, preserving logo
+    # padding after the prior tightly cropped version clipped the favicon.
+    img = browser_image.resize((size, size), Image.Resampling.LANCZOS)
+    mask = Image.new("L", (size, size), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, size - 1, size - 1), radius=int(size * .22), fill=255)
+    img.putalpha(ImageChops.multiply(img.getchannel("A"), mask))
+    return img
 
 for size, name in [
     (96, "favicon-96x96.png"),

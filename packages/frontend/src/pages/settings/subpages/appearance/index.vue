@@ -1,5 +1,5 @@
 <template>
-  <Card class="max-w-4xl">
+  <Card class="w-full max-w-none">
     <CardHeader class="border-b">
       <h2 class="mb-2 text-2xl font-semibold">{{ $t('settings.appearance.title') }}</h2>
       <p class="text-sm opacity-80">{{ $t('settings.appearance.description') }}</p>
@@ -18,6 +18,7 @@
             v-for="option in themeOptions"
             :key="option.value"
             :variant="themePreference === option.value ? 'default' : 'outline'"
+            class="transition-[background-color,border-color,color,box-shadow,transform] duration-250 ease-out active:scale-[0.97] motion-reduce:transition-none"
             size="sm"
             @click="setThemePreference(option.value)"
           >
@@ -39,7 +40,7 @@
             :key="option.value"
             type="button"
             :aria-pressed="accentTheme === option.value"
-            class="border-input hover:bg-accent focus-visible:ring-ring inline-flex min-h-10 items-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+            class="border-input hover:bg-accent focus-visible:ring-ring inline-flex min-h-10 items-center gap-2 rounded-md border px-3 py-2 text-sm transition-[background-color,border-color,color,box-shadow,transform] duration-250 ease-out focus-visible:ring-2 focus-visible:outline-none active:scale-[0.97] motion-reduce:transition-none"
             :class="accentTheme === option.value && 'border-primary bg-primary/10 text-primary-text'"
             @click="updateAccentTheme(option.value)"
           >

@@ -8,6 +8,7 @@
       v-model="period"
       :presets="quickPresets"
       :earliest-date="earliestDate"
+      dialog-on-desktop
       popover-class-name="md:min-w-[600px]"
     >
       <template #trigger="{ triggerText }">
@@ -23,15 +24,24 @@
     <Button size="icon-sm" variant="ghost" :disabled="isNextDisabled" @click="selectNextPeriod">
       <ChevronRight :size="16" />
     </Button>
-    <Button
-      size="sm"
-      variant="ghost"
-      class="ml-1 shrink-0 px-2 text-xs"
-      :disabled="isCurrentPayPeriod(period)"
-      @click="period = getCurrentPayPeriod()"
+    <Transition
+      enter-active-class="transition-all duration-200 ease-out"
+      enter-from-class="opacity-0 -translate-x-2 scale-95"
+      enter-to-class="opacity-100 translate-x-0 scale-100"
+      leave-active-class="transition-all duration-150 ease-in"
+      leave-from-class="opacity-100 translate-x-0 scale-100"
+      leave-to-class="opacity-0 -translate-x-2 scale-95"
     >
-      {{ t('dashboard.periodSelector.backToCurrent') }}
-    </Button>
+      <Button
+        v-if="!isCurrentPayPeriod(period)"
+        size="sm"
+        variant="ghost"
+        class="ml-1 shrink-0 px-2 text-xs"
+        @click="period = getCurrentPayPeriod()"
+      >
+        {{ t('dashboard.periodSelector.backToCurrent') }}
+      </Button>
+    </Transition>
   </div>
 </template>
 

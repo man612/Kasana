@@ -553,20 +553,34 @@ watch(
   () => currentTxType.value,
   async (next, previous) => {
     if (next === previous) return;
-    await nextTick();
     const container = transactionModeFieldsRef.value;
-    if (!container || typeof container.animate !== 'function') return;
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    container.getAnimations().forEach((animation) => animation.cancel());
-    container.animate(
+    const previousHeight = container?.getBoundingClientRect().height ?? 0;
+    await nextTick();
+    const updated = transactionModeFieldsRef.value;
+    if (!updated || typeof updated.animate !== 'function') return;
+    if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+      return;
+    updated.getAnimations().forEach((animation) => animation.cancel());
+    const nextHeight = updated.getBoundingClientRect().height;
+    // FLIP-like height interpolation avoids the abrupt jump of the payee,
+    // account, and destination rows while the surrounding modal remains stable.
+    updated.animate(
       [
-        { opacity: 0.5, transform: 'translateY(7px)' },
-        { opacity: 1, transform: 'translateY(0)' },
+        {
+          opacity: 0.45,
+          transform: 'translateY(5px)',
+          ...(previousHeight ? { height: `${previousHeight}px`, overflow: 'clip' } : {}),
+        },
+        {
+          opacity: 1,
+          transform: 'translateY(0)',
+          ...(previousHeight ? { height: `${nextHeight}px`, overflow: 'clip' } : {}),
+        },
       ],
-      { duration: 200, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+      { duration: 260, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
     );
   },
-  { flush: 'post' },
+  { flush: 'sync' },
 );
 
 const isTransferTx = computed(() => currentTxType.value === FORM_TYPES.transfer);
@@ -1340,7 +1354,6 @@ const confirmOptionalRemoval = () => {
   isOptionalRemovalConfirmOpen.value = false;
 };
 
-const isExternalUrlClearConfirmOpen = ref(false);
 const canUseClipboard = computed(() => typeof navigator !== 'undefined' && Boolean(navigator.clipboard));
 const pasteExternalUrl = async () => {
   if (isFormFieldsDisabled.value || !navigator.clipboard?.readText) return;
@@ -1363,7 +1376,6 @@ const copyExternalUrl = async () => {
 };
 const clearExternalUrl = () => {
   form.value.externalUrl = undefined;
-  isExternalUrlClearConfirmOpen.value = false;
 };
 const externalUrlHref = computed(() => {
   const value = form.value.externalUrl?.trim();
@@ -1762,7 +1774,7 @@ onUnmounted(() => {
             @blur="touchField('form.externalUrl')"
             non-label-wrapper
             trailing-icon-css-class="gap-0.5 px-1.5"
-            class="pr-24"
+            class="w-full [&_input]:w-full [&_input]:pr-20"
           >
             <template #iconTrailing>
               <Transition mode="out-in" name="kasana-feedback">
@@ -1800,7 +1812,7 @@ onUnmounted(() => {
                       size="icon-sm"
                       :disabled="isFormFieldsDisabled"
                       :aria-label="$t('dialogs.manageTransaction.form.externalUrlClear')"
-                      @click="isExternalUrlClearConfirmOpen = true"
+                      @click="clearExternalUrl"
                     >
                       <XIcon class="size-4" />
                     </Button>
@@ -2160,7 +2172,7 @@ onUnmounted(() => {
               {{ $t('dialogs.loanPayment.overdrawWarning', { account: form.account?.name ?? '' }) }}
             </p>
 
-            <Transition name="lajur-form-panel">
+            <Transition name="lajur-form-panel" mode="out-in">
               <PaymentLegsField
                 v-if="isMultiAccount && !isTransferTx"
                 ref="paymentLegsFieldRef"
@@ -2203,6 +2215,7 @@ onUnmounted(() => {
                 :from-account-disabled="fromAccountFieldDisabled"
                 :to-account-disabled="toAccountFieldDisabled"
                 :destination-type-disabled="isDestinationTypeLocked"
+                :show-target-amount="isTargetFieldVisible"
                 :filtered-accounts="transferDestinationAccounts"
                 :portfolios="portfolios ?? []"
                 :loan-accounts="loanDestinationAccounts"
@@ -2241,6 +2254,30 @@ onUnmounted(() => {
                   </PlannedUnlockHint>
                 </template>
 
+                <template #account-target-amount>
+                  <div v-if="isTargetFieldVisible && transferDestinationType === 'account'" class="min-w-0">
+                    <div class="min-w-0">
+                      <div class="mb-1 flex items-center gap-1.5">
+                        <span class="text-muted-foreground text-xs">{{
+                          $t('dialogs.manageTransaction.form.targetAmountLabel')
+                        }}</span>
+                        <HintIcon :content="$t('dialogs.manageTransaction.form.targetAmountHelp')" />
+                      </div>
+                      <FormattedAmountField
+                        ref="targetAmountFieldRef"
+                        v-model="form.targetAmount"
+                        :disabled="isFormFieldsDisabled || isTargetAmountFieldDisabled"
+                        :placeholder="$t('dialogs.manageTransaction.form.targetAmountPlaceholder')"
+                        :error-message="targetAmountErrorMessage"
+                        @blur="touchField('form.targetAmount')"
+                      >
+                        <template #iconTrailing>
+                          <CurrencyChip v-if="targetCurrency?.currency?.code" :code="targetCurrency.currency.code" />
+                        </template>
+                      </FormattedAmountField>
+                    </div>
+                  </div>
+                </template>
                 <template #destination-bottom>
                   <div
                     v-if="isTransferTx && form.toPortfolio && !isFormCreation && !linkedTransaction"
@@ -2255,7 +2292,7 @@ onUnmounted(() => {
                     <HintIcon :content="$t('dialogs.manageTransaction.form.portfolioCashAlreadyReflectedHint')" />
                   </div>
 
-                  <template v-if="isTargetFieldVisible">
+                  <template v-if="isTargetFieldVisible && transferDestinationType !== 'account'">
                     <form-row>
                       <div class="mb-1 flex items-center gap-1.5">
                         <span class="text-muted-foreground text-xs">{{
@@ -2474,15 +2511,6 @@ onUnmounted(() => {
       >
         <template #title>{{ $t('dialogs.manageTransaction.form.deleteConfirmTitle') }}</template>
         <template #description>{{ $t('dialogs.manageTransaction.form.deleteConfirmDescription') }}</template>
-      </ResponsiveAlertDialog>
-      <ResponsiveAlertDialog
-        v-model:open="isExternalUrlClearConfirmOpen"
-        :confirm-label="$t('common.actions.clear')"
-        confirm-variant="destructive"
-        @confirm="clearExternalUrl"
-      >
-        <template #title>{{ $t('dialogs.manageTransaction.form.externalUrlClearTitle') }}</template>
-        <template #description>{{ $t('dialogs.manageTransaction.form.externalUrlClearDescription') }}</template>
       </ResponsiveAlertDialog>
       <ResponsiveAlertDialog
         v-model:open="isOptionalRemovalConfirmOpen"

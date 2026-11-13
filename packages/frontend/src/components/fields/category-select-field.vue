@@ -2,31 +2,71 @@
 <template>
   <!-- Reusable category list template -->
   <CategoryListTemplate>
+    <div
+      v-if="!isSearching && expandableCategoryIds.length"
+      class="border-border mb-1 flex items-center justify-between gap-2 border-b px-3 py-2"
+    >
+      <span class="text-muted-foreground text-xs">{{ $t('fields.categorySelect.groupHint') }}</span>
+      <button
+        type="button"
+        class="text-primary-text hover:text-primary focus-visible:ring-ring rounded px-2 py-1 text-xs font-medium transition-colors focus-visible:ring-2"
+        :aria-label="
+          allCategoriesExpanded ? $t('fields.categorySelect.collapseAll') : $t('fields.categorySelect.expandAll')
+        "
+        @click="toggleAllCategories"
+      >
+        {{ allCategoriesExpanded ? $t('fields.categorySelect.collapseAll') : $t('fields.categorySelect.expandAll') }}
+      </button>
+    </div>
     <ListboxContent>
-      <!-- ListboxItem memoizes its attrs, so rows remount when search toggles to update the indent. -->
-      <template v-for="(item, index) in filteredItems" :key="`${item.id}:${isSearching}`">
-        <!-- Group separator (shown only when searching) -->
-        <div
-          v-if="shouldShowSeparator({ item, index })"
-          class="text-muted-foreground flex items-center gap-2 px-2 pt-3 pb-1 text-xs font-medium"
-          :class="{ 'pt-1': index === 0 }"
-        >
-          <span class="shrink-0">{{ item.rootParentName }}</span>
-          <div class="bg-border h-px flex-1" />
-        </div>
+      <TransitionGroup name="lajur-category-items" tag="div">
+        <!-- ListboxItem memoizes its attrs, so rows remount when search toggles to update the indent. -->
+        <template v-for="(item, index) in filteredItems" :key="`${item.id}:${isSearching}`">
+          <!-- Group separator (shown only when searching) -->
+          <div
+            v-if="shouldShowSeparator({ item, index })"
+            class="text-muted-foreground flex items-center gap-2 px-2 pt-3 pb-1 text-xs font-medium"
+            :class="{ 'pt-1': index === 0 }"
+          >
+            <span class="shrink-0">{{ item.rootParentName }}</span>
+            <div class="bg-border h-px flex-1" />
+          </div>
 
-        <ListboxItem
-          :value="item"
-          class="text-popover-foreground data-highlighted:bg-popover-foreground/10 data-[state=checked]:bg-primary/15 data-[state=checked]:data-highlighted:bg-primary/20 relative flex w-full cursor-pointer items-center gap-2 p-2 text-left text-sm leading-tight transition-colors duration-300 ease-out"
-          :style="{ paddingLeft: `${16 + (isSearching ? 0 : item.depth) * 12}px` }"
-          @mousedown.prevent
-          @select.prevent="selectItem(item)"
-        >
-          <CategoryCircle :category="item" :categories-map="categoriesMap" class="shrink-0" />
-          <span class="min-w-0 grow truncate">{{ item.name }}</span>
-        </ListboxItem>
-      </template>
-
+          <div
+            :key="'row:' + item.id"
+            class="flex w-full min-w-0 items-center gap-1"
+            :style="{ paddingLeft: Math.max(0, (isSearching ? 0 : item.depth) * 12) + 'px' }"
+          >
+            <ListboxItem
+              :value="item"
+              class="text-popover-foreground data-highlighted:bg-popover-foreground/10 data-[state=checked]:bg-primary/15 data-[state=checked]:data-highlighted:bg-primary/20 relative flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md p-2 text-left text-sm leading-tight transition-colors duration-200 ease-out"
+              @mousedown.prevent
+              @select.prevent="selectItem(item)"
+            >
+              <CategoryCircle :category="item" :categories-map="categoriesMap" class="shrink-0" />
+              <span class="min-w-0 grow truncate">{{ item.name }}</span>
+            </ListboxItem>
+            <button
+              v-if="!isSearching && expandableCategoryIds.includes(item.id)"
+              type="button"
+              class="text-muted-foreground hover:bg-muted hover:text-foreground flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+              :aria-expanded="!collapsedCategoryIds.has(item.id)"
+              :aria-label="
+                collapsedCategoryIds.has(item.id)
+                  ? $t('fields.categorySelect.expandGroup', { name: item.name })
+                  : $t('fields.categorySelect.collapseGroup', { name: item.name })
+              "
+              @mousedown.stop.prevent
+              @click.stop="toggleCategory(item.id)"
+            >
+              <ChevronDownIcon
+                class="size-4 transition-transform duration-200"
+                :class="collapsedCategoryIds.has(item.id) && '-rotate-90'"
+              />
+            </button>
+          </div>
+        </template>
+      </TransitionGroup>
       <div v-if="filteredItems.length === 0" class="text-muted-foreground p-4 text-center text-sm">
         {{ $t('fields.categorySelect.noCategoriesFound') }}
       </div>
@@ -279,6 +319,7 @@ interface FlatCategory extends FormattedCategory {
   depth: number;
   rootParentId: string;
   rootParentName: string;
+  ancestorIds: string[];
 }
 
 const props = withDefaults(
@@ -346,10 +387,12 @@ const flattenCategories = ({
   categories,
   depth = 0,
   rootParent,
+  ancestorIds,
 }: {
   categories: FormattedCategory[];
   depth?: number;
   rootParent?: { id: string; name: string };
+  ancestorIds?: string[];
 }): FlatCategory[] => {
   const result: FlatCategory[] = [];
 
@@ -361,6 +404,7 @@ const flattenCategories = ({
       depth,
       rootParentId: currentRoot.id,
       rootParentName: currentRoot.name,
+      ancestorIds: ancestorIds ?? [],
     });
 
     if (category.subCategories?.length > 0) {
@@ -369,6 +413,7 @@ const flattenCategories = ({
           categories: category.subCategories,
           depth: depth + 1,
           rootParent: currentRoot,
+          ancestorIds: [...(ancestorIds ?? []), category.id],
         }),
       );
     }
@@ -389,10 +434,29 @@ const allFlatCategories = computed(() => {
 });
 
 const isSearching = computed(() => searchQuery.value.length > 0);
+const collapsedCategoryIds = ref<Set<string>>(new Set());
+const expandableCategoryIds = computed(() =>
+  allFlatCategories.value.filter((item) => item.subCategories?.length).map((item) => item.id),
+);
+const allCategoriesExpanded = computed(() =>
+  expandableCategoryIds.value.every((id) => !collapsedCategoryIds.value.has(id)),
+);
+const toggleCategory = (id: string) => {
+  const set = new Set(collapsedCategoryIds.value);
+  if (set.has(id)) set.delete(id);
+  else set.add(id);
+  collapsedCategoryIds.value = set;
+};
+const toggleAllCategories = () => {
+  collapsedCategoryIds.value = allCategoriesExpanded.value ? new Set(expandableCategoryIds.value) : new Set();
+};
 
 const filteredItems = computed(() => {
   if (!searchQuery.value) {
-    return allFlatCategories.value.filter((category) => !props.unlistedIds?.has(category.id));
+    return allFlatCategories.value.filter(
+      (category) =>
+        !props.unlistedIds?.has(category.id) && category.ancestorIds.every((id) => !collapsedCategoryIds.value.has(id)),
+    );
   }
 
   const query = searchQuery.value.toLowerCase();

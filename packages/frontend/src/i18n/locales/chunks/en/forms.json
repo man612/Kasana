@@ -534,7 +534,12 @@
       "unlistedNotice": "Search to find any category",
       "sharedOwnerNoticeTooltip": "Transactions on a shared account always use the owner's categories. Anything you save here will be filed under {owner}'s set so both of you see consistent totals.",
       "sharedOwnerCategoriesLoadError": "Couldn't load categories for the shared account. Please try again.",
-      "dialogHint": "Search by name or choose a category. For example: Groceries for everyday purchases, Transportation for travel costs. Categories organize expense/income reporting."
+      "dialogHint": "Choose a category or subcategory to organize your reports.",
+      "groupHint": "Categories & subcategories",
+      "collapseAll": "Collapse all",
+      "expandAll": "Expand all",
+      "collapseGroup": "Collapse {name}",
+      "expandGroup": "Show subcategories of {name}"
     },
     "select": {
       "selectOption": "Select an option",
@@ -569,7 +574,20 @@
       "noTagsAvailable": "No tags available",
       "removeConfirmAction": "Remove tag",
       "removeConfirmTitle": "Remove tag?",
-      "removeConfirmDetail": "Remove “{name}” from this transaction? The tag remains available for other transactions."
+      "removeConfirmDetail": "Remove “{name}” from this transaction? The tag remains available for other transactions.",
+      "dialogTitle": "Select tags",
+      "dialogHint": "Choose relevant tags, or add suggested tags below.",
+      "searchPlaceholder": "Search tags...",
+      "existingTitle": "Available tags",
+      "suggestedTitle": "Suggested tags",
+      "suggestedHint": "Choose to add. Added tags can be deleted here.",
+      "done": "Done",
+      "createError": "Could not create the tag. Try again.",
+      "deleteError": "Could not delete the tag. Try again.",
+      "deleteTagLabel": "Delete tag {name}",
+      "deleteTagAction": "Delete tag",
+      "deleteTagTitle": "Delete this tag from the app?",
+      "deleteTagDetail": "Tag “{name}” will be removed from the tag list, transactions, and categories using it. This cannot be undone."
     },
     "categoryMultiSelect": {
       "placeholder": "Select categories...",

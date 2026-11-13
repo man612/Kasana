@@ -33,7 +33,7 @@
           label-key="name"
         />
 
-        <div class="mb-1 flex items-center gap-1.5">
+        <div class="-mb-3 flex items-center gap-1.5">
           <span class="text-muted-foreground text-sm font-medium">{{
             $t('payees.form.categorizationMode.label')
           }}</span>

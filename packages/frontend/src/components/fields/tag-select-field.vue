@@ -1,156 +1,14 @@
-<template>
-  <div class="w-full">
-    <FieldLabel :label="label" only-template>
-      <template v-if="$slots['label-right']" #label-right>
-        <slot name="label-right" />
-      </template>
-      <ListboxRoot ref="listboxRef" multiple :model-value="modelValue" highlight-on-hover>
-        <Popover :open="isOpen" @update:open="(open: boolean) => (isOpen = open)">
-          <PopoverAnchor as-child>
-            <div
-              ref="wrapperRef"
-              :class="
-                cn(
-                  'border-input bg-input-background ring-offset-background flex min-h-10 w-full cursor-text items-center gap-2 rounded-md border px-3 py-2 text-sm md:min-h-9',
-                  'focus-within:ring-ring focus-within:ring-2 focus-within:ring-offset-2',
-                  disabled && 'cursor-not-allowed opacity-50',
-                )
-              "
-              @mousedown="keepInputFocus"
-              @click="openList"
-              @keydown.enter.capture="onEnterCapture"
-            >
-              <div class="flex flex-1 flex-wrap items-center gap-1">
-                <span
-                  v-for="tag in selectedTags"
-                  :key="tag.id"
-                  class="group inline-flex cursor-pointer items-center justify-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white transition-opacity hover:opacity-80"
-                  :style="{ backgroundColor: tag.color }"
-                  @click.stop="requestTagToggle(tag)"
-                >
-                  <XIcon class="absolute hidden size-3 group-hover:block" />
-                  <span class="inline-flex items-center gap-1 group-hover:invisible">
-                    <TagIcon v-if="tag.icon" :name="tag.icon" class="size-3" />
-                    {{ tag.name }}
-                  </span>
-                </span>
-                <!-- data-enter-picks marks Enter as taken by the tag pick, so enclosing Enter handlers skip it.
-                     Enter is always prevented to block implicit submit of an enclosing form. -->
-                <ListboxFilter
-                  ref="inputRef"
-                  v-model="searchQuery"
-                  :disabled="disabled"
-                  :placeholder="selectedTags.length ? '' : placeholder"
-                  class="placeholder:text-muted-foreground min-w-16 flex-1 bg-transparent outline-none disabled:cursor-not-allowed"
-                  :data-enter-picks="isPicking ? '' : undefined"
-                  @focus="isOpen = true"
-                  @keydown.up.down.home.end="hasNavigated = true"
-                  @keydown.enter.prevent
-                  @keydown.backspace="!searchQuery && selectedTags.at(-1) && requestTagToggle(selectedTags.at(-1)!)"
-                />
-              </div>
-              <span class="-m-2 shrink-0 p-2" aria-hidden="true" @click.stop="toggleList">
-                <ChevronsUpDownIcon class="text-muted-foreground size-4" />
-              </span>
-            </div>
-          </PopoverAnchor>
-          <PopoverContent
-            class="max-h-[min(62dvh,460px)] w-(--reka-popover-trigger-width) overflow-y-auto p-3"
-            align="start"
-            @open-auto-focus.prevent
-            @close-auto-focus.prevent
-            @interact-outside="(e) => wrapperRef?.contains(e.target as Node) && e.preventDefault()"
-          >
-            <ListboxContent>
-              <div
-                v-if="filteredTags.length === 0 && recommendedTags.length === 0"
-                class="text-muted-foreground py-4 text-center text-sm"
-              >
-                {{ $t('fields.tagSelect.noTagsAvailable') }}
-              </div>
-              <div v-else class="flex flex-wrap gap-2">
-                <ListboxItem
-                  v-for="tag in filteredTags"
-                  :key="tag.id"
-                  :value="tag.id"
-                  as="span"
-                  class="group responsive data-highlighted:ring-ring inline-flex cursor-pointer items-center justify-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium text-white transition-opacity data-highlighted:opacity-90 data-highlighted:ring-2 data-[state=checked]:opacity-50 data-[state=checked]:data-highlighted:opacity-100"
-                  :style="{ backgroundColor: tag.color }"
-                  @mousedown.prevent
-                  @select="requestTagToggle(tag)"
-                >
-                  <template v-if="isSelected(tag.id)">
-                    <XIcon class="absolute hidden size-3 group-hover:block" />
-                    <span class="inline-flex items-center gap-1 group-hover:invisible">
-                      <TagIcon v-if="tag.icon" :name="tag.icon" class="size-3" />
-                      {{ tag.name }}
-                    </span>
-                  </template>
-                  <template v-else>
-                    <TagIcon v-if="tag.icon" :name="tag.icon" class="size-3" />
-                    {{ tag.name }}
-                  </template>
-                </ListboxItem>
-              </div>
-            </ListboxContent>
-            <div v-if="recommendedTags.length" class="border-border mt-3 border-t pt-3">
-              <p class="text-foreground text-xs font-semibold">Saran tag Indonesia</p>
-              <p class="text-muted-foreground mt-0.5 mb-2 text-xs">
-                Pilih untuk menambah. Tag tambahan bisa dihapus melalui Pengaturan → Tag, sedangkan tiga tag utama tetap
-                tersedia.
-              </p>
-              <div class="flex flex-wrap gap-1.5">
-                <button
-                  v-for="suggestion in recommendedTags"
-                  :key="suggestion.name"
-                  type="button"
-                  :disabled="disabled || isCreatingSuggestion"
-                  :aria-label="'Buat tag ' + suggestion.name"
-                  class="focus-visible:ring-ring inline-flex min-h-7 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-white transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
-                  :style="{ backgroundColor: suggestion.color }"
-                  data-testid="suggested-tag"
-                  @mousedown.prevent
-                  @click.stop="createSuggestedTag(suggestion)"
-                >
-                  <PlusIcon class="size-3" />
-                  {{ suggestion.name }}
-                </button>
-              </div>
-              <p v-if="suggestionError" class="text-destructive mt-2 text-xs" role="alert">{{ suggestionError }}</p>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </ListboxRoot>
-    </FieldLabel>
-    <ResponsiveAlertDialog
-      v-model:open="isUnselectConfirmOpen"
-      :confirm-label="$t('fields.tagSelect.removeConfirmAction')"
-      confirm-variant="destructive"
-      @confirm="confirmTagUnselect"
-      @cancel="pendingTagUnselect = null"
-    >
-      <template #title>{{ $t('fields.tagSelect.removeConfirmTitle') }}</template>
-      <template #description>{{
-        $t('fields.tagSelect.removeConfirmDetail', { name: pendingTagUnselect?.name })
-      }}</template>
-    </ResponsiveAlertDialog>
-    <FieldError :error-message="errorMessage" />
-  </div>
-</template>
-
 <script setup lang="ts">
+import { availableTagSuggestions, isCoreTagName, type TagSuggestion } from '@/common/const/indonesian-tag-suggestions';
 import TagIcon from '@/components/common/icons/tag-icon.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
-import { availableTagSuggestions, type TagSuggestion } from '@/common/const/indonesian-tag-suggestions';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
-import { Popover, PopoverContent } from '@/components/lib/ui/popover';
-import { cn } from '@/lib/utils';
+import * as Dialog from '@/components/lib/ui/dialog';
 import { useTagsStore } from '@/stores';
-import { TagModel } from '@bt/shared/types';
-import { ChevronsUpDownIcon, PlusIcon, XIcon } from '@lucide/vue';
+import { type TagModel } from '@bt/shared/types';
+import { CheckIcon, ChevronRightIcon, PlusIcon, Trash2Icon, XIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { ListboxContent, ListboxFilter, ListboxItem, ListboxRoot, PopoverAnchor } from 'reka-ui';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -162,117 +20,92 @@ const props = withDefaults(
     errorMessage?: string;
     disabled?: boolean;
   }>(),
-  {
-    label: undefined,
-    modelValue: () => [],
-    placeholder: undefined,
-    errorMessage: undefined,
-  },
+  { modelValue: () => [], disabled: false },
 );
-
-const emit = defineEmits<{
-  'update:model-value': [value: string[]];
-}>();
-
+const emit = defineEmits<{ 'update:model-value': [value: string[]] }>();
 const { t, locale } = useI18n();
 const tagsStore = useTagsStore();
 const { tags } = storeToRefs(tagsStore);
-
 const isOpen = ref(false);
-const wrapperRef = ref<HTMLDivElement>();
-const inputRef = ref<{ $el: HTMLInputElement } | null>(null);
-const focusInput = () => inputRef.value?.$el.focus();
-// Sets isOpen directly: an already-focused input fires no focus event.
-const openList = () => {
-  if (props.disabled) return;
-  isOpen.value = true;
-  focusInput();
-};
-const toggleList = () => (isOpen.value ? (isOpen.value = false) : openList());
-
-// Taps inside the field keep focus in the input; a blur would count as focus-outside and close the list.
-const keepInputFocus = (event: MouseEvent) => {
-  if (event.target !== inputRef.value?.$el) event.preventDefault();
-};
-
-const searchQuery = ref('');
-watch(isOpen, () => (searchQuery.value = ''));
-
-const query = computed(() => searchQuery.value.trim().toLowerCase());
-
-const filteredTags = computed(() =>
-  query.value ? tags.value.filter((tag) => tag.name.toLowerCase().includes(query.value)) : tags.value,
-);
+const query = ref('');
 const isCreatingSuggestion = ref(false);
 const suggestionError = ref('');
+const isUnselectConfirmOpen = ref(false);
+const pendingTagUnselect = ref<TagModel | null>(null);
+const isDeleteConfirmOpen = ref(false);
+const pendingTagDelete = ref<TagModel | null>(null);
+const isDeleting = ref(false);
+
+const selectedIds = computed(() => new Set(props.modelValue ?? []));
+const selectedTags = computed(() =>
+  (props.modelValue ?? [])
+    .map((id) => tags.value.find((tag) => tag.id === id))
+    .filter((tag): tag is TagModel => tag !== undefined),
+);
+const filteredTags = computed(() => {
+  const search = query.value.trim().toLocaleLowerCase(locale.value);
+  return search ? tags.value.filter((tag) => tag.name.toLocaleLowerCase(locale.value).includes(search)) : tags.value;
+});
 const recommendedTags = computed(() =>
   locale.value === 'id'
     ? availableTagSuggestions(
         tags.value.map((tag) => tag.name),
-        query.value,
+        query.value.trim().toLocaleLowerCase('id-ID'),
       )
     : [],
 );
-
-const hasNavigated = ref(false);
-watch([isOpen, searchQuery], () => (hasNavigated.value = false));
-const isPicking = computed(
-  () => isOpen.value && filteredTags.value.length > 0 && (Boolean(query.value) || hasNavigated.value),
-);
-
-// Enter picks only after typing or arrowing. Otherwise drop the highlight (left by hover or a tag
-// removal) so reka ignores the key and it reaches enclosing handlers, e.g. Cmd+Enter submit.
-const listboxRef = ref<{ highlightedElement: HTMLElement | null } | null>(null);
-const onEnterCapture = (event: KeyboardEvent) => {
-  const hasModifier = event.metaKey || event.ctrlKey || event.altKey || event.shiftKey;
-  if (isPicking.value && !hasModifier) return;
-  if (listboxRef.value) listboxRef.value.highlightedElement = null;
+const openList = () => {
+  if (props.disabled) return;
+  query.value = '';
+  isOpen.value = true;
 };
-
-const selectedTagIds = computed(() => new Set(props.modelValue ?? []));
-
-const selectedTags = computed(() => {
-  const ids = props.modelValue ?? [];
-  return ids.map((id) => tags.value.find((tag) => tag.id === id)).filter((tag): tag is TagModel => tag !== undefined);
+watch(isOpen, (open) => {
+  if (!open) query.value = '';
 });
-
-const placeholder = computed(() => props.placeholder ?? t('fields.tagSelect.placeholder'));
-const pendingTagUnselect = ref<TagModel | null>(null);
-const isUnselectConfirmOpen = ref(false);
+const toggleTag = (tag: TagModel) => {
+  const ids = [...(props.modelValue ?? [])];
+  const index = ids.indexOf(tag.id);
+  if (index < 0) ids.push(tag.id);
+  else ids.splice(index, 1);
+  emit('update:model-value', ids);
+};
 const requestTagToggle = (tag: TagModel) => {
   if (props.disabled) return;
-  if (!selectedTagIds.value.has(tag.id)) {
+  if (!selectedIds.value.has(tag.id)) {
     toggleTag(tag);
     return;
   }
   pendingTagUnselect.value = tag;
-  isOpen.value = false;
   isUnselectConfirmOpen.value = true;
 };
 const confirmTagUnselect = () => {
   if (pendingTagUnselect.value) toggleTag(pendingTagUnselect.value);
   pendingTagUnselect.value = null;
 };
-
-// Focusing the input is what opens the list.
-defineExpose({ open: focusInput });
-
-const isSelected = (tagId: string) => selectedTagIds.value.has(tagId);
-
-const toggleTag = (tag: TagModel) => {
-  const currentIds = [...(props.modelValue ?? [])];
-  const index = currentIds.indexOf(tag.id);
-
-  if (index === -1) {
-    currentIds.push(tag.id);
-  } else {
-    currentIds.splice(index, 1);
+const requestDelete = (tag: TagModel) => {
+  if (props.disabled || isCoreTagName(tag.name)) return;
+  pendingTagDelete.value = tag;
+  isDeleteConfirmOpen.value = true;
+};
+const confirmDelete = async () => {
+  const tag = pendingTagDelete.value;
+  if (!tag || isCoreTagName(tag.name) || isDeleting.value) return;
+  isDeleting.value = true;
+  suggestionError.value = '';
+  try {
+    await tagsStore.deleteTag({ id: tag.id });
+    if (selectedIds.value.has(tag.id)) {
+      emit(
+        'update:model-value',
+        (props.modelValue ?? []).filter((id) => id !== tag.id),
+      );
+    }
+    pendingTagDelete.value = null;
+  } catch {
+    suggestionError.value = t('fields.tagSelect.deleteError');
+  } finally {
+    isDeleting.value = false;
   }
-
-  emit('update:model-value', currentIds);
-  searchQuery.value = '';
-  hasNavigated.value = false;
-  focusInput();
 };
 const createSuggestedTag = async (suggestion: TagSuggestion) => {
   if (props.disabled || isCreatingSuggestion.value) return;
@@ -283,11 +116,151 @@ const createSuggestedTag = async (suggestion: TagSuggestion) => {
       (tag) => tag.name.toLocaleLowerCase('id-ID') === suggestion.name.toLocaleLowerCase('id-ID'),
     );
     const created = existing ?? (await tagsStore.createTag({ name: suggestion.name, color: suggestion.color }));
-    if (!selectedTagIds.value.has(created.id)) toggleTag(created);
+    if (!selectedIds.value.has(created.id)) toggleTag(created);
   } catch {
-    suggestionError.value = 'Tag belum berhasil dibuat. Coba lagi.';
+    suggestionError.value = t('fields.tagSelect.createError');
   } finally {
     isCreatingSuggestion.value = false;
   }
 };
+defineExpose({ open: openList });
 </script>
+
+<template>
+  <FieldLabel :label="label" only-template>
+    <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
+    <button
+      type="button"
+      :disabled="disabled"
+      data-testid="tag-picker-trigger"
+      class="border-input bg-input-background hover:bg-muted/50 focus-visible:ring-ring flex min-h-9 w-full items-center gap-2 rounded-md border px-3 py-1.5 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
+      @click="openList"
+    >
+      <span v-if="!selectedTags.length" class="text-muted-foreground min-w-0 flex-1 truncate">
+        {{ placeholder ?? t('fields.tagSelect.placeholder') }}
+      </span>
+      <span v-else class="flex min-w-0 flex-1 flex-wrap gap-1">
+        <span
+          v-for="tag in selectedTags"
+          :key="tag.id"
+          class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium text-white"
+          :style="{ backgroundColor: tag.color }"
+        >
+          <TagIcon v-if="tag.icon" :name="tag.icon" class="size-3" />
+          {{ tag.name }}
+        </span>
+      </span>
+      <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" />
+    </button>
+    <FieldError :error-message="errorMessage" />
+  </FieldLabel>
+  <Dialog.Dialog v-model:open="isOpen">
+    <Dialog.DialogContent
+      blur-overlay
+      data-testid="tag-picker-dialog"
+      class="max-h-[min(86dvh,660px)] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden p-0"
+    >
+      <div class="border-border border-b px-4 py-4 pr-14">
+        <Dialog.DialogTitle class="text-base font-semibold">{{ t('fields.tagSelect.dialogTitle') }}</Dialog.DialogTitle>
+        <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs">
+          {{ t('fields.tagSelect.dialogHint') }}
+        </Dialog.DialogDescription>
+      </div>
+      <div class="border-border border-b p-3">
+        <input
+          v-model="query"
+          type="search"
+          autofocus
+          :placeholder="t('fields.tagSelect.searchPlaceholder')"
+          class="border-input bg-input-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none"
+        />
+      </div>
+      <div class="max-h-[min(59dvh,460px)] min-h-0 space-y-4 overflow-y-auto overscroll-contain p-4">
+        <section>
+          <h3 class="mb-2 text-xs font-semibold">{{ t('fields.tagSelect.existingTitle') }}</h3>
+          <p v-if="!filteredTags.length" class="text-muted-foreground py-3 text-xs">
+            {{ t('fields.tagSelect.noTagsAvailable') }}
+          </p>
+          <div class="grid gap-1.5">
+            <div
+              v-for="tag in filteredTags"
+              :key="tag.id"
+              class="hover:bg-muted/40 flex items-center gap-1 rounded-lg border border-transparent px-1 py-0.5 transition-colors"
+            >
+              <button
+                type="button"
+                class="flex min-h-9 min-w-0 flex-1 items-center gap-2 text-left"
+                :aria-pressed="selectedIds.has(tag.id)"
+                @click="requestTagToggle(tag)"
+              >
+                <span class="size-3.5 shrink-0 rounded-full" :style="{ backgroundColor: tag.color }" />
+                <span class="min-w-0 flex-1 truncate text-sm">{{ tag.name }}</span>
+                <CheckIcon v-if="selectedIds.has(tag.id)" class="text-primary size-4" />
+              </button>
+              <button
+                v-if="!isCoreTagName(tag.name)"
+                type="button"
+                class="text-muted-foreground hover:bg-destructive/10 hover:text-destructive flex size-8 items-center justify-center rounded-md"
+                :aria-label="t('fields.tagSelect.deleteTagLabel', { name: tag.name })"
+                @click="requestDelete(tag)"
+              >
+                <Trash2Icon class="size-4" />
+              </button>
+            </div>
+          </div>
+        </section>
+        <section v-if="recommendedTags.length" class="border-border border-t pt-3">
+          <h3 class="mb-1 text-xs font-semibold">{{ t('fields.tagSelect.suggestedTitle') }}</h3>
+          <p class="text-muted-foreground mb-2 text-xs">{{ t('fields.tagSelect.suggestedHint') }}</p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="suggestion in recommendedTags"
+              :key="suggestion.name"
+              type="button"
+              :disabled="disabled || isCreatingSuggestion"
+              class="focus-visible:ring-ring inline-flex min-h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-white transition-opacity hover:opacity-85 focus-visible:ring-2 disabled:opacity-50"
+              :style="{ backgroundColor: suggestion.color }"
+              data-testid="suggested-tag"
+              @click="createSuggestedTag(suggestion)"
+            >
+              <PlusIcon class="size-3.5" />{{ suggestion.name }}
+            </button>
+          </div>
+        </section>
+        <p v-if="suggestionError" class="text-destructive text-xs" role="alert">{{ suggestionError }}</p>
+      </div>
+      <div class="border-border flex justify-end border-t px-4 py-3">
+        <button
+          type="button"
+          class="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium"
+          @click="isOpen = false"
+        >
+          {{ t('fields.tagSelect.done') }}
+        </button>
+      </div>
+    </Dialog.DialogContent>
+  </Dialog.Dialog>
+  <ResponsiveAlertDialog
+    v-model:open="isUnselectConfirmOpen"
+    :confirm-label="t('fields.tagSelect.removeConfirmAction')"
+    confirm-variant="destructive"
+    @confirm="confirmTagUnselect"
+    @cancel="pendingTagUnselect = null"
+  >
+    <template #title>{{ t('fields.tagSelect.removeConfirmTitle') }}</template>
+    <template #description>{{
+      t('fields.tagSelect.removeConfirmDetail', { name: pendingTagUnselect?.name })
+    }}</template>
+  </ResponsiveAlertDialog>
+  <ResponsiveAlertDialog
+    v-model:open="isDeleteConfirmOpen"
+    :confirm-label="t('fields.tagSelect.deleteTagAction')"
+    confirm-variant="destructive"
+    :confirm-disabled="isDeleting"
+    @confirm="confirmDelete"
+    @cancel="pendingTagDelete = null"
+  >
+    <template #title>{{ t('fields.tagSelect.deleteTagTitle') }}</template>
+    <template #description>{{ t('fields.tagSelect.deleteTagDetail', { name: pendingTagDelete?.name }) }}</template>
+  </ResponsiveAlertDialog>
+</template>

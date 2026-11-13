@@ -21,7 +21,7 @@ const props = withDefaults(
     /** `chart` swaps the popover surface for the shared chart-tooltip one, for data readouts. */
     variant?: 'default' | 'chart';
   }>(),
-  { delayDuration: 300, variant: 'default' },
+  { delayDuration: 850, variant: 'default' },
 );
 
 const contentClass = computed(() =>

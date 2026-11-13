@@ -534,7 +534,12 @@
       "unlistedNotice": "Search to find any category",
       "sharedOwnerNoticeTooltip": "Transaksi di akun bersama selalu menggunakan kategori pemilik. Apa pun yang Anda simpan di sini akan diajukan di bawah set {owner} sehingga Anda berdua melihat total yang konsisten.",
       "sharedOwnerCategoriesLoadError": "Tidak dapat memuat kategori untuk akun bersama. Silakan coba lagi.",
-      "dialogHint": "Cari berdasarkan nama atau pilih kategori. Contoh: Belanja untuk kebutuhan sehari-hari, Transportasi untuk ongkos perjalanan. Kategori menentukan laporan pengeluaran/pemasukan."
+      "dialogHint": "Pilih kategori utama atau subkategori agar laporan lebih teratur.",
+      "groupHint": "Kategori & subkategori",
+      "collapseAll": "Ringkas semua",
+      "expandAll": "Tampilkan semua",
+      "collapseGroup": "Ringkas {name}",
+      "expandGroup": "Tampilkan subkategori {name}"
     },
     "select": {
       "selectOption": "Pilih opsi",
@@ -569,7 +574,20 @@
       "noTagsAvailable": "Tidak ada tag tersedia",
       "removeConfirmAction": "Lepaskan tag",
       "removeConfirmTitle": "Lepaskan tag?",
-      "removeConfirmDetail": "Lepaskan tag “{name}” dari transaksi ini? Tag tetap tersedia untuk transaksi lain dan tidak dihapus dari daftar tag."
+      "removeConfirmDetail": "Lepaskan tag “{name}” dari transaksi ini? Tag tetap tersedia untuk transaksi lain dan tidak dihapus dari daftar tag.",
+      "dialogTitle": "Pilih tag",
+      "dialogHint": "Pilih tag yang sesuai, atau tambahkan saran di bawah.",
+      "searchPlaceholder": "Cari tag...",
+      "existingTitle": "Tag tersedia",
+      "suggestedTitle": "Saran tag",
+      "suggestedHint": "Ketuk untuk menambah. Tag tambahan bisa dihapus di sini.",
+      "done": "Selesai",
+      "createError": "Tag gagal dibuat. Coba lagi.",
+      "deleteError": "Tag gagal dihapus. Coba lagi.",
+      "deleteTagLabel": "Hapus tag {name}",
+      "deleteTagAction": "Hapus tag",
+      "deleteTagTitle": "Hapus tag dari aplikasi?",
+      "deleteTagDetail": "Tag “{name}” akan dihapus dari daftar tag, transaksi, dan kategori yang memakainya. Tindakan ini tidak bisa dibatalkan."
     },
     "categoryMultiSelect": {
       "placeholder": "Pilih kategori...",

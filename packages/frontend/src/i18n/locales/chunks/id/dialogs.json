@@ -293,7 +293,10 @@
             "differentType": "Jenis transaksi berbeda",
             "submit": "Tautkan {count} transaksi"
           },
-          "amountLockedHint": "Jumlah utama dihitung otomatis dari tiap rekening. Ubah nominal pada bagian rekening yang dibagi, bukan di kolom ini."
+          "amountLockedHint": "Jumlah utama dihitung otomatis dari tiap rekening. Ubah nominal pada bagian rekening yang dibagi, bukan di kolom ini.",
+          "confirmRemoveTitle": "Hapus rekening dari pembagian?",
+          "confirmRemoveDescription": "Nominal yang sudah diisi pada rekening ini akan dikeluarkan dari pembagian. Periksa total transaksi sesudahnya.",
+          "confirmRemoveAction": "Hapus rekening"
         },
         "targetAmountHelp": "Jumlah yang masuk ke tujuan. Contoh: transfer Rp100.000 ke rekening rupiah berarti target Rp100.000. Untuk beda mata uang, isi jumlah yang benar-benar diterima setelah kurs/biaya.",
         "externalUrlPaste": "Tempel tautan dari clipboard",
@@ -523,7 +526,7 @@
       },
       "paymentMethodHelp": {
         "title": "Metode pembayaran atau penerimaan",
-        "overview": "Ini menjelaskan cara uang dibayar atau diterima, bukan rekening mana yang dipakai. Contoh: QRIS bisa memotong saldo bank maupun dompet digital; pilih sumber saldonya di kolom Akun. Memindahkan uang antarrekening sendiri termasuk Transfer, bukan Pengeluaran.",
+        "overview": "Pilih cara uang dibayar atau diterima.",
         "placeholder": "Pilih metode",
         "learnMore": "Penjelasan {name}",
         "qris": "Pindai QRIS lewat aplikasi bank atau dompet digital. Sumber dana ditentukan dari rekening pada kolom Akun.",
@@ -538,7 +541,8 @@
         "payLater": "Pembayaran ditunda atau dicicil melalui layanan seperti SPayLater atau Kredivo; utangnya tetap perlu dicatat jika dilacak.",
         "mobilePayment": "Pembayaran lewat aplikasi seluler lain yang tidak masuk QRIS atau dompet digital.",
         "webPayment": "Pembayaran melalui layanan checkout online lain yang tidak termasuk metode di atas.",
-        "voucher": "Bayar dengan voucher, saldo hadiah, atau instrumen diskon dari penyedia layanan."
+        "voucher": "Bayar dengan voucher, saldo hadiah, atau instrumen diskon dari penyedia layanan.",
+        "longExplanation": "Metode pembayaran berbeda dari rekening sumber dana. Contoh: QRIS dapat memakai saldo bank atau dompet digital. Pilih rekening yang benar di kolom Akun. Memindahkan uang antar rekening sendiri dicatat sebagai Transfer, sedangkan membayar orang lain adalah Pengeluaran."
       }
     },
     "portfolioTransfer": {

@@ -1,9 +1,15 @@
 <template>
   <div class="bg-background flex h-dvh max-md:flex-col">
-    <template v-if="!isMobileView">
-      <SidebarRail v-if="isCollapsed || isSettingsRoute" />
-      <Sidebar v-else />
-    </template>
+    <div
+      v-if="!isMobileView"
+      class="relative h-full shrink-0 overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+      :class="isCollapsed || isSettingsRoute ? 'w-13' : 'w-75'"
+    >
+      <Transition name="lajur-sidebar" mode="out-in">
+        <SidebarRail v-if="isCollapsed || isSettingsRoute" key="rail" />
+        <Sidebar v-else key="full" />
+      </Transition>
+    </div>
 
     <ScrollArea ref="scrollAreaRef" class="flex-1" scrollbar-class="z-40" :scroll-area-id="SCROLL_AREA_IDS.dashboard">
       <ui-header class="bg-card dark:bg-background sticky top-0 z-30" />
