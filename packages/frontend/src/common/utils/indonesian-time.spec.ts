@@ -1,21 +1,16 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { getLocalTimeZoneLabel } from './indonesian-time';
+import { resolveTimeZoneLabel } from './indonesian-time';
 
 describe('Indonesian local time-zone label', () => {
   it.each([
-    ['Asia/Jakarta', 'WIB'],
-    ['Asia/Makassar', 'WITA'],
-    ['Asia/Jayapura', 'WIT'],
-  ])('maps %s correctly', (zone, label) => {
-    const original = Intl.DateTimeFormat;
-    vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(((
-      ...args: ConstructorParameters<typeof Intl.DateTimeFormat>
-    ) => {
-      const formatter = new original(...args);
-      return Object.assign(formatter, { resolvedOptions: () => ({ ...formatter.resolvedOptions(), timeZone: zone }) });
-    }) as typeof Intl.DateTimeFormat);
-    expect(getLocalTimeZoneLabel()).toBe(label);
-    vi.restoreAllMocks();
+    ['Asia/Jakarta', 420, 'WIB'],
+    ['Asia/Pontianak', 420, 'WIB'],
+    ['Asia/Makassar', 480, 'WITA'],
+    ['Asia/Jayapura', 540, 'WIT'],
+    ['Europe/London', 60, 'UTC+01:00'],
+    ['America/New_York', -300, 'UTC-05:00'],
+  ])('maps %s correctly', (zone, offset, expected) => {
+    expect(resolveTimeZoneLabel(zone, offset)).toBe(expected);
   });
 });
