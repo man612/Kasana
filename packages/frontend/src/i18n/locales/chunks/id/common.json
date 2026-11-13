@@ -100,12 +100,18 @@
     },
     "paymentTypes": {
       "creditCard": "Kartu Kredit",
+      "payLater": "PayLater / Cicilan Digital",
+      "autoDebit": "Autodebet",
+      "emoneyCard": "Kartu Uang Elektronik (e-Money, Flazz, TapCash)",
+      "virtualAccount": "Virtual Account (VA)",
+      "eWallet": "Dompet Digital (DANA, GoPay, OVO, ShopeePay)",
+      "qris": "QRIS (scan / tap)",
       "bankTransfer": "Transfer Bank",
       "cash": "Tunai",
       "debitCard": "Kartu Debit",
-      "mobilePayment": "Pembayaran Seluler",
+      "mobilePayment": "Pembayaran lewat Aplikasi (Lainnya)",
       "voucher": "Voucher",
-      "webPayment": "Pembayaran Web",
+      "webPayment": "Pembayaran Online (Lainnya)",
       "none": "Tidak ada"
     },
     "vehicleClasses": {
@@ -220,7 +226,12 @@
       "currentMonthQuick": "Bulan ini",
       "previousMonthQuick": "Bulan lalu",
       "dateTimeTitle": "Pilih tanggal & waktu",
-      "dateTimeHint": "Pilih tanggal, lalu atur jam dan menit bila diperlukan."
+      "dateTimeHint": "Tanggal dan jam baru akan diterapkan setelah kamu memilih Simpan.",
+      "todayIndicator": "Hari ini",
+      "timeLabel": "Jam",
+      "nowQuick": "Sekarang",
+      "saveDate": "Simpan tanggal & waktu",
+      "invalidTime": "Isi jam dengan format 24 jam yang benar, misalnya 14:30."
     },
     "appUpdate": {
       "title": "Pembaruan tersedia",

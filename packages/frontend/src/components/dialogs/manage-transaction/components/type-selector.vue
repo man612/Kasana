@@ -20,7 +20,7 @@
       type="button"
       :class="
         cn(
-          'relative z-10 cursor-pointer rounded-[10px] p-1.5 text-center text-base font-medium transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none',
+          'relative z-10 inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-[10px] p-1.5 text-center text-sm font-medium transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none',
           selectedTransactionType === option.type
             ? 'text-foreground dark:text-background'
             : 'text-muted-foreground hover:text-foreground',
@@ -37,6 +37,7 @@
       :aria-pressed="selectedTransactionType === option.type"
       @click="selectTransactionType(option.type)"
     >
+      <component :is="option.icon" class="hidden size-3.5 shrink-0 sm:block" aria-hidden="true" />
       {{ t(option.label) }}
     </button>
   </div>
@@ -46,6 +47,7 @@
 import { cn } from '@/lib/utils';
 import { ACCOUNT_TYPES, type AccountModel, TRANSACTION_TYPES, type TransactionModel } from '@bt/shared/types';
 import { computed } from 'vue';
+import { ArrowDownLeftIcon, ArrowLeftRightIcon, ArrowUpRightIcon } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 
 import { FORM_TYPES } from '../types';
@@ -54,16 +56,19 @@ const { t } = useI18n();
 const txOptions = [
   {
     type: FORM_TYPES.expense,
+    icon: ArrowUpRightIcon,
     label: 'dialogs.manageTransaction.typeSelector.expense',
     aria: 'dialogs.manageTransaction.typeSelector.selectExpense',
   },
   {
     type: FORM_TYPES.income,
+    icon: ArrowDownLeftIcon,
     label: 'dialogs.manageTransaction.typeSelector.income',
     aria: 'dialogs.manageTransaction.typeSelector.selectIncome',
   },
   {
     type: FORM_TYPES.transfer,
+    icon: ArrowLeftRightIcon,
     label: 'dialogs.manageTransaction.typeSelector.transfer',
     aria: 'dialogs.manageTransaction.typeSelector.selectTransfer',
   },

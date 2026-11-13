@@ -15,10 +15,16 @@ export type VerbosePaymentType = {
  * Use with t() from vue-i18n: t(item.label)
  */
 export const VERBOSE_PAYMENT_TYPES: VerbosePaymentType[] = [
-  { value: PAYMENT_TYPES.creditCard, label: 'common.paymentTypes.creditCard' },
-  { value: PAYMENT_TYPES.bankTransfer, label: 'common.paymentTypes.bankTransfer' },
+  { value: PAYMENT_TYPES.qris, label: 'common.paymentTypes.qris' },
   { value: PAYMENT_TYPES.cash, label: 'common.paymentTypes.cash' },
+  { value: PAYMENT_TYPES.bankTransfer, label: 'common.paymentTypes.bankTransfer' },
+  { value: PAYMENT_TYPES.eWallet, label: 'common.paymentTypes.eWallet' },
   { value: PAYMENT_TYPES.debitCard, label: 'common.paymentTypes.debitCard' },
+  { value: PAYMENT_TYPES.creditCard, label: 'common.paymentTypes.creditCard' },
+  { value: PAYMENT_TYPES.virtualAccount, label: 'common.paymentTypes.virtualAccount' },
+  { value: PAYMENT_TYPES.emoneyCard, label: 'common.paymentTypes.emoneyCard' },
+  { value: PAYMENT_TYPES.autoDebit, label: 'common.paymentTypes.autoDebit' },
+  { value: PAYMENT_TYPES.payLater, label: 'common.paymentTypes.payLater' },
   { value: PAYMENT_TYPES.mobilePayment, label: 'common.paymentTypes.mobilePayment' },
   { value: PAYMENT_TYPES.voucher, label: 'common.paymentTypes.voucher' },
   { value: PAYMENT_TYPES.webPayment, label: 'common.paymentTypes.webPayment' },

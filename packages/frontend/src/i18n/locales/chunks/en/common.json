@@ -100,12 +100,18 @@
     },
     "paymentTypes": {
       "creditCard": "Credit card",
+      "payLater": "Buy Now, Pay Later",
+      "autoDebit": "Direct Debit",
+      "emoneyCard": "Stored-value Card (e-Money / Flazz)",
+      "virtualAccount": "Virtual Account (VA)",
+      "eWallet": "Digital Wallet",
+      "qris": "QRIS (scan / tap)",
       "bankTransfer": "Bank transfer",
       "cash": "Cash",
       "debitCard": "Debit card",
-      "mobilePayment": "Mobile payment",
+      "mobilePayment": "Mobile App Payment (Other)",
       "voucher": "Voucher",
-      "webPayment": "Web payment",
+      "webPayment": "Online Payment (Other)",
       "none": "None"
     },
     "vehicleClasses": {
@@ -220,7 +226,12 @@
       "currentMonthQuick": "This month",
       "previousMonthQuick": "Last month",
       "dateTimeTitle": "Choose date & time",
-      "dateTimeHint": "Choose a date, then adjust the hour and minute if needed."
+      "dateTimeHint": "Changes apply only after pressing Save.",
+      "todayIndicator": "Today",
+      "timeLabel": "Time",
+      "nowQuick": "Now",
+      "saveDate": "Save date & time",
+      "invalidTime": "Enter a valid 24-hour time such as 14:30."
     },
     "appUpdate": {
       "title": "Update available",

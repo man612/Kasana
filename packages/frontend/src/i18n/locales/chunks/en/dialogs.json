@@ -97,11 +97,19 @@
         "transfer": "Transfer",
         "selectExpense": "Select expense",
         "selectIncome": "Select income",
-        "selectTransfer": "Select transfer"
+        "selectTransfer": "Select transfer",
+        "expenseHint": "Money leaving an account for purchases, bills, or payments to someone else.",
+        "incomeHint": "Money received from outside, such as salary, freelance fees, gifts, or sales.",
+        "transferHint": "Move money between your own accounts or tracked assets. Paying someone else is an expense."
       },
       "recordList": {},
       "form": {
         "payeeLabel": "Payee",
+        "expensePayeeLabel": "Paid to (optional)",
+        "incomePayeeLabel": "Received from / sender (optional)",
+        "paymentReceiveLabel": "Received via (optional)",
+        "createMoreHint": "After saving, keep this form open to enter another transaction.",
+        "addFieldsHint": "Extra details — only add what you need.",
         "outOfWalletDocsLink": "What is out of wallet?",
         "destinationGroupLabel": "Where the money goes",
         "paymentTypeLabel": "Payment type",

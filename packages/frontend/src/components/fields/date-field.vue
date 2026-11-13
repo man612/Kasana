@@ -12,60 +12,93 @@
         <template v-if="$slots['label-after']" #label-after>
           <slot name="label-after" />
         </template>
-        <div class="relative">
-          <!-- Without a 4-digit-year max, Chrome accepts 6-digit years and never auto-advances past the year segment. -->
-          <input
-            :value="inputValue"
-            :type="isDateOnlyInput ? 'date' : 'datetime-local'"
-            :max="nativeMax"
-            :min="nativeMin"
-            :disabled="disabled"
-            :class="
-              cn(
-                'datetime-local-raw-input',
-                // Keep px-3: extra right padding pushes Firefox's native picker
-                // icon out from under the addon overlay that covers it.
-                'border-input bg-input-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm md:h-9',
-                'file:border-0 file:bg-transparent file:text-sm file:font-medium',
-                'placeholder:text-muted-foreground',
-                'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
-                'disabled:cursor-not-allowed disabled:opacity-50',
-                'appearance-none', // fixes Safari width issues
-                $attrs.class ?? '',
-              )
-            "
-            @input="handleLocalInputUpdate"
-            @blur="handleBlur"
-          />
+        <div class="flex min-w-0 items-center gap-2">
+          <div class="relative min-w-0 flex-1">
+            <!-- Without a 4-digit-year max, Chrome accepts 6-digit years and never auto-advances past the year segment. -->
+            <input
+              :value="inputValue"
+              type="date"
+              :max="nativeMax"
+              :min="nativeMin"
+              :disabled="disabled"
+              :class="
+                cn(
+                  'datetime-local-raw-input',
+                  // Keep px-3: extra right padding pushes Firefox's native picker
+                  // icon out from under the addon overlay that covers it.
+                  'border-input bg-input-background ring-offset-background flex h-10 w-full rounded-md border px-3 py-2 text-sm md:h-9',
+                  'file:border-0 file:bg-transparent file:text-sm file:font-medium',
+                  'placeholder:text-muted-foreground',
+                  'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
+                  'disabled:cursor-not-allowed disabled:opacity-50',
+                  'appearance-none', // fixes Safari width issues
+                  $attrs.class ?? '',
+                )
+              "
+              @input="handleLocalInputUpdate"
+              @blur="handleBlur"
+            />
 
-          <!-- Opaque instead of padding the input, so Firefox's native icon stays under the trigger. -->
-          <Button
-            v-if="clearable && modelValue && !disabled"
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            class="bg-input-background text-muted-foreground hover:text-foreground absolute top-1/2 right-12 -translate-y-1/2"
-            :aria-label="$t('common.actions.clear')"
-            @click="emit('clear')"
-          >
-            <XIcon class="size-4" />
-          </Button>
+            <!-- Opaque instead of padding the input, so Firefox's native icon stays under the trigger. -->
+            <Button
+              v-if="clearable && modelValue && !disabled"
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              class="bg-input-background text-muted-foreground hover:text-foreground absolute top-1/2 right-12 -translate-y-1/2"
+              :aria-label="$t('common.actions.clear')"
+              @click="emit('clear')"
+            >
+              <XIcon class="size-4" />
+            </Button>
 
-          <!-- Keep this overlay opaque: it covers the native picker icon Firefox
+            <!-- Keep this overlay opaque: it covers the native picker icon Firefox
                draws inside datetime-local inputs, which no CSS pseudo-element hides.
                Disabled where Safari mobile's native picker covers it, so taps fall through. -->
-          <Dialog.DialogTrigger as-child>
+            <Dialog.DialogTrigger as-child>
+              <Button
+                class="border-input bg-muted text-muted-foreground hover:border-primary/50 hover:bg-muted hover:text-primary-text absolute top-0 right-0 flex h-10 w-12 items-center justify-center rounded-l-none rounded-r-md border md:h-9"
+                variant="ghost"
+                size="icon"
+                :disabled="disabled || !isPopoverAvailable"
+                :aria-label="label || i18n.global.t('common.dateSelector.simpleTitle')"
+                data-testid="date-field-calendar-trigger"
+              >
+                <CalendarClockIcon class="size-5" />
+              </Button>
+            </Dialog.DialogTrigger>
+          </div>
+          <div v-if="!isDateOnlyInput" class="flex shrink-0 items-center gap-1">
+            <input
+              :value="timeValue"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              maxlength="5"
+              placeholder="HH:mm"
+              aria-label="Jam dan menit (format 24 jam)"
+              class="border-input bg-input-background focus-visible:ring-ring h-10 w-[4.9rem] rounded-md border px-2 text-center text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none md:h-9"
+              :disabled="disabled"
+              data-testid="date-field-time-input"
+              @input="handleTimeTyping"
+              @blur="commitTimeInput"
+              @keydown.enter.prevent="commitTimeInput"
+            />
+            <span class="text-muted-foreground min-w-7 text-xs">{{ timeZoneLabel }}</span>
             <Button
-              class="border-input bg-muted text-muted-foreground hover:border-primary/50 hover:bg-muted hover:text-primary-text absolute top-0 right-0 flex h-10 w-12 items-center justify-center rounded-l-none rounded-r-md border md:h-9"
+              type="button"
               variant="ghost"
-              size="icon"
-              :disabled="disabled || !isPopoverAvailable"
-              :aria-label="label || i18n.global.t('common.dateSelector.simpleTitle')"
-              data-testid="date-field-calendar-trigger"
+              size="icon-sm"
+              class="text-muted-foreground hover:text-foreground"
+              :disabled="disabled"
+              :aria-label="i18n.global.t('common.dateSelector.nowQuick')"
+              :title="i18n.global.t('common.dateSelector.nowQuick')"
+              data-testid="date-field-now-button"
+              @click="applyNow"
             >
-              <CalendarClockIcon class="size-5" />
+              <Clock3Icon class="size-4" />
             </Button>
-          </Dialog.DialogTrigger>
+          </div>
         </div>
         <FieldError :error-message="errorMessage" />
         <Dialog.DialogContent
@@ -80,12 +113,52 @@
             {{ i18n.global.t('common.dateSelector.dateTimeHint') }}
           </Dialog.DialogDescription>
           <div class="flex min-w-0 justify-center">
-            <Calendar v-model="localValue" v-bind="calendarOptions" :mode="mode" is24hr type="single" />
+            <Calendar v-model="localValue" v-bind="calendarOptions" mode="date" type="single" />
           </div>
-          <div class="flex justify-end border-t pt-3">
-            <Button type="button" size="sm" @click="isPopoverOpen = false">
-              {{ i18n.global.t('common.actions.done') }}
-            </Button>
+          <div class="border-border grid gap-3 border-t pt-3">
+            <div class="text-muted-foreground flex items-center gap-2 text-xs">
+              <span class="size-2 shrink-0 rounded-full bg-slate-400" aria-hidden="true" />
+              {{ i18n.global.t('common.dateSelector.todayIndicator') }}: {{ todayLabel }}
+            </div>
+            <div v-if="mode !== 'date'" class="flex items-center justify-between gap-3">
+              <label for="lajur-popup-time" class="text-sm font-medium">
+                {{ i18n.global.t('common.dateSelector.timeLabel') }} ({{ timeZoneLabel }})
+              </label>
+              <input
+                id="lajur-popup-time"
+                :value="dialogTimeValue"
+                type="text"
+                inputmode="numeric"
+                maxlength="5"
+                placeholder="HH:mm"
+                class="border-input bg-input-background focus-visible:ring-ring h-9 w-24 rounded-md border px-2 text-center text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none"
+                data-testid="date-dialog-time-input"
+                @input="handleDialogTimeTyping"
+              />
+            </div>
+            <p v-if="dialogTimeError" class="text-destructive text-xs" role="alert">
+              {{ i18n.global.t('common.dateSelector.invalidTime') }}
+            </p>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <Button type="button" variant="outline" size="sm" data-testid="date-dialog-now" @click="setDialogNow">
+                <Clock3Icon class="mr-1.5 size-4" />
+                {{ i18n.global.t('common.dateSelector.nowQuick') }}
+              </Button>
+              <div class="flex gap-2">
+                <Button type="button" variant="ghost" size="sm" @click="isPopoverOpen = false">
+                  {{ i18n.global.t('common.actions.cancel') }}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  data-testid="date-dialog-save"
+                  :disabled="dialogTimeError"
+                  @click="saveDialogDate"
+                >
+                  {{ i18n.global.t('common.dateSelector.saveDate') }}
+                </Button>
+              </div>
+            </div>
           </div>
         </Dialog.DialogContent>
       </FieldLabel>
@@ -99,12 +172,13 @@ import FieldLabel from '@/components/fields/components/field-label.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Calendar } from '@/components/lib/ui/calendar';
 import * as Dialog from '@/components/lib/ui/dialog';
-import { useSafariDetection } from '@/composable/detect-safari';
 import { i18n } from '@/i18n';
 import { cn } from '@/lib/utils';
-import { format, getDate, getMonth, getYear, isSameDay, parse, set } from 'date-fns';
-import { CalendarClockIcon, XIcon } from '@lucide/vue';
+import { format, getDate, getMonth, getYear, parse, set } from 'date-fns';
+import { CalendarClockIcon, Clock3Icon, XIcon } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
+import { getDateFnsLocale } from '@/composable/use-date-locale';
+import { getLocalTimeZoneLabel } from '@/common/utils/indonesian-time';
 
 defineOptions({ inheritAttrs: false });
 
@@ -141,8 +215,6 @@ const props = withDefaults(
   },
 );
 
-const { isSafariMobile } = useSafariDetection();
-
 // Typing a year in a datetime-local input emits parseable intermediate values
 // (0026 while aiming for 2026). Dates before 2000 are those or typos, never real.
 const MIN_DATE = new Date('2000-01-01T00:00:00');
@@ -152,27 +224,25 @@ const isValidDate = (value: unknown): value is Date =>
 
 const DATE_PATTERN = 'yyyy-MM-dd';
 
-const isDateOnlyInput = computed(() => props.mode === 'date' || props.hideInputTime);
+const isDateOnlyInput = computed(() => props.mode === 'date');
 // Safari mobile relies on its native picker, except when the input hides the time the popover still sets.
-const isPopoverAvailable = computed(() => !isSafariMobile || (props.hideInputTime && props.mode !== 'date'));
+const isPopoverAvailable = computed(() => true);
 
-const formatToInput = (value: Date) => format(value, isDateOnlyInput.value ? DATE_PATTERN : 'yyyy-MM-dd HH:mm');
+const formatToInput = (value: Date) => format(value, DATE_PATTERN);
 
 // `new Date('yyyy-MM-dd')` is UTC midnight, the previous day in negative-offset timezones.
 const parseInput = ({ value }: { value: string }) => {
-  if (!isDateOnlyInput.value) return new Date(value);
   const date = parse(value, DATE_PATTERN, new Date());
   if (props.mode === 'date' || !props.modelValue) return date;
   return set(props.modelValue, { year: getYear(date), month: getMonth(date), date: getDate(date) });
 };
 
 const nativeMax = computed(() => {
-  if (!isDateOnlyInput.value) return '9999-12-31T23:59';
   const maxDate = props.calendarOptions?.maxDate;
   return maxDate ? format(maxDate, DATE_PATTERN) : '9999-12-31';
 });
 const nativeMin = computed(() => {
-  const minDate = isDateOnlyInput.value ? props.calendarOptions?.minDate : undefined;
+  const minDate = props.calendarOptions?.minDate;
   return minDate ? format(minDate, DATE_PATTERN) : undefined;
 });
 
@@ -184,6 +254,48 @@ const emit = defineEmits<{
 }>();
 const localValue = ref<Date | null>(props.modelValue ?? (props.clearable ? null : new Date()));
 const isPopoverOpen = ref(false);
+const timeZoneLabel = getLocalTimeZoneLabel();
+const timeValue = ref(props.modelValue ? format(props.modelValue, 'HH:mm') : '');
+const dialogTimeValue = ref(props.modelValue ? format(props.modelValue, 'HH:mm') : format(new Date(), 'HH:mm'));
+const todayLabel = computed(() => format(new Date(), 'EEEE, d MMMM yyyy', { locale: getDateFnsLocale() }));
+const parsedTime = (text: string) => {
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(text)) return null;
+  const [hours, minutes] = text.split(':').map(Number);
+  return { hours: hours!, minutes: minutes! };
+};
+const dialogTimeError = computed(() => props.mode !== 'date' && !parsedTime(dialogTimeValue.value));
+const handleTimeTyping = (event: Event) => {
+  timeValue.value = (event.target as HTMLInputElement).value;
+};
+const handleDialogTimeTyping = (event: Event) => {
+  dialogTimeValue.value = (event.target as HTMLInputElement).value;
+};
+const commitTimeInput = () => {
+  const nextTime = parsedTime(timeValue.value);
+  if (nextTime) {
+    const base = props.modelValue ?? new Date();
+    emit('update:modelValue', set(base, { ...nextTime, seconds: 0, milliseconds: 0 }));
+  } else timeValue.value = props.modelValue ? format(props.modelValue, 'HH:mm') : '';
+};
+const applyNow = () => emit('update:modelValue', new Date());
+const setDialogNow = () => {
+  const now = new Date();
+  localValue.value = now;
+  dialogTimeValue.value = format(now, 'HH:mm');
+};
+const saveDialogDate = () => {
+  if (!isValidDate(localValue.value) || dialogTimeError.value) return;
+  const date = localValue.value;
+  const time = props.mode === 'date' ? { hours: 0, minutes: 0 } : parsedTime(dialogTimeValue.value);
+  if (!time) return;
+  emit('update:modelValue', set(date, { ...time, seconds: 0, milliseconds: 0 }));
+  isPopoverOpen.value = false;
+};
+watch(isPopoverOpen, (open) => {
+  if (!open) return;
+  localValue.value = props.modelValue ?? new Date();
+  dialogTimeValue.value = format(props.modelValue ?? new Date(), 'HH:mm');
+});
 
 defineExpose({
   open: () => {
@@ -225,24 +337,16 @@ watch(
   () => [props.modelValue, isDateOnlyInput.value] as const,
   ([value]) => {
     inputValue.value = value ? formatToInput(value) : '';
-    if (isValidDate(value)) localValue.value = value;
-    else if (isCleared()) localValue.value = null;
+    timeValue.value = value ? format(value, 'HH:mm') : '';
+    if (isValidDate(value) && !isPopoverOpen.value) localValue.value = value;
+    else if (isCleared() && !isPopoverOpen.value) localValue.value = null;
   },
 );
 
 watch(localValue, (value, previousValue) => {
-  // v-calendar clears its model when the already-selected day is tapped. The emit
-  // contract is a Date, so put the selection back instead of passing null on.
+  // A second click may clear v-calendar; keep the draft until Save is pressed.
   if (!isValidDate(value)) {
-    if (isCleared()) return;
     localValue.value = isValidDate(previousValue) ? previousValue : (props.modelValue ?? new Date());
-    return;
   }
-  // That restore re-enters this watcher; it is not a user pick.
-  if (!isValidDate(previousValue) && !isCleared()) return;
-
-  emit('update:modelValue', value);
-  // The time picker emits on every hour/minute change; only a day pick finishes the selection.
-  if (!isValidDate(previousValue) || !isSameDay(value, previousValue)) isPopoverOpen.value = false;
 });
 </script>

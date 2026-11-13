@@ -2,20 +2,15 @@ import { mount } from '@vue/test-utils';
 
 import DateField from './date-field.vue';
 
-const safari = vi.hoisted(() => ({ isSafariMobile: false }));
-vi.mock('@/composable/detect-safari', () => ({ useSafariDetection: () => safari }));
-
 const CalendarStub = {
   name: 'CalendarStub',
   props: { modelValue: { type: Date, default: undefined } },
   emits: ['update:modelValue'],
-  template: '<div />',
+  template: '<div data-testid="calendar-stub" />',
 };
-
 const SlotStub = { template: '<div><slot /></div>' };
 const DialogStub = { name: 'DialogStub', props: { open: Boolean }, template: '<div><slot /></div>' };
-
-const mountComponent = (props: {
+const mountField = (props: {
   modelValue: Date;
   mode?: 'date' | 'dateTime';
   calendarOptions?: { minDate?: Date; maxDate?: Date };
@@ -35,134 +30,86 @@ const mountComponent = (props: {
     },
   });
 
-describe('DateField component', () => {
-  afterEach(() => {
-    safari.isSafariMobile = false;
-  });
+describe('DateField with explicit calendar confirmation and 24-hour time input', () => {
+  const initial = new Date(2026, 10, 12, 10, 2);
 
-  it('does not emit update:modelValue when the calendar clears its selection', async () => {
-    const modelValue = new Date('2024-05-10T12:00:00.000Z');
-    const wrapper = mountComponent({ modelValue });
-
-    const calendar = wrapper.findComponent({ name: 'CalendarStub' });
-    calendar.vm.$emit('update:modelValue', null);
-    await wrapper.vm.$nextTick();
-
-    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
-    expect(calendar.props('modelValue')).toEqual(modelValue);
-  });
-
-  it('keeps the time when only the date is typed into a time-hidden input', async () => {
-    const wrapper = mountComponent({ modelValue: new Date('2026-08-22T15:05:42'), hideInputTime: true });
-
-    const input = wrapper.find('input[type="date"]');
-    expect((input.element as HTMLInputElement).value).toBe('2026-08-22');
-    await input.setValue('2026-08-20');
-
-    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([new Date('2026-08-20T15:05:42')]);
-  });
-
-  it('keeps the calendar dialog open while time changes and closes it on a day pick', async () => {
-    const wrapper = mountComponent({ modelValue: new Date(2026, 7, 22, 15, 5) });
-    const dialog = wrapper.findComponent({ name: 'DialogStub' });
-    const calendar = wrapper.findComponent({ name: 'CalendarStub' });
+  it('keeps new calendar date as draft until Save, retaining the original clock time', async () => {
+    const wrapper = mountField({ modelValue: initial });
     (wrapper.vm as unknown as { open: () => void }).open();
     await wrapper.vm.$nextTick();
-
-    calendar.vm.$emit('update:modelValue', new Date(2026, 7, 22, 18, 5));
+    const calendar = wrapper.findComponent({ name: 'CalendarStub' });
+    calendar.vm.$emit('update:modelValue', new Date(2026, 10, 11));
     await wrapper.vm.$nextTick();
-    expect(dialog.props('open')).toBe(true);
-
-    calendar.vm.$emit('update:modelValue', new Date(2026, 7, 20, 18, 5));
-    await wrapper.vm.$nextTick();
-    expect(dialog.props('open')).toBe(false);
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+    expect(wrapper.findComponent({ name: 'DialogStub' }).props('open')).toBe(true);
+    await wrapper.get('[data-testid="date-dialog-save"]').trigger('click');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([new Date(2026, 10, 11, 10, 2)]);
+    expect(wrapper.findComponent({ name: 'DialogStub' }).props('open')).toBe(false);
   });
 
-  it.each([
-    { hideInputTime: false, isEnabled: false },
-    { hideInputTime: true, isEnabled: true },
-  ])(
-    'on Safari mobile enables the calendar trigger only when the input hides the time ($hideInputTime)',
-    ({ hideInputTime, isEnabled }) => {
-      safari.isSafariMobile = true;
-      const wrapper = mountComponent({ modelValue: new Date(2026, 7, 22, 15, 5), hideInputTime });
-
-      const trigger = wrapper.get('[data-testid="date-field-calendar-trigger"]');
-      expect(trigger.attributes('disabled') === undefined).toBe(isEnabled);
-    },
-  );
-
-  it('does not emit dates before year 2000 typed into the input', async () => {
-    const wrapper = mountComponent({ modelValue: new Date('2026-08-22T10:00:00') });
-
-    const input = wrapper.find('input[type="datetime-local"]');
-    await input.setValue('0026-08-22 10:00');
-
+  it('can cancel a picked date without modifying the saved field', async () => {
+    const wrapper = mountField({ modelValue: initial });
+    (wrapper.vm as unknown as { open: () => void }).open();
+    await wrapper.vm.$nextTick();
+    wrapper.findComponent({ name: 'CalendarStub' }).vm.$emit('update:modelValue', new Date(2026, 9, 1));
+    await wrapper.vm.$nextTick();
+    await wrapper
+      .findAll('button')
+      .find((el) => el.text().includes('Batal') || el.text().includes('Cancel'))
+      ?.trigger('click');
     expect(wrapper.emitted('update:modelValue')).toBeUndefined();
   });
 
-  it('emits dates from year 2000 onward typed into the input', async () => {
-    const wrapper = mountComponent({ modelValue: new Date('2026-08-22T10:00:00') });
-
-    const input = wrapper.find('input[type="datetime-local"]');
-    await input.setValue('2000-01-01 10:00');
-
-    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([new Date('2000-01-01 10:00')]);
-  });
-
-  it('reverts a pre-2000 date to the last valid value on blur', async () => {
-    const modelValue = new Date('2026-08-22T10:00:00');
-    const wrapper = mountComponent({ modelValue });
-
-    const input = wrapper.find('input[type="datetime-local"]');
-    await input.setValue('0026-08-22 10:00');
+  it('displays a manual HH:mm field rather than a native AM/PM dropdown', async () => {
+    const wrapper = mountField({ modelValue: initial });
+    expect(wrapper.find('input[type="datetime-local"]').exists()).toBe(false);
+    const input = wrapper.get('[data-testid="date-field-time-input"]');
+    expect((input.element as HTMLInputElement).value).toBe('10:02');
+    await input.setValue('17:45');
     await input.trigger('blur');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([new Date(2026, 10, 12, 17, 45)]);
+  });
 
+  it('refuses invalid HH:mm and disables saving until fixed', async () => {
+    const wrapper = mountField({ modelValue: initial });
+    const input = wrapper.get('[data-testid="date-field-time-input"]');
+    await input.setValue('26:90');
+    await input.trigger('blur');
     expect(wrapper.emitted('update:modelValue')).toBeUndefined();
-    // The native datetime-local getter canonicalizes to the T separator.
-    expect((input.element as HTMLInputElement).value).toBe('2026-08-22T10:00');
+    expect((input.element as HTMLInputElement).value).toBe('10:02');
+    (wrapper.vm as unknown as { open: () => void }).open();
+    await wrapper.vm.$nextTick();
+    await wrapper.get('[data-testid="date-dialog-time-input"]').setValue('25:60');
+    expect(wrapper.get('[data-testid="date-dialog-save"]').attributes('disabled')).toBeDefined();
   });
 
-  it('keeps the 4-digit-year cap and no min when no calendar bounds are given', () => {
-    const wrapper = mountComponent({ modelValue: new Date('2026-08-22T10:00:00') });
-
-    const input = wrapper.find('input[type="datetime-local"]');
-    expect(input.attributes('max')).toBe('9999-12-31T23:59');
-    expect(input.attributes('min')).toBeUndefined();
+  it('preserves time for direct date edits and rejects years before 2000', async () => {
+    const wrapper = mountField({ modelValue: initial });
+    const input = wrapper.get('input[type="date"]');
+    await input.setValue('0026-11-12');
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+    await input.setValue('2026-11-09');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([new Date(2026, 10, 9, 10, 2)]);
   });
 
-  it('does not bind the calendar bounds to the native datetime input', () => {
-    const wrapper = mountComponent({
-      modelValue: new Date('2026-08-22T10:00:00'),
-      calendarOptions: { minDate: new Date(2026, 0, 5, 8, 30), maxDate: new Date(2026, 11, 24, 18, 45) },
+  it('respects date-only mode and calendar date bounds', () => {
+    const wrapper = mountField({
+      modelValue: initial,
+      mode: 'date',
+      calendarOptions: { minDate: new Date(2026, 0, 5), maxDate: new Date(2026, 11, 24) },
     });
-
-    const input = wrapper.find('input[type="datetime-local"]');
-    expect(input.attributes('min')).toBeUndefined();
-    expect(input.attributes('max')).toBe('9999-12-31T23:59');
+    expect(wrapper.find('[data-testid="date-field-time-input"]').exists()).toBe(false);
+    const input = wrapper.get('input[type="date"]');
+    expect(input.attributes('min')).toBe('2026-01-05');
+    expect(input.attributes('max')).toBe('2026-12-24');
+    expect(wrapper.findComponent({ name: 'CalendarStub' }).attributes('mode')).toBe('date');
   });
 
-  describe('date mode', () => {
-    it('renders a date-only input bounded by the calendar options', () => {
-      const wrapper = mountComponent({
-        modelValue: new Date(2026, 7, 22, 10, 0),
-        mode: 'date',
-        calendarOptions: { minDate: new Date(2026, 0, 5, 8, 30), maxDate: new Date(2026, 11, 24, 18, 45) },
-      });
-
-      const input = wrapper.find('input[type="date"]');
-      expect((input.element as HTMLInputElement).value).toBe('2026-08-22');
-      expect(input.attributes('min')).toBe('2026-01-05');
-      expect(input.attributes('max')).toBe('2026-12-24');
-      expect(wrapper.findComponent({ name: 'CalendarStub' }).attributes('mode')).toBe('date');
-    });
-
-    it('emits a typed date as local midnight', async () => {
-      const wrapper = mountComponent({ modelValue: new Date(2026, 7, 22), mode: 'date' });
-
-      await wrapper.find('input[type="date"]').setValue('2026-03-01');
-
-      expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([new Date(2026, 2, 1)]);
-    });
+  it('ignores calendar deselection rather than clearing transaction time', async () => {
+    const wrapper = mountField({ modelValue: initial });
+    wrapper.findComponent({ name: 'CalendarStub' }).vm.$emit('update:modelValue', null);
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+    expect(wrapper.findComponent({ name: 'CalendarStub' }).props('modelValue')).toEqual(initial);
   });
 });

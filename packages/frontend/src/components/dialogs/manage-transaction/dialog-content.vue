@@ -59,6 +59,7 @@ import {
   CopyIcon,
   CornerDownLeftIcon,
   ExternalLinkIcon,
+  InfoIcon,
   LayersIcon,
   LocateIcon,
   MapIcon,
@@ -1595,10 +1596,14 @@ onUnmounted(() => {
   </DefineDateField>
 
   <DefinePaymentType>
-    <FormRow v-if="!isLoanDestination">
+    <FormRow v-if="!isLoanDestination && !isTransferTx">
       <SelectField
         v-model="form.paymentType"
-        :label="$t('dialogs.manageTransaction.form.paymentTypeLabel')"
+        :label="
+          currentTxType === FORM_TYPES.income
+            ? $t('dialogs.manageTransaction.form.paymentReceiveLabel')
+            : $t('dialogs.manageTransaction.form.paymentTypeLabel')
+        "
         @update:model-value="form.paymentTypeUserTouched = true"
         :disabled="isFormFieldsDisabled || !isEditableAsManual"
         :values="VERBOSE_PAYMENT_TYPES"
@@ -1878,23 +1883,28 @@ onUnmounted(() => {
           :is-over-assigned="isRefundSharesOverAssigned"
         />
       </div>
-      <div v-if="addFieldChips.length" class="flex flex-wrap items-center gap-1.5">
-        <span class="text-muted-foreground mr-0.5 text-sm">{{
-          $t('dialogs.manageTransaction.form.addFieldsLabel')
-        }}</span>
-        <Button
-          v-for="chip in addFieldChips"
-          :key="chip.key"
-          type="button"
-          variant="outline"
-          size="sm"
-          class="h-8 gap-1.5 rounded-full px-3 text-sm"
-          :disabled="isFormFieldsDisabled"
-          @click="chip.onClick"
-        >
-          <component :is="chip.icon" class="text-muted-foreground size-3.5" />
-          {{ $t(chip.labelKey) }}
-        </Button>
+      <div v-if="addFieldChips.length" class="border-border bg-card/30 mt-4 rounded-lg border p-3">
+        <p class="text-foreground mb-1 text-sm font-medium">
+          {{ $t('dialogs.manageTransaction.form.addFieldsLabel') }}
+        </p>
+        <p class="text-muted-foreground mb-3 text-xs leading-relaxed">
+          {{ $t('dialogs.manageTransaction.form.addFieldsHint') }}
+        </p>
+        <div class="grid grid-cols-1 gap-2">
+          <Button
+            v-for="chip in addFieldChips"
+            :key="chip.key"
+            type="button"
+            variant="outline"
+            size="sm"
+            class="min-h-9 w-full justify-start gap-2 rounded-md px-2.5 text-left text-xs font-medium whitespace-normal"
+            :disabled="isFormFieldsDisabled"
+            @click="chip.onClick"
+          >
+            <component :is="chip.icon" class="text-muted-foreground size-4 shrink-0" />
+            <span class="min-w-0 break-words">{{ $t(chip.labelKey) }}</span>
+          </Button>
+        </div>
       </div>
     </div>
   </DefineMoreOptions>
@@ -1962,9 +1972,25 @@ onUnmounted(() => {
             :disabled="isFormFieldsDisabled"
             :is-transfer-disabled="Boolean(form.isPlanned) || isMultiAccount"
             :is-type-locked="isSavedMultiAccount || hasLinkedPaymentLegs"
-            class="mb-6"
+            class="mb-2"
             @change-tx-type="selectTransactionType"
           />
+          <p
+            class="text-muted-foreground mb-5 flex items-start gap-2 px-0.5 text-xs leading-relaxed"
+            data-testid="transaction-mode-help"
+            role="note"
+          >
+            <InfoIcon class="mt-0.5 size-3.5 shrink-0" />
+            {{
+              $t(
+                currentTxType === FORM_TYPES.expense
+                  ? 'dialogs.manageTransaction.typeSelector.expenseHint'
+                  : currentTxType === FORM_TYPES.income
+                    ? 'dialogs.manageTransaction.typeSelector.incomeHint'
+                    : 'dialogs.manageTransaction.typeSelector.transferHint',
+              )
+            }}
+          </p>
 
           <div ref="transactionModeFieldsRef">
             <div :class="isMobileView && 'grid grid-cols-2 gap-x-3'">
@@ -2262,7 +2288,13 @@ onUnmounted(() => {
               <form-row v-if="!isTransferTx">
                 <payee-select-field
                   v-model="form.payeeId"
-                  :label="$t('dialogs.manageTransaction.form.payeeLabel')"
+                  :label="
+                    $t(
+                      currentTxType === FORM_TYPES.income
+                        ? 'dialogs.manageTransaction.form.incomePayeeLabel'
+                        : 'dialogs.manageTransaction.form.expensePayeeLabel',
+                    )
+                  "
                   :disabled="isFormFieldsDisabled"
                   :account-id="resolvedAccountId"
                   :owner-scoped="isAccountSharedWithCaller"
@@ -2358,7 +2390,8 @@ onUnmounted(() => {
             :disabled="isFormFieldsDisabled"
             @update:model-value="(value: boolean) => emit('update:createMore', value)"
           />
-          {{ $t('dialogs.manageTransaction.form.createMore.label') }}
+          <span class="leading-none">{{ $t('dialogs.manageTransaction.form.createMore.label') }}</span>
+          <HintIcon :content="$t('dialogs.manageTransaction.form.createMoreHint')" />
         </label>
         <Button
           v-if="!isReadOnly"

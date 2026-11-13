@@ -55,14 +55,17 @@
             </div>
           </PopoverAnchor>
           <PopoverContent
-            class="w-(--reka-popover-trigger-width) p-4"
+            class="max-h-[min(62dvh,460px)] w-(--reka-popover-trigger-width) overflow-y-auto p-3"
             align="start"
             @open-auto-focus.prevent
             @close-auto-focus.prevent
             @interact-outside="(e) => wrapperRef?.contains(e.target as Node) && e.preventDefault()"
           >
             <ListboxContent>
-              <div v-if="filteredTags.length === 0" class="text-muted-foreground py-4 text-center text-sm">
+              <div
+                v-if="filteredTags.length === 0 && recommendedTags.length === 0"
+                class="text-muted-foreground py-4 text-center text-sm"
+              >
                 {{ $t('fields.tagSelect.noTagsAvailable') }}
               </div>
               <div v-else class="flex flex-wrap gap-2">
@@ -90,6 +93,30 @@
                 </ListboxItem>
               </div>
             </ListboxContent>
+            <div v-if="recommendedTags.length" class="border-border mt-3 border-t pt-3">
+              <p class="text-foreground text-xs font-semibold">Saran tag Indonesia</p>
+              <p class="text-muted-foreground mt-0.5 mb-2 text-xs">
+                Pilih untuk membuat dan menggunakan tag. Tidak ditambahkan otomatis.
+              </p>
+              <div class="flex flex-wrap gap-1.5">
+                <button
+                  v-for="suggestion in recommendedTags"
+                  :key="suggestion.name"
+                  type="button"
+                  :disabled="disabled || isCreatingSuggestion"
+                  :aria-label="'Buat tag ' + suggestion.name"
+                  class="focus-visible:ring-ring inline-flex min-h-7 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium text-white transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
+                  :style="{ backgroundColor: suggestion.color }"
+                  data-testid="suggested-tag"
+                  @mousedown.prevent
+                  @click.stop="createSuggestedTag(suggestion)"
+                >
+                  <PlusIcon class="size-3" />
+                  {{ suggestion.name }}
+                </button>
+              </div>
+              <p v-if="suggestionError" class="text-destructive mt-2 text-xs" role="alert">{{ suggestionError }}</p>
+            </div>
           </PopoverContent>
         </Popover>
       </ListboxRoot>
@@ -100,13 +127,14 @@
 
 <script setup lang="ts">
 import TagIcon from '@/components/common/icons/tag-icon.vue';
+import { availableTagSuggestions, type TagSuggestion } from '@/common/const/indonesian-tag-suggestions';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import { Popover, PopoverContent } from '@/components/lib/ui/popover';
 import { cn } from '@/lib/utils';
 import { useTagsStore } from '@/stores';
 import { TagModel } from '@bt/shared/types';
-import { ChevronsUpDownIcon, XIcon } from '@lucide/vue';
+import { ChevronsUpDownIcon, PlusIcon, XIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { ListboxContent, ListboxFilter, ListboxItem, ListboxRoot, PopoverAnchor } from 'reka-ui';
 import { computed, ref, watch } from 'vue';
@@ -132,7 +160,7 @@ const emit = defineEmits<{
   'update:model-value': [value: string[]];
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const tagsStore = useTagsStore();
 const { tags } = storeToRefs(tagsStore);
 
@@ -160,6 +188,16 @@ const query = computed(() => searchQuery.value.trim().toLowerCase());
 
 const filteredTags = computed(() =>
   query.value ? tags.value.filter((tag) => tag.name.toLowerCase().includes(query.value)) : tags.value,
+);
+const isCreatingSuggestion = ref(false);
+const suggestionError = ref('');
+const recommendedTags = computed(() =>
+  locale.value === 'id'
+    ? availableTagSuggestions(
+        tags.value.map((tag) => tag.name),
+        query.value,
+      )
+    : [],
 );
 
 const hasNavigated = ref(false);
@@ -205,5 +243,21 @@ const toggleTag = (tag: TagModel) => {
   searchQuery.value = '';
   hasNavigated.value = false;
   focusInput();
+};
+const createSuggestedTag = async (suggestion: TagSuggestion) => {
+  if (props.disabled || isCreatingSuggestion.value) return;
+  suggestionError.value = '';
+  isCreatingSuggestion.value = true;
+  try {
+    const existing = tags.value.find(
+      (tag) => tag.name.toLocaleLowerCase('id-ID') === suggestion.name.toLocaleLowerCase('id-ID'),
+    );
+    const created = existing ?? (await tagsStore.createTag({ name: suggestion.name, color: suggestion.color }));
+    if (!selectedTagIds.value.has(created.id)) toggleTag(created);
+  } catch {
+    suggestionError.value = 'Tag belum berhasil dibuat. Coba lagi.';
+  } finally {
+    isCreatingSuggestion.value = false;
+  }
 };
 </script>
