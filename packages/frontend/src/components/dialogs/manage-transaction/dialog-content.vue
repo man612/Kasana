@@ -1614,10 +1614,18 @@ const trackedFormFingerprint = () =>
     pendingAttachments: pendingAttachments.value.map((file) => file.name + ':' + file.size),
   });
 let initialFormFingerprint = '';
-onMounted(async () => {
-  await nextTick();
-  initialFormFingerprint = trackedFormFingerprint();
-});
+// The account/category prefill can finish after mount (especially for shared accounts).
+// Take the baseline only once the initial data has arrived; otherwise merely opening
+// an untouched form can incorrectly show a discard-changes warning.
+watch(
+  hasPrepopulated,
+  async (ready) => {
+    if (!ready) return;
+    await nextTick();
+    initialFormFingerprint = trackedFormFingerprint();
+  },
+  { immediate: true },
+);
 defineExpose({
   focusAmount: () => (isAmountFieldDisabled.value ? targetAmountFieldRef.value : editableAmountFieldRef.value)?.focus(),
   hasUnsavedChanges: () => Boolean(initialFormFingerprint) && trackedFormFingerprint() !== initialFormFingerprint,
