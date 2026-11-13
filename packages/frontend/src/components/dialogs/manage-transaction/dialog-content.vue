@@ -2135,7 +2135,7 @@ onUnmounted(() => {
                   <div class="cursor-not-allowed">
                     <input-field
                       trailing-icon-css-class="px-2"
-                      :model-value="paymentTotalLabel"
+                      :model-value="currencyCode === 'IDR' ? 'Rp' + paymentTotalLabel : paymentTotalLabel"
                       :label="$t('dialogs.manageTransaction.form.amountLabel')"
                       type="text"
                       readonly
@@ -2144,7 +2144,7 @@ onUnmounted(() => {
                       :disabled="true"
                     >
                       <template #iconTrailing>
-                        <CurrencyChip v-if="currencyCode" :code="currencyCode" />
+                        <CurrencyChip v-if="currencyCode && currencyCode !== 'IDR'" :code="currencyCode" />
                       </template>
                     </input-field>
                   </div>
@@ -2153,6 +2153,7 @@ onUnmounted(() => {
                   v-else
                   ref="amountFieldRef"
                   v-model="form.amount"
+                  :currency-code="currencyCode"
                   :label="$t('dialogs.manageTransaction.form.amountLabel')"
                   :disabled="isFormFieldsDisabled || isAmountFieldDisabled"
                   :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
@@ -2161,7 +2162,7 @@ onUnmounted(() => {
                   @blur="onAmountBlur"
                 >
                   <template #iconTrailing>
-                    <CurrencyChip v-if="currencyCode" :code="currencyCode" />
+                    <CurrencyChip v-if="currencyCode && currencyCode !== 'IDR'" :code="currencyCode" />
                   </template>
                 </FormattedAmountField>
               </form-row>
@@ -2266,13 +2267,17 @@ onUnmounted(() => {
                       <FormattedAmountField
                         ref="targetAmountFieldRef"
                         v-model="form.targetAmount"
+                        :currency-code="targetCurrency?.currency?.code"
                         :disabled="isFormFieldsDisabled || isTargetAmountFieldDisabled"
                         :placeholder="$t('dialogs.manageTransaction.form.targetAmountPlaceholder')"
                         :error-message="targetAmountErrorMessage"
                         @blur="touchField('form.targetAmount')"
                       >
                         <template #iconTrailing>
-                          <CurrencyChip v-if="targetCurrency?.currency?.code" :code="targetCurrency.currency.code" />
+                          <CurrencyChip
+                            v-if="targetCurrency?.currency?.code && targetCurrency.currency.code !== 'IDR'"
+                            :code="targetCurrency.currency.code"
+                          />
                         </template>
                       </FormattedAmountField>
                     </div>
@@ -2303,13 +2308,17 @@ onUnmounted(() => {
                       <FormattedAmountField
                         ref="targetAmountFieldRef"
                         v-model="form.targetAmount"
+                        :currency-code="targetCurrency?.currency?.code"
                         :disabled="isFormFieldsDisabled || isTargetAmountFieldDisabled"
                         :placeholder="$t('dialogs.manageTransaction.form.targetAmountPlaceholder')"
                         :error-message="targetAmountErrorMessage"
                         @blur="touchField('form.targetAmount')"
                       >
                         <template #iconTrailing>
-                          <CurrencyChip v-if="targetCurrency?.currency?.code" :code="targetCurrency.currency.code" />
+                          <CurrencyChip
+                            v-if="targetCurrency?.currency?.code && targetCurrency.currency.code !== 'IDR'"
+                            :code="targetCurrency.currency.code"
+                          />
                         </template>
                       </FormattedAmountField>
                     </form-row>

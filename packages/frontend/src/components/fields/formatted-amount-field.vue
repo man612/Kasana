@@ -4,6 +4,13 @@
       <slot name="label-right" />
     </template>
     <div class="relative">
+      <span
+        v-if="currencyCode === 'IDR' && !embedded"
+        aria-hidden="true"
+        class="text-muted-foreground pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-semibold"
+      >
+        Rp
+      </span>
       <input
         ref="inputRef"
         v-bind="$attrs"
@@ -19,15 +26,20 @@
           cn(
             'border-input bg-input-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm tabular-nums focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 md:h-9',
             errorMessage && 'border-destructive',
-            embedded && 'h-full border-0 bg-transparent px-2 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-full',
-            $slots.iconTrailing && 'pr-14',
+            embedded &&
+              'h-full border-0 bg-transparent px-2 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-full',
+            currencyCode === 'IDR' && !embedded && 'pl-10',
+            $slots.iconTrailing && currencyCode !== 'IDR' && 'pr-14',
             ($attrs.class as string) ?? '',
           )
         "
         @input="onInput"
         @blur="emit('blur')"
       />
-      <div v-if="$slots.iconTrailing" class="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+      <div
+        v-if="$slots.iconTrailing && currencyCode !== 'IDR'"
+        class="pointer-events-none absolute inset-y-0 right-2 flex items-center"
+      >
         <slot name="iconTrailing" />
       </div>
     </div>
@@ -54,6 +66,7 @@ const props = defineProps<{
   disabled?: boolean;
   errorMessage?: string;
   embedded?: boolean;
+  currencyCode?: string;
   autofocus?: boolean;
 }>();
 
@@ -111,7 +124,12 @@ const onInput = (event: Event) => {
   }
 
   // Format immediately on EACH keystroke, not after blur or the parent rerender.
-  const formattedNow = numeric === null ? (fragment === '-' ? '-' : '') : formatNumber(numeric) + fragment.replace('.', separators.decimal);
+  const formattedNow =
+    numeric === null
+      ? fragment === '-'
+        ? '-'
+        : ''
+      : formatNumber(numeric) + fragment.replace('.', separators.decimal);
   target.value = formattedNow;
   const caretAfter = caretOffsetAfterDigits({
     text: formattedNow,
@@ -131,7 +149,9 @@ const onInput = (event: Event) => {
   });
 };
 
-onMounted(() => { if (props.autofocus) inputRef.value?.focus(); });
+onMounted(() => {
+  if (props.autofocus) inputRef.value?.focus();
+});
 
 defineExpose({
   focus: () => inputRef.value?.focus(),
