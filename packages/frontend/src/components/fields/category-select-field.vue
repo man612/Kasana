@@ -33,7 +33,6 @@
           </div>
 
           <div
-            :key="'row:' + item.id"
             class="flex w-full min-w-0 items-center gap-1"
             :style="{ paddingLeft: Math.max(0, (isSearching ? 0 : item.depth) * 12) + 'px' }"
           >
