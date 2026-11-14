@@ -1,6 +1,6 @@
 # Developer Setup Guide — Upstream-Derived Reference
 
-**For Kasana:** clone `https://github.com/man612/Kasana.git` and follow the [Kasana setup notes](LOCAL-VPS-ID.md) to build the application from this repository's source. The remaining developer instructions originate from MoneyMatter and may still contain upstream-specific examples. Never use development credentials or a test database for production.
+**For Lajur.:** clone `https://github.com/man612/Kasana.git` and follow the [Lajur. setup notes](LOCAL-VPS-ID.md) to build the application from this repository's source. The remaining developer instructions originate from MoneyMatter and may still contain upstream-specific examples. Never use development credentials or a test database for production.
 
 This guide will walk you through setting up the inherited MoneyMatter codebase on your local machine.
 
@@ -9,10 +9,9 @@ This guide will walk you through setting up the inherited MoneyMatter codebase o
 - [Prerequisites](#prerequisites)
 - [Project Architecture](#project-architecture)
 - [Quick Start with Docker](#quick-start-with-docker)
-- [Manual Setup (Without Docker)](#manual-setup-without-docker)
 - [Configuration](#configuration)
 - [Running the Application](#running-the-application)
-- [Database Migrations](#database-migrations)
+- [Database Migrations](#6-run-database-migrations)
 - [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
 
@@ -209,9 +208,8 @@ npm run test:unit
 npm run test:e2e
 
 # Database migrations
-npm run migrate:dev           # Run migrations (dev)
-npm run migrate:dev:undo      # Undo last migration (dev)
-npm run migrate:generate      # Generate new migration
+npm run migrate:dev           # Apply migrations to the isolated development DB
+npm run migrate:generate      # Generate a migration for reviewed schema work
 ```
 
 #### Frontend-Specific Commands
@@ -228,9 +226,6 @@ npm run build
 # Run tests
 npm run test
 npm run test:unit
-
-# Run Storybook
-npm run storybook
 ```
 
 ## Testing

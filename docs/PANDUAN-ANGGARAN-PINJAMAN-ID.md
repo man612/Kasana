@@ -1,22 +1,22 @@
-# Kasana Guide — Accounts, Budgets, Savings Goals, and Debt in Indonesia
+# Lajur. Guide — Accounts, Budgets, Savings Goals, and Debt in Indonesia
 
-**Design reference, November 10, 2026.** Based on the Kasana-modified MoneyMatter v0.33.14 codebase. Figures are illustrative, not real user data. The combined UI changes remain under review in [PR #10](https://github.com/man612/Kasana/pull/10).
+**Design reference, November 10, 2026.** Based on the MoneyMatter v0.33.14 codebase with independent Lajur. modifications. Figures are illustrative, not real user data. The combined UI changes remain under review in [PR #10](https://github.com/man612/Kasana/pull/10).
 
 ## 1. Three different layers of personal finance
 
-1. **Accounts** answer *where the money or debt actually is*: BCA, BRI, DANA, GoPay, cash, brokerage accounts, and obligations to SPayLater or Kredivo.
-2. **Budgets** answer *how much may be spent for a purpose*: food, entertainment, mobile credit, or transportation. A single budget can involve multiple funding accounts. Each transaction reduces the chosen account's balance and the remaining budget for its category.
-3. **Savings goals** answer *what the money is being reserved for*: emergency funds, a laptop, a motorcycle, etc. Goals measure assigned portions of account balances without physically transferring the funds.
+1. **Accounts** answer _where the money or debt actually is_: BCA, BRI, DANA, GoPay, cash, brokerage accounts, and obligations to SPayLater or Kredivo.
+2. **Budgets** answer _how much may be spent for a purpose_: food, entertainment, mobile credit, or transportation. A single budget can involve multiple funding accounts. Each transaction reduces the chosen account's balance and the remaining budget for its category.
+3. **Savings goals** answer _what the money is being reserved for_: emergency funds, a laptop, a motorcycle, etc. Goals measure assigned portions of account balances without physically transferring the funds.
 
 **Do not create a fictitious "Food Money" account holding the same rupiah already tracked in BCA or DANA.** That would double-count assets. A separate account is appropriate only when it truly represents a distinct balance that can be reconciled.
 
 ### Example across several accounts
 
-| Real balance source | Balance |
-| --- | ---: |
-| BCA | Rp2,000,000 |
-| DANA | Rp400,000 |
-| Cash | Rp300,000 |
+| Real balance source   |     Balance |
+| --------------------- | ----------: |
+| BCA                   | Rp2,000,000 |
+| DANA                  |   Rp400,000 |
+| Cash                  |   Rp300,000 |
 | Mutual-fund portfolio | Rp1,500,000 |
 
 - Create the four real balance sources **once**. Do not add an extra savings account that repeats an investment holding already included in net worth.
@@ -34,11 +34,11 @@ Related upstream docs: `packages/docs/src/content/docs/budgeting/start-budgeting
 
 ## 2. Distinguish three forms of debt
 
-| Debt type | Example | Accounting approach |
-| --- | --- | --- |
-| **Purchase financing / paylater** | Kredivo installments, Shopee SPayLater | Track the outstanding liability and purchases/fees; payments from BCA are transfers that reduce the debt |
-| **Cash loans** | KrediFazz, Shopee SPinjam | Separate contractual principal, actual cash received, deducted fees, and installment components |
-| **Revolving credit** | Credit cards | Track charged purchases, refunds, interest, bill payments, and outstanding debt; a credit limit is not cash |
+| Debt type                         | Example                                | Accounting approach                                                                                         |
+| --------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Purchase financing / paylater** | Kredivo installments, Shopee SPayLater | Track the outstanding liability and purchases/fees; payments from BCA are transfers that reduce the debt    |
+| **Cash loans**                    | KrediFazz, Shopee SPinjam              | Separate contractual principal, actual cash received, deducted fees, and installment components             |
+| **Revolving credit**              | Credit cards                           | Track charged purchases, refunds, interest, bill payments, and outstanding debt; a credit limit is not cash |
 
 **SPayLater (PT Commerce Finance) and SPinjam (PT Lentera Dana Nusantara) are different products.** KrediFazz operates in the Kredivo ecosystem, but lenders, rates, terms, and fees can vary by contract. Use the actual provider disclosure, not a generic rate found online.
 

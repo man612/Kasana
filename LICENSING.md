@@ -18,6 +18,8 @@ The upstream project was relicensed from CC BY-NC-SA 4.0 to AGPL-3.0 with [Money
 
 New contributions to Lajur. follow [CONTRIBUTING.md](CONTRIBUTING.md) and must be compatible with AGPL-3.0-only. **No upstream MoneyMatter contributor agreement is required to contribute here.**
 
-The former root `CLA.md` is preserved as [docs/upstream/CLA.md](docs/upstream/CLA.md) for historical reference only. Its text describes agreements with the upstream maintainer, **not** a requirement or grant that the Lajur. maintainers may impose on contributors.
+The former root `CLA.md` is preserved as [docs/upstream/CLA.md](docs/upstream/CLA.md) for historical reference only. Its text records the upstream contributor agreement. It does not apply to new Lajur. contributions, and this project claims no additional rights from contributors through that archived document.
+
+The current icon has incomplete provenance evidence; see [the branding record](docs/BRANDING.md#icon-provenance-and-permissions). Preserving an asset in Git is not proof of its creator or permission terms.
 
 Source repository: https://github.com/man612/Kasana

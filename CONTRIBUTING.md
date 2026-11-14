@@ -15,10 +15,14 @@ Repository documentation is written in **English**; the product interface defaul
 
 ## Useful commands
 
-From the repository root after installing dependencies:
+Use Node.js `24.22.1` (see `.nvmrc`/Volta), npm and Git. Local Windows source builds require PowerShell 7.2+, Podman and a Compose v2 provider (Docker is supported); see [runtime setup](docs/LOCAL-VPS-ID.md).
+
+From the repository root:
 
 ```bash
 npm ci
+node scripts/check-public-identity.mjs
+node scripts/check-doc-links.mjs
 npm run lint
 npm run typecheck
 npm run format:check

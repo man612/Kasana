@@ -42,12 +42,14 @@ Lajur. is an **independent adaptation** of [MoneyMatter](https://github.com/lete
 
 Build Lajur. **from this repository's source**. The base Compose file uses intentionally non-pullable placeholder images for the finance frontend and backend; it is **not** a standalone deployment. Always combine the base, build, and private-instance overlays as shown below.
 
-**Prerequisites:** Git, Docker Engine or Docker Desktop, Docker Compose, and sufficient memory and storage for a frontend source build.
+**Prerequisites:** Git, a Linux container runtime (Podman preferred on Windows; Docker supported), Docker Compose v2, and sufficient memory and storage for a frontend source build.
+
+These commands explicitly check out the **unmerged PR #24 branch** to match this guide. They are development setup instructions, not a release recommendation; `main` does not yet contain this work. Review the branch and CI before use.
 
 ### Linux / VPS
 
 ```bash
-git clone https://github.com/man612/Kasana.git
+git clone --branch chore/lajur-repository-hygiene-20261114 --single-branch https://github.com/man612/Kasana.git
 cd Kasana/self-hosting
 cp .env.example .env
 # Edit .env: replace every __REPLACE_ME__ placeholder.
@@ -57,16 +59,19 @@ docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compo
 docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml ps
 ```
 
-For a local test installation using the documented Docker setup, open `http://localhost:8080` (local Podman development previews may use another port). Read the [self-hosting guide](self-hosting/README.md) and [Windows/VPS setup notes](docs/LOCAL-VPS-ID.md) before deploying.
+For a local test installation, open `http://localhost:8080`; use `-BaseUri` with the verifier if you configured another port. Read the [self-hosting guide](self-hosting/README.md) and [Windows/VPS setup notes](docs/LOCAL-VPS-ID.md) before deploying.
 
-### Windows / Docker Desktop
+### Windows / Podman (preferred) or Docker
 
-From the repository root in PowerShell:
+Install **PowerShell 7.2+**, Podman with a running Linux machine, and **Docker Compose v2** as its external Compose provider. Docker Engine/Desktop with its Compose plugin is also supported (`-Engine Docker`). See the [runtime preflight and storage cautions](docs/LOCAL-VPS-ID.md).
+
+From the repository root in PowerShell 7 (`pwsh`):
 
 ```powershell
 .\scripts\setup-local-private.ps1
-.\scripts\run-local-private.ps1
-.\scripts\verify-local-private.ps1
+.\scripts\run-local-private.ps1 -Engine Podman -ValidateOnly
+.\scripts\run-local-private.ps1 -Engine Podman
+.\scripts\verify-local-private.ps1 -Engine Podman
 ```
 
 These scripts generate local configuration, build Lajur. from source, and perform a non-destructive health check. The historical `-private` filenames do **not** imply that this GitHub repository is private.
@@ -75,14 +80,14 @@ These scripts generate local configuration, build Lajur. from source, and perfor
 
 ## Repository structure
 
-| Path | Purpose |
-| --- | --- |
-| `packages/frontend/` | Vue 3, TypeScript, Vite, application UI |
-| `packages/backend/` | Node.js API, authentication, and financial services |
-| `packages/shared/` | Shared types and utilities |
-| `self-hosting/` | Docker Compose configuration and build files |
-| `docs/` | Development notes, setup guides, design decisions |
-| `packages/docs/`, `packages/landing/` | Inherited upstream material; **not** live Kasana websites |
+| Path                                  | Purpose                                                        |
+| ------------------------------------- | -------------------------------------------------------------- |
+| `packages/frontend/`                  | Vue 3, TypeScript, Vite, application UI                        |
+| `packages/backend/`                   | Node.js API, authentication, and financial services            |
+| `packages/shared/`                    | Shared types and utilities                                     |
+| `self-hosting/`                       | Docker Compose configuration and build files                   |
+| `docs/`                               | Development notes, setup guides, design decisions              |
+| `packages/docs/`, `packages/landing/` | Inherited upstream material; **not** published Lajur. websites |
 
 ## Development status
 
