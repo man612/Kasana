@@ -13,7 +13,7 @@
     "@astrojs/vue": "^7.0.2",
     "@fontsource/montserrat": "^5.1.0",
     "@iconify-json/lucide": "^1.2.0",
-    "astro": "^7.3.1",
+    "astro": "^7.4.7",
     "astro-icon": "^1.1.0",
     "lucide-vue-next": "^0.469.0",
     "posthog-js": "^1.194.4",
