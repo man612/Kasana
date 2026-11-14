@@ -24,7 +24,7 @@ export const createCategoryBodySchema = z.object(createCategoryBodyFields).and(
       color: colorSchema().optional(),
     }),
     z.object({
-      parentId: z.undefined(),
+      parentId: z.undefined().optional(),
       color: colorSchema(),
     }),
   ]),
