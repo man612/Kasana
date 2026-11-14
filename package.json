@@ -1,9 +1,9 @@
 {
   "name": "budget-tracker",
   "private": true,
-  "description": "Kasana — self-hosted personal finance with an Indonesia-first experience (MoneyMatter-based, AGPL-3.0)",
+  "description": "Lajur. — open-source, self-hosted personal finance with an Indonesia-first experience (based on MoneyMatter; AGPL-3.0-only)",
   "license": "AGPL-3.0-only",
-  "author": "letehaha",
+  "author": "Lajur. contributors",
   "workspaces": [
     "packages/backend",
     "packages/frontend",

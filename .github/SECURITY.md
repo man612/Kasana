@@ -1,10 +1,10 @@
 # Security Policy
 
-Kasana is an independent open-source project. Public issues and pull requests are **not** appropriate places for passwords, private financial data, tokens, private keys, database backups, or undisclosed exploit details.
+Lajur. is an independent open-source project. Public issues and pull requests are **not** appropriate places for passwords, private financial data, tokens, private keys, database backups, or undisclosed exploit details.
 
 ## Reporting a vulnerability
 
-Use GitHub's **enabled** [private vulnerability reporting](https://github.com/man612/Kasana/security/advisories/new). Reports sent through this form are not public issues.
+Use GitHub's [private vulnerability reporting] (if enabled)(https://github.com/man612/Kasana/security/advisories/new). Reports sent through this form are not public issues.
 
 If the form is unavailable, use an **existing private channel** to contact the maintainer. If you have no such channel, open a public issue requesting a secure reporting method **without describing the vulnerability or including sensitive information**.
 
@@ -12,7 +12,7 @@ Include the affected commit or version, a minimal reproduction using dummy data,
 
 ## Scope
 
-This policy covers code published in [man612/Kasana](https://github.com/man612/Kasana). Kasana does not operate `moneymatter.app`, Docker images under `letehaha/*`, or MoneyMatter's hosted infrastructure. Report problems with those services to their respective operators.
+This policy covers code published in [man612/Kasana](https://github.com/man612/Kasana). Lajur. does not operate `moneymatter.app`, Docker images under `letehaha/*`, or MoneyMatter's hosted infrastructure. Report problems with those services to their respective operators.
 
 There is no guaranteed response-time SLA or separately maintained long-term support branch at present.
 

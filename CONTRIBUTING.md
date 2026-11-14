@@ -1,40 +1,33 @@
-# Contributing to Kasana
+# Contributing to Lajur.
 
-Kasana is an independent, Indonesia-first adaptation of [MoneyMatter](https://github.com/letehaha/moneymatter), distributed under [AGPL-3.0-only](LICENSE). Contributions to code, documentation, accessibility, translations, and testing are welcome.
+Lajur. is an independent Indonesia-first adaptation of [MoneyMatter](https://github.com/letehaha/moneymatter), distributed under [AGPL-3.0-only](LICENSE). Contributions to code, documentation, accessibility, localization, and tests are welcome.
 
-## Before opening a pull request
+## Before submitting changes
 
-1. Search [issues](https://github.com/man612/Kasana/issues) and [pull requests](https://github.com/man612/Kasana/pulls) to avoid duplicate work.
-2. Discuss larger changes first, especially database migrations, authentication, financial calculations, and deployment.
-3. Keep changes focused. Include relevant tests and screenshots for user-facing changes.
-4. For monetary UI, verify IDR formatting, negative amounts, rounding, empty states, keyboard navigation, and mobile layouts.
-5. Use synthetic data. Never submit production credentials, `.env` files, transaction exports, or private account information.
-6. Explain what changed, why, known risks, and **which checks actually ran**. A queued, skipped, or failed test is not a passing test.
+1. Check [issues](https://github.com/man612/Kasana/issues) and [pull requests](https://github.com/man612/Kasana/pulls) first.
+2. Base new work on the intended development branch. The historical repository default `main` may lag behind active feature work; do **not** mix unrelated cleanup with financial logic changes.
+3. Keep changes scoped; add or update tests for behaviors you change. Do not delete unit tests, E2E tests, fixtures, migrations, or operational scripts just because their filenames are old.
+4. For money flows, check IDR formatting, negative balances, rounding, multi-account transfers, empty data, errors, accessibility, and narrow viewports.
+5. Use synthetic records only. Never commit secrets, `.env`, transaction exports, backups, or actual account information.
+6. In the PR, report **which checks actually ran**, which failed or were skipped, remaining risks, and any required migration. Unexecuted checks are not passing checks.
 
-Lint results alone do not establish the safety of a database migration, an authentication change, or financial computations.
+Repository documentation is written in **English**; the product interface defaults to **Bahasa Indonesia**. Keep translations and fallback locales consistent.
 
-## Development resources
+## Useful commands
 
-- [Project overview](README.md)
-- [Self-hosting and build instructions](self-hosting/README.md)
-- [Windows/VPS setup notes](docs/LOCAL-VPS-ID.md)
-- [UI and localization decisions](docs/UI-INDONESIA.md)
-- [GitHub Actions](https://github.com/man612/Kasana/actions)
+From the repository root after installing dependencies:
 
-Some upstream package names and Docker Compose identifiers are intentionally unchanged. Do not rename them for branding alone; doing so can break dependencies or disconnect deployments from existing Docker volumes.
+```bash
+npm ci
+npm run lint
+npm run typecheck
+npm run format:check
+```
 
-## Language and accessibility
+Relevant test runners reside in `packages/backend` and `packages/frontend`; choose targeted tests before expanding the scope. A build alone does not prove accounting correctness. See the [self-hosting guide](self-hosting/README.md), [branding guide](docs/BRANDING.md), and [repository hygiene policy](docs/REPOSITORY-HYGIENE.md).
 
-**English is the working language for public repository documentation, issues, and pull requests.** The default **application interface remains Bahasa Indonesia**. Keep locale-specific UI translations accurate and preserve the ability to select other supported languages.
+## Legal and conduct
 
-Prioritize accessible contrast, keyboard support, readable layouts, and clear financial labels over cosmetic effects.
+Contributions must be compatible with AGPL-3.0-only and preserve upstream notices. **Lajur. has no CLA signing requirement.** The [archived upstream CLA](docs/upstream/CLA.md) is provided solely for provenance; it does not apply to contributions to this repository. See [LICENSING.md](LICENSING.md) for history.
 
-## License and contribution terms
-
-Contributions must be compatible with AGPL-3.0-only and preserve upstream copyright and attribution notices. **Kasana does not require a separate Contributor License Agreement (CLA).** The inherited `CLA.md` remains for historical reference, not as a contribution requirement.
-
-If contributing separately to MoneyMatter upstream, follow the upstream project's policies.
-
-## Security and conduct
-
-Do not report vulnerabilities or publish secrets in public issues. Follow the [Security Policy](.github/SECURITY.md) and [Code of Conduct](CODE_OF_CONDUCT.md).
+Follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report security concerns privately as described in [SECURITY.md](.github/SECURITY.md); never publish real financial data or credentials.
