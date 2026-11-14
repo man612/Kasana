@@ -172,7 +172,7 @@ const handleClearAll = () => {
   <ResponsiveDialog
     v-model:open="isOpen"
     custom-close
-    dialog-content-class="max-h-[85vh] overflow-hidden sm:max-w-lg"
+    dialog-content-class="max-h-[85dvh] overflow-hidden sm:max-w-lg"
     drawer-content-class="max-h-[85dvh]"
   >
     <template #title>
@@ -185,7 +185,7 @@ const handleClearAll = () => {
       {{ $t('dialogs.manageTransaction.splitDialog.description') }}
     </template>
 
-    <div class="max-h-[50vh] overflow-y-auto py-4">
+    <div class="min-h-0 py-4">
       <!-- Main category display -->
       <div class="border-input bg-input-background mb-4 rounded-md border px-3 py-2.5">
         <div class="text-muted-foreground mb-1.5 text-[11px] font-medium tracking-wider uppercase">
@@ -205,8 +205,8 @@ const handleClearAll = () => {
       </div>
 
       <!-- Split rows -->
-      <div class="space-y-3">
-        <div v-for="(split, index) in localSplits" :key="split.tempId ?? split.id ?? `split-${index}`" class="group">
+      <TransitionGroup name="lajur-category-items" tag="div" class="relative grid gap-3">
+        <div v-for="(split, index) in localSplits" :key="split.tempId ?? split.id ?? `split-${index}`" class="group w-full">
           <div
             :class="
               cn(
@@ -256,11 +256,13 @@ const handleClearAll = () => {
           </div>
 
           <!-- Split error message -->
-          <p v-if="getSplitError(index)" class="text-destructive-text mt-1 px-1 text-xs">
-            {{ getSplitError(index) }}
-          </p>
+          <Transition name="lajur-info-reveal">
+            <p v-if="getSplitError(index)" class="text-destructive-text mt-1 px-1 text-xs" role="alert">
+              {{ getSplitError(index) }}
+            </p>
+          </Transition>
         </div>
-      </div>
+      </TransitionGroup>
 
       <!-- Add split button -->
       <Button

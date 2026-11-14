@@ -92,49 +92,56 @@
         <!-- Desktop: accessible centered category dialog -->
         <template v-if="!isMobile">
           <Dialog.Dialog :open="isOpen" @update:open="(open: boolean) => (isOpen = open)">
-            <Dialog.DialogTrigger as-child>
-              <button
-                ref="triggerRef"
-                type="button"
-                :disabled="disabled"
-                :class="
-                  cn(
-                    'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
-                    'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
-                    disabled && 'cursor-not-allowed opacity-50',
-                    $slots['field-right'] && 'min-w-0 flex-1 rounded-r-none border-r-0',
-                    $attrs.class ?? '',
-                  )
-                "
-                :aria-label="$t('fields.categorySelect.selectCategoryLabel')"
-                :title="selectedValue?.name || $t('fields.categorySelect.selectCategoryLabel')"
-              >
-                <CategoryCircle
-                  v-if="selectedValue"
-                  :category="selectedValue"
-                  :categories-map="categoriesMap"
-                  class="shrink-0"
-                />
-                <span
-                  class="text-muted-foreground min-w-0 flex-1 truncate text-left"
-                  :class="{ 'text-foreground': selectedValue }"
+            <div :class="cn('relative w-full min-w-0', $slots['field-right'] && 'min-w-0 flex-1')">
+              <Dialog.DialogTrigger as-child>
+                <button
+                  ref="triggerRef"
+                  type="button"
+                  :disabled="disabled"
+                  :class="
+                    cn(
+                      'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
+                      'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
+                      disabled && 'cursor-not-allowed opacity-50',
+                      selectedValue && !disabled && 'pr-16',
+                      $slots['field-right'] && 'rounded-r-none border-r-0',
+                      $attrs.class ?? '',
+                    )
+                  "
+                  :aria-label="$t('fields.categorySelect.selectCategoryLabel')"
+                  :title="selectedValue?.name || $t('fields.categorySelect.selectCategoryLabel')"
                 >
-                  {{ selectedValue?.name || placeholder }}
-                </span>
-                <span
+                  <Transition name="lajur-info-reveal" mode="out-in">
+                    <span :key="selectedValue?.id ?? 'empty-category'" class="flex min-w-0 flex-1 items-center gap-2">
+                      <CategoryCircle
+                        v-if="selectedValue"
+                        :category="selectedValue"
+                        :categories-map="categoriesMap"
+                        class="shrink-0"
+                      />
+                      <span
+                        class="text-muted-foreground min-w-0 flex-1 truncate text-left"
+                        :class="{ 'text-foreground': selectedValue }"
+                      >
+                        {{ selectedValue?.name || placeholder }}
+                      </span>
+                    </span>
+                  </Transition>
+                  <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
+                </button>
+              </Dialog.DialogTrigger>
+              <Transition name="lajur-info-reveal">
+                <button
                   v-if="selectedValue && !disabled"
-                  role="button"
-                  tabindex="0"
-                  class="text-muted-foreground hover:text-foreground shrink-0 cursor-pointer"
+                  type="button"
+                  class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-8 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
                   :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
-                  @click="clearSelection"
-                  @keydown.enter.prevent="clearSelection"
+                  @click.stop="clearSelection"
                 >
-                  <XIcon class="size-4" />
-                </span>
-                <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
-              </button>
-            </Dialog.DialogTrigger>
+                  <XIcon class="size-4 transition-transform duration-200 hover:rotate-90 motion-reduce:transition-none" />
+                </button>
+              </Transition>
+            </div>
             <Dialog.DialogContent
               blur-overlay
               :class="
@@ -170,7 +177,7 @@
                   :placeholder="$t('fields.categorySelect.searchPlaceholder')"
                   :aria-label="$t('fields.categorySelect.searchCategoryLabel')"
                 />
-                <div class="max-h-[min(54dvh,390px)] overflow-y-auto overscroll-contain p-2">
+                <div class="lajur-dialog-scroll max-h-[min(54dvh,390px)] min-h-0 overflow-y-auto overscroll-contain p-2 pr-5">
                   <CategoryListContent />
                 </div>
               </ListboxRoot>
@@ -180,49 +187,58 @@
 
         <!-- Mobile: Button + Drawer -->
         <template v-else>
-          <button
-            ref="triggerRef"
-            type="button"
-            :disabled="disabled"
-            :class="
-              cn(
-                'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
-                'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
-                disabled && 'cursor-not-allowed opacity-50',
-                $slots['field-right'] && 'min-w-0 flex-1 rounded-r-none border-r-0',
-                $attrs.class ?? '',
-              )
-            "
-            :aria-label="$t('fields.categorySelect.selectCategoryLabel')"
-            :title="selectedValue?.name || $t('fields.categorySelect.selectCategoryLabel')"
-            @click="openDropdown"
-          >
-            <CategoryCircle
-              v-if="selectedValue"
-              :category="selectedValue"
-              :categories-map="categoriesMap"
-              class="shrink-0"
-            />
-            <span
-              class="text-muted-foreground min-w-0 flex-1 truncate text-left"
-              :class="{ 'text-foreground': selectedValue }"
-            >
-              {{ selectedValue?.name || placeholder }}
-            </span>
+          <div :class="cn('relative w-full min-w-0', $slots['field-right'] && 'min-w-0 flex-1')">
             <button
-              v-if="selectedValue && !disabled"
+              ref="triggerRef"
               type="button"
-              class="text-muted-foreground hover:text-foreground shrink-0"
-              :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
-              @click="clearSelection"
+              :disabled="disabled"
+              :class="
+                cn(
+                  'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
+                  'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
+                  disabled && 'cursor-not-allowed opacity-50',
+                  selectedValue && !disabled && 'pr-16',
+                  $slots['field-right'] && 'rounded-r-none border-r-0',
+                  $attrs.class ?? '',
+                )
+              "
+              :aria-label="$t('fields.categorySelect.selectCategoryLabel')"
+              :title="selectedValue?.name || $t('fields.categorySelect.selectCategoryLabel')"
+              @click="openDropdown"
             >
-              <XIcon class="size-4" />
+              <Transition name="lajur-info-reveal" mode="out-in">
+                <span :key="selectedValue?.id ?? 'empty-category'" class="flex min-w-0 flex-1 items-center gap-2">
+                  <CategoryCircle
+                    v-if="selectedValue"
+                    :category="selectedValue"
+                    :categories-map="categoriesMap"
+                    class="shrink-0"
+                  />
+                  <span
+                    class="text-muted-foreground min-w-0 flex-1 truncate text-left"
+                    :class="{ 'text-foreground': selectedValue }"
+                  >
+                    {{ selectedValue?.name || placeholder }}
+                  </span>
+                </span>
+              </Transition>
+              <ChevronDownIcon
+                class="text-popover-foreground size-5 shrink-0 transition-transform duration-150 ease-out"
+                :class="{ 'rotate-180': isOpen }"
+              />
             </button>
-            <ChevronDownIcon
-              class="text-popover-foreground size-5 shrink-0 transition-transform duration-150 ease-out"
-              :class="{ 'rotate-180': isOpen }"
-            />
-          </button>
+            <Transition name="lajur-info-reveal">
+              <button
+                v-if="selectedValue && !disabled"
+                type="button"
+                class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-8 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+                :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
+                @click.stop="clearSelection"
+              >
+                <XIcon class="size-4 transition-transform duration-200 hover:rotate-90 motion-reduce:transition-none" />
+              </button>
+            </Transition>
+          </div>
         </template>
 
         <slot name="field-right" />
@@ -274,7 +290,7 @@
             </button>
           </div>
 
-          <div class="h-[50vh] overflow-auto">
+          <div class="lajur-dialog-scroll h-[min(50dvh,420px)] min-h-0 overflow-y-auto overscroll-contain pr-4">
             <CategoryListContent />
           </div>
         </ListboxRoot>
