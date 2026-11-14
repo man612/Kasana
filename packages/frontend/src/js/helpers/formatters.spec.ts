@@ -3,6 +3,7 @@ import {
   currencyDisplayPreference,
   numberFormatLocale,
   formatCompactFiat,
+  formatCompactIdr,
   formatCompactUIAmount,
   formatShortFiat,
   formatFiat,
@@ -216,5 +217,40 @@ describe('js/helpers/formatters', () => {
     ])('with from: 100_000, %d → %s', (amount, expected) => {
       expect(formatCompactUIAmount({ amount, currency: 'USD', from: 100_000 })).toBe(expected);
     });
+  });
+});
+
+describe('IDR display precision', () => {
+  beforeEach(() => {
+    numberFormatLocale.value = 'id-ID';
+    currencyDisplayPreference.value = 'symbol';
+  });
+
+  it('formats whole Rupiah without forced decimal zeros, independent of runtime CLDR data', () => {
+    expect(formatUIAmount(1_234_567, { currency: 'IDR' })).toBe('Rp\u00a01.234.567');
+    expect(formatUIAmount(0, { currency: 'IDR' })).toBe('Rp\u00a00');
+    expect(toLocalCurrencyNumber(1_234_567, { currency: 'IDR' })).toBe('1.234.567');
+  });
+
+  it('keeps real fractional values visible without padding whole Rupiah with ,00', () => {
+    expect(formatUIAmount(1_234.5, { currency: 'IDR' })).toBe('Rp\u00a01.234,5');
+    expect(toLocalCurrencyNumber(1_234.5, { currency: 'IDR' })).toBe('1.234,5');
+  });
+
+  it('still honors an explicit fraction-digit override', () => {
+    expect(formatUIAmount(1_234.5, { currency: 'IDR', fractionDigits: 2 })).toBe('Rp\u00a01.234,50');
+    expect(formatUIAmount(1_234.5, { currency: 'IDR', fractionDigits: 0 })).toBe('Rp\u00a01.235');
+  });
+
+  it('keeps fractional values in the non-compact Rupiah branch', () => {
+    expect(formatCompactFiat({ amount: 950.5, currency: 'IDR' })).toBe('Rp\u00a0950,5');
+    expect(formatCompactIdr(950.5)).toBe('Rp\u00a0950,5');
+  });
+
+  it('promotes rounded values at thousand, million and billion boundaries', () => {
+    expect(formatCompactIdr(999_999)).toBe('Rp1 jt');
+    expect(formatCompactIdr(999_999_999)).toBe('Rp1 miliar');
+    expect(formatCompactIdr(999_999_999_999)).toBe('Rp1 triliun');
+    expect(formatCompactIdr(-999_999)).toBe('-Rp1 jt');
   });
 });
