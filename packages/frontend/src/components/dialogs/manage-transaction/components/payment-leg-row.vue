@@ -27,11 +27,10 @@ const emit = defineEmits<{
 }>();
 
 const amountFieldRef = ref<InstanceType<typeof FormattedAmountField> | null>(null);
-const accountFieldRef = ref<InstanceType<typeof AccountSelectField> | null>(null);
 const accountWarningVisible = ref(false);
 const requireAccountChoice = () => {
+  // The user asked for guidance, not a nested account dropdown that may close the form on Escape.
   accountWarningVisible.value = true;
-  accountFieldRef.value?.open();
 };
 const onAccountPicked = (value: AccountModel | null) => {
   accountWarningVisible.value = false;
@@ -57,7 +56,6 @@ defineExpose({
       >
         <div class="flex min-w-0 flex-[2] items-center overflow-hidden">
           <AccountSelectField
-            ref="accountFieldRef"
             class="min-w-0 flex-1"
             embedded
             :model-value="account"

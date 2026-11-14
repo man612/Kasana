@@ -272,7 +272,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
           hasText: /Pilih rekening terlebih dahulu|Choose an account before/i,
         }),
       ).toBeVisible();
-      await page.keyboard.press('Escape');
+      // This warning is inline. Escape would intentionally close the parent transaction dialog.
 
       await multipleAccounts.click();
       await expect(multipleAccounts).toHaveCount(1);
@@ -295,20 +295,29 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       }
       await page.keyboard.press('Escape');
 
-      // The checked switch thumb should have matching left/right insets.
+      // The unchecked left inset should match the checked right inset.
       const createAnotherSwitch = txDialog.getByRole('switch').first();
       await expect(createAnotherSwitch).toBeVisible();
+      const readSwitchInsets = () =>
+        createAnotherSwitch.evaluate((element) => {
+          const thumb = element.querySelector<HTMLElement>('[data-state]');
+          if (!thumb) return null;
+          const parent = element.getBoundingClientRect();
+          const circle = thumb.getBoundingClientRect();
+          return { left: circle.left - parent.left, right: parent.right - circle.right };
+        });
+      const offInset = await readSwitchInsets();
+      expect(offInset).not.toBeNull();
       await createAnotherSwitch.click();
       await expect(createAnotherSwitch).toHaveAttribute('data-state', 'checked');
-      const thumbInset = await createAnotherSwitch.evaluate((element) => {
-        const thumb = element.querySelector<HTMLElement>('[data-state]');
-        if (!thumb) return null;
-        const parent = element.getBoundingClientRect();
-        const circle = thumb.getBoundingClientRect();
-        return { left: circle.left - parent.left, right: parent.right - circle.right };
-      });
-      expect(thumbInset).not.toBeNull();
-      if (thumbInset) expect(Math.abs(thumbInset.left - thumbInset.right)).toBeLessThanOrEqual(2);
+      // Off: thumb hugs left edge. On: it should hug right edge by the same margin.
+      // Poll until the CSS thumb movement has settled.
+      await expect
+        .poll(async () => {
+          const onInset = await readSwitchInsets();
+          return offInset && onInset ? Math.abs(onInset.right - offInset.left) : 999;
+        })
+        .toBeLessThanOrEqual(2);
       await createAnotherSwitch.click();
 
       const saveTransaction = txDialog.getByRole('button', { name: /Buat transaksi|Create transaction/i });
