@@ -28,7 +28,7 @@ Use a square PNG at least 512x512. Then regenerate all browser/PWA icons:
 The generated assets include multi-resolution favicon.ico, favicon.svg (a
 self-contained raster wrapper), PNG favicon, Apple touch, PWA 192/512 and
 maskable icons. Maskable versions use a neutral opaque background and safe area.
-Commit the assets; CI does not require Pillow.
+Commit the assets; CI does not require Pillow. The icon generator also refreshes all five shared SVG logo locations in `docs/brand/`, `packages/frontend/public/img/`, `packages/landing/public/img/`, and `packages/docs/` from the same generated favicon. The `check-public-identity.mjs` CI check rejects any stale or mismatched copies.
 
 The repository retains the historical `Kasana` slug for link continuity. Copyright and AGPL attribution for MoneyMatter are preserved independently of branding.
 

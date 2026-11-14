@@ -82,6 +82,31 @@ if (!appHtml.includes(`name="theme-color" content="${manifest.theme_color}"`)) {
 if (!appHtml.includes('property="og:image" content="/web-app-manifest-512x512.png"')) {
   failures.push('Lajur. social previews must use the current branded artwork');
 }
+// The S-curve icon is generated from one canonical source. Ensure every
+// inherited logo placement is updated together so former brand artwork
+// cannot creep back into docs, landing, or the application's public assets.
+const faviconPath = 'packages/frontend/public/favicon.svg';
+const faviconBytes = fs.readFileSync(path.join(ROOT, faviconPath));
+for (const asset of [
+  'docs/brand/logo.svg',
+  'packages/frontend/public/img/logo.svg',
+  'packages/landing/public/img/logo.svg',
+  'packages/docs/public/favicon.svg',
+  'packages/docs/src/assets/logo.svg',
+]) {
+  const target = path.join(ROOT, asset);
+  if (!fs.existsSync(target) || !faviconBytes.equals(fs.readFileSync(target))) {
+    failures.push(`${asset} differs from ${faviconPath}; regenerate icons from the canonical S-curve PNG`);
+  }
+}
+for (const icon of manifest.icons ?? []) {
+  const relativeIconPath = icon.src.startsWith('/') ? icon.src.slice(1) : icon.src;
+  const assetPath = path.join(ROOT, 'packages/frontend/public', relativeIconPath);
+  if (!fs.existsSync(assetPath)) failures.push(`PWA manifest icon ${icon.src} is missing`);
+}
+if (fs.existsSync(path.join(ROOT, 'docs/brand/generate-logo.py'))) {
+  failures.push('Retired MoneyMatter logo generator must not be restored');
+}
 // These build boundaries are security-critical on public forks. Shipping the
 // upstream marketing site or embedding Sentry credentials as ARG values can
 // expose misleading content or build provenance despite green app tests.

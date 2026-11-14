@@ -28,7 +28,8 @@ The feature-branch tree contained roughly 6,450 tracked files and 924 automated-
 2. Install Pillow, run `python packages/frontend/scripts/generate-brand-icons.py`, and inspect favicon, Apple touch, PWA, and maskable outputs.
 3. Confirm `packages/frontend/branding.json` and run `npm -w packages/frontend run branding:sync`.
 4. Verify icons at 16–32 px, 192 px, 512 px, and within a maskable icon safe zone, and verify the web manifest icons all exist.
-5. Use `docs/BRANDING.md` as the maintained guide; do not run retired upstream brand generators.
+5. The generator refreshes all five shared SVG logo copies automatically. The public-identity CI guard rejects stale assets or missing web-manifest icons.
+6. Use `docs/BRANDING.md` as the maintained guide; do not run retired upstream brand generators.
 
 ## Verification required before merging
 

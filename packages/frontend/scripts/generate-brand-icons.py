@@ -75,4 +75,19 @@ encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
     + encoded + '"/></svg>\n',
     encoding="utf-8",
 )
-print("Generated browser + install icons from", source)
+# Reuse the exact same canonical favicon for other app/site logo locations.
+# Avoid having independent, stale K/M marks reappear after a rebrand.
+repo_root = frontend.parent.parent
+favicon_bytes = (public / "favicon.svg").read_bytes()
+for relative_path in (
+    "docs/brand/logo.svg",
+    "packages/frontend/public/img/logo.svg",
+    "packages/landing/public/img/logo.svg",
+    "packages/docs/public/favicon.svg",
+    "packages/docs/src/assets/logo.svg",
+):
+    destination = repo_root / relative_path
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_bytes(favicon_bytes)
+
+print("Generated browser, install and shared brand icons from", source)
