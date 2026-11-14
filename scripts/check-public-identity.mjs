@@ -105,7 +105,7 @@ for (const [dockerfile, expected] of [
 // Both production images must identify this independent repository in OCI
 // metadata. A wrong label can misroute source and security reports.
 if (!read('self-hosting/backend/Dockerfile').includes('org.opencontainers.image.source="https://github.com/man612/Kasana"')) {
-  failures.push('Backend production Docker image source label must identify Lajur.'s repository');
+  failures.push('Backend production Docker image source label must identify the Lajur. repository');
 }
 // Never allow a plain docker compose up to run another product's money app.
 const baseCompose = read('self-hosting/docker-compose.yml');
