@@ -1,4 +1,4 @@
-# Kasana UX Review — Account and Vehicle Creation for Indonesia
+# Lajur. UX Review — Account and Vehicle Creation for Indonesia
 
 **Initial review:** November 10, 2026. **Research update:** November 14, 2026. References include the Kasana-modified MoneyMatter v0.33.14 codebase, original account documentation in `packages/docs/src/content/docs/accounts/`, Actual Budget, Bank Indonesia, and WCAG 2.2.
 

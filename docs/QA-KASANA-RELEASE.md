@@ -1,4 +1,4 @@
-# Kasana — Release Gates and QA Checklist
+# Lajur. — Release Gates and QA Checklist
 
 This checklist applies to umbrella integration **PR #10** (combining historical PRs #8 and #9). As of November 14, 2026, PR #10 remains **Draft**, is not merged into `main`, has not been deployed to a VPS, and has not passed full application QA.
 
@@ -43,15 +43,15 @@ The November 11 run [#42878060359](https://github.com/man612/Kasana/actions/runs
 | Quick Start gesture | Single tap opens the panel. Long press for approximately 420 ms, then drag to relocate. The position survives refresh; Reset is disabled at the default position, enabled after moving, and restores the original location. Simulate OS `pointercancel`: the unfinished move must be rolled back and the next tap must work. Use single-tap corner presets without requiring dragging. |
 | Hide Quick Start | Test hiding for 1 hour, 24 hours, and 7 days, and reopening through Settings → General. Refresh or reopen the tab before and after expiry. |
 | Navigation | Open account and vehicle details from their lists; on deep links, Back should return to a sensible list. The mobile hamburger remains available. Also test loan, portfolio, goals, budgets, trackers, recurring payments, investments, and ventures. |
-| Responsive layouts | Test widths of 360 px, 390 px, tablet, and 1280 px desktop with Kasana's 80% rem-based density (no root CSS zoom). Rotate the device and open the virtual keyboard. The dashboard must fill the viewport, without horizontal overflow, obscured actions, clipped popovers, or off-screen floating controls. |
+| Responsive layouts | Test widths of 360 px, 390 px, tablet, and 1280 px desktop with Lajur.'s 80% rem-based density (no root CSS zoom). Rotate the device and open the virtual keyboard. The dashboard must fill the viewport, without horizontal overflow, obscured actions, clipped popovers, or off-screen floating controls. |
 | Dialogs and accessibility | Test keyboard Tab/Escape, screen-reader labels, touch targets, back buttons, Indonesian/English language switching, and mobile drawers. Dropdowns/Selects must remain anchored 6 px from their trigger (or flip to the opposite side near a viewport edge); centered modal dialogs are intentionally different. |
 | Loans | Verify principal, outstanding balance, interest, term, installments, and projections. **Do not** assume declining-balance amortization models flat interest, deducted origination fees, or provider-specific BNPL schedules. |
 
-- An isolated Playwright/Chromium CI browser test starts Kasana's real frontend/backend and synthetic PostgreSQL data, checks an IDR transaction and account detail at mobile viewport with 80% rem-based UI density, verifies full viewport coverage, explicit deep-link Back, accent selection persistence, and anchored Select dropdown geometry. A passing synthetic browser test still does not replace physical Android, native pinch-zoom, or real VPS testing.
+- An isolated Playwright/Chromium CI browser test starts Lajur.'s real frontend/backend and synthetic PostgreSQL data, checks an IDR transaction and account detail at mobile viewport with 80% rem-based UI density, verifies full viewport coverage, explicit deep-link Back, accent selection persistence, and anchored Select dropdown geometry. A passing synthetic browser test still does not replace physical Android, native pinch-zoom, or real VPS testing.
 
 ### Motion and appearance checks
 
-See [Kasana Motion System](KASANA-MOTION-SYSTEM.md) for the implementation map, ownership boundaries and motion/performance policy.
+See [Lajur. Motion System](KASANA-MOTION-SYSTEM.md) for the implementation map, ownership boundaries and motion/performance policy.
 
 - Verify auth/login-to-dashboard shell fade, dashboard route changes, and nested Settings/Analytics/Planned/Payees/Data Management content transitions. Parent navigators should remain mounted when child tabs change.
 - Verify active Reka tab content animates in without delaying focus or changing form inputs; validate the underline/pill indicator independently.
