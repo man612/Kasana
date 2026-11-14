@@ -195,18 +195,27 @@ export function formatLargeNumber(
 export const formatCompactIdr = (amount: number): string => {
   if (!Number.isFinite(amount)) return String(amount);
   const abs = Math.abs(amount);
-  const unit =
-    abs >= 1e12
-      ? { scale: 1e12, suffix: ' triliun' }
-      : abs >= 1e9
-        ? { scale: 1e9, suffix: ' miliar' }
-        : abs >= 1e6
-          ? { scale: 1e6, suffix: ' jt' }
-          : abs >= 1e3
-            ? { scale: 1e3, suffix: ' rb' }
-            : null;
-  if (!unit) return formatUIAmount(amount, { currency: 'IDR' });
-  return 'Rp' + new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(amount / unit.scale) + unit.suffix;
+  const units = [
+    { scale: 1e12, suffix: ' triliun' },
+    { scale: 1e9, suffix: ' miliar' },
+    { scale: 1e6, suffix: ' jt' },
+    { scale: 1e3, suffix: ' rb' },
+  ];
+  let unitIndex = units.findIndex(({ scale }) => abs >= scale);
+  if (unitIndex === -1) return formatUIAmount(amount, { currency: 'IDR' });
+
+  let unit = units[unitIndex]!;
+  // Round to the same one-decimal precision used for display before choosing a
+  // suffix. Otherwise 999,999 would become the misleading "1.000 rb".
+  const roundedMagnitude = Math.round((abs / unit.scale) * 10) / 10;
+  if (roundedMagnitude >= 1_000 && unitIndex > 0) {
+    unitIndex -= 1;
+    unit = units[unitIndex]!;
+  }
+
+  const sign = amount < 0 ? '-' : '';
+  const formatted = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(abs / unit.scale);
+  return sign + 'Rp' + formatted + unit.suffix;
 };
 
 const COMPACT_SIGNIFICANT_DIGITS = 3;

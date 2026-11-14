@@ -245,4 +245,11 @@ describe('IDR display precision', () => {
     expect(formatCompactFiat({ amount: 950.5, currency: 'IDR' })).toBe('Rp\u00a0950,5');
     expect(formatCompactIdr(950.5)).toBe('Rp\u00a0950,5');
   });
+
+  it('promotes rounded values at thousand, million and billion boundaries', () => {
+    expect(formatCompactIdr(999_999)).toBe('Rp1 jt');
+    expect(formatCompactIdr(999_999_999)).toBe('Rp1 miliar');
+    expect(formatCompactIdr(999_999_999_999)).toBe('Rp1 triliun');
+    expect(formatCompactIdr(-999_999)).toBe('-Rp1 jt');
+  });
 });
