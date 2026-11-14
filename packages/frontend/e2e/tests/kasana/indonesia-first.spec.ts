@@ -300,7 +300,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await expect(createAnotherSwitch).toBeVisible();
       const readSwitchInsets = () =>
         createAnotherSwitch.evaluate((element) => {
-          const thumb = element.querySelector<HTMLElement>('[data-state]');
+          const thumb = element.querySelector<HTMLElement>('span');
           if (!thumb) return null;
           const parent = element.getBoundingClientRect();
           const circle = thumb.getBoundingClientRect();
