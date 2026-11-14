@@ -29,8 +29,8 @@ export const createHoldingBodySchema = z
   })
   .and(
     z.union([
-      z.object({ securityId: recordId(), searchResult: z.undefined() }),
-      z.object({ securityId: z.undefined(), searchResult: SecuritySearchResultSchema }),
+      z.object({ securityId: recordId(), searchResult: z.undefined().optional() }),
+      z.object({ securityId: z.undefined().optional(), searchResult: SecuritySearchResultSchema }),
     ]),
   );
 
