@@ -1,6 +1,8 @@
 /**
- * Vehicle body / drivetrain class used to pick the default depreciation curve.
- * VARCHAR in DB, TS-side enum for type safety (per project's no-DB-enums rule).
+ * Legacy vehicle class used to pick the default depreciation curve.
+ * Values mix body style, vehicle segment, powertrain and vehicle kind; this is
+ * not a normalized Indonesian vehicle taxonomy. VARCHAR in DB, TS-side enum
+ * for type safety (per project's no-DB-enums rule).
  */
 export enum VEHICLE_CLASS {
   sedan = 'sedan',
@@ -28,9 +30,11 @@ export enum DEPRECIATION_PRESET {
 
 /**
  * Default annual depreciation rates (percent) by year-since-purchase, indexed
- * per vehicle class. Year 0 = the first year of ownership. Numbers approximate
- * widely-published averages (Iseecars / Edmunds 5-year reports). Adjust here
- * when better data is available.
+ * per legacy vehicle class. Year 0 = the first year of ownership. These are
+ * generic directional heuristics informed by overseas (including iSeeCars /
+ * Edmunds) studies, not an Indonesia-calibrated resale-price model. Do not
+ * present them as a market quote. Recalibrate only when comparable local data
+ * with documented sources, dates, sample sizes and methodology is available.
  *
  * After the array end, callers fall back to TAIL_RATE_PCT.
  *

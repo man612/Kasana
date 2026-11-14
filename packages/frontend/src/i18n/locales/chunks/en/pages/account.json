@@ -317,7 +317,7 @@
       "backToAccounts": "Back to accounts",
       "editButton": "Edit",
       "overrideValueButton": "Override value",
-      "currentValue": "Current value",
+      "currentValue": "Estimated current value",
       "purchasePrice": "Purchase price",
       "totalDepreciation": "Total depreciation",
       "vehicleClass": "Class",
@@ -387,7 +387,8 @@
         "monthsLabel": "{n} mo since purchase",
         "yearsLabel": "{n} yr since purchase",
         "yearsMonthsLabel": "{y}y {m}mo since purchase"
-      }
+      },
+      "estimateDisclaimer": "Calculated from the purchase price, acquisition date and depreciation pattern. This is not a live resale price; vehicle mileage does not currently affect the calculation."
     }
   }
 }

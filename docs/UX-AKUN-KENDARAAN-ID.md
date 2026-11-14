@@ -1,6 +1,6 @@
 # Kasana UX Review — Account and Vehicle Creation for Indonesia
 
-**Review date:** November 10, 2026. References include the Kasana-modified MoneyMatter v0.33.14 codebase, original account documentation in `packages/docs/src/content/docs/accounts/`, Actual Budget, Bank Indonesia, and WCAG 2.2.
+**Initial review:** November 10, 2026. **Research update:** November 14, 2026. References include the Kasana-modified MoneyMatter v0.33.14 codebase, original account documentation in `packages/docs/src/content/docs/accounts/`, Actual Budget, Bank Indonesia, and WCAG 2.2.
 
 ## Current implementation status
 
@@ -59,6 +59,32 @@ The inherited values in `packages/shared/src/types/vehicles.ts` use overseas-sty
 `salvageFloorPct` sets a projected lower bound, **not** a guaranteed resale price. `currentMileage` is stored for reference but is **not** included in depreciation calculations. The estimate uses the entered purchase price and purchase date, including for used vehicles. Original documentation states purchase price/date/currency cannot be edited after vehicle creation.
 
 Present these limitations clearly. A future valuation feature should use dated, sourced Indonesian market comparisons and allow manual corrections rather than claiming these inherited curves are locally accurate.
+
+## Indonesian used-vehicle evidence — and why the default curves remain provisional
+
+A follow-up review found useful local evidence, but not enough to safely replace every inherited curve with a new Indonesian rate table.
+
+| Source | What it actually measures | Useful signal | Limitation before using it as a default curve |
+|---|---|---|---|
+| LPEM FEB UI presentation at GIIAS 2025, using OLX listings | Used asking prices from 2016–2024 compared with the **2025 new-car price** (set to 100%) for selected Toyota/Honda segments | Retained-price ratios differ materially by segment. Toyota MPV1 (Avanza) is shown at 81.8% for 2024 and 53.0% for 2016. | The denominator is the 2025 new price, not each vehicle's original purchase/MSRP in its model year. These ratios are not direct annual depreciation rates. Coverage is limited to selected models/segments. |
+| Baharsyah (2026), hedonic pricing study using OLX Autos listings | 150 valid January 2025 asking-price observations from Toyota, Honda, Mitsubishi and Daihatsu MPV/SUV listings | The pooled model reports about 7.2% lower asking price per additional year and 3.1% per additional 10,000 km; automatic transmission and Toyota indicators also affect price. | Asking prices are not completed transactions; physical condition is not measured; the Toyota indicator is too broad to distinguish models; the sample is limited to MPV/SUV and four brands. The paper itself recommends transaction/auction data for stronger valuation. |
+| GAIKINDO report quoting OLXmobbi (November 2025) | Platform-reported market observations for ICE, hybrid and BEV vehicles | It reports ICE/HEV annual declines around 10–15% and BEV declines around 35–60%. | The article does not publish the sample, observation window, model mix or calculation method. Treat as an industry signal, not a directly reproducible coefficient. |
+| iSeeCars 2026 study | More than 950,000 five-year-old vehicles sold in the **United States** from March 2025 to February 2026 | Reports 41.8% average five-year depreciation, 57.2% for EVs, 44.9% for SUVs, 34.2% for trucks and 35.4% for hybrids. | Stronger sample size, but it is US market data and cannot be copied directly into Indonesian curves. |
+
+### Product decision
+
+- Keep the existing class curves as **generic directional heuristics** for now; do not present them as Indonesian market prices.
+- Do not add new MPV, LCGC, hatchback, bus or motorcycle coefficients from the evidence above. The available sources do not provide a sufficiently broad, transaction-based and comparable rate table for all those classes.
+- Keep the manual custom-rate and value-override paths available. A dated appraisal or a real local market comparison is more defensible than pretending a generic curve is a live quote.
+- A future Indonesia-calibrated model should collect model/trim, model year, acquisition date and price, odometer, condition, transmission, document completeness, service history, powertrain, location and observation date. Prefer completed transaction/auction prices; if only listings are available, explicitly model asking-price bias. Publish sample size, source date and confidence range.
+- The current projection is an **ownership book-value estimate** anchored to purchase price/date and the selected curve. It is not a market resale valuation. Model year and odometer are currently recorded for reference but do not change the depreciation formula.
+
+### Sources
+
+- LPEM FEB UI / GIIAS 2025 presentation, “Harga Mobil Baru vs Harga Mobil Bekas tahun 2025” (data source: OLX): https://www.gaikindo.or.id/wp-content/uploads/2025/07/03.-Riyanto_Paparan-GIIAS-2025_kirimV1.pdf
+- Saefuddin Baharsyah, “Faktor-Faktor Penentu Nilai Pasar Kendaraan Roda Empat Bekas: Pendekatan Hedonic Pricing Model pada Segmen MPV dan SUV di Indonesia”, IPSSJ Vol. 3 No. 3 (2026): https://ipssj.com/index.php/ojs/article/download/1253/1193
+- GAIKINDO / OLXmobbi, “Used Car Market Still Ruled by Conventional and Hybrid Models” (18 November 2025): https://www.gaikindo.or.id/en/used-car-market-still-ruled-by-conventional-and-hybrid-models/
+- iSeeCars, “The Top 25 Cars That Hold Their Value Best – and the 25 Worst” (24 March 2026): https://www.iseecars.com/cars-that-hold-their-value-study
 
 ## Acceptance criteria before merge
 

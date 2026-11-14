@@ -102,6 +102,9 @@
               <span class="text-muted-foreground text-xs">
                 {{ $t('pages.vehicleDetails.sinceAcquired', { date: formatDisplayDate(vehicle.purchaseDate) }) }}
               </span>
+              <p class="text-muted-foreground max-w-lg text-xs leading-relaxed">
+                {{ $t('pages.vehicleDetails.estimateDisclaimer') }}
+              </p>
             </div>
           </div>
         </div>
