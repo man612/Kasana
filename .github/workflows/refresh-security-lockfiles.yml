@@ -1,0 +1,40 @@
+name: One-time security lockfile refresh
+
+on:
+  push:
+    branches: ['security/lajur-advisory-patches-20261114']
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-lockfiles:
+    if: github.repository == 'man612/Kasana' && contains(github.event.head_commit.message, '[refresh-lockfiles]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Refresh selected root npm dependencies
+        run: npm update --package-lock-only --ignore-scripts --no-audit --no-fund dompurify body-parser vue-i18n @intlify/core-base undici zod
+      - name: Refresh selected standalone docs npm dependencies
+        working-directory: packages/docs
+        run: npm update --package-lock-only --ignore-scripts --no-audit --no-fund undici zod
+      - name: Verify resolved advisory patches
+        run: node scripts/security-lockfile-check.mjs
+      - name: Ensure dependency manifests were not unexpectedly changed
+        run: git diff --exit-code -- package.json packages/backend/package.json packages/frontend/package.json packages/landing/package.json packages/shared/package.json packages/docs/package.json
+      - name: Commit only npm-generated lockfiles
+        run: |
+          git add package-lock.json packages/docs/package-lock.json
+          if git diff --cached --quiet; then
+            echo 'No lockfile changes found'
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'chore(security): update advisory-affected npm lockfiles'
+          git push origin HEAD:security/lajur-advisory-patches-20261114
