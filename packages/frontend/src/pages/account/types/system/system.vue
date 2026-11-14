@@ -7,7 +7,6 @@ import AccountArchiveSection from '@/pages/account/components/account-archive-se
 import AccountDeletionSection from '@/pages/account/components/account-deletion-section.vue';
 import AccountDetailsTab from '@/pages/account/components/account-details-tab.vue';
 import SettingAccountGroup from '@/pages/account/components/account-group.vue';
-import AccountLinkSection from '@/pages/account/components/account-link-section.vue';
 import SettingToggleVisibility from '@/pages/account/components/setting-toggle-visibility.vue';
 import SharingPanel from '@/pages/account/components/sharing-panel/sharing-panel.vue';
 import { AccountModel, SHARE_PERMISSIONS } from '@bt/shared/types';
@@ -26,7 +25,6 @@ const canSeeSharingTab = computed(() => isOwner.value || permission.value === SH
 const activeTab = ref('details');
 const tabItems = computed(() => {
   const items = [{ value: 'details', label: t('pages.account.tabs.details') }];
-  if (isOwner.value) items.push({ value: 'integrations', label: t('pages.account.tabs.integrations') });
   if (canSeeSharingTab.value) items.push({ value: 'sharing', label: t('pages.account.tabs.sharing') });
   items.push({ value: 'settings', label: t('pages.account.tabs.settings') });
   return items;
@@ -54,12 +52,6 @@ const tabItems = computed(() => {
 
           <AccountDeletionSection :account="account" />
         </template>
-      </div>
-    </Tabs.TabsContent>
-
-    <Tabs.TabsContent v-if="isOwner" value="integrations">
-      <div class="grid gap-4 py-6">
-        <AccountLinkSection :account="account" />
       </div>
     </Tabs.TabsContent>
 

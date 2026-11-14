@@ -6,8 +6,10 @@ import {
   VEHICLE_CLASS_TRANSLATION_KEYS,
 } from '@/common/const/vehicle-classes-verbose';
 import FieldLabel from '@/components/fields/components/field-label.vue';
+import FormFieldHelp from '@/components/common/form-field-help.vue';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import * as Select from '@/components/lib/ui/select';
@@ -54,7 +56,7 @@ interface FormState {
   model: string;
   trim: string;
   year: number;
-  vehicleClass: VEHICLE_CLASS;
+  vehicleClass: VEHICLE_CLASS | null;
   purchasePrice: number;
   purchaseDate: Date;
   depreciationPreset: DEPRECIATION_PRESET;
@@ -70,7 +72,8 @@ const form = reactive<FormState>({
   model: '',
   trim: '',
   year: new Date().getFullYear(),
-  vehicleClass: VEHICLE_CLASS.sedan,
+  // Explicit choice: selecting Sedan by default silently applies the wrong depreciation to motorcycles and MPVs.
+  vehicleClass: null,
   purchasePrice: 0,
   purchaseDate: new Date(),
   depreciationPreset: DEPRECIATION_PRESET.classDefault,
@@ -108,6 +111,7 @@ const validationRules = {
   make: { required },
   model: { required },
   year: { required, between: between(MIN_YEAR, MAX_YEAR) },
+  vehicleClass: { required },
   purchasePrice: { positive: positiveNumber, maxValue: maxValue(Number.MAX_SAFE_INTEGER) },
   salvageFloorPct: { required, between: between(0, 100) },
   customAnnualRatePct: {
@@ -125,6 +129,8 @@ const submit = async () => {
   if (createVehicleMutation.isPending.value) return;
 
   if (!isFormValid()) return;
+  const vehicleClass = form.vehicleClass;
+  if (vehicleClass === null) return;
 
   try {
     await createVehicleMutation.mutateAsync({
@@ -134,7 +140,7 @@ const submit = async () => {
       model: form.model,
       trim: form.trim || null,
       year: form.year,
-      vehicleClass: form.vehicleClass,
+      vehicleClass,
       purchasePrice: form.purchasePrice,
       purchaseDate: format(form.purchaseDate, 'yyyy-MM-dd'),
       depreciationPreset: form.depreciationPreset,
@@ -176,10 +182,17 @@ const submit = async () => {
       :placeholder="$t('forms.createVehicle.namePlaceholder')"
       :error-message="getFieldErrorMessage('form.name')"
       @blur="touchField('form.name')"
-    />
+      non-label-wrapper
+      :aria-label="$t('forms.createVehicle.nameLabel')"
+    >
+      <template #label-right>
+        <FormFieldHelp topic="vehicleName" />
+      </template>
+    </input-field>
 
     <div>
-      <FieldLabel :label="$t('forms.createVehicle.currencyLabel')">
+      <FieldLabel :label="$t('forms.createVehicle.currencyLabel')" :only-template="true">
+        <template #label-right><FormFieldHelp topic="vehicleCurrency" /></template>
         <Select.Select v-model="form.currencyCode">
           <Select.SelectTrigger>
             <Select.SelectValue />
@@ -202,25 +215,53 @@ const submit = async () => {
         placeholder="Toyota"
         :error-message="getFieldErrorMessage('form.make')"
         @blur="touchField('form.make')"
-      />
+        non-label-wrapper
+        :aria-label="$t('forms.createVehicle.makeLabel')"
+      >
+        <template #label-right>
+          <FormFieldHelp topic="vehicleMake" />
+        </template>
+      </input-field>
       <input-field
         v-model="form.model"
         :label="$t('forms.createVehicle.modelLabel')"
-        placeholder="Camry"
+        placeholder="Avanza / Vario"
         :error-message="getFieldErrorMessage('form.model')"
         @blur="touchField('form.model')"
-      />
+        non-label-wrapper
+        :aria-label="$t('forms.createVehicle.modelLabel')"
+      >
+        <template #label-right>
+          <FormFieldHelp topic="vehicleModel" />
+        </template>
+      </input-field>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
-      <input-field v-model="form.trim" :label="$t('forms.createVehicle.trimLabel')" placeholder="XLE" />
+      <input-field
+        v-model="form.trim"
+        :label="$t('forms.createVehicle.trimLabel')"
+        placeholder="G CVT / 160 CBS"
+        non-label-wrapper
+        :aria-label="$t('forms.createVehicle.trimLabel')"
+      >
+        <template #label-right>
+          <FormFieldHelp topic="vehicleTrim" />
+        </template>
+      </input-field>
       <input-field
         v-model="form.year"
         type="number"
         :label="$t('forms.createVehicle.yearLabel')"
         :error-message="getFieldErrorMessage('form.year')"
         @blur="touchField('form.year')"
-      />
+        non-label-wrapper
+        :aria-label="$t('forms.createVehicle.yearLabel')"
+      >
+        <template #label-right>
+          <FormFieldHelp topic="vehicleYear" />
+        </template>
+      </input-field>
     </div>
 
     <SelectField
@@ -229,18 +270,32 @@ const submit = async () => {
       label-key="label"
       value-key="value"
       :label="$t('forms.createVehicle.vehicleClassLabel')"
-      @update:model-value="(v) => v && (form.vehicleClass = v.value)"
-    />
+      :placeholder="$t('forms.createVehicle.vehicleClassPlaceholder')"
+      :error-message="getFieldErrorMessage('form.vehicleClass')"
+      required
+      @update:model-value="(v) => { if (v) { form.vehicleClass = v.value; touchField('form.vehicleClass'); } }"
+    >
+      <template #label-right><FormFieldHelp topic="vehicleClass" /></template>
+    </SelectField>
+    <p class="text-muted-foreground -mt-3 text-xs leading-relaxed">
+      {{ $t('forms.createVehicle.vehicleClassHint') }}
+    </p>
 
-    <input-field
+    <FormattedAmountField
       v-model="form.purchasePrice"
-      type="number"
       :label="$t('forms.createVehicle.purchasePriceLabel')"
       :error-message="getFieldErrorMessage('form.purchasePrice')"
       @blur="touchField('form.purchasePrice')"
-    />
+      :aria-label="$t('forms.createVehicle.purchasePriceLabel')"
+    >
+      <template #label-right>
+        <FormFieldHelp topic="vehiclePurchasePrice" />
+      </template>
+    </FormattedAmountField>
 
-    <DateField v-model="form.purchaseDate" :label="$t('forms.createVehicle.purchaseDateLabel')" />
+    <DateField v-model="form.purchaseDate" :label="$t('forms.createVehicle.purchaseDateLabel')">
+      <template #label-right><FormFieldHelp topic="vehiclePurchaseDate" /></template>
+    </DateField>
 
     <SelectField
       :model-value="selectedDepreciationPreset"
@@ -249,7 +304,9 @@ const submit = async () => {
       value-key="value"
       :label="$t('forms.createVehicle.depreciationPresetLabel')"
       @update:model-value="(v) => v && (form.depreciationPreset = v.value)"
-    />
+    >
+      <template #label-right><FormFieldHelp topic="vehicleDepreciation" /></template>
+    </SelectField>
 
     <input-field
       v-if="showCustomRate"
@@ -258,7 +315,13 @@ const submit = async () => {
       :label="$t('forms.createVehicle.customAnnualRatePctLabel')"
       :error-message="getFieldErrorMessage('form.customAnnualRatePct')"
       @blur="touchField('form.customAnnualRatePct')"
-    />
+      non-label-wrapper
+      :aria-label="$t('forms.createVehicle.customAnnualRatePctLabel')"
+    >
+      <template #label-right>
+        <FormFieldHelp topic="vehicleCustomRate" />
+      </template>
+    </input-field>
 
     <input-field
       v-model="form.salvageFloorPct"
@@ -266,7 +329,13 @@ const submit = async () => {
       :label="$t('forms.createVehicle.salvageFloorPctLabel')"
       :error-message="getFieldErrorMessage('form.salvageFloorPct')"
       @blur="touchField('form.salvageFloorPct')"
-    />
+      non-label-wrapper
+      :aria-label="$t('forms.createVehicle.salvageFloorPctLabel')"
+    >
+      <template #label-right>
+        <FormFieldHelp topic="vehicleFloor" />
+      </template>
+    </input-field>
 
     <input-field
       v-model="form.currentMileage"
@@ -275,7 +344,13 @@ const submit = async () => {
       :placeholder="$t('forms.createVehicle.currentMileagePlaceholder')"
       :error-message="getFieldErrorMessage('form.currentMileage')"
       @blur="touchField('form.currentMileage')"
-    />
+      non-label-wrapper
+      :aria-label="$t('forms.createVehicle.currentMileageLabel')"
+    >
+      <template #label-right>
+        <FormFieldHelp topic="vehicleMileage" />
+      </template>
+    </input-field>
 
     <div class="flex">
       <ui-button type="submit" class="ml-auto min-w-30" :disabled="createVehicleMutation.isPending.value">

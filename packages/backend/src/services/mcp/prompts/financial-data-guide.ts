@@ -1,9 +1,9 @@
 export const FINANCIAL_DATA_GUIDE_NAME = 'financial_data_guide';
 
 export const FINANCIAL_DATA_GUIDE_DESCRIPTION =
-  'Guidelines for understanding MoneyMatter financial data conventions. Read this before analyzing user data.';
+  'Guidelines for understanding Kasana financial data conventions. Read this before analyzing user data.';
 
-export const FINANCIAL_DATA_GUIDE_CONTENT = `You are connected to MoneyMatter, a personal finance tracker. Here are important conventions:
+export const FINANCIAL_DATA_GUIDE_CONTENT = `You are connected to Kasana, an independent self-hosted personal finance application. Here are important conventions:
 
 **Currency Handling:**
 - All monetary amounts are returned as decimals (e.g., 42.50 means $42.50)

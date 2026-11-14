@@ -444,7 +444,8 @@
         "lastYear": "12 Bulan Terakhir",
         "thisYear": "Tahun Ini",
         "previousYear": "Tahun Sebelumnya"
-      }
+      },
+      "backToCurrent": "Periode ini"
     }
   },
   "widgets": {

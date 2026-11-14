@@ -4,7 +4,7 @@ import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { trackAnalyticsEvent } from '@/lib/posthog';
 import { useLocalStorage } from '@vueuse/core';
 import { cloneDeep } from 'lodash-es';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 
 export function useDashboardLayout() {
   const { data: settings, patchAsync } = useUserSettings();
@@ -46,13 +46,30 @@ export function useDashboardLayout() {
     trackAnalyticsEvent({ event: 'dashboard_edit_opened' });
   };
 
+  const exitEditMode = () => {
+    const reducedMotion =
+      typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const transitionHost = document as Document & {
+      startViewTransition?: (callback: () => Promise<void>) => unknown;
+    };
+    if (reducedMotion || typeof transitionHost.startViewTransition !== 'function') {
+      isEditMode.value = false;
+      return;
+    }
+    // Capture both layouts after Vue paints to avoid abrupt widget flicker.
+    transitionHost.startViewTransition(async () => {
+      isEditMode.value = false;
+      await nextTick();
+    });
+  };
+
   const saveLayout = async () => {
     await patchAsync({ dashboard: { widgets: draftWidgets.value } });
     trackAnalyticsEvent({
       event: 'dashboard_layout_saved',
       properties: { widget_count: draftWidgets.value.length },
     });
-    isEditMode.value = false;
+    exitEditMode();
   };
 
   const cancelEdit = () => {

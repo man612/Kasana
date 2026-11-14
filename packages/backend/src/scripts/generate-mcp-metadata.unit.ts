@@ -16,8 +16,26 @@ describe('MCP metadata', () => {
       .map(([file]) => path.relative(REPO_ROOT, file));
 
     if (stale.length) {
+      // Include a concrete first discrepancy so contributors can repair the
+      // generated data without guessing which tool or field became stale.
+      const cardPath = SERVER_CARD_PATH;
+      const expectedCard = JSON.parse(buildMcpMetadataFiles()[cardPath]!);
+      const actualCard = JSON.parse(fs.readFileSync(cardPath, 'utf-8'));
+      const firstDifferences: string[] = [];
+      for (const [section, expected] of Object.entries(expectedCard)) {
+        const actual = actualCard[section];
+        if (JSON.stringify(actual) === JSON.stringify(expected)) continue;
+        if (Array.isArray(expected) && Array.isArray(actual)) {
+          const index = expected.findIndex((item, i) => JSON.stringify(item) !== JSON.stringify(actual[i]));
+          firstDifferences.push(
+            section + '[' + index + '] expected ' + JSON.stringify(expected[index]) + ', found ' + JSON.stringify(actual[index]),
+          );
+        } else {
+          firstDifferences.push(section + ' expected ' + JSON.stringify(expected) + ', found ' + JSON.stringify(actual));
+        }
+      }
       throw new Error(
-        `Stale MCP metadata: ${stale.join(', ')}. Run \`npm run mcp:generate-metadata\` in packages/backend.`,
+        `Stale MCP metadata: ${stale.join(', ')}. Run \`npm run mcp:generate-metadata\` in packages/backend.\nFirst differences: ${firstDifferences.slice(0, 5).join('; ')}`,
       );
     }
   });

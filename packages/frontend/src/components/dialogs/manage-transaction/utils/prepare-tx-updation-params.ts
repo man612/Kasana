@@ -143,7 +143,7 @@ export const prepareTxUpdationParams = ({
       ...editionParams,
       note,
       ...externalFields,
-      paymentType: paymentType!.value,
+      paymentType: paymentType?.value,
       transferNature: TRANSACTION_TRANSFER_NATURE.not_transfer,
     };
   } else {
@@ -154,7 +154,7 @@ export const prepareTxUpdationParams = ({
       ...externalFields,
       time: time.toISOString(),
       transactionType: getTxTypeFromFormType(formTxType),
-      paymentType: paymentType!.value,
+      paymentType: paymentType?.value,
       accountId,
       transferNature: TRANSACTION_TRANSFER_NATURE.not_transfer,
     };

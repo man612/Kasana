@@ -90,13 +90,7 @@
               </Button>
               <span class="flex items-center gap-1 text-sm font-medium">
                 {{ t('dashboard.widgets.subscriptions.settings.incomeWindow') }}
-                <ResponsiveTooltip
-                  :delay-duration="100"
-                  :content="t('dashboard.widgets.subscriptions.settings.incomeWindowTooltip')"
-                  content-class-name="max-w-60"
-                >
-                  <InfoIcon class="text-muted-foreground size-3.5 cursor-help" @click.prevent.stop />
-                </ResponsiveTooltip>
+                <HintIcon :content="t('dashboard.widgets.subscriptions.settings.incomeWindowTooltip')" />
               </span>
             </header>
 
@@ -120,14 +114,14 @@
 </template>
 
 <script lang="ts" setup>
+import HintIcon from '@/components/common/hint-icon.vue';
 import { DEFAULT_INCOME_LOOKBACK_MONTHS, type IncomeLookbackMonths } from '@/api/subscriptions';
 import type { DashboardWidgetConfig } from '@/api/user-settings';
-import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import SlidingPanels from '@/components/common/sliding-panels.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
 import { Switch } from '@/components/lib/ui/switch';
-import { ArrowLeftIcon, CheckIcon, ChevronRightIcon, InfoIcon, SettingsIcon } from '@lucide/vue';
+import { ArrowLeftIcon, CheckIcon, ChevronRightIcon, SettingsIcon } from '@lucide/vue';
 import type { Ref } from 'vue';
 import { computed, inject, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

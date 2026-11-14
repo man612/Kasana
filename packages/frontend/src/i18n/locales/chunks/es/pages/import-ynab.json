@@ -3,7 +3,7 @@
     "importExport": {
       "ynabImport": {
         "pageTitle": "Importar desde YNAB",
-        "pageDescription": "Carga tu exportación YNAB Register.csv para traer cuentas, transacciones, categorías, beneficiarios y etiquetas a Kasana.",
+        "pageDescription": "Carga tu exportación YNAB Register.csv para traer cuentas, transacciones, categorías, beneficiarios y etiquetas a Lajur..",
         "stepper": {
           "steps": {
             "upload": "Subir",
@@ -57,7 +57,7 @@
         },
         "done": {
           "successTitle": "Importación completada",
-          "successDescription": "Tus datos YNAB están ahora en Kasana.",
+          "successDescription": "Tus datos YNAB están ahora en Lajur..",
           "accountsCreated": "Cuentas creadas",
           "accountsSkipped": "Cuentas omitidas",
           "categoriesCreated": "Categorías creadas",

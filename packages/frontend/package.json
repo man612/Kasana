@@ -1,10 +1,13 @@
 {
   "name": "budget-tracker-fe",
   "version": "0.33.14",
-  "description": "Kasana frontend — Indonesia-first personal finance interface",
   "private": true,
+  "description": "Kasana frontend — Indonesia-first personal finance interface",
   "type": "module",
   "scripts": {
+    "branding:sync": "node scripts/sync-branding.mjs",
+    "prebuild": "npm run branding:sync",
+    "predev": "npm run branding:sync",
     "build": "vue-tsc --noEmit && vite build",
     "lint": "oxlint . && node scripts/check-i18n-keys.mjs",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",

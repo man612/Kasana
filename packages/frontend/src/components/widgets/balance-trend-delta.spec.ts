@@ -1,4 +1,11 @@
+import { afterAll, beforeEach } from 'vitest';
+import { numberFormatLocale } from '@/js/helpers/formatters';
 import { formatBalanceDelta, formatBalanceDeltaPercent, shouldDisplayBalanceDelta } from './balance-trend-delta';
+
+// Legacy assertions in this suite explicitly use English number formatting.
+// Keep production Indonesia-first defaults unchanged and isolate the fixture locale.
+beforeEach(() => { numberFormatLocale.value = 'en-US'; });
+afterAll(() => { numberFormatLocale.value = 'id-ID'; });
 
 describe('components/widgets/balance-trend-delta', () => {
   describe('shouldDisplayBalanceDelta', () => {

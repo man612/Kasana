@@ -15,15 +15,15 @@ const emit = defineEmits<{
 
 <template>
   <div class="flex items-center gap-2">
-    <template v-if="isEditMode">
-      <Button variant="outline" size="sm" @click="emit('cancel')"> {{ $t('common.actions.cancel') }} </Button>
-      <Button size="sm" @click="emit('save')"> {{ $t('common.actions.done') }} </Button>
-    </template>
-    <template v-else>
-      <Button variant="outline" size="sm" @click="emit('enter')">
+    <Transition name="kasana-section" mode="out-in">
+      <div v-if="isEditMode" key="editing" class="flex items-center gap-2">
+        <Button variant="outline" size="sm" @click="emit('cancel')"> {{ $t('common.actions.cancel') }} </Button>
+        <Button size="sm" @click="emit('save')"> {{ $t('common.actions.done') }} </Button>
+      </div>
+      <Button v-else key="ready" variant="outline" size="sm" @click="emit('enter')">
         <SettingsIcon class="mr-1.5 size-3.5" />
         {{ $t('dashboard.editMode.customize') }}
       </Button>
-    </template>
+    </Transition>
   </div>
 </template>

@@ -274,7 +274,7 @@ function payPeriod({ subscription }: { subscription: SubscriptionListItem }) {
 
     <template v-else-if="isEmpty && !isFetching">
       <EmptyState>
-        <RepeatIcon class="size-32" />
+        <RepeatIcon class="size-14" />
       </EmptyState>
     </template>
 

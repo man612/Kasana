@@ -89,9 +89,7 @@
           />
           <span class="flex items-center gap-1">
             <span>{{ $t('payees.columns.category') }}</span>
-            <ResponsiveTooltip :delay-duration="100" :content="$t('payees.columns.categoryHint')">
-              <InfoIcon class="size-3 cursor-help" @click.prevent.stop />
-            </ResponsiveTooltip>
+            <HintIcon :content="$t('payees.columns.categoryHint')" />
           </span>
           <SortHeaderButton
             :label="$t('payees.columns.defaultTags')"
@@ -253,6 +251,7 @@
 </template>
 
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { Button as UiButton } from '@/components/lib/ui/button';
 import { Checkbox } from '@/components/lib/ui/checkbox';
 import {
@@ -274,7 +273,7 @@ import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import { cn } from '@/lib/utils';
 import { useTagsStore } from '@/stores';
 import type { RecordId } from '@bt/shared/types';
-import { ArrowDownIcon, ArrowUpIcon, InfoIcon, PackageOpenIcon } from '@lucide/vue';
+import { ArrowDownIcon, ArrowUpIcon, PackageOpenIcon } from '@lucide/vue';
 import { useElementSize, useLocalStorage } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { computed, ref, shallowReactive, watch } from 'vue';

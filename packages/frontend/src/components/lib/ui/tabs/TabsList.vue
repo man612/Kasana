@@ -18,15 +18,20 @@ provide(TabsVariantKey, variant);
       cn(
         variant === 'underline'
           ? 'border-border no-scrollbar relative flex w-full items-center gap-4 overflow-x-auto border-b'
-          : 'bg-muted text-muted-foreground inline-flex h-10 items-center justify-center rounded-md p-1',
+          : 'bg-muted text-muted-foreground relative inline-flex h-10 items-center justify-center rounded-md p-1',
         props.class,
       )
     "
   >
     <slot />
     <TabsIndicator
-      v-if="variant === 'underline'"
-      class="bg-primary pointer-events-none absolute -bottom-px left-0 h-0.5 transition-[width,transform] duration-200 ease-out"
+      data-testid="kasana-active-tab-indicator"
+      :class="
+        cn(
+          'pointer-events-none absolute left-0 transition-[width,transform] duration-200 ease-out motion-reduce:transition-none',
+          variant === 'underline' ? 'bg-primary -bottom-px h-0.5' : 'bg-background inset-y-1 rounded-sm shadow-xs',
+        )
+      "
       :style="{
         width: 'var(--reka-tabs-indicator-size)',
         transform: 'translateX(var(--reka-tabs-indicator-position))',

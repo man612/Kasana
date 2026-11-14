@@ -93,7 +93,11 @@
       "allSkipped": "AI couldn't confidently categorize the transaction | AI couldn't confidently categorize any of the {count} transactions",
       "queued": "Waiting to start...",
       "transactions": "transactions"
-    }
+    },
+    "moreActionsHelpTitle": "Other ways to add transactions",
+    "moreActionsHelpIntro": "Choose based on the records you already have. You don't have to type every transaction.",
+    "moreActionsHelpImport": "For example, upload a CSV bank statement, review the entries, and choose what to import. Check for duplicates before saving.",
+    "moreActionsHelpInvoice": "For example, attach an internet bill or receipt to help find its matching transaction. Review the match before linking."
   },
   "themeSelector": {
     "light": "Light",
@@ -203,7 +207,7 @@
   },
   "dashboard": {
     "onboarding": {
-      "title": "Welcome to Kasana",
+      "title": "Welcome to Lajur.",
       "subtitle": "Get started by setting up your first account",
       "createManualAccount": {
         "title": "Create manual account",
@@ -330,7 +334,7 @@
         },
         "ui": {
           "title": "Quick start",
-          "subtitle": "Use our quick start guide to learn about everything Kasana can do for you.",
+          "subtitle": "Use our quick start guide to learn about everything Lajur. can do for you.",
           "dismissButton": "Dismiss permanently",
           "dismissConfirmTitle": "Dismiss quick start?",
           "dismissConfirmDescription": "You can always reopen the quick start guide from settings if you change your mind.",

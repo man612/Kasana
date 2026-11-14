@@ -88,11 +88,13 @@ Interpolated into the frontend container's `environment:` block. Change and
 | `API_HTTP`, `API_VER`                        | Point the SPA at a separate API origin (leave unset for same-origin)    |
 | `CSP_EXTRA_CONNECT`, `CSP_EXTRA_FORM_ACTION` | Extra CSP allow-list hosts (default to `API_HTTP`)                      |
 | `CSP_EXTRA_ANALYTICS`                        | CSP allow-list for analytics — **set this if you use Sentry**           |
-| `SKIP_LANDING`                               | `true` (default) redirects `/` to `/dashboard`; `false` serves landing  |
+| `SKIP_LANDING`                               | Deprecated; the inherited marketing site is never built or served. `/` always redirects to `/dashboard`. |
 
 `CSP_EXTRA_ANALYTICS` defaults to `VITE_POSTHOG_HOST` only. Sentry's ingest host
 is not derivable from the DSN by the entrypoint, so a Sentry deployment that
 leaves this unset gets a `connect-src` that blocks every error report.
+
+By default, the private Kasana Compose overlay leaves `MCP_BASE_URL` blank and does not advertise an MCP connection. Set this variable only after deploying and testing OAuth/MCP at your intended origin.
 
 `MCP_BASE_URL` is the URL the app advertises to external MCP clients (Claude
 Desktop, ChatGPT). In same-origin mode set it to the origin you reach the app on
@@ -122,8 +124,10 @@ Used with `docker-compose.build.yml` (`--build`).
 
 | Variable                                            | Purpose                                                         |
 | --------------------------------------------------- | --------------------------------------------------------------- |
-| `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | Sentry source-map upload at build time                          |
+| `SENTRY_ORG`, `SENTRY_PROJECT` | Optional public Sentry build identifiers. Normal Compose builds do not upload source maps. |
 | `VITE_SENTRY_RELEASE`                               | Names the uploaded source maps; baked in as the release default |
+
+The Sentry upload token is **never a build argument**. The frontend image accepts a BuildKit secret named `sentry_auth_token` only for the Vite build step. The GitHub Actions frontend build action passes it through `secrets:`. The standard self-hosted Compose build deliberately does not pass a token; omit source-map uploads unless you have securely configured a custom BuildKit secret. Never put `SENTRY_AUTH_TOKEN` into a Docker `ARG`, `ENV`, `VITE_*`, or a committed configuration file.
 
 `VITE_SENTRY_RELEASE` is the one value that is both a build arg and runtime env.
 The build stamps it into the image as the release the SDK reports by default, so

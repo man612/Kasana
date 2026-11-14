@@ -62,7 +62,9 @@
                 <Checkbox :model-value="isSelected(account)" class="pointer-events-none" tabindex="-1" />
                 <AccountLogo :account="account" class="size-5 shrink-0" />
                 <span class="min-w-0 flex-1 truncate text-sm">{{ account.name }}</span>
-                <span class="text-muted-foreground shrink-0 text-xs">{{ account.currencyCode }}</span>
+                <span v-if="account.currencyCode !== 'IDR'" class="text-muted-foreground shrink-0 text-xs">{{
+                  account.currencyCode
+                }}</span>
               </MultiSelectItem>
             </CollapsibleContent>
           </Collapsible>
@@ -79,7 +81,9 @@
               <Checkbox :model-value="isSelected(account)" class="pointer-events-none" tabindex="-1" />
               <AccountLogo :account="account" class="size-5 shrink-0" />
               <span class="min-w-0 flex-1 truncate text-sm">{{ account.name }}</span>
-              <span class="text-muted-foreground shrink-0 text-xs">{{ account.currencyCode }}</span>
+              <span v-if="account.currencyCode !== 'IDR'" class="text-muted-foreground shrink-0 text-xs">{{
+                account.currencyCode
+              }}</span>
             </MultiSelectItem>
           </template>
         </template>

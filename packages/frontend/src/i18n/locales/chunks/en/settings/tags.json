@@ -90,7 +90,8 @@
           "deleteSuccess": "Reminder deleted",
           "deleteFailed": "Failed to delete reminder"
         }
-      }
+      },
+      "defaultTagHint": "Wants, Needs, and Priority are Lajur. core tags and always remain available. You can delete additional tags in Settings → Tags."
     }
   }
 }

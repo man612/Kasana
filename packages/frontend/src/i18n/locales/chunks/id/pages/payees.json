@@ -60,7 +60,9 @@
         "off": {
           "label": "Nonaktif",
           "hint": "Kategori bawaan penerima diabaikan. Kategorisasi ditangani oleh AI atau aturan Anda yang lain."
-        }
+        },
+        "fullExplanation": "Kategorisasi AI membantu memilih kategori berdasarkan nama penerima dan pola transaksi. Contoh: jika penerima adalah supermarket, AI mungkin menyarankan Belanja. Opsi “Selalu gunakan kategori penerima” memaksa kategori yang kamu tentukan dan tidak meminta AI menggantinya. “Gunakan sebagai petunjuk” menjadikannya saran yang masih bisa dinilai AI. “Nonaktif” mengabaikan aturan penerima ini. Hasil AI tidak selalu benar; cek kembali sebelum menyimpan.",
+        "fullExplanationLabel": "Apa itu kategorisasi AI?"
       }
     },
     "detail": {

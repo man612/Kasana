@@ -97,11 +97,19 @@
         "transfer": "Transfer",
         "selectExpense": "Select expense",
         "selectIncome": "Select income",
-        "selectTransfer": "Select transfer"
+        "selectTransfer": "Select transfer",
+        "expenseHint": "Money leaving an account for purchases, bills, or payments to someone else.",
+        "incomeHint": "Money received from outside, such as salary, freelance fees, gifts, or sales.",
+        "transferHint": "Move funds between your own accounts. Paying someone else is an expense."
       },
       "recordList": {},
       "form": {
         "payeeLabel": "Payee",
+        "expensePayeeLabel": "Paid to (optional)",
+        "incomePayeeLabel": "Received from / sender (optional)",
+        "paymentReceiveLabel": "Received via (optional)",
+        "createMoreHint": "After saving, keep this form open to enter another transaction.",
+        "addFieldsHint": "Extra details — only add what you need.",
         "outOfWalletDocsLink": "What is out of wallet?",
         "destinationGroupLabel": "Where the money goes",
         "paymentTypeLabel": "Payment type",
@@ -246,6 +254,10 @@
           }
         },
         "paymentLegs": {
+          "chooseAccountFirst": "Choose an account before entering an amount.",
+          "disableConfirmTitle": "Turn off multiple-account payment?",
+          "disableConfirmDescription": "An additional account already contains data. Turning off multiple accounts combines its amount into the main transaction and removes its allocation details from the form.",
+          "disableConfirmAction": "Turn off splitting",
           "severalAccountsPill": "Several accounts",
           "paidFromLabel": "Paid from",
           "receivedIntoLabel": "Received into",
@@ -284,8 +296,24 @@
             "planned": "Planned transactions can't be linked",
             "differentType": "Different type from this transaction",
             "submit": "Link {count} transaction | Link {count} transactions"
-          }
-        }
+          },
+          "amountLockedHint": "The main total is calculated from each account amount. Edit the amounts in the multiple-account section instead of this field.",
+          "confirmRemoveTitle": "Remove account from this split?",
+          "confirmRemoveDescription": "The entered amount for this account will be removed from this split. Review the transaction total afterward.",
+          "confirmRemoveAction": "Remove account"
+        },
+        "targetAmountHelp": "Amount received at the destination. For example, a transfer of 100,000 IDR to another IDR account has a target of 100,000 IDR. For different currencies, enter the amount actually received after conversion and fees.",
+        "externalUrlPaste": "Paste link from clipboard",
+        "externalUrlCopy": "Copy link",
+        "externalUrlClear": "Clear link",
+        "externalUrlClearTitle": "Clear the link?",
+        "externalUrlClearDescription": "The current link will be cleared. The transaction has not been saved yet.",
+        "externalUrlCopied": "Link copied.",
+        "externalUrlClipboardFailed": "Clipboard access is unavailable. Copy or paste manually instead.",
+        "requiredSubmitHelp": "Some required fields are missing. Click Create to show the missing-field messages.",
+        "discardAction": "Discard changes",
+        "discardTitle": "Close without saving?",
+        "discardDetails": "Any transaction details you have entered will be lost. Keep editing to continue, or discard changes to close without saving."
       },
       "refundRecordsList": {
         "filtersDialogTitle": "Select filters",
@@ -496,7 +524,32 @@
           "create": "Couldn't save the template. Please try again.",
           "update": "Couldn't update the template. Please try again.",
           "delete": "Couldn't delete the template. Please try again."
-        }
+        },
+        "quickHint": "Reuse familiar transaction details without creating transactions automatically.",
+        "emptyTitle": "No saved templates yet",
+        "emptyDetail": "Save the current transaction fields or create a new template. You still decide when to record a transaction.",
+        "dialogTitle": "Transaction templates",
+        "dialogScenario": "Templates remember details for transactions you enter repeatedly, such as groceries or parking. “Save current” uses the form you have filled; “New template” starts a pattern from scratch. A template does not create a transaction automatically and is not a scheduled transaction."
+      },
+      "paymentMethodHelp": {
+        "title": "Payment or receipt method",
+        "overview": "Choose how money was paid or received.",
+        "placeholder": "Choose a method",
+        "learnMore": "How does {name} work?",
+        "qris": "Scan a QRIS code in a bank app or e-wallet. The funding account is chosen in the Account field.",
+        "bankTransfer": "Pay another party through a bank transfer. For moving between your own accounts, use Transfer instead.",
+        "eWallet": "Pay or receive money using an e-wallet such as DANA, GoPay, OVO, or ShopeePay.",
+        "cash": "Pay or receive physical banknotes and coins.",
+        "debitCard": "Pay with a debit card, usually charged directly against a bank account.",
+        "creditCard": "Pay with a credit card; the charge may create a debt to repay later.",
+        "virtualAccount": "Pay a bill using its dedicated virtual-account number; the money may come from a regular bank account.",
+        "emoneyCard": "Tap a stored-value card such as e-Money, Flazz, or TapCash; the card balance is the source.",
+        "autoDebit": "A bill is charged automatically to an account by a merchant or service.",
+        "payLater": "Pay through a digital installment or deferred-payment service; track the liability separately if needed.",
+        "mobilePayment": "Other mobile-app payment methods not covered by QRIS or e-wallet.",
+        "webPayment": "Other online checkout payments not covered by other methods.",
+        "voucher": "A merchant voucher, gift credit, or discount instrument used for payment.",
+        "longExplanation": "The payment method is separate from the funding account. For example, QRIS can draw money from a bank account or e-wallet. Select the actual account in the Account field. Transfers between your own accounts are Transfer transactions; payments to other people are Expenses."
       }
     },
     "portfolioTransfer": {
@@ -764,7 +817,7 @@
         "write": "Read + write",
         "manage": "Manage"
       },
-      "unknownOwner": "A Kasana user",
+      "unknownOwner": "A Lajur. user",
       "unknownResource": "a shared resource",
       "accept": "Accept",
       "decline": "Decline",

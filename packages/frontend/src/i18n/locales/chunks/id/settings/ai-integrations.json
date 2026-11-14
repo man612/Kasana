@@ -3,7 +3,7 @@
     "aiIntegrations": {
       "mcpServer": {
         "title": "Server MCP",
-        "description": "Gunakan URL ini untuk menghubungkan asisten AI ke akun Kasana Anda. Data Anda dibagikan dalam mode hanya baca.",
+        "description": "Gunakan URL ini untuk menghubungkan asisten AI ke akun Lajur. Anda. Data Anda dibagikan dalam mode hanya baca.",
         "copyTooltip": "Salin URL",
         "copiedNotification": "URL server MCP disalin ke papan klip"
       },
@@ -18,7 +18,7 @@
             "enterName": "Di \"Name\", masukkan {value}",
             "pasteUrl": "Di \"Remote MCP server URL\", tempel {value}",
             "finish": "Biarkan \"Advanced settings\" kosong dan klik {action}",
-            "authorize": "Anda akan diarahkan ke Kasana untuk mengotorisasi akses"
+            "authorize": "Anda akan diarahkan ke Lajur. untuk mengotorisasi akses"
           }
         },
         "chatgpt": {
@@ -26,7 +26,7 @@
             "addConnector": "Klik {action}",
             "pasteUrl": "Di \"URL\", tempel {value}",
             "clickAdd": "Klik {action}",
-            "authorize": "Anda akan diarahkan ke Kasana untuk mengotorisasi akses"
+            "authorize": "Anda akan diarahkan ke Lajur. untuk mengotorisasi akses"
           }
         }
       },

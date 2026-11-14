@@ -2,17 +2,19 @@
 
 This guide runs **[Kasana](https://github.com/man612/Kasana)**, an independent MoneyMatter-based application, on your own machine or server.
 
-> **Important:** Docker images tagged `letehaha/budget-tracker-*` belong to MoneyMatter upstream, **not Kasana**. Do not launch only the base Compose file and assume it contains Kasana changes.
+> **Important:** The base Compose file intentionally references non-pullable placeholder tags for the frontend and backend. Running it without both Kasana overlays **must fail**, rather than starting another project's application. The currency-rates helper remains an explicitly declared upstream-derived third-party image; it is not the Kasana finance backend or frontend.
 
 ## How the Compose files fit together
 
 | File | Purpose |
 | --- | --- |
-| `docker-compose.yml` | Inherited service definitions, PostgreSQL, Redis, and networking |
+| `docker-compose.yml` | Shared service definitions and dependencies; fails closed without built Kasana images |
 | `docker-compose.build.yml` | Builds frontend and backend **from Kasana source** |
 | `docker-compose.private.yml` | Keeps Kasana's image tags and Docker resources separate from upstream |
 
-Use all three files together.
+Use all three files together. The `pull_policy: never` guard for Kasana frontend/backend prevents automatic registry pulls; `up --build` explicitly builds both from source.
+
+For bundled HTTPS via Traefik, append `-f docker-compose.traefik.yml` after these three files, and set both `LETSENCRYPT_EMAIL` and `SELFHOST_FRONTEND_DOMAIN`. Leave `MCP_BASE_URL` unset unless you intend to publish an MCP/OAuth endpoint; configuring just the application's login URL must not advertise an untested MCP service. The Traefik proxy uses the historical Docker network `moneymatter-private-net`; do not rename that network on an existing installation without a migration.
 
 ## Linux / VPS quickstart
 
@@ -53,6 +55,7 @@ Changing the Compose project name without a migration creates a different resour
 
 - Do not run `docker compose down -v` against a data-bearing instance.
 - Back up PostgreSQL, attachments, and secrets, then verify a restore in an isolated environment.
+- CI executes [a disposable PostgreSQL and attachments backup/restore smoke test](tests/backup-restore-synthetic.sh) using **synthetic data**. This verifies basic `pg_dump`/gzip/`psql` and `tar` mechanics but **does not back up or restore your actual VPS**. Before production, separately test backup integrity, operator secret recovery, restored login, migrations, and every configured attachment storage backend.
 - Audit login, sessions, OAuth redirects, and HTTPS before exposing the app publicly.
 - Kasana has **no verified production auto-deployment**; inherited upstream deploy and backup workflows have been guarded against running here.
 

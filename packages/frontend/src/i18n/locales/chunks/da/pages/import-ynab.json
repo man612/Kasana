@@ -3,7 +3,7 @@
     "importExport": {
       "ynabImport": {
         "pageTitle": "Import from YNAB",
-        "pageDescription": "Upload your YNAB Register.csv export to bring accounts, transactions, categories, payees and tags into Kasana.",
+        "pageDescription": "Upload your YNAB Register.csv export to bring accounts, transactions, categories, payees and tags into Lajur..",
         "stepper": {
           "steps": {
             "upload": "Upload",
@@ -57,7 +57,7 @@
         },
         "done": {
           "successTitle": "Import complete",
-          "successDescription": "Your YNAB data is now in Kasana.",
+          "successDescription": "Your YNAB data is now in Lajur..",
           "accountsCreated": "Accounts created",
           "accountsSkipped": "Accounts skipped",
           "categoriesCreated": "Categories created",

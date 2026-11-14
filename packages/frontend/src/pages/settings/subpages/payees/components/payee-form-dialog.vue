@@ -18,9 +18,7 @@
         <div v-if="!isEdit" class="flex flex-col gap-2">
           <div class="flex items-center gap-1.5">
             <span class="text-sm font-medium">{{ $t('payees.logo.fieldLabel') }}</span>
-            <ResponsiveTooltip :delay-duration="100" :content="$t('payees.logo.domainHint')">
-              <InfoIcon class="text-muted-foreground size-3.5 cursor-help" @click.prevent.stop />
-            </ResponsiveTooltip>
+            <HintIcon :content="$t('payees.logo.domainHint')" />
           </div>
           <LogoField v-model="form.logo" :name-for-search="form.name" />
         </div>
@@ -33,9 +31,14 @@
           label-key="name"
         />
 
+        <div class="-mb-3 flex items-center gap-1.5">
+          <span class="text-muted-foreground text-sm font-medium">{{
+            $t('payees.form.categorizationMode.label')
+          }}</span>
+          <HintIcon :content="$t('payees.form.categorizationMode.fullExplanation')" />
+        </div>
         <SelectField
           v-model="form.categorizationMode"
-          :label="$t('payees.form.categorizationMode.label')"
           :values="categorizationModeOptions"
           label-key="label"
           value-key="value"
@@ -58,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { useCreatePayee, useUpdatePayee } from '@/composable/data-queries/payees';
 import { useNotificationCenter } from '@/components/notification-center';
 import { useCategoriesStore } from '@/stores';
@@ -71,7 +75,7 @@ import { Button } from '@/components/lib/ui/button';
 import { ApiErrorResponseError, isApiErrorWithCode } from '@/js/errors';
 import { captureException } from '@/lib/sentry';
 import { API_ERROR_CODES, CATEGORIZATION_MODE, PayeeModel } from '@bt/shared/types';
-import { InfoIcon } from '@lucide/vue';
+
 import { storeToRefs } from 'pinia';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

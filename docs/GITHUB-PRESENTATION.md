@@ -4,14 +4,16 @@ This document defines the **English-first public presentation** of Kasana. The a
 
 ## Recommended GitHub About description
 
-> Open-source, self-hosted personal finance with an Indonesia-first experience. Based on MoneyMatter (AGPL-3.0).
+> Open-source, self-hosted personal finance with an Indonesia-first experience.
 
 Why this wording works:
 
 - **What it is:** personal finance software.
 - **How it runs:** self-hosted, not a promised cloud service.
 - **Who it prioritizes:** an Indonesia-first experience without claiming Indonesian bank integration.
-- **Where it comes from:** MoneyMatter, with AGPL attribution.
+- **Independent identity:** the short description markets Kasana only; source attribution remains prominent in the README, legal notices and license files.
+
+Do not put the former product or its original developer in the GitHub About summary: preserve required origin and copyright attribution in the appropriate licensing and acknowledgments sections instead.
 
 It avoids unsupported terms such as *official*, *secure by default*, *fully audited*, *bank-connected*, or *production-ready*.
 
@@ -48,7 +50,7 @@ The main README uses `docs/brand/logo.svg`, the existing Kasana brand asset.
 
 If a social preview is added, GitHub recommends a **1280 × 640** image in PNG, JPEG, or GIF format, **under 1 MB**. Upload through repository **Settings → Social preview**. Use a solid, readable background, the Kasana mark, and one short descriptive line. Avoid stale screenshots and unverified claims.
 
-The connected GitHub tools currently cannot change the About description, topics, homepage, or social-preview image. Those settings must be applied manually in the GitHub web interface.
+**Applied November 11, 2026:** the GitHub About description and all nine recommended topics were saved and verified on `man612/Kasana` using the connected maintainer account. The homepage remains empty. A custom social preview has not been uploaded or verified.
 
 ## Localization boundary
 

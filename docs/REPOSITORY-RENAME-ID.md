@@ -7,18 +7,19 @@ As of **November 11, 2026**, the repository is [`man612/Kasana`](https://github.
 ## Verified changes after the rename
 
 - The clone URL, README, CI badge, issue templates, security policy, and contributor guidance refer to `man612/Kasana`.
-- Docker instructions build **Kasana source** using the base, build, and independent-instance Compose files. Running the base Compose file alone still pulls upstream MoneyMatter images.
+- Docker instructions build **Kasana source** using the base, build, and independent-instance Compose files. Running the base Compose file alone now **fails safely** because its frontend/backend images are intentionally unavailable and use `pull_policy: never`. Always include both the build and private overlays; the inherited rates helper image remains a disclosed third-party dependency.
 - Inherited upstream CLA enforcement and deployment/backup paths are not enabled for Kasana.
 - The original `server.json` registry was removed because it advertised an unrelated live MoneyMatter MCP service. A Kasana registry descriptor must only be published when a real Kasana-owned endpoint is available.
+- Both production images now declare Kasana's own `org.opencontainers.image.source` label. The inherited marketing site is excluded from the frontend production image. An unconfigured MCP endpoint is not advertised.
 - [LICENSE](../LICENSE), [LICENSING.md](../LICENSING.md), original copyrights, and historical [MoneyMatter](https://github.com/letehaha/moneymatter) attribution must be retained.
 
-## GitHub About: recommended public metadata
+## GitHub About: verified public metadata
 
-The connected repository tools can edit code and pull requests but cannot update the **About description, homepage, topics, or social preview**. These fields require a repository administrator to use GitHub's web settings.
+On **November 11, 2026**, the repository administrator applied and verified the About description and topics. The website remains empty until an independent Kasana site is deployed. A social-preview asset has not been verified.
 
 **Description:**
 
-> Open-source, self-hosted personal finance with an Indonesia-first experience. Based on MoneyMatter (AGPL-3.0).
+> Open-source, self-hosted personal finance with an Indonesia-first experience.
 
 **Website:** leave empty until Kasana has its own working, verified official website. Do not use `moneymatter.app`.
 
@@ -49,7 +50,7 @@ Check Git remotes on Windows, VPS, Dokploy/Portainer integrations, Cloudflare, w
 ## Outstanding release and security requirements
 
 - [PR #10](https://github.com/man612/Kasana/pull/10) remains a separate UI integration under QA. Repository rename work must not be used as a reason to merge it early.
-- GitHub Actions began acquiring runners and executing tests after public visibility was enabled. Some real frontend/backend tests still failed; see [Issue #11](https://github.com/man612/Kasana/issues/11).
+- Previous frontend/backend CI failures were fixed; [run #42878060359](https://github.com/man612/Kasana/actions/runs/42878060359) passed all checks on commit `fe10505c`. Check the latest PR #10 head for newer changes before reporting current CI green.
 - Legacy upstream backup and deployment jobs are blocked for Kasana. No Kasana production auto-deploy has been verified.
 - The inherited `packages/docs` and `packages/landing` content is not an official Kasana site.
 - Public Git history and old Actions logs/artifacts still need comprehensive secret auditing. Revoke and rotate exposed credentials at the provider.

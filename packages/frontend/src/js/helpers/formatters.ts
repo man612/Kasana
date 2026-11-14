@@ -180,15 +180,37 @@ export function formatLargeNumber(
   return `${formatted}${suffix}`;
 }
 
+/** Readable one-decimal Indonesian amount labels for compact sidebar and dashboard use.
+ * Full amounts should continue to use formatUIAmount (Rp1.999.999).
+ */
+export const formatCompactIdr = (amount: number): string => {
+  if (!Number.isFinite(amount)) return String(amount);
+  const abs = Math.abs(amount);
+  const unit =
+    abs >= 1e12
+      ? { scale: 1e12, suffix: ' triliun' }
+      : abs >= 1e9
+        ? { scale: 1e9, suffix: ' miliar' }
+        : abs >= 1e6
+          ? { scale: 1e6, suffix: ' jt' }
+          : abs >= 1e3
+            ? { scale: 1e3, suffix: ' rb' }
+            : null;
+  if (!unit) return formatUIAmount(amount, { currency: 'IDR', fractionDigits: 0 });
+  return 'Rp' + new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(amount / unit.scale) + unit.suffix;
+};
+
 const COMPACT_SIGNIFICANT_DIGITS = 3;
 
 // Rounds before the suffix is picked, so 999,600 reads "$1M" rather than "$1,000K".
 export const formatCompactFiat = ({ amount, currency }: { amount: number; currency?: string }) =>
-  formatLargeNumber(Number(amount.toPrecision(COMPACT_SIGNIFICANT_DIGITS)), {
-    isFiat: true,
-    currency,
-    thousandSuffix: 'K',
-  });
+  currency === 'IDR'
+    ? formatCompactIdr(amount)
+    : formatLargeNumber(Number(amount.toPrecision(COMPACT_SIGNIFICANT_DIGITS)), {
+        isFiat: true,
+        currency,
+        thousandSuffix: 'K',
+      });
 
 /** Full amount under 1,000, K/M/B suffix from there up. */
 export const formatShortFiat = ({ amount, currency }: { amount: number; currency?: string }) =>
@@ -210,6 +232,7 @@ export const formatCompactUIAmount = ({
   from?: number;
 }) => {
   if (!(Math.abs(amount) >= from)) return formatUIAmount(amount, { currency });
+  if (currency === 'IDR') return formatCompactIdr(amount);
 
   // Rounds before the suffix is picked, so 999,600 reads "₴1M" rather than "₴1000k".
   const step = compactRoundingStep(Math.abs(amount));

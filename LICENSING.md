@@ -14,7 +14,13 @@ commit after it. Earlier versions of this software, including all commits in
 this repository's history before that commit, remain governed by the license
 terms in effect at the time of those commits.
 
-## Contributions
+## Contributions to Kasana
 
-Contributions are accepted under AGPL-3.0 plus the grant in
-[CLA.md](./CLA.md). See [CONTRIBUTING.md](./CONTRIBUTING.md).
+New contributions to the independent Kasana repository follow
+[CONTRIBUTING.md](./CONTRIBUTING.md) and are accepted under AGPL-3.0-only.
+**Kasana does not require contributors to sign the original MoneyMatter CLA.**
+The inherited [CLA.md](./CLA.md) is retained solely as a historical upstream
+document; it is not a condition for contributing to Kasana.
+
+This clarification does not remove, alter, or supersede copyright notices,
+licenses, or grants previously made to the original project.

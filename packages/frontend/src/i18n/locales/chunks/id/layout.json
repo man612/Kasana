@@ -64,10 +64,10 @@
   "header": {
     "add": "Tambah",
     "importData": "Impor data",
-    "moreActions": "More ways to add data",
-    "importDataHint": "CSV file or bank statement",
-    "attachInvoice": "Attach invoice",
-    "attachInvoiceHint": "We find the transaction it belongs to",
+    "moreActions": "Pilihan tambah data",
+    "importDataHint": "Masukkan transaksi dari CSV atau mutasi rekening",
+    "attachInvoice": "Lampirkan invoice",
+    "attachInvoiceHint": "Cocokkan invoice atau nota dengan transaksi",
     "language": "Bahasa",
     "newTransaction": "Transaksi Baru",
     "settings": "Pengaturan",
@@ -93,7 +93,11 @@
       "allSkipped": "AI tidak dapat mengategorikan {count} transaksi dengan yakin",
       "queued": "Menunggu untuk mulai...",
       "transactions": "transaksi"
-    }
+    },
+    "moreActionsHelpTitle": "Cara lain memasukkan transaksi",
+    "moreActionsHelpIntro": "Pilih sesuai data yang sudah kamu punya. Tidak perlu mengetik semua transaksi satu per satu.",
+    "moreActionsHelpImport": "Misalnya kamu mengunduh mutasi rekening dalam file CSV. Unggah file, tinjau hasilnya, lalu pilih transaksi yang ingin dicatat. Periksa duplikat sebelum menyimpan.",
+    "moreActionsHelpInvoice": "Misalnya kamu punya foto tagihan internet atau nota pembelian. Lampirkan file agar Lajur. membantu mencari transaksi yang sesuai. Periksa hasilnya sebelum menghubungkan."
   },
   "themeSelector": {
     "light": "Terang",
@@ -203,7 +207,7 @@
   },
   "dashboard": {
     "onboarding": {
-      "title": "Selamat Datang di Kasana",
+      "title": "Selamat Datang di Lajur.",
       "subtitle": "Mulai dengan menyiapkan akun pertama Anda",
       "createManualAccount": {
         "title": "Buat Akun Manual",
@@ -330,7 +334,7 @@
         },
         "ui": {
           "title": "Mulai Cepat",
-          "subtitle": "Gunakan panduan Mulai Cepat kami untuk mempelajari semua yang bisa dilakukan Kasana untuk Anda.",
+          "subtitle": "Gunakan panduan Mulai Cepat kami untuk mempelajari semua yang bisa dilakukan Lajur. untuk Anda.",
           "dismissButton": "Tutup secara permanen",
           "dismissConfirmTitle": "Tutup Mulai Cepat?",
           "dismissConfirmDescription": "Anda selalu dapat membuka kembali panduan Mulai Cepat dari pengaturan jika berubah pikiran.",

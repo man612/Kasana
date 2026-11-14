@@ -1,6 +1,6 @@
 # Setup Guide — reference for MoneyMatter upstream
 
-> **For Kasana:** This is an upstream-derived reference guide. The command `docker compose up -d` without overlays pulls MoneyMatter's published images, **not Kasana**. To deploy Kasana, use the [Kasana self-hosting guide](../README.md) with all three Compose files: `docker-compose.yml`, `docker-compose.build.yml`, and `docker-compose.private.yml`.
+> **For Kasana:** This is a historical upstream-derived reference guide, **not an executable Kasana quickstart**. The original `docker compose up -d` command below will now fail safely: Kasana's base file uses non-pullable placeholders for the backend/frontend and `pull_policy: never`. To run Kasana, follow the [current Kasana self-hosting guide](../README.md) with `docker-compose.yml`, `docker-compose.build.yml`, and `docker-compose.private.yml`. Historical MoneyMatter commands below are preserved only as a reference to the original architecture.
 
 
 Run MoneyMatter on your own server. The stack pulls published Docker images

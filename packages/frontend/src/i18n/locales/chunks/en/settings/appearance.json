@@ -25,6 +25,13 @@
         "title": "Currency symbols",
         "description": "How amounts show their currency. Short symbols look like Rp, ₴ or zł instead of IDR, UAH or PLN, but currencies that share a symbol (USD, CAD, AUD, SGD) all become $.",
         "narrowSymbol": "Use short currency symbols"
+      },
+      "accent": {
+        "title": "Accent color",
+        "description": "Choose the app's main color. Purple is the default; your choice stays on this device.",
+        "purple": "Purple",
+        "green": "Green",
+        "blue": "Blue"
       }
     }
   }

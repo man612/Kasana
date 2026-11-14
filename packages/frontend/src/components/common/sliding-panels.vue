@@ -8,7 +8,7 @@
         class="self-start transition-opacity"
         :style="{
           opacity: key === modelValue ? 1 : inactiveOpacity,
-          transitionDuration: `${duration}ms`,
+          transitionDuration: `${effectiveDuration}ms`,
           transitionTimingFunction: easing,
         }"
         :aria-hidden="key !== modelValue ? 'true' : undefined"
@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useElementSize } from '@vueuse/core';
+import { useElementSize, usePreferredReducedMotion } from '@vueuse/core';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useSlots } from 'vue';
 
 const props = withDefaults(
@@ -46,6 +46,9 @@ const props = withDefaults(
     inactiveOpacity: 0.4,
   },
 );
+
+const prefersReducedMotion = usePreferredReducedMotion();
+const effectiveDuration = computed(() => (prefersReducedMotion.value === 'reduce' ? 0 : props.duration));
 
 const slots = useSlots();
 const panelKeys = computed(() => {
@@ -102,7 +105,7 @@ onMounted(async () => {
 
 const containerStyle = computed(() => ({
   height: activeHeight.value > 0 ? `${activeHeight.value}px` : undefined,
-  transition: heightTransitionEnabled.value ? `height ${props.duration}ms ${props.easing}` : undefined,
+  transition: heightTransitionEnabled.value ? `height ${effectiveDuration.value}ms ${props.easing}` : undefined,
 }));
 
 const trackStyle = computed(() => {
@@ -110,7 +113,7 @@ const trackStyle = computed(() => {
   const offset = idx <= 0 ? 0 : idx * (containerWidth.value + props.gap);
   return {
     transform: `translate3d(${-offset}px, 0, 0)`,
-    transition: `transform ${props.duration}ms ${props.easing}`,
+    transition: `transform ${effectiveDuration.value}ms ${props.easing}`,
     columnGap: `${props.gap}px`,
   };
 });

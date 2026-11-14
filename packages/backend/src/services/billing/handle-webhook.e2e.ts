@@ -107,7 +107,7 @@ describe('Stripe billing webhook (POST /webhooks/billing)', () => {
       expect(sendSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           subject: expect.stringContaining('Plus'),
-          replyTo: 'support@moneymatter.app',
+          replyTo: undefined, // Kasana must never route replies to the upstream support mailbox,
         }),
       );
     });

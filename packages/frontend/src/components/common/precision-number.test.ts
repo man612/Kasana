@@ -1,7 +1,13 @@
+import { numberFormatLocale } from '@/js/helpers/formatters';
 import { mount } from '@vue/test-utils';
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import PrecisionNumber from './precision-number.vue';
+
+// Legacy assertions in this suite explicitly use English number formatting.
+// Keep production Indonesia-first defaults unchanged and isolate the fixture locale.
+beforeEach(() => { numberFormatLocale.value = 'en-US'; });
+afterAll(() => { numberFormatLocale.value = 'id-ID'; });
 
 // Stub `ResponsiveTooltip` so the test stays focused on PrecisionNumber's
 // reveal-vs-plain rendering decisions without dragging Popover/Tooltip primitives

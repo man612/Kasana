@@ -10,6 +10,7 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle, DrawerTrigger } from '../drawer';
+import * as Dialog from '../dialog';
 import Popover from '../popover/Popover.vue';
 import PopoverContent from '../popover/PopoverContent.vue';
 import PopoverTrigger from '../popover/PopoverTrigger.vue';
@@ -24,12 +25,14 @@ const props = withDefaults(
     presets?: DateSelectorPreset[];
     earliestDate?: Date;
     popoverClassName?: string;
+    dialogOnDesktop?: boolean;
     allowedFilterModes?: DateSelectorFilterMode[];
   }>(),
   {
     presets: undefined,
     earliestDate: undefined,
     allowedFilterModes: undefined,
+    dialogOnDesktop: false,
   },
 );
 
@@ -107,6 +110,28 @@ function handleCancel() {
     </Drawer>
   </template>
 
+  <!-- Dashboard uses a modal with proper focus/overlay; other pages keep their anchored popovers. -->
+  <template v-else-if="dialogOnDesktop">
+    <Dialog.Dialog v-model:open="isOpen">
+      <Dialog.DialogTrigger as-child>
+        <slot name="trigger" :trigger-text="triggerText" />
+      </Dialog.DialogTrigger>
+      <Dialog.DialogContent
+        blur-overlay
+        class="max-h-[min(88dvh,740px)] w-[calc(100vw-2rem)] max-w-2xl gap-2 overflow-hidden p-4"
+      >
+        <Dialog.DialogTitle class="pr-12 text-base font-semibold">
+          {{ t('common.dateSelector.simpleTitle') }}
+        </Dialog.DialogTitle>
+        <Dialog.DialogDescription class="sr-only">
+          {{ t('common.dateSelector.currentMonth') }}
+        </Dialog.DialogDescription>
+        <div class="min-h-0 overflow-y-auto overscroll-contain">
+          <SlotContent />
+        </div>
+      </Dialog.DialogContent>
+    </Dialog.Dialog>
+  </template>
   <!-- Desktop: Popover -->
   <template v-else>
     <Popover v-model:open="isOpen">
@@ -116,7 +141,7 @@ function handleCancel() {
       <PopoverContent
         :class="cn(['w-auto max-w-[calc(100vw-1rem)] p-4 md:min-w-150', popoverClassName])"
         align="center"
-        side="top"
+        side="bottom"
         :side-offset="8"
       >
         <SlotContent />

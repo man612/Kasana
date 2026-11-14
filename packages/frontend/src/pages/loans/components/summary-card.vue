@@ -39,9 +39,7 @@
         </div>
         <div class="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
           <span>{{ $t('loans.detail.summary.outstanding') }}</span>
-          <DesktopOnlyTooltip :content="$t('loans.detail.summary.principalOnlyTooltip')" side="top">
-            <InfoIcon class="size-3 cursor-help" />
-          </DesktopOnlyTooltip>
+          <HintIcon :content="$t('loans.detail.summary.principalOnlyTooltip')" />
         </div>
       </template>
 
@@ -65,9 +63,7 @@
         <div>
           <div class="text-muted-foreground flex items-center gap-1 text-xs">
             <span>{{ $t('loans.detail.summary.balanceAnchor') }}</span>
-            <DesktopOnlyTooltip :content="$t('loans.detail.summary.balanceAnchorTooltip')" side="top">
-              <InfoIcon class="size-3 cursor-help" />
-            </DesktopOnlyTooltip>
+            <HintIcon :content="$t('loans.detail.summary.balanceAnchorTooltip')" />
           </div>
           <div class="mt-0.5 font-medium">{{ balanceAnchorDisplay }}</div>
         </div>
@@ -99,6 +95,7 @@
 </template>
 
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import type { LoanApi } from '@/api/loans';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
@@ -106,7 +103,7 @@ import { useFormatCurrency } from '@/composable/formatters';
 import { useDateLocale } from '@/composable/use-date-locale';
 import { cn } from '@/lib/utils';
 import AccountLogoPicker from '@/pages/account/components/account-logo-picker.vue';
-import { InfoIcon } from '@lucide/vue';
+
 import { parseISO } from 'date-fns';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';

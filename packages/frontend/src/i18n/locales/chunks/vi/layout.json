@@ -203,7 +203,7 @@
   },
   "dashboard": {
     "onboarding": {
-      "title": "Welcome to Kasana",
+      "title": "Welcome to Lajur.",
       "subtitle": "Get started by setting up your first account",
       "createManualAccount": {
         "title": "Tạo tài khoản thủ công",
@@ -330,7 +330,7 @@
         },
         "ui": {
           "title": "Quick start",
-          "subtitle": "Use our quick start guide to learn about everything Kasana can do for you.",
+          "subtitle": "Use our quick start guide to learn about everything Lajur. can do for you.",
           "dismissButton": "Dismiss permanently",
           "dismissConfirmTitle": "Dismiss quick start?",
           "dismissConfirmDescription": "You can always reopen the quick start guide from settings if you change your mind.",

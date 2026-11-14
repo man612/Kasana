@@ -204,3 +204,19 @@ describe('IDR live grouping', () => {
     expect(caretOffsetAfterDigits({ text: '20.000', digitCount: 3, decimalSeparator: ',' })).toBe(4);
   });
 });
+
+describe('Negative IDR opening balances', () => {
+  const separators = { decimalSeparator: ',', groupSeparator: '.' };
+  it('parses negative cash and debt balances without dropping the minus', () => {
+    expect(parseAmountInput({ raw: '-20.000,50', ...separators })).toEqual({ numeric: -20000.5, fragment: '0' });
+  });
+  it('preserves a sign-only intermediate input', () => {
+    expect(parseAmountInput({ raw: '-', ...separators })).toEqual({ numeric: null, fragment: '-' });
+  });
+  it('preserves zero and ordinary positive values', () => {
+    expect(parseAmountInput({ raw: '0', ...separators })).toEqual({ numeric: 0, fragment: '' });
+  });
+  it('keeps the caret after an incomplete negative sign', () => {
+    expect(caretOffsetAfterDigits({ text: '-', digitCount: 0, decimalSeparator: ',' })).toBe(1);
+  });
+});

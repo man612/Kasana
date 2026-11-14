@@ -246,7 +246,8 @@
       "rightPanel": {
         "transactions": "Transactions",
         "viewAll": "View all",
-        "analyticsSoon": "Analytics (soon)"
+        "analyticsSoon": "Analytics (soon)",
+        "noTransactions": "No transactions in this account yet."
       },
       "integrations": {
         "connectedVia": "Connected via",

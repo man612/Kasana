@@ -1,7 +1,7 @@
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { computed } from 'vue';
 
-const DONATE_URL = 'https://donatr.ee/letehaha';
+const SUPPORT_URL = 'https://github.com/man612/Kasana/issues';
 
 /**
  * Shared read/write access to the header "Support" (donation) button visibility.
@@ -21,7 +21,7 @@ export const useSupportButton = () => {
   const setSupportButtonVisible = (value: boolean) => patchAsync({ showSupportButton: value });
 
   const openSupport = () => {
-    window.open(DONATE_URL, '_blank', 'noopener,noreferrer');
+    window.open(SUPPORT_URL, '_blank', 'noopener,noreferrer');
   };
 
   return {

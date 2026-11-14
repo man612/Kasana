@@ -1,6 +1,7 @@
+import { numberFormatLocale } from '@/js/helpers/formatters';
 import type { GoalAccountShare, GoalInsights, GoalModel, RecordId } from '@bt/shared/types';
 import { subDays } from 'date-fns';
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
   GOAL_DISPLAY_TONES,
@@ -17,6 +18,11 @@ import {
   splitGoalSections,
   toGoalCurrency,
 } from './helpers';
+
+// Legacy assertions in this suite explicitly use English number formatting.
+// Keep production Indonesia-first defaults unchanged and isolate the fixture locale.
+beforeEach(() => { numberFormatLocale.value = 'en-US'; });
+afterAll(() => { numberFormatLocale.value = 'id-ID'; });
 
 const id = (value: string) => value as RecordId;
 const daysAgo = (days: number) => subDays(new Date(), days).toISOString();

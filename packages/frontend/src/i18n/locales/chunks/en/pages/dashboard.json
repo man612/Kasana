@@ -444,7 +444,8 @@
         "lastYear": "Last 12 months",
         "thisYear": "This year",
         "previousYear": "Previous year"
-      }
+      },
+      "backToCurrent": "Current period"
     }
   },
   "widgets": {

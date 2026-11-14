@@ -2,31 +2,70 @@
 <template>
   <!-- Reusable category list template -->
   <CategoryListTemplate>
+    <div
+      v-if="!isSearching && expandableCategoryIds.length"
+      class="border-border mb-1 flex items-center justify-between gap-2 border-b px-3 py-2"
+    >
+      <span class="text-muted-foreground text-xs">{{ $t('fields.categorySelect.groupHint') }}</span>
+      <button
+        type="button"
+        class="text-primary-text hover:text-primary focus-visible:ring-ring rounded px-2 py-1 text-xs font-medium transition-colors focus-visible:ring-2"
+        :aria-label="
+          allCategoriesExpanded ? $t('fields.categorySelect.collapseAll') : $t('fields.categorySelect.expandAll')
+        "
+        @click="toggleAllCategories"
+      >
+        {{ allCategoriesExpanded ? $t('fields.categorySelect.collapseAll') : $t('fields.categorySelect.expandAll') }}
+      </button>
+    </div>
     <ListboxContent>
-      <!-- ListboxItem memoizes its attrs, so rows remount when search toggles to update the indent. -->
-      <template v-for="(item, index) in filteredItems" :key="`${item.id}:${isSearching}`">
-        <!-- Group separator (shown only when searching) -->
-        <div
-          v-if="shouldShowSeparator({ item, index })"
-          class="text-muted-foreground flex items-center gap-2 px-2 pt-3 pb-1 text-xs font-medium"
-          :class="{ 'pt-1': index === 0 }"
-        >
-          <span class="shrink-0">{{ item.rootParentName }}</span>
-          <div class="bg-border h-px flex-1" />
-        </div>
+      <TransitionGroup name="lajur-category-items" tag="div">
+        <!-- ListboxItem memoizes its attrs, so rows remount when search toggles to update the indent. -->
+        <template v-for="(item, index) in filteredItems" :key="`${item.id}:${isSearching}`">
+          <!-- Group separator (shown only when searching) -->
+          <div
+            v-if="shouldShowSeparator({ item, index })"
+            class="text-muted-foreground flex items-center gap-2 px-2 pt-3 pb-1 text-xs font-medium"
+            :class="{ 'pt-1': index === 0 }"
+          >
+            <span class="shrink-0">{{ item.rootParentName }}</span>
+            <div class="bg-border h-px flex-1" />
+          </div>
 
-        <ListboxItem
-          :value="item"
-          class="text-popover-foreground data-highlighted:bg-popover-foreground/10 data-[state=checked]:bg-primary/15 data-[state=checked]:data-highlighted:bg-primary/20 relative flex w-full cursor-pointer items-center gap-2 p-2 text-left text-sm leading-tight transition-colors duration-300 ease-out"
-          :style="{ paddingLeft: `${16 + (isSearching ? 0 : item.depth) * 12}px` }"
-          @mousedown.prevent
-          @select.prevent="selectItem(item)"
-        >
-          <CategoryCircle :category="item" :categories-map="categoriesMap" class="shrink-0" />
-          <span class="min-w-0 grow truncate">{{ item.name }}</span>
-        </ListboxItem>
-      </template>
-
+          <div
+            class="flex w-full min-w-0 items-center gap-1"
+            :style="{ paddingLeft: Math.max(0, (isSearching ? 0 : item.depth) * 12) + 'px' }"
+          >
+            <ListboxItem
+              :value="item"
+              class="text-popover-foreground data-highlighted:bg-popover-foreground/10 data-[state=checked]:bg-primary/15 data-[state=checked]:data-highlighted:bg-primary/20 relative flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md p-2 text-left text-sm leading-tight transition-colors duration-200 ease-out"
+              @mousedown.prevent
+              @select.prevent="selectItem(item)"
+            >
+              <CategoryCircle :category="item" :categories-map="categoriesMap" class="shrink-0" />
+              <span class="min-w-0 grow truncate">{{ item.name }}</span>
+            </ListboxItem>
+            <button
+              v-if="!isSearching && expandableCategoryIds.includes(item.id)"
+              type="button"
+              class="text-muted-foreground hover:bg-muted hover:text-foreground flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+              :aria-expanded="!collapsedCategoryIds.has(item.id)"
+              :aria-label="
+                collapsedCategoryIds.has(item.id)
+                  ? $t('fields.categorySelect.expandGroup', { name: item.name })
+                  : $t('fields.categorySelect.collapseGroup', { name: item.name })
+              "
+              @mousedown.stop.prevent
+              @click.stop="toggleCategory(item.id)"
+            >
+              <ChevronDownIcon
+                class="size-4 transition-transform duration-200"
+                :class="collapsedCategoryIds.has(item.id) && '-rotate-90'"
+              />
+            </button>
+          </div>
+        </template>
+      </TransitionGroup>
       <div v-if="filteredItems.length === 0" class="text-muted-foreground p-4 text-center text-sm">
         {{ $t('fields.categorySelect.noCategoriesFound') }}
       </div>
@@ -50,10 +89,10 @@
       <!-- PopoverRoot renders no DOM element, so with `field-right` content the trigger button
            and the addon become direct flex children and share one joined outline. -->
       <div :class="cn($slots['field-right'] && 'flex items-stretch')">
-        <!-- Desktop: Popover -->
+        <!-- Desktop: accessible centered category dialog -->
         <template v-if="!isMobile">
-          <Popover.Popover :open="isOpen" @update:open="(open: boolean) => (isOpen = open)">
-            <Popover.PopoverTrigger as-child>
+          <Dialog.Dialog :open="isOpen" @update:open="(open: boolean) => (isOpen = open)">
+            <Dialog.DialogTrigger as-child>
               <button
                 ref="triggerRef"
                 type="button"
@@ -93,35 +132,32 @@
                 >
                   <XIcon class="size-4" />
                 </span>
-                <ChevronDownIcon
-                  class="text-popover-foreground size-5 shrink-0 transition-transform duration-150 ease-out"
-                  :class="{ 'rotate-180': isOpen }"
-                />
+                <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
               </button>
-            </Popover.PopoverTrigger>
-            <Popover.PopoverContent
-              align="start"
+            </Dialog.DialogTrigger>
+            <Dialog.DialogContent
+              blur-overlay
               :class="
-                cn(
-                  'w-(--reka-popover-trigger-width) max-w-(--reka-popover-trigger-width) min-w-(--reka-popover-trigger-width) p-0',
-                  popoverClassName,
-                )
+                cn('max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden p-0', popoverClassName)
               "
-              @open-auto-focus.prevent
             >
+              <div class="border-border border-b px-4 py-4 pr-14">
+                <Dialog.DialogTitle class="text-base font-semibold">
+                  {{ $t('fields.categorySelect.selectCategoryLabel') }}
+                </Dialog.DialogTitle>
+                <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
+                  {{ $t('fields.categorySelect.dialogHint') }}
+                </Dialog.DialogDescription>
+              </div>
               <div
                 v-if="sharedOwnerHandle"
                 class="bg-muted/40 text-foreground flex items-center gap-2 border-b px-3 py-2 text-xs"
                 role="note"
               >
                 <span>{{ $t('fields.categorySelect.sharedOwnerNotice', { owner: sharedOwnerHandle }) }}</span>
-                <ResponsiveTooltip
+                <HintIcon
                   :content="$t('fields.categorySelect.sharedOwnerNoticeTooltip', { owner: sharedOwnerHandle })"
-                  content-class-name="max-w-64"
-                  :delay-duration="100"
-                >
-                  <InfoIcon class="text-muted-foreground size-3.5 shrink-0 cursor-help" />
-                </ResponsiveTooltip>
+                />
               </div>
               <div v-if="unlistedIds" class="text-muted-foreground border-b px-3 py-2 text-xs" role="note">
                 {{ $t('fields.categorySelect.unlistedNotice') }}
@@ -130,16 +166,16 @@
                 <ListboxFilter
                   v-model="searchQuery"
                   auto-focus
-                  class="w-full border-b bg-transparent px-3 py-2 text-sm outline-none"
+                  class="border-border w-full border-b bg-transparent px-4 py-3 text-sm outline-none"
                   :placeholder="$t('fields.categorySelect.searchPlaceholder')"
                   :aria-label="$t('fields.categorySelect.searchCategoryLabel')"
                 />
-                <div class="max-h-87.5 overflow-y-auto overscroll-contain" :style="{ maxHeight: 'min(20rem, calc(100dvh - 9rem))' }">
+                <div class="max-h-[min(54dvh,390px)] overflow-y-auto overscroll-contain p-2">
                   <CategoryListContent />
                 </div>
               </ListboxRoot>
-            </Popover.PopoverContent>
-          </Popover.Popover>
+            </Dialog.DialogContent>
+          </Dialog.Dialog>
         </template>
 
         <!-- Mobile: Button + Drawer -->
@@ -208,13 +244,7 @@
           role="note"
         >
           <span>{{ $t('fields.categorySelect.sharedOwnerNotice', { owner: sharedOwnerHandle }) }}</span>
-          <ResponsiveTooltip
-            :content="$t('fields.categorySelect.sharedOwnerNoticeTooltip', { owner: sharedOwnerHandle })"
-            content-class-name="max-w-64"
-            :delay-duration="100"
-          >
-            <InfoIcon class="text-muted-foreground size-3.5 shrink-0 cursor-help" />
-          </ResponsiveTooltip>
+          <HintIcon :content="$t('fields.categorySelect.sharedOwnerNoticeTooltip', { owner: sharedOwnerHandle })" />
         </div>
 
         <div v-if="unlistedIds" class="text-muted-foreground mb-3 text-xs" role="note">
@@ -254,19 +284,19 @@
 </template>
 
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { type FormattedCategory } from '@/common/types';
 import { truncateOwnerUsername } from '@/common/utils/account-display';
 import CategoryCircle from '@/components/common/category-circle.vue';
-import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import * as Drawer from '@/components/lib/ui/drawer';
-import * as Popover from '@/components/lib/ui/popover';
+import * as Dialog from '@/components/lib/ui/dialog';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { cn } from '@/lib/utils';
 import { CATEGORY_TYPES, type CategoryModel } from '@bt/shared/types';
 import { createReusableTemplate } from '@vueuse/core';
-import { ChevronDownIcon, InfoIcon, XIcon } from '@lucide/vue';
+import { ChevronDownIcon, SearchIcon, XIcon } from '@lucide/vue';
 import { ListboxContent, ListboxFilter, ListboxItem, ListboxRoot } from 'reka-ui';
 import { computed, ref, watch } from 'vue';
 
@@ -278,6 +308,7 @@ interface FlatCategory extends FormattedCategory {
   depth: number;
   rootParentId: string;
   rootParentName: string;
+  ancestorIds: string[];
 }
 
 const props = withDefaults(
@@ -345,10 +376,12 @@ const flattenCategories = ({
   categories,
   depth = 0,
   rootParent,
+  ancestorIds,
 }: {
   categories: FormattedCategory[];
   depth?: number;
   rootParent?: { id: string; name: string };
+  ancestorIds?: string[];
 }): FlatCategory[] => {
   const result: FlatCategory[] = [];
 
@@ -360,6 +393,7 @@ const flattenCategories = ({
       depth,
       rootParentId: currentRoot.id,
       rootParentName: currentRoot.name,
+      ancestorIds: ancestorIds ?? [],
     });
 
     if (category.subCategories?.length > 0) {
@@ -368,6 +402,7 @@ const flattenCategories = ({
           categories: category.subCategories,
           depth: depth + 1,
           rootParent: currentRoot,
+          ancestorIds: [...(ancestorIds ?? []), category.id],
         }),
       );
     }
@@ -388,10 +423,29 @@ const allFlatCategories = computed(() => {
 });
 
 const isSearching = computed(() => searchQuery.value.length > 0);
+const collapsedCategoryIds = ref<Set<string>>(new Set());
+const expandableCategoryIds = computed(() =>
+  allFlatCategories.value.filter((item) => item.subCategories?.length).map((item) => item.id),
+);
+const allCategoriesExpanded = computed(() =>
+  expandableCategoryIds.value.every((id) => !collapsedCategoryIds.value.has(id)),
+);
+const toggleCategory = (id: string) => {
+  const set = new Set(collapsedCategoryIds.value);
+  if (set.has(id)) set.delete(id);
+  else set.add(id);
+  collapsedCategoryIds.value = set;
+};
+const toggleAllCategories = () => {
+  collapsedCategoryIds.value = allCategoriesExpanded.value ? new Set(expandableCategoryIds.value) : new Set();
+};
 
 const filteredItems = computed(() => {
   if (!searchQuery.value) {
-    return allFlatCategories.value.filter((category) => !props.unlistedIds?.has(category.id));
+    return allFlatCategories.value.filter(
+      (category) =>
+        !props.unlistedIds?.has(category.id) && category.ancestorIds.every((id) => !collapsedCategoryIds.value.has(id)),
+    );
   }
 
   const query = searchQuery.value.toLowerCase();

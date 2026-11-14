@@ -11,8 +11,10 @@ import AccountLogo from '@/components/common/account-logo.vue';
 import DocsLink from '@/components/common/docs-link.vue';
 import { type LogoSelection, toOptionalLogoPayload } from '@/components/common/logo-selection';
 import LogoSquareField from '@/components/common/logo-square-field.vue';
+import FormFieldHelp from '@/components/common/form-field-help.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import * as Select from '@/components/lib/ui/select';
@@ -33,6 +35,9 @@ import { useRoute } from 'vue-router';
 
 const AddCurrencyDialog = defineAsyncComponent(() => import('@/components/dialogs/add-currency-dialog.vue'));
 
+const props = withDefaults(defineProps<{ formId?: string; showSubmitButton?: boolean }>(), {
+  showSubmitButton: true,
+});
 const emit = defineEmits(['created']);
 
 const { t } = useI18n();
@@ -86,13 +91,35 @@ const logoPlaceholderAccount = computed(() => ({
   accountCategory: form.accountCategory,
 }));
 
+// Prioritize familiar Indonesian cash/banking flows without changing persisted enum values.
+const ACCOUNT_CATEGORY_ORDER: ACCOUNT_CATEGORIES[] = [
+  ACCOUNT_CATEGORIES.cash,
+  ACCOUNT_CATEGORIES.currentAccount,
+  ACCOUNT_CATEGORIES.saving,
+  ACCOUNT_CATEGORIES.creditCard,
+  ACCOUNT_CATEGORIES.general,
+  ACCOUNT_CATEGORIES.investment,
+  ACCOUNT_CATEGORIES.crypto,
+  ACCOUNT_CATEGORIES.bonus,
+  ACCOUNT_CATEGORIES.insurance,
+  ACCOUNT_CATEGORIES.overdraft,
+];
 const selectableAccountCategories = computed(() =>
-  Object.entries(ACCOUNT_CATEGORIES_TRANSLATION_KEYS).filter(
-    ([category]) => !isDedicatedFlowAccountCategory(category as ACCOUNT_CATEGORIES),
-  ),
+  Object.entries(ACCOUNT_CATEGORIES_TRANSLATION_KEYS)
+    .filter(([category]) => !isDedicatedFlowAccountCategory(category as ACCOUNT_CATEGORIES))
+    .sort(([first], [second]) => {
+      // New or upstream categories should follow the Indonesia-first shortlist,
+      // not jump ahead just because indexOf() returned -1.
+      const firstIndex = ACCOUNT_CATEGORY_ORDER.indexOf(first as ACCOUNT_CATEGORIES);
+      const secondIndex = ACCOUNT_CATEGORY_ORDER.indexOf(second as ACCOUNT_CATEGORIES);
+      const fallback = ACCOUNT_CATEGORY_ORDER.length;
+      return (firstIndex < 0 ? fallback : firstIndex) - (secondIndex < 0 ? fallback : secondIndex);
+    }),
 );
 
 const createAccountMutation = useMutation({ mutationFn: createAccount });
+const isSubmitting = computed(() => createAccountMutation.isPending.value);
+defineExpose({ isSubmitting });
 
 const submit = async () => {
   if (createAccountMutation.isPending.value || !isFormValid()) return;
@@ -140,7 +167,7 @@ const submit = async () => {
 </script>
 
 <template>
-  <form class="grid gap-6" @submit.prevent="submit">
+  <form :id="props.formId" class="grid gap-6" @submit.prevent="submit">
     <div class="flex items-start gap-3">
       <div class="min-w-0 flex-1">
         <input-field
@@ -149,23 +176,30 @@ const submit = async () => {
           :placeholder="$t('forms.createAccount.namePlaceholder')"
           :error-message="getFieldErrorMessage('form.name')"
           @blur="touchField('form.name')"
-        />
+          non-label-wrapper
+          :aria-label="$t('forms.createAccount.nameLabel')"
+        >
+          <template #label-right>
+            <FormFieldHelp topic="accountName" />
+          </template>
+        </input-field>
       </div>
       <LogoSquareField
         v-model="form.logo"
         :name-for-search="form.name"
         :reset-label="$t('common.logo.remove')"
-        size-class="size-10 rounded-lg"
-        align="with-labeled-field"
+        size-class="size-10 rounded-lg md:size-9"
+        align="with-help-labeled-field"
       >
         <template #placeholder>
-          <AccountLogo :account="logoPlaceholderAccount" class="size-10 rounded-lg" />
+          <AccountLogo :account="logoPlaceholderAccount" class="size-10 rounded-lg md:size-9" />
         </template>
       </LogoSquareField>
     </div>
 
     <div>
-      <FieldLabel :label="$t('forms.createAccount.currencyLabel')">
+      <FieldLabel :label="$t('forms.createAccount.currencyLabel')" :only-template="true">
+        <template #label-right><FormFieldHelp topic="accountCurrency" /></template>
         <Select.Select v-model="form.currencyCode">
           <Select.SelectTrigger>
             <Select.SelectValue :placeholder="$t('forms.createAccount.currencyPlaceholder')" />
@@ -188,20 +222,24 @@ const submit = async () => {
       </FieldLabel>
     </div>
 
-    <input-field
+    <FormattedAmountField
       v-model="form.initialBalance"
-      type="number"
       :label="$t('forms.createAccount.initialBalanceLabel')"
       :placeholder="$t('forms.createAccount.initialBalancePlaceholder')"
+      :aria-label="$t('forms.createAccount.initialBalanceLabel')"
     >
       <template #label-right>
-        <DocsLink path="/accounts/create-an-account/#choose-the-right-initial-balance" class="text-xs">
-          {{ $t('forms.createAccount.initialBalanceHelpLink') }}
-        </DocsLink>
+        <div class="flex items-center gap-1">
+          <DocsLink path="/accounts/create-an-account/#choose-the-right-initial-balance" class="text-xs">
+            {{ $t('forms.createAccount.initialBalanceHelpLink') }}
+          </DocsLink>
+          <FormFieldHelp topic="accountInitialBalance" />
+        </div>
       </template>
-    </input-field>
+    </FormattedAmountField>
 
-    <FieldLabel :label="$t('forms.createAccount.accountCategoryLabel')">
+    <FieldLabel :label="$t('forms.createAccount.accountCategoryLabel')" :only-template="true">
+      <template #label-right><FormFieldHelp topic="accountCategory" /></template>
       <Select.Select v-model="form.accountCategory">
         <Select.SelectTrigger>
           <Select.SelectValue :placeholder="$t('forms.createAccount.accountCategoryPlaceholder')" />
@@ -215,22 +253,35 @@ const submit = async () => {
         </Select.SelectContent>
       </Select.Select>
     </FieldLabel>
+    <p
+      v-if="form.accountCategory === ACCOUNT_CATEGORIES.general"
+      class="text-muted-foreground -mt-4 text-xs leading-relaxed"
+    >
+      {{ $t('forms.createAccount.digitalWalletHint') }}
+    </p>
 
     <SelectField
       v-model="form.defaultPaymentType"
       :values="NULLABLE_PAYMENT_TYPE_OPTIONS"
       :label-key="(item) => $t(item.label)"
       :label="$t('forms.createAccount.defaultPaymentTypeLabel')"
-    />
+    >
+      <template #label-right><FormFieldHelp topic="accountPaymentType" /></template>
+    </SelectField>
 
-    <input-field
+    <FormattedAmountField
       v-model="form.creditLimit"
-      type="number"
       :label="$t('forms.createAccount.creditLimitLabel')"
       :placeholder="$t('forms.createAccount.creditLimitPlaceholder')"
-    />
+      :aria-label="$t('forms.createAccount.creditLimitLabel')"
+    >
+      <template #label-right>
+        <FormFieldHelp topic="accountCreditLimit" />
+      </template>
+    </FormattedAmountField>
 
-    <div class="flex">
+    <!-- Keep the form reusable standalone; the dialog renders its action in a non-scrolling footer. -->
+    <div v-if="props.showSubmitButton" class="flex">
       <ui-button type="submit" class="ml-auto min-w-30" :disabled="createAccountMutation.isPending.value">
         {{
           createAccountMutation.isPending.value

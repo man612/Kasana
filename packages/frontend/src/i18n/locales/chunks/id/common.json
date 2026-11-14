@@ -100,12 +100,18 @@
     },
     "paymentTypes": {
       "creditCard": "Kartu Kredit",
+      "payLater": "PayLater / Cicilan Digital",
+      "autoDebit": "Autodebet",
+      "emoneyCard": "Kartu Uang Elektronik (e-Money, Flazz, TapCash)",
+      "virtualAccount": "Virtual Account (VA)",
+      "eWallet": "Dompet Digital (DANA, GoPay, OVO, ShopeePay)",
+      "qris": "QRIS (scan / tap)",
       "bankTransfer": "Transfer Bank",
       "cash": "Tunai",
       "debitCard": "Kartu Debit",
-      "mobilePayment": "Pembayaran Seluler",
+      "mobilePayment": "Pembayaran lewat Aplikasi (Lainnya)",
       "voucher": "Voucher",
-      "webPayment": "Pembayaran Web",
+      "webPayment": "Pembayaran Online (Lainnya)",
       "none": "Tidak ada"
     },
     "vehicleClasses": {
@@ -211,7 +217,24 @@
         "halfYear": "Coba: H1, H2 2025",
         "year": "Coba: 2025, 2024",
         "default": "Coba: 2025, Q4, Jan 2025"
-      }
+      },
+      "simpleTitle": "Pilih rentang waktu",
+      "simpleHint": "Pilih bulan atau tahun. Untuk tanggal tertentu, pilih tab Hari.",
+      "advancedOptions": "Opsi tanggal lanjutan",
+      "manualDate": "Masukkan tanggal atau rentang tanggal",
+      "todayQuick": "Hari ini",
+      "currentMonthQuick": "Bulan ini",
+      "previousMonthQuick": "Bulan lalu",
+      "dateTimeTitle": "Pilih tanggal & waktu",
+      "dateTimeHint": "Perubahan diterapkan setelah Simpan.",
+      "todayIndicator": "Hari ini",
+      "timeLabel": "Jam",
+      "nowQuick": "Sekarang",
+      "saveDate": "Simpan tanggal & waktu",
+      "invalidTime": "Isi jam dengan format 24 jam yang benar, misalnya 14:30.",
+      "nowHelp": "Atur tanggal dan jam transaksi ke waktu saat ini. Waktu menggunakan zona waktu perangkat.",
+      "numericInputHelp": "Tanggal, format tanggal/bulan/tahun",
+      "alreadyNow": "Sudah menunjukkan waktu saat ini."
     },
     "appUpdate": {
       "title": "Pembaruan tersedia",
@@ -636,6 +659,14 @@
     }
   },
   "kasana": {
+    "feedback": {
+      "githubOnly": "Masukan dan laporan fitur Lajur. diterima melalui issue GitHub resmi proyek.",
+      "privacyWarning": "Issue GitHub bersifat publik. Jangan sertakan nomor rekening, transaksi, token login, atau informasi keuangan dan pribadi. Jangan melaporkan celah keamanan yang belum diumumkan melalui issue publik.",
+      "openIssues": "Buka GitHub Issues Lajur."
+    },
+    "navigation": {
+      "openMenu": "Buka menu navigasi"
+    },
     "settings": {
       "exit": "Tutup pengaturan"
     },
@@ -644,6 +675,21 @@
       "removeNamed": "Hapus kolom {name}",
       "confirmTitle": "Hapus kolom {name}?",
       "confirmDescription": "Isian pada kolom ini yang belum disimpan akan dibersihkan. Lampiran yang sebelumnya sudah tersimpan tidak akan dihapus. Lanjutkan?"
+    },
+    "quickStart": {
+      "triggerLabel": "Mulai Cepat, {count} tugas tersisa. Tekan lama lalu geser untuk memindahkan.",
+      "dragHint": "Ketuk untuk membuka. Tekan lama lalu geser untuk memindahkan. Alt + tombol panah untuk mengatur lewat keyboard.",
+      "hideButton": "Sembunyikan",
+      "hideOneHour": "Selama 1 jam",
+      "hideOneDay": "Selama 24 jam",
+      "hideOneWeek": "Selama 7 hari",
+      "resetPosition": "Reset posisi",
+      "hideExplanation": "Tombol akan muncul otomatis setelah waktunya habis. Kamu juga dapat menampilkannya lebih awal dari Pengaturan → Umum.",
+      "placeButton": "Atur posisi",
+      "topLeft": "Kiri atas",
+      "topRight": "Kanan atas",
+      "bottomLeft": "Kiri bawah",
+      "bottomRight": "Kanan bawah"
     }
   }
 }

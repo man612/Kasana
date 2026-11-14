@@ -65,7 +65,7 @@
                   </i18n-t>
                   <i18n-t keypath="settings.aiIntegrations.quickConnect.claude.steps.enterName" tag="li">
                     <template #value>
-                      <ClickToCopy value="Kasana" />
+                      <ClickToCopy :value="APP_BRAND.name" />
                     </template>
                   </i18n-t>
                   <i18n-t keypath="settings.aiIntegrations.quickConnect.claude.steps.pasteUrl" tag="li">
@@ -203,6 +203,7 @@
 
 <script setup lang="ts">
 import { getConnectedApps, getMcpServerUrl, revokeConnectedApp } from '@/api/mcp';
+import { APP_BRAND } from '@/common/brand';
 import ClickToCopy from '@/components/common/click-to-copy.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';

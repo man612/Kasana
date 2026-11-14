@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { executeInvestmentImport } from '@/api/investment-transactions-import';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import { Button } from '@/components/lib/ui/button';
@@ -15,7 +16,7 @@ import {
   isCashInCategory,
 } from '@bt/shared/types/investments';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
-import { CircleDollarSignIcon, CoinsIcon, InfoIcon, Loader2Icon } from '@lucide/vue';
+import { CircleDollarSignIcon, CoinsIcon, Loader2Icon } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -229,22 +230,12 @@ const execute = useMutation({
         <div class="flex items-center gap-1.5">
           <CoinsIcon class="size-3.5" />
           {{ $t('investmentsImport.review.cols.security') }}
-          <DesktopOnlyTooltip
-            :content="$t('investmentsImport.review.tooltips.security')"
-            :content-class-name="TOOLTIP_CLASS"
-          >
-            <InfoIcon class="size-3.5" />
-          </DesktopOnlyTooltip>
+          <HintIcon :content="$t('investmentsImport.review.tooltips.security')" />
         </div>
         <div class="flex items-center gap-1.5">
           <CircleDollarSignIcon class="size-3.5" />
           {{ $t('investmentsImport.review.cols.currency') }}
-          <DesktopOnlyTooltip
-            :content="$t('investmentsImport.review.tooltips.currency')"
-            :content-class-name="TOOLTIP_CLASS"
-          >
-            <InfoIcon class="size-3.5" />
-          </DesktopOnlyTooltip>
+          <HintIcon :content="$t('investmentsImport.review.tooltips.currency')" />
         </div>
         <div class="text-right">{{ $t('investmentsImport.review.cols.txCount') }}</div>
         <div></div>

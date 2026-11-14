@@ -87,46 +87,48 @@
         <div :key="chartKey" ref="containerRef" class="max-xs:px-2 relative min-h-44 w-full flex-1">
           <svg ref="svgRef" class="h-full w-full"></svg>
 
-          <!-- Tooltip -->
-          <div
-            v-show="tooltip.visible"
-            ref="tooltipRef"
-            class="pointer-events-none fixed z-50"
-            :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
-          >
-            <ChartTooltip>
-              <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
+          <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
+          <Teleport to="body">
+            <div
+              v-show="tooltip.visible"
+              ref="tooltipRef"
+              class="pointer-events-none fixed isolate z-[100]"
+              :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
+            >
+              <ChartTooltip>
+                <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
 
-              <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
-                <template #value>
-                  {{ formatTooltipMoney(row.value)
-                  }}<span
-                    v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
-                    class="ml-1 text-xs font-medium"
-                    :class="deltaColorClass(row.delta)"
-                    >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
-                  >
-                </template>
-              </ChartTooltipRow>
+                <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
+                  <template #value>
+                    {{ formatTooltipMoney(row.value)
+                    }}<span
+                      v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
+                      class="ml-1 text-xs font-medium"
+                      :class="deltaColorClass(row.delta)"
+                      >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
+                    >
+                  </template>
+                </ChartTooltipRow>
 
-              <ChartTooltipDivider />
+                <ChartTooltipDivider />
 
-              <ChartTooltipRow
-                total
-                :label="$t('dashboard.widgets.balanceTrend.tooltip.total')"
-                :value="formatTooltipMoney(tooltip.totalBalance)"
-              />
+                <ChartTooltipRow
+                  total
+                  :label="$t('dashboard.widgets.balanceTrend.tooltip.total')"
+                  :value="formatTooltipMoney(tooltip.totalBalance)"
+                />
 
-              <div
-                v-if="tooltip.hasDelta"
-                class="mt-1 text-xs font-semibold tabular-nums"
-                :class="deltaColorClass(tooltip.deltaAbsolute)"
-              >
-                {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
-                ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
-              </div>
-            </ChartTooltip>
-          </div>
+                <div
+                  v-if="tooltip.hasDelta"
+                  class="mt-1 text-xs font-semibold tabular-nums"
+                  :class="deltaColorClass(tooltip.deltaAbsolute)"
+                >
+                  {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
+                  ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
+                </div>
+              </ChartTooltip>
+            </div>
+          </Teleport>
 
           <!-- Spike transactions panel -->
           <SpikeTransactionsPanel
@@ -239,7 +241,7 @@ const props = defineProps<{
   selectedPeriod: { from: Date; to: Date };
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 type BalanceTypeValue = 'total' | 'accounts' | 'portfolios' | 'ventures' | 'vehicles' | 'loans';
 type BalanceTypeOption = { value: BalanceTypeValue; label: string };
@@ -811,7 +813,8 @@ const getColors = () => {
   return { grid, text, primary };
 };
 
-const formatAxisValue = (value: number) => formatAxisCurrency({ value, symbol: getCurrencySymbol() });
+const formatAxisValue = (value: number, step?: number) =>
+  formatAxisCurrency({ value, symbol: getCurrencySymbol(), currencyCode: baseCurrency.value?.currency?.code, step });
 
 const renderChart = () => {
   if (!svgRef.value || !containerRef.value || chartData.value.length === 0) return;
@@ -824,12 +827,18 @@ const renderChart = () => {
   const height = containerRef.value.clientHeight;
   const isMobile = width < 500;
 
-  // Increased margins: more space at bottom for x-axis, right for last label
+  // Size the margin from translated Y-labels to prevent clipping the Rp prefix.
+  const [dataMin = 0, dataMax = 0] = d3.extent(chartData.value, (item) => item.value);
+  const approxTickStep = Math.max(1, (dataMax - dataMin) / 4 || 500);
+  const longestLabel = Math.max(
+    6,
+    ...[dataMin, dataMin + approxTickStep, dataMax].map((value) => formatAxisValue(value, approxTickStep).length),
+  );
   const margin = {
     top: 10,
     right: isMobile ? 30 : 40,
     bottom: 35,
-    left: isMobile ? 40 : 48,
+    left: Math.min(Math.max(isMobile ? 56 : 64, Math.ceil(longestLabel * 6.5 + 16)), width * 0.4),
   };
   const innerWidth = width - margin.left - margin.right;
   const innerHeight = height - margin.top - margin.bottom;
@@ -935,7 +944,7 @@ const renderChart = () => {
         .tickSize(6)
         .tickFormat((d) => {
           const date = new Date(d as number);
-          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          return date.toLocaleDateString(locale.value, { month: 'short', day: 'numeric' });
         }),
     )
     .call((axis) => {
@@ -951,7 +960,7 @@ const renderChart = () => {
       d3
         .axisLeft(yScale)
         .tickValues(yTickValues)
-        .tickFormat((d) => formatAxisValue(d as number)),
+        .tickFormat((d) => formatAxisValue(d as number, yTickStep)),
     )
     .call((axis) => {
       axis.select('.domain').remove();

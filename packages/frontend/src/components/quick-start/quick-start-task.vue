@@ -32,15 +32,18 @@ const handleClick = () => {
     @click="handleClick"
   >
     <!-- Checkbox circle -->
-    <div class="shrink-0">
-      <div
-        v-if="isCompleted"
-        class="bg-primary text-primary-foreground flex size-5 items-center justify-center rounded-full"
-      >
-        <CheckIcon class="size-3" />
-      </div>
-      <CircleIcon v-else class="text-muted-foreground/50 size-5" />
-    </div>
+    <span class="grid size-5 shrink-0 place-items-center">
+      <Transition name="kasana-icon" mode="out-in">
+        <span
+          v-if="isCompleted"
+          key="completed"
+          class="bg-primary text-primary-foreground flex size-5 items-center justify-center rounded-full"
+        >
+          <CheckIcon class="size-3" />
+        </span>
+        <CircleIcon v-else key="pending" class="text-muted-foreground/50 size-5" />
+      </Transition>
+    </span>
 
     <!-- Title and description -->
     <div class="min-w-0 flex-1">

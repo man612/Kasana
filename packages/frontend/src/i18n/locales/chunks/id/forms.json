@@ -131,18 +131,19 @@
       "addCurrencyButton": "Tambah mata uang baru +",
       "initialBalanceLabel": "Saldo awal",
       "initialBalancePlaceholder": "Saldo awal",
-      "initialBalanceHelpLink": "What should I enter?",
-      "accountCategoryLabel": "Kategori Akun",
+      "initialBalanceHelpLink": "Cara mengisi saldo awal",
+      "accountCategoryLabel": "Jenis rekening / dompet",
       "accountCategoryPlaceholder": "Pilih kategori akun",
-      "creditLimitLabel": "Batas kredit",
+      "creditLimitLabel": "Batas kredit (jika ada)",
       "creditLimitPlaceholder": "Batas kredit",
-      "defaultPaymentTypeLabel": "Default payment type",
+      "defaultPaymentTypeLabel": "Metode pembayaran bawaan",
       "submitButton": "Buat",
       "submitButtonLoading": "Membuat...",
       "notifications": {
         "success": "Berhasil dibuat.",
         "error": "Kesalahan tak terduga."
-      }
+      },
+      "digitalWalletHint": "Untuk DANA, GoPay, OVO, atau ShopeePay, gunakan kategori Umum sementara. Kategori Dompet digital khusus belum tersedia; saldo tetap dicatat sesuai akun aslinya."
     },
     "directCashTransaction": {
       "methodTypes": {
@@ -218,26 +219,28 @@
     },
     "createVehicle": {
       "nameLabel": "Nama kendaraan",
-      "namePlaceholder": "mis. Camry Saya",
+      "namePlaceholder": "mis. Vario Harian / Avanza Keluarga",
       "currencyLabel": "Mata Uang",
       "makeLabel": "Merek",
       "modelLabel": "Model",
-      "trimLabel": "Varian (opsional)",
+      "trimLabel": "Varian / tipe (opsional)",
       "yearLabel": "Tahun",
-      "vehicleClassLabel": "Kelas kendaraan",
+      "vehicleClassLabel": "Kategori kendaraan",
       "purchasePriceLabel": "Harga beli",
       "purchaseDateLabel": "Tanggal beli",
-      "depreciationPresetLabel": "Pola depresiasi",
-      "customAnnualRatePctLabel": "Tingkat depresiasi tahunan khusus (%)",
-      "salvageFloorPctLabel": "Batas sisa (% dari harga beli)",
-      "currentMileageLabel": "Kilometer saat ini (opsional)",
+      "depreciationPresetLabel": "Pola penurunan nilai",
+      "customAnnualRatePctLabel": "Penurunan nilai khusus per tahun (%)",
+      "salvageFloorPctLabel": "Batas nilai minimum (% harga beli)",
+      "currentMileageLabel": "Odometer saat ini (km, opsional)",
       "currentMileagePlaceholder": "mis. 45000",
       "submitButton": "Tambah kendaraan",
       "submitButtonLoading": "Menambahkan...",
       "notifications": {
         "success": "Kendaraan ditambahkan",
         "error": "Gagal menambahkan kendaraan"
-      }
+      },
+      "vehicleClassPlaceholder": "Pilih jenis kendaraan",
+      "vehicleClassHint": "Jenis kendaraan memengaruhi estimasi penyusutan. MPV, LCGC, dan hatchback belum mempunyai rumus khusus Indonesia; gunakan Lainnya sementara dan periksa kembali perkiraan nilainya."
     },
     "editVehicle": {
       "submitButton": "Simpan perubahan",
@@ -249,37 +252,37 @@
     },
     "loan": {
       "nameLabel": "Nama pinjaman",
-      "namePlaceholder": "mis. KPR utama",
+      "namePlaceholder": "mis. Kredivo – HP / KrediFazz – November",
       "loanTypeLabel": "Jenis pinjaman",
       "loanTypePlaceholder": "Pilih jenis pinjaman",
       "currencyLabel": "Mata Uang",
       "currencyPlaceholder": "Pilih mata uang",
       "originalPrincipalLabel": "Pokok awal",
-      "originalPrincipalPlaceholder": "mis. 320000",
+      "originalPrincipalPlaceholder": "mis. 1.000.000",
       "initialBalanceLabel": "Saldo terutang saat ini",
-      "initialBalancePlaceholder": "Yang Anda hutangi hari ini",
-      "interestRateLabel": "Suku bunga (APR %)",
-      "interestRatePlaceholder": "mis. 6.25",
+      "initialBalancePlaceholder": "Sisa pokok sesuai rincian pinjaman",
+      "interestRateLabel": "Bunga tahunan (APR %, bukan bunga flat)",
+      "interestRatePlaceholder": "Bunga efektif tahunan sesuai kontrak",
       "minPaymentEstimateTooltip": "Diperkirakan dari pokok, suku bunga tahunan, dan jangka waktu menggunakan rumus amortisasi standar.",
       "minPaymentApplyEstimateAriaLabel": "Gunakan perkiraan pembayaran minimum",
       "termMonthsLabel": "Jangka waktu (bulan)",
-      "termPresetsAriaLabel": "Prasetel jangka waktu",
-      "termPresetsHeader": "Jangka waktu umum",
+      "termPresetsAriaLabel": "Pilih tenor cepat",
+      "termPresetsHeader": "Pilihan tenor cicilan",
       "termMonthsSuffix": "bln",
       "termPresetYears": "{count} tahun | {count} tahun",
-      "termMonthsPlaceholder": "mis. 360 untuk pinjaman 30 tahun",
+      "termMonthsPlaceholder": "mis. 3, 6, 12, atau 180 bulan",
       "startDateLabel": "Tanggal mulai",
       "startDatePlaceholder": "DD/MM/YYYY",
-      "startDateTooltip": "Tanggal pinjaman berasal — saat pertama kali Anda mengambilnya. Ini hanya informasional dan tidak mengubah saldo terutang saat ini atau proyeksi pelunasan.",
-      "plannedPaymentLabel": "Pembayaran bulanan yang direncanakan",
-      "plannedPaymentPlaceholder": "Yang sebenarnya Anda bayar",
-      "minPaymentLabel": "Pembayaran bulanan minimum",
-      "minPaymentPlaceholder": "Opsional, dari pemberi pinjaman Anda",
+      "startDateTooltip": "Tanggal perjanjian atau pencairan dimulai. Berbeda dari tanggal pertama kali saldo pinjaman dicatat ke Lajur..",
+      "plannedPaymentLabel": "Cicilan bulanan sesuai tagihan",
+      "plannedPaymentPlaceholder": "mis. 350000",
+      "minPaymentLabel": "Pembayaran minimum (jika ada)",
+      "minPaymentPlaceholder": "Masukkan jika tercantum dalam perjanjian",
       "paymentDayLabel": "Hari pembayaran dalam bulan",
       "paymentDayPlaceholder": "1–31",
-      "lenderNameLabel": "Pemberi pinjaman",
-      "lenderNamePlaceholder": "mis. Chase, Wells Fargo",
-      "accountNumberLabel": "Nomor akun / pinjaman",
+      "lenderNameLabel": "Penyedia pembiayaan",
+      "lenderNamePlaceholder": "mis. Kredivo / KrediFazz / SPayLater",
+      "accountNumberLabel": "Nomor kontrak / referensi",
       "accountNumberPlaceholder": "Opsional",
       "currentBalanceLabel": "Saldo terutang saat ini",
       "balanceAsOfLabel": "Saldo per",
@@ -302,9 +305,221 @@
         "termRange": "Jangka waktu harus antara 1 dan 1200 bulan.",
         "paymentDayRange": "Hari dalam bulan harus antara 1 dan 31.",
         "asOfInFuture": "Tanggal tidak boleh di masa depan",
-        "startDateInFuture": "Start date can't be in the future"
+        "startDateInFuture": "Tanggal mulai tidak boleh di masa depan."
       },
-      "balanceExceedsPrincipalWarning": "Saldo terutang lebih tinggi dari pokok awal – periksa kembali jumlah ini."
+      "balanceExceedsPrincipalWarning": "Saldo terutang lebih tinggi dari pokok awal – periksa kembali jumlah ini.",
+      "modelWarning": "Perhitungan otomatis mengasumsikan bunga menurun atas sisa pokok; cicilan paylater Indonesia dengan bunga flat atau biaya layanan mungkin berbeda. Cocokkan selalu dengan rincian tagihan resmi.",
+      "termPresetMonths": "{count} bulan | {count} bulan"
+    },
+    "fieldHelp": {
+      "open": "Jelaskan kolom {field}",
+      "description": "Panduan untuk mengisi kolom dengan benar.",
+      "example": "Contoh penggunaan",
+      "important": "Yang perlu diperhatikan",
+      "accountName": {
+        "title": "Nama rekening atau dompet",
+        "meaning": "Nama ini digunakan untuk mengenali tempat uang disimpan atau utang dicatat. Akun bukan otomatis pos anggaran. Kalau uang makan tersebar di BCA, DANA, dan tunai, lebih tepat membuat akun sesuai ketiga tempat tersebut, lalu memakai kategori/anggaran Makan untuk tujuan penggunaannya.",
+        "example": "Buat ‘BCA Utama’, ‘DANA Pribadi’, dan ‘Uang Tunai’. Saat membeli makan pakai DANA, pilih akun DANA dan kategori pengeluaran Makan. Nama ‘Dana Makan’ cocok sebagai akun hanya jika memang ada saldo terpisah yang kamu catat dan cocokkan sendiri.",
+        "important": "Jangan membuat dua akun yang masing-masing mengklaim saldo uang fisik yang sama. Itu membuat total aset ganda. Logo di sebelah nama hanya penanda visual: klik ubin untuk memilih ikon, huruf, atau merek."
+      },
+      "accountCurrency": {
+        "title": "Mata uang rekening",
+        "meaning": "Ini mata uang saldo yang benar-benar dimiliki akun, bukan sekadar pilihan penulisan angka. BCA dan DANA Rupiah memakai IDR. Rekening USD sebaiknya memakai USD agar saldo dan konversi ke Rupiah tidak salah.",
+        "example": "Kalau saldo rekening BCA Rp1.250.000, pilih IDR. Kalau mempunyai saldo asli US$100 di rekening berbeda, buat akun terpisah dengan USD.",
+        "important": "Kode mata uang pada akun tidak bisa diganti setelah dibuat menurut dokumentasi asli. Pastikan benar sebelum menekan Buat. Nilai rekening mata uang asing dapat berubah dalam laporan Rupiah mengikuti kurs."
+      },
+      "accountInitialBalance": {
+        "title": "Saldo awal yang benar",
+        "meaning": "Saldo awal adalah uang yang ada SEBELUM transaksi pertama yang akan kamu catat di aplikasi. Saldo sekarang nantinya dihitung sebagai saldo awal + pemasukan − pengeluaran ± transfer/penyesuaian. Tidak selalu sama dengan saldo bank hari ini bila kamu berencana memasukkan transaksi lama.",
+        "example": "Saldo BCA hari ini Rp1.000.000. Kamu akan mencatat pengeluaran lama Rp150.000 dan belum mencatat pemasukan lain. Supaya hasil akhir tetap Rp1.000.000, isi saldo awal Rp1.150.000. Kalau mulai mencatat dari hari ini saja, boleh langsung memakai Rp1.000.000.",
+        "important": "Salah saldo awal membuat seluruh riwayat saldo bergeser. Saat impor mutasi, periksa pilihan pembaruan saldo: sejumlah mode impor bisa menyesuaikannya otomatis. Jangan memasukkan saldo yang sama lagi sebagai transaksi pemasukan."
+      },
+      "accountCategory": {
+        "title": "Kategori akun bukan kategori belanja",
+        "meaning": "Pilihan ini terutama untuk label, ikon, dan sebagian pengelompokan di laporan. Bukan tempat mengalokasikan uang untuk makan atau liburan. Memilih ‘Investasi’ tidak otomatis membuat portofolio saham, dan memilih ‘Kartu kredit’ tidak otomatis menciptakan fasilitas utang.",
+        "example": "Uang tunai fisik → Tunai. Rekening tabungan BRI → Rekening tabungan. Rekening transaksi/giro → Rekening giro bila memang jenis produknya sesuai. DANA/GoPay belum punya kategori khusus pada model saat ini; gunakan Umum sebagai klasifikasi sementara, dengan nama akun yang jelas.",
+        "important": "Ada kategori khusus investasi, pinjaman, dan kendaraan yang mempunyai alur tersendiri. Pilihan kategori umum tidak menggantikannya. Kategori kartu kredit juga bisa memengaruhi cara saldo negatif dikelompokkan pada laporan kekayaan bersih."
+      },
+      "accountPaymentType": {
+        "title": "Metode pembayaran bawaan",
+        "meaning": "Ini hanya pilihan metode yang disarankan saat kamu membuat transaksi baru dari rekening tersebut. Ini tidak menentukan di mana uang disimpan, tidak memindahkan saldo, dan tidak membuat pembayaran otomatis. Jika tidak yakin, pilih ‘Tidak ada’ lalu tentukan metode ketika benar-benar mencatat transaksi.",
+        "example": "Beli makan Rp35.000 memakai QRIS yang mengambil saldo BCA: akun = BCA; metode pembayaran = opsi pembayaran digital yang paling mendekati; kategori = Makan. Bila membayar dengan uang kertas, akun = Tunai dan metode = Tunai.",
+        "important": "Satu rekening bisa dipakai melalui banyak metode: transfer, kartu debit, QRIS, atau transaksi langsung. Jangan menyamakan QRIS dengan saldo dompet digital, karena QRIS juga bisa menarik dana dari rekening bank. Preferensi bawaan selalu dapat diganti pada transaksi."
+      },
+      "accountCreditLimit": {
+        "title": "Batas kredit dan saldo utang",
+        "meaning": "Batas kredit adalah plafon fasilitas pinjaman yang diberikan penyedia kartu kredit atau cerukan bank. Ini bukan uang tunai yang kamu miliki dan bukan target anggaran. Pada akun tabungan, DANA, atau dompet tunai, biasanya isi 0.",
+        "example": "Kartu kredit memiliki limit Rp10.000.000 dan sudah dipakai Rp2.000.000. Sisa limit Rp8.000.000, tetapi kewajibanmu tetap Rp2.000.000. Jika saldo akun sudah dicatat −Rp2.000.000, jangan mengurangkan limit Rp10.000.000 sekali lagi.",
+        "important": "Aplikasi memiliki opsi ‘sertakan batas kredit dalam saldo’ untuk rekening tertentu yang laporannya sudah memasukkan limit. Aktifkan hanya bila benar-benar memahami format saldo dari bankmu; jika salah, total saldo bisa tampak jauh lebih negatif dari utang sebenarnya."
+      },
+      "vehicleName": {
+        "title": "Nama kendaraan",
+        "meaning": "Kendaraan adalah aset yang dinilainya diperkirakan berubah dari waktu ke waktu, bukan rekening yang bisa dipakai membayar. Nama ini hanya identitas kendaraanmu di daftar aset. Pilih nama yang bisa membedakannya dari kendaraan lain.",
+        "example": "‘Vario Harian’, ‘Avanza Keluarga’, atau ‘Beat Kantor’. Nilai kendaraan dimasukkan sebagai aset pada laporan kekayaan bersih, bukan saldo tunai yang bisa langsung dibelanjakan.",
+        "important": "Jangan membuat akun kas biasa dengan nilai kendaraan yang sama sekaligus menambahkan kendaraan sebagai aset; itu berisiko menghitung nilai yang sama dua kali."
+      },
+      "vehicleCurrency": {
+        "title": "Mata uang penilaian kendaraan",
+        "meaning": "Pilih mata uang harga beli kendaraan dan nilai estimasinya. Untuk kendaraan yang dibeli di Indonesia, biasanya gunakan IDR. Sistem akan menilai aset berdasarkan mata uang ini.",
+        "example": "Motor Honda Vario dibeli Rp26.000.000, maka mata uangnya IDR. Jangan memilih USD hanya karena mereknya berasal dari luar negeri.",
+        "important": "Dokumentasi asli menyatakan mata uang kendaraan tidak dapat diubah setelah dibuat. Periksa pilihan sebelum menyimpan."
+      },
+      "vehicleMake": {
+        "title": "Merek kendaraan",
+        "meaning": "Merek adalah nama pabrikan atau merek kendaraan, bukan nama model maupun tipe mesinnya. Informasi ini membantu membedakan kendaraan dan membuat daftar aset lebih mudah dipahami.",
+        "example": "Toyota, Daihatsu, Honda, Suzuki, Mitsubishi, Yamaha, atau Wuling. Untuk Honda Vario, mereknya Honda; untuk Toyota Avanza, mereknya Toyota.",
+        "important": "Merek belum otomatis mencocokkan harga pasar Indonesia atau data Samsat. Penilaian kendaraan tetap menggunakan rumus penyusutan internal."
+      },
+      "vehicleModel": {
+        "title": "Model kendaraan",
+        "meaning": "Model merupakan keluarga produk kendaraan di bawah mereknya. Model berbeda dari varian spesifik dan tahun keluaran.",
+        "example": "Merek Toyota, model Avanza; merek Honda, model Vario; merek Daihatsu, model Xenia. Varian seperti G CVT, CBS, atau ABS ditulis pada kolom Varian.",
+        "important": "Nama model tidak otomatis mengubah tarif penyusutan pada versi aplikasi saat ini. Penurunan nilai terutama mengikuti kategori kendaraan dan pola yang dipilih."
+      },
+      "vehicleTrim": {
+        "title": "Varian / tipe",
+        "meaning": "Varian adalah versi kendaraan dengan spesifikasi tertentu, misalnya pilihan transmisi, kapasitas mesin, atau paket fitur. Kolom ini opsional, tetapi berguna jika kelak membandingkan dengan harga mobil/motor bekas.",
+        "example": "Avanza 1.5 G CVT, Brio Satya E CVT, atau Vario 160 CBS. Cukup isi varian yang tercatat di dokumen pembelian kalau kamu mengetahuinya.",
+        "important": "Varian pada versi ini hanya disimpan sebagai detail. Aplikasi belum otomatis mengubah estimasi harga berdasarkan harga pasar khusus varian tersebut."
+      },
+      "vehicleYear": {
+        "title": "Tahun kendaraan",
+        "meaning": "Ini tahun produksi atau tahun model kendaraan, bukan tanggal kamu membelinya. Mobil tahun 2021 dapat saja baru kamu beli sebagai kendaraan bekas pada 2026.",
+        "example": "Kamu membeli Honda Brio produksi 2021 pada November 2026: Tahun = 2021; Tanggal beli = tanggal transaksi pembelian pada 2026.",
+        "important": "Kurva penyusutan aplikasi dihitung dari tanggal dan harga belimu, bukan dari tahun kendaraan atau riwayat harga jual barunya. Perlu kehati-hatian untuk kendaraan bekas."
+      },
+      "vehicleClass": {
+        "title": "Kategori kendaraan dan keterbatasannya",
+        "meaning": "Kategori ini sekarang digunakan sebagai input rumus penyusutan. Pilihan yang tersedia masih mengikuti kategori luar negeri: Sedan, SUV, Truk, Mewah, Kendaraan listrik, Motor, dan Lainnya. Kategorinya mencampur bentuk bodi, segmen harga, serta penggerak, sehingga belum ideal untuk Indonesia.",
+        "example": "Honda Vario → Motor. Toyota Fortuner → SUV. Avanza/Xenia tergolong MPV, tetapi kategori MPV khusus belum tersedia; ‘Lainnya’ dapat digunakan sementara, tanpa menganggap rumusnya sebagai harga pasar yang akurat.",
+        "important": "Jangan memilih ‘Kendaraan listrik’ hanya untuk menganggapnya tipe bodi; mobil listrik juga bisa SUV atau hatchback. Kategori Motor, SUV, Mewah, dan EV memakai kurva penyusutan berbeda, tetapi belum dikalibrasi untuk harga pasar Indonesia."
+      },
+      "vehiclePurchasePrice": {
+        "title": "Harga beli kendaraan",
+        "meaning": "Masukkan harga yang benar-benar dibayarkan untuk mendapatkan kendaraan, bukan estimasi harga pasar hari ini. Ini menjadi titik awal perhitungan nilai aset yang kemudian diturunkan memakai pola penyusutan.",
+        "example": "Motor dibeli tunai Rp28.000.000: harga beli = 28.000.000. Jika dibeli melalui kredit, pisahkan harga kendaraan dari bunga dan biaya pembiayaan; utang/cicilan sebaiknya dicatat tersendiri agar aset dan kewajiban tidak dicampur.",
+        "important": "Menurut dokumentasi aplikasi asli, harga beli tidak dapat diedit setelah kendaraan dibuat. Harga beli bukan jaminan nilai jual kembali, terutama untuk kendaraan bekas atau kendaraan yang dibeli di atas/bawah pasar."
+      },
+      "vehiclePurchaseDate": {
+        "title": "Tanggal kendaraan dibeli",
+        "meaning": "Tanggal ini menandai kapan kamu mulai memiliki kendaraan dan menjadi titik awal perhitungan penurunan nilainya di aplikasi. Bukan tanggal STNK, tahun model, atau tanggal cicilan pertama.",
+        "example": "Toyota Avanza tahun 2020 dibeli bekas pada 10 November 2026: tanggal beli = 10 November 2026. Tahun kendaraan tetap 2020.",
+        "important": "Tanggal beli tidak dapat diubah setelah kendaraan dibuat pada versi asli. Untuk pembelian bekas, pola tahun pertama sistem dimulai dari tanggal kamu membelinya, sehingga estimasi bisa berbeda jauh dari pasar nyata."
+      },
+      "vehicleDepreciation": {
+        "title": "Pola penurunan nilai kendaraan",
+        "meaning": "Penyusutan adalah perkiraan berkurangnya harga kendaraan dari waktu ke waktu. Pola bawaan memakai kurva per kategori, Lambat berarti persentase tahunan 30% lebih kecil, Cepat 30% lebih besar, dan Tentukan sendiri memakai persentase tetap setiap tahun. Nilai ini estimasi matematis, bukan harga jual pasar yang terverifikasi.",
+        "example": "Untuk sedan contoh Rp200.000.000, pola bawaan menurunkan nilai 20% pada tahun pertama menjadi Rp160.000.000, lalu 15% dari sisanya pada tahun kedua menjadi Rp136.000.000. Ini contoh rumus aplikasi, bukan patokan harga mobil bekas Indonesia.",
+        "important": "Kurva bawaan berasal dari referensi pasar luar negeri. Kondisi, pajak, lokasi, permintaan pasar, bekas banjir, riwayat servis, serta odometer tidak otomatis masuk rumus. Bandingkan dengan harga kendaraan bekas lokal dan gunakan pengaturan nilai manual jika diperlukan."
+      },
+      "vehicleCustomRate": {
+        "title": "Persentase penyusutan tahunan",
+        "meaning": "Kolom ini muncul jika kamu memilih pola khusus. Nilainya adalah persentase penurunan dari nilai kendaraan yang masih tersisa setiap tahun, bukan pengurangan nominal tetap. Penurunan bersifat majemuk dan dihitung sebagian untuk bulan yang belum genap setahun.",
+        "example": "Harga awal Rp100.000.000 dan tarif khusus 10%: setelah satu tahun estimasi menjadi Rp90.000.000, setelah dua tahun Rp81.000.000 (bukan Rp80.000.000).",
+        "important": "Angka 10% di sini bukan aturan resmi untuk semua mobil atau motor. Gunakan hanya jika kamu punya asumsi atau pembanding pasar yang masuk akal."
+      },
+      "vehicleFloor": {
+        "title": "Batas nilai minimum estimasi",
+        "meaning": "Batas sisa adalah lantai matematis: rumus penyusutan tidak akan menurunkan nilai kendaraan melewati persentase tertentu dari harga awal atau titik nilai yang pernah diperbarui secara manual. Ini bukan jaminan harga jual kembali.",
+        "example": "Harga beli Rp100.000.000, batas 10%: rumus berhenti menurunkan nilai di sekitar Rp10.000.000. Kendaraan rusak berat bisa bernilai lebih rendah, sedangkan motor/mobil terawat bisa bernilai jauh lebih tinggi.",
+        "important": "Untuk kebutuhan pribadi, lebih baik menganggapnya batas model perhitungan, bukan harga pasar. Tinjau secara berkala dan koreksi nilai bila punya pembanding yang valid."
+      },
+      "vehicleMileage": {
+        "title": "Jarak tempuh odometer",
+        "meaning": "Masukkan angka kilometer total pada odometer kendaraan saat ini, bukan jarak yang kamu tempuh hari ini. Kolom ini opsional dan terutama untuk catatan kondisi kendaraan.",
+        "example": "Odometer menunjukkan 45.600 km: isi 45600. Tidak perlu menambahkan ‘km’ karena satuannya sudah jelas.",
+        "important": "Pada versi aplikasi ini, odometer BELUM memengaruhi estimasi penyusutan. Jadi nilai aset tidak otomatis turun karena kilometernya tinggi. Anggap ini informasi pelengkap, bukan kalkulasi harga pasar."
+      },
+      "loanOverview": {
+        "title": "Tentang pencatatan pinjaman",
+        "meaning": "Fitur ini menyimpan sisa kewajiban dan perkiraan pelunasan. Untuk pinjaman tunai, saldo pinjaman menjadi utang sementara uang yang cair perlu dicatat pada rekening bank. Untuk cicilan belanja, barang yang dibeli tidak selalu masuk sebagai uang tunai.",
+        "example": "Pinjaman tunai KrediFazz Rp1.000.000, dana masuk bank setelah dipotong biaya: catat uang benar-benar masuk di bank, utang sesuai perjanjian, dan biaya dipisahkan. SPayLater pembelian sepatu tidak membuat saldo bank bertambah.",
+        "important": "Peringatan: mesin proyeksi memakai asumsi bunga tahunan menurun atas sisa pokok dan memperlakukan pembayaran tercatat sebagai pengurangan pokok. Ini bisa salah untuk bunga flat, admin di muka, dan cicilan tetap. Tagihan serta rincian pokok/bunga di aplikasi pemberi pinjaman adalah acuan utamanya."
+      },
+      "loanName": {
+        "title": "Nama pinjaman",
+        "meaning": "Nama ini mengenali satu fasilitas atau kontrak utang. Jangan mencampur seluruh pembelian berbeda ke satu pinjaman jika setiap cicilan punya tanggal dan nominal tersendiri.",
+        "example": "'Kredivo – HP November 2026', 'SPayLater – Sepatu', atau 'KrediFazz – Pinjaman November'. Kamu boleh memakai merek dan bulan agar tidak tertukar.",
+        "important": "Jangan mencatat transaksi pembelian yang sama dua kali sebagai pengeluaran. Limit yang belum digunakan bukan jumlah utang."
+      },
+      "loanType": {
+        "title": "Jenis pinjaman",
+        "meaning": "Pilihan KPR, Kendaraan, Mahasiswa, dan Pribadi sebagian besar untuk pengelompokan tampilan, bukan pengatur rumus. Paylater atau pinjaman online belum punya tipe tersendiri dalam model awal.",
+        "example": "Untuk KrediFazz, Kredivo PayLater, dan SPayLater, pilihan yang paling mendekati saat ini adalah 'Pribadi', tetapi belum berarti proyeksi bunganya akan cocok.",
+        "important": "KrediFazz adalah pinjaman tunai; Kredivo PayLater dan SPayLater dipakai untuk pembelian barang/jasa. SPinjam berbeda lagi dari SPayLater. Jenis kewajiban harus dipisahkan berdasarkan kontraknya."
+      },
+      "loanCurrency": {
+        "title": "Mata uang pinjaman",
+        "meaning": "Gunakan mata uang kewajiban pada kontrak, bukan mata uang perusahaan pemberi pinjaman.",
+        "example": "Cicilan Kredivo atau SPayLater yang ditagih Rupiah menggunakan IDR.",
+        "important": "Mata uang tidak bisa diubah bebas setelah membuat pinjaman. Pastikan kontrak dan cicilan menggunakan unit yang sama."
+      },
+      "loanPrincipal": {
+        "title": "Pokok pinjaman awal",
+        "meaning": "Pokok adalah jumlah kredit asli sebelum sebagian angsuran dibayar, bukan total semua angsuran, limit kredit, atau jumlah uang bersih yang diterima setelah potongan biaya.",
+        "example": "Pinjaman disetujui Rp1.000.000 dan admin Rp60.000 dipotong di muka: pokok kontrak bisa tetap Rp1.000.000 meskipun dana masuk hanya Rp940.000. Lihat perjanjian untuk angka pastinya.",
+        "important": "Pinjaman belanja Rp1.000.000 dengan bunga/biaya menjadi total tagihan Rp1.120.000: jangan menyamakan pokok Rp1.000.000 dengan total kewajiban masa depan Rp1.120.000. Biaya keuangan harus dipisahkan saat pencatatan yang akurat."
+      },
+      "loanBalance": {
+        "title": "Sisa pokok atau saldo terutang saat ini",
+        "meaning": "Angka positif ini menyatakan sisa utang pada tanggal kamu mulai mencatat. Lajur. akan menyimpannya sebagai kewajiban (saldo negatif). Angka dapat berbeda dari total cicilan masa depan yang sudah memasukkan bunga atau admin.",
+        "example": "Pokok awal Rp1.000.000, sisa pokok setelah pembayaran sebelumnya Rp750.000: masukkan 750000. Periksa detail tagihan resmi karena 'total yang harus dibayar' bisa termasuk biaya yang belum jatuh tempo.",
+        "important": "Jangan menambahkan pokok dan total tagihan secara bersamaan. Dalam sistem ini pembayaran tercatat dapat langsung mengurangi pokok, sehingga perlu rekonsiliasi dengan sisa pokok resmi jika ada biaya bunga di setiap angsuran."
+      },
+      "loanAPR": {
+        "title": "Suku bunga tahunan (APR)",
+        "meaning": "APR berarti persentase bunga tahunan. Proyeksi aplikasi menghitung bunga berdasarkan saldo yang tersisa, bukan otomatis memakai angka bunga flat bulanan atau seluruh biaya pinjaman.",
+        "example": "Bila kontrak menyatakan bunga efektif tahunan 12%, isilah 12. Tetapi 2,6% per bulan yang dihitung flat dari pokok awal tidak boleh begitu saja diubah menjadi 31,2% dan dianggap setara dengan APR untuk proyeksi.",
+        "important": "Jangan mengisi 0% hanya karena tidak tahu bunganya atau promo menyebut 'bunga 0%' tetapi masih ada biaya administrasi. Tanpa rincian tarif dan cara hitung dari kontrak, perhitungan otomatis dapat menyesatkan."
+      },
+      "loanTerm": {
+        "title": "Jangka waktu atau tenor",
+        "meaning": "Tenor adalah berapa bulan perjanjian berlangsung. Satu bulan dan 30 hari tidak selalu sama dalam tanggal penagihan.",
+        "example": "Cicilan HP 6 kali bulanan: masukkan 6 bulan. KPR 15 tahun: 180 bulan.",
+        "important": "Menu pintasan semula lebih berfokus pada pinjaman jangka panjang. Untuk Kredivo/SPayLater, ketik langsung 1, 3, 6, 9, 12, atau jumlah bulan persis sesuai kontrak; jangan memilih tenor karena menu saja."
+      },
+      "loanStart": {
+        "title": "Tanggal pinjaman dimulai",
+        "meaning": "Tanggal kontrak atau pencairan/pembelian mulai berlaku. Berbeda dengan tanggal kamu mulai mencatat saldo pinjaman ke aplikasi.",
+        "example": "HP dibeli dengan cicilan pada 10 November 2026, cicilan pertama pada Desember: tanggal mulai bisa 10 November sesuai kontrak.",
+        "important": "Tanggal mulai tidak memindahkan dana ke bank, tidak menetapkan tanggal semua angsuran, dan pada model saat ini tidak otomatis membetulkan ketidaksesuaian saldo."
+      },
+      "loanPlanned": {
+        "title": "Cicilan yang direncanakan",
+        "meaning": "Jumlah yang ingin atau benar-benar kamu bayarkan per bulan. Dipakai untuk membuat perkiraan kapan pinjaman lunas, bukan instruksi pembayaran otomatis.",
+        "example": "Tagihan cicilan KrediFazz Rp380.000 per bulan: rencanakan Rp380.000 dan cocokkan dengan jadwal resmi di aplikasi penyedia.",
+        "important": "Untuk cicilan flat, nilai bulanan bisa mengandung pokok, bunga dan biaya layanan. Proyeksi Lajur. belum memisahkan ketiganya secara otomatis; jangan menganggap penurunan pokok sama dengan seluruh cicilan."
+      },
+      "loanMinimum": {
+        "title": "Pembayaran minimum",
+        "meaning": "Nilai terendah yang wajib dibayar sesuai kontrak agar kewajiban bulanan terpenuhi. Ini bukan selalu angsuran normal dan bukan perkiraan mesin aplikasi.",
+        "example": "Kartu kredit bisa mempunyai pembayaran minimum yang berbeda dari total tagihan. Cicilan SPayLater yang sudah ditentukan sering punya nominal tagihan sesuai jadwal. Isi sesuai yang benar-benar diwajibkan.",
+        "important": "Tautan perkiraan otomatis di form menghitung menggunakan rumus kredit amortisasi. Jangan menyalin hasil itu sebagai cicilan Kredivo/SPayLater tanpa mencocokkan invoice/tagihan dari penyedia."
+      },
+      "loanPaymentDay": {
+        "title": "Tanggal jatuh tempo pembayaran",
+        "meaning": "Hari dalam bulan ketika pembayaran harus dilakukan. Berbeda dari tanggal pembelian dan bukan perintah autodebet.",
+        "example": "Cicilan jatuh tempo setiap tanggal 15: isi 15. Jika platform menagih setiap 30 hari dari transaksi, tanggalnya dapat bergeser dan harus dilihat per kontrak.",
+        "important": "Untuk tanggal 29–31, sistem dapat menyesuaikan ke hari terakhir pada bulan yang lebih pendek. Periksa tetap kalender cicilan resmi dan atur pengingat terpisah bila diperlukan."
+      },
+      "loanLender": {
+        "title": "Pemberi pinjaman",
+        "meaning": "Nama lembaga yang memberi atau mengelola pembiayaan. Nama aplikasi tempat kamu checkout tidak selalu sama dengan pemberi dana dalam kontrak.",
+        "example": "Pembelian barang melalui SPayLater dapat memakai PT Commerce Finance; pinjaman tunai KrediFazz dan cicilan Kredivo dapat berasal dari entitas berbeda. Isi sesuai kontrak yang kamu terima.",
+        "important": "Jangan otomatis menulis 'Shopee' untuk semua pinjaman di Shopee. SPayLater dan SPinjam merupakan produk berbeda. Selalu cek halaman ringkasan perjanjian yang berlaku."
+      },
+      "loanReference": {
+        "title": "Nomor kontrak atau referensi",
+        "meaning": "Nomor unik yang membantu mencocokkan tagihan, pembayaran, dan perjanjian pinjaman. Tidak harus berupa nomor rekening bank.",
+        "example": "Gunakan kode transaksi atau ID perjanjian dari riwayat Kredivo, SPayLater, atau KrediFazz. Jika sensitif, cukup simpan sebagian nomor dan catatan yang dapat kamu kenali.",
+        "important": "Jangan menaruh PIN, OTP, password, atau nomor identitas lengkap pada catatan aplikasi. Nomor referensi bisa disamarkan selama masih cukup untuk rekonsiliasi."
+      },
+      "loanBalanceDate": {
+        "title": "Saldo terutang berlaku sejak tanggal",
+        "meaning": "Saat mengoreksi sisa utang lama, tanggal ini menentukan kapan nilai baru dianggap benar untuk riwayat pinjaman.",
+        "example": "Sisa utang resmi berubah menjadi Rp750.000 per 10 November: pilih tanggal 10 November ketika memperbaiki saldo.",
+        "important": "Perubahan tanggal historis dapat mengubah grafik utang masa lalu. Jangan gunakan tanggal pencairan jika angka yang kamu masukkan merupakan sisa utang hari ini."
+      }
     }
   },
   "fields": {
@@ -316,9 +531,15 @@
       "clearSelectionLabel": "Hapus pilihan",
       "searchPlaceholder": "Cari...",
       "sharedOwnerNotice": "Menampilkan kategori {owner}",
-      "unlistedNotice": "Search to find any category",
+      "unlistedNotice": "Cari untuk menemukan kategori lainnya",
       "sharedOwnerNoticeTooltip": "Transaksi di akun bersama selalu menggunakan kategori pemilik. Apa pun yang Anda simpan di sini akan diajukan di bawah set {owner} sehingga Anda berdua melihat total yang konsisten.",
-      "sharedOwnerCategoriesLoadError": "Tidak dapat memuat kategori untuk akun bersama. Silakan coba lagi."
+      "sharedOwnerCategoriesLoadError": "Tidak dapat memuat kategori untuk akun bersama. Silakan coba lagi.",
+      "dialogHint": "Pilih kategori utama atau subkategori agar laporan lebih teratur.",
+      "groupHint": "Kategori & subkategori",
+      "collapseAll": "Ringkas semua",
+      "expandAll": "Tampilkan semua",
+      "collapseGroup": "Ringkas {name}",
+      "expandGroup": "Tampilkan subkategori {name}"
     },
     "select": {
       "selectOption": "Pilih opsi",
@@ -350,7 +571,23 @@
     },
     "tagSelect": {
       "placeholder": "Pilih tag...",
-      "noTagsAvailable": "Tidak ada tag tersedia"
+      "noTagsAvailable": "Tidak ada tag tersedia",
+      "removeConfirmAction": "Lepaskan tag",
+      "removeConfirmTitle": "Lepaskan tag?",
+      "removeConfirmDetail": "Lepaskan tag “{name}” dari transaksi ini? Tag tetap tersedia untuk transaksi lain dan tidak dihapus dari daftar tag.",
+      "dialogTitle": "Pilih tag",
+      "dialogHint": "Pilih tag yang sesuai, atau tambahkan saran di bawah.",
+      "searchPlaceholder": "Cari tag...",
+      "existingTitle": "Tag tersedia",
+      "suggestedTitle": "Saran tag",
+      "suggestedHint": "Ketuk untuk menambah. Tag tambahan bisa dihapus di sini.",
+      "done": "Selesai",
+      "createError": "Tag gagal dibuat. Coba lagi.",
+      "deleteError": "Tag gagal dihapus. Coba lagi.",
+      "deleteTagLabel": "Hapus tag {name}",
+      "deleteTagAction": "Hapus tag",
+      "deleteTagTitle": "Hapus tag dari aplikasi?",
+      "deleteTagDetail": "Tag “{name}” akan dihapus dari daftar tag, transaksi, dan kategori yang memakainya. Tindakan ini tidak bisa dibatalkan."
     },
     "categoryMultiSelect": {
       "placeholder": "Pilih kategori...",

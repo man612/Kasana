@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/lib/ui/button';
 import { useDescribedByAttrs } from '@/components/lib/ui/dialog/described-by';
+import { vAnimateDialogHeight } from '@/composable/animate-dialog-height';
 import { cn } from '@/lib/utils';
 import { X } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
@@ -15,19 +16,24 @@ import {
 } from 'reka-ui';
 import { type HTMLAttributes, computed } from 'vue';
 
+// Fallthrough attributes belong to the actual dialog element, not its Portal.
+defineOptions({ inheritAttrs: false });
+
 const { t } = useI18n();
 
 const props = defineProps<
   DialogContentProps & {
     class?: HTMLAttributes['class'];
     customClose?: boolean;
+    /** Only calendar dialogs use a softly blurred backdrop. */
+    blurOverlay?: boolean;
   }
 >();
 const emits = defineEmits<DialogContentEmits>();
 
 const delegatedProps = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { class: _, ...delegated } = props;
+  const { class: _, customClose: _customClose, blurOverlay: _blurOverlay, ...delegated } = props;
 
   return delegated;
 });
@@ -41,12 +47,14 @@ const describedByAttrs = useDescribedByAttrs();
     <DialogOverlay
       :class="[
         'fixed inset-0 z-(--z-dialog) bg-black/80',
+        props.blurOverlay && 'backdrop-blur-[3px]',
         'data-[state=open]:animate-in data-[state=open]:fade-in-0',
         'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
       ]"
     />
     <DialogContent
-      v-bind="{ ...forwarded, ...describedByAttrs }"
+      v-animate-dialog-height
+      v-bind="{ ...forwarded, ...describedByAttrs, ...$attrs }"
       :class="
         cn(
           'bg-dialog fixed top-1/2 left-1/2 z-(--z-dialog) flex max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col border p-6 shadow-lg duration-200 sm:rounded-lg',
@@ -59,8 +67,8 @@ const describedByAttrs = useDescribedByAttrs();
       <slot />
 
       <template v-if="!customClose">
-        <DialogClose class="absolute top-6 right-6" as-child>
-          <Button variant="ghost" size="icon">
+        <DialogClose class="absolute top-3.5 right-3.5 z-20" as-child>
+          <Button variant="ghost" size="icon" class="size-8 shrink-0 rounded-md" :aria-label="t('common.ui.close')">
             <X class="size-4" />
             <span class="sr-only">{{ t('common.ui.close') }}</span>
           </Button>

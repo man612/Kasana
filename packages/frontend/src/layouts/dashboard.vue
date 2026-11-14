@@ -1,16 +1,26 @@
 <template>
   <div class="bg-background flex h-dvh max-md:flex-col">
-    <template v-if="!isMobileView">
-      <SidebarRail v-if="isCollapsed || isSettingsRoute" />
-      <Sidebar v-else />
-    </template>
+    <div
+      v-if="!isMobileView && !isSettingsRoute"
+      class="relative h-full shrink-0 overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+      :class="isCollapsed ? 'w-16' : 'w-75'"
+    >
+      <Transition name="lajur-sidebar" mode="out-in">
+        <SidebarRail v-if="isCollapsed" key="rail" />
+        <Sidebar v-else key="full" />
+      </Transition>
+    </div>
 
     <ScrollArea ref="scrollAreaRef" class="flex-1" scrollbar-class="z-40" :scroll-area-id="SCROLL_AREA_IDS.dashboard">
       <ui-header class="bg-card dark:bg-background sticky top-0 z-30" />
 
       <template v-if="isAppInitialized">
         <div class="max-md:pb-4">
-          <router-view />
+          <router-view v-slot="{ Component, route }">
+            <Transition name="kasana-page" mode="out-in">
+              <component :is="Component" :key="route.matched[1]?.path ?? route.path" />
+            </Transition>
+          </router-view>
         </div>
       </template>
     </ScrollArea>
@@ -66,8 +76,7 @@ const userCurrenciesStore = useCurrenciesStore();
 const onboardingStore = useOnboardingStore();
 const idleEnabled = useIdleEnabled();
 const { isCollapsed } = useSidebarCollapsed();
-// Settings owns a separate navigator: temporarily collapse the regular sidebar
-// without overwriting the user's persisted preference.
+// The settings page owns a fully functional navigator; hide the main sidebar there.
 const isSettingsRoute = computed(() => String(route.name ?? '').startsWith(ROUTES_NAMES.settings));
 const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile, {
   wait: 50,

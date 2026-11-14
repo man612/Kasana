@@ -4,6 +4,8 @@ import { ValidationError } from '@js/errors';
 import Tags from '@models/tags.model';
 import { withTransaction } from '@services/common/with-transaction';
 
+import { isCoreTag } from './core-tags';
+
 interface UpdateTagPayload {
   id: string;
   userId: number;
@@ -20,6 +22,10 @@ export const updateTag = withTransaction(async (payload: UpdateTagPayload) => {
     query: Tags.findOne({ where: { id, userId } }),
     message: t({ key: 'tags.tagNotFound' }),
   });
+
+  if (isCoreTag(tag.name) && name !== undefined && name.trim() !== tag.name) {
+    throw new ValidationError({ message: 'Nama tag bawaan Keinginan, Kebutuhan, dan Prioritas tidak dapat diganti.' });
+  }
 
   // Check for duplicate name if name is being updated
   if (name && name !== tag.name) {

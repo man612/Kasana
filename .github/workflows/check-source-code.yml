@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # dorny/paths-filter reads pull-request changed files through the GitHub API.
-# On an independent repository, the default GITHUB_TOKEN may lack that
+# On a private independent repository, the default GITHUB_TOKEN may lack that
 # permission; explicitly grant read-only PR metadata access.
 permissions:
   contents: read
@@ -36,6 +36,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Audit public identity and outbound destinations
+        run: node scripts/check-public-identity.mjs
       - id: prepare-env
         uses: ./.github/actions/prepare-local-env
       - name: Install dependencies
@@ -96,10 +98,46 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: frontend-docker-build
         uses: ./.github/actions/frontend-docker-build
+      - name: Validate Kasana Compose boundaries
+        run: node scripts/check-compose-boundaries.mjs
       - name: Image digest
         run: echo ${{ steps.frontend-docker-build.outputs.docker-build-digest }}
       - name: Smoke test
-        run: ./self-hosting/frontend/smoke-test.sh local/budget-tracker-fe:latest
+        run: sh ./self-hosting/frontend/smoke-test.sh local/budget-tracker-fe:latest
+
+  backup-restore-smoke:
+    name: Synthetic PostgreSQL + attachments restore
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Verify isolated database + attachment backup and restore
+        run: bash self-hosting/tests/backup-restore-synthetic.sh
+
+  browser-smoke:
+    name: Isolated Kasana mobile browser smoke
+    # Playwright 1.60.0 does not install Chromium on the ubuntu-latest 26.04
+    # runner image. Pin a supported distro until Playwright supports 26.04.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Reclaim unused runner disk space
+        uses: jlumbroso/free-disk-space@ceedf095f4ec1a097402bc6bd80831f2e1a6fde6 # v2.0.0
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.22.1'
+      - name: Test real-browser IDR mobile navigation on disposable stack
+        run: bash self-hosting/tests/browser-smoke-ci.sh
 
   backend:
     name: Backend tasks

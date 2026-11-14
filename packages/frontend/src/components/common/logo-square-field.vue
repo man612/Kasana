@@ -19,7 +19,7 @@ const props = defineProps<{
   /** Clear-button label. The default wording is only accurate for entities with auto-resolution. */
   resetLabel?: string;
   /** 'with-labeled-field' pushes the square down past a sibling field's caption so both line up on the input row. */
-  align?: 'default' | 'with-labeled-field';
+  align?: 'default' | 'with-labeled-field' | 'with-help-labeled-field';
   tabs?: LogoTab[];
 }>();
 
@@ -32,6 +32,8 @@ defineSlots<{ placeholder?: () => unknown }>();
 
 /** Height of a FieldLabel caption: a 16px line box plus its 5px bottom margin. */
 const LABELED_FIELD_OFFSET = 'mt-[21px]';
+// In account creation a 32px help trigger raises the label row height.
+const HELP_LABELED_FIELD_OFFSET = 'mt-[36px]';
 
 const isOpen = ref(false);
 
@@ -49,7 +51,7 @@ function handleReset() {
 </script>
 
 <template>
-  <div :class="cn('group relative shrink-0', align === 'with-labeled-field' && LABELED_FIELD_OFFSET)">
+  <div :class="cn('group relative shrink-0', align === 'with-labeled-field' && LABELED_FIELD_OFFSET, align === 'with-help-labeled-field' && HELP_LABELED_FIELD_OFFSET)">
     <slot v-if="!modelValue && $slots.placeholder" name="placeholder" />
     <BrandLogo v-else v-bind="logoDisplay" :name="nameForSearch" :class="cn('size-10 text-base', sizeClass)" />
     <Button
@@ -59,15 +61,20 @@ function handleReset() {
       :disabled="disabled"
       :class="
         cn(
-          'bg-background/80 hover:bg-background absolute inset-0 size-full rounded-[inherit] opacity-0 backdrop-blur-sm transition-opacity',
-          !disabled && 'group-focus-within:opacity-100 group-hover:opacity-100',
+          'focus-visible:ring-ring absolute inset-0 z-10 size-full rounded-lg bg-transparent p-0 hover:bg-transparent focus-visible:ring-2 focus-visible:ring-offset-2',
+          disabled && 'pointer-events-none opacity-50',
         )
       "
       :aria-label="$t('common.logo.editAriaLabel')"
       data-test="logo-square-field"
       @click="isOpen = true"
     >
-      <PencilIcon class="size-4" />
+      <span
+        class="bg-card text-foreground border-border pointer-events-none absolute -right-1 -bottom-1 flex size-5 items-center justify-center rounded-md border shadow-sm transition-colors group-hover:bg-accent"
+        aria-hidden="true"
+      >
+        <PencilIcon class="size-3" />
+      </span>
     </Button>
 
     <ResponsiveDialog v-model:open="isOpen">

@@ -246,60 +246,349 @@
   Prevent document-level scrolling. All scrolling should happen inside ScrollArea components.
   This fixes the "double scroll" issue where html/body can scroll independently.
 */
-/* KASANA DESIGN TOKENS: adjust overall scale and colors without changing components. */
+/* Keep the 80% rem-based interface density, but never zoom the HTML root.
+   Root zoom shrank 100dvh panels, clipped scroll containers and offset portals. */
 :root {
   --kasana-ui-scale: 0.8;
+  --kasana-brand-light: rgb(115, 85, 190);
+  --kasana-brand-dark: rgb(115, 85, 190);
+  --kasana-brand-text-light: rgb(100, 67, 175);
+  --kasana-brand-text-dark: rgb(197, 175, 255);
+}
+@layer base {
+  html {
+    font-size: calc(100% * var(--kasana-ui-scale));
+  }
+}
+
+/* Purple is the default accent. These selectors override only brand colors,
+   independently of the user's light/dark appearance preference. */
+:root[data-kasana-accent='green'] {
   --kasana-brand-light: rgb(27, 91, 74);
   --kasana-brand-dark: rgb(27, 91, 74);
   --kasana-brand-text-light: rgb(22, 95, 72);
   --kasana-brand-text-dark: rgb(127, 222, 179);
+  --ring: rgb(27 91 74 / 60%);
+}
+:root.dark[data-kasana-accent='green'] {
+  --ring: rgb(91, 192, 149);
+}
+:root[data-kasana-accent='blue'] {
+  --kasana-brand-light: rgb(37, 99, 235);
+  --kasana-brand-dark: rgb(37, 99, 235);
+  --kasana-brand-text-light: rgb(29, 78, 216);
+  --kasana-brand-text-dark: rgb(147, 197, 253);
+  --ring: rgb(37 99 235 / 60%);
+}
+:root.dark[data-kasana-accent='blue'] {
+  --ring: rgb(96, 165, 250);
+}
+
+/* A restrained interaction vocabulary applied through shared primitives.
+   Vue Transition handles route entry/exit, Reka handles menu presence,
+   and Vaul keeps gesture-aware drawer motion. */
+:root {
+  --kasana-motion-fast: 140ms;
+  --kasana-motion-normal: 210ms;
+  --kasana-motion-slow: 320ms;
+  --kasana-motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 @layer base {
-  html { zoom: var(--kasana-ui-scale); }
+  :where(button, [role='button'], input, select, textarea) {
+    transition-property: background-color, border-color, color, box-shadow, opacity;
+    transition-duration: var(--kasana-motion-fast);
+    transition-timing-function: var(--kasana-motion-ease);
+  }
+}
+@layer base {
+  :where([data-kasana-interactive]) {
+    transition-property: background-color, border-color, color, box-shadow, opacity, filter;
+  }
+}
+[data-kasana-interactive]:not(:disabled):active {
+  filter: brightness(0.96);
+}
+.kasana-page-enter-active,
+.kasana-page-leave-active {
+  transition:
+    opacity var(--kasana-motion-normal) var(--kasana-motion-ease),
+    transform var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+.kasana-page-enter-from {
+  opacity: 0;
+  transform: translateY(5px);
+}
+.kasana-page-leave-to {
+  opacity: 0;
+  transform: translateY(-3px);
 }
 
-/*
-  When the root element uses zoom: .8, viewport-length utilities such as h-dvh
-  and w-screen still measure the unzoomed viewport before being scaled.
-  Without compensation, a "full-screen" dashboard renders only 80% tall,
-  while overflow:hidden on html/body hides the remaining area.
-  Keep the 80% visual density but let viewport-sized surfaces fill the actual
-  browser window on desktop and mobile. These rules track the same scale token,
-  so changing it later does not require replacing 1.25 throughout the app.
-*/
-@layer utilities {
-  .h-dvh { height: calc(100dvh / var(--kasana-ui-scale)); }
-  .min-h-dvh { min-height: calc(100dvh / var(--kasana-ui-scale)); }
-  .max-h-dvh { max-height: calc(100dvh / var(--kasana-ui-scale)); }
-
-  .h-screen { height: calc(100vh / var(--kasana-ui-scale)); }
-  .min-h-screen { min-height: calc(100vh / var(--kasana-ui-scale)); }
-  .max-h-screen { max-height: calc(100vh / var(--kasana-ui-scale)); }
-
-  .w-dvw { width: calc(100dvw / var(--kasana-ui-scale)); }
-  .min-w-dvw { min-width: calc(100dvw / var(--kasana-ui-scale)); }
-  .max-w-dvw { max-width: calc(100dvw / var(--kasana-ui-scale)); }
-
-  .w-screen { width: calc(100vw / var(--kasana-ui-scale)); }
-  .min-w-screen { min-width: calc(100vw / var(--kasana-ui-scale)); }
-  .max-w-screen { max-width: calc(100vw / var(--kasana-ui-scale)); }
+/* User-accessibility setting wins over decorative motion, including existing
+   Tailwind and third-party animations. This does not remove focus feedback. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
-/* App-branded native scrollbars. Reka scroll areas have their own thumb below. */
+
+/* Whole-app shell and nested navigation motion, preserving parent layouts. */
+.kasana-shell-enter-active,
+.kasana-shell-leave-active {
+  transition: opacity var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+.kasana-shell-enter-from,
+.kasana-shell-leave-to {
+  opacity: 0;
+}
+
+.kasana-section-enter-active,
+.kasana-section-leave-active {
+  transition:
+    opacity var(--kasana-motion-fast) var(--kasana-motion-ease),
+    transform var(--kasana-motion-fast) var(--kasana-motion-ease);
+}
+.kasana-section-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.kasana-section-leave-to {
+  opacity: 0;
+  transform: translateY(-3px);
+}
+
+/* Content for shared Reka Tabs fades in when activated, in addition to the
+   existing sliding active-tab indicator. */
+.kasana-tab-content[data-state='active'] {
+  animation: kasana-tab-enter var(--kasana-motion-normal) var(--kasana-motion-ease) both;
+}
+@keyframes kasana-tab-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reka Presence retains the indicator until its closing animation completes.
+   Keep the state cue short so keyboard selection remains responsive. */
+.kasana-selection-indicator[data-state='checked'],
+.kasana-selection-indicator[data-state='indeterminate'] {
+  animation: kasana-selection-enter var(--kasana-motion-fast) var(--kasana-motion-ease) both;
+}
+.kasana-selection-indicator[data-state='unchecked'] {
+  animation: kasana-selection-leave var(--kasana-motion-fast) ease-in both;
+}
+@keyframes kasana-selection-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.75);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes kasana-selection-leave {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.75);
+  }
+}
+
+/* Opt-in Vue TransitionGroup FLIP motion for short, keyed non-virtual lists.
+   Do not attach this to virtualized transaction tables or infinite lists. */
+.kasana-list-move,
+.kasana-list-enter-active,
+.kasana-list-leave-active {
+  transition:
+    transform var(--kasana-motion-normal) var(--kasana-motion-ease),
+    opacity var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+.kasana-list-enter-from,
+.kasana-list-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.kasana-list-leave-active {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+/* Validation and progress status updates: short, contained feedback. */
+.kasana-feedback-enter-active,
+.kasana-feedback-leave-active,
+.kasana-icon-enter-active,
+.kasana-icon-leave-active {
+  transition:
+    opacity var(--kasana-motion-fast) var(--kasana-motion-ease),
+    transform var(--kasana-motion-fast) var(--kasana-motion-ease);
+}
+.kasana-feedback-enter-from,
+.kasana-feedback-leave-to {
+  opacity: 0;
+  transform: translateY(-3px);
+}
+.kasana-icon-enter-from {
+  opacity: 0;
+  transform: scale(0.84);
+}
+.kasana-icon-leave-to {
+  opacity: 0;
+  transform: scale(0.84);
+}
+
+/* Period text moves gently while the dashboard's data refreshes. */
+.kasana-period-enter-active,
+.kasana-period-leave-active {
+  transition:
+    opacity var(--kasana-motion-normal) var(--kasana-motion-ease),
+    transform var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+.kasana-period-enter-from {
+  opacity: 0;
+  transform: translateX(6px);
+}
+.kasana-period-leave-to {
+  opacity: 0;
+  transform: translateX(-6px);
+}
+
+/* Animate natural-height optional form panels where the browser supports it.
+   Keep graceful fade/slide fallback in older browsers and respect reduced motion. */
+@supports (interpolate-size: allow-keywords) {
+  .kasana-feedback-enter-active,
+  .kasana-feedback-leave-active {
+    interpolate-size: allow-keywords;
+    transition-property: height, opacity, transform;
+    overflow: hidden;
+  }
+  .kasana-feedback-enter-from,
+  .kasana-feedback-leave-to {
+    height: 0;
+  }
+}
+
+/* Editing switches between sortable and static widget cards without an abrupt flash. */
+.kasana-dashboard-edit-enter {
+  animation: kasana-dashboard-grid-in var(--kasana-motion-normal) var(--kasana-motion-ease) both;
+}
+.kasana-dashboard-edit-return {
+  animation: kasana-dashboard-grid-in var(--kasana-motion-normal) var(--kasana-motion-ease) both;
+}
+@keyframes kasana-dashboard-grid-in {
+  from {
+    opacity: 0.7;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Neutral, opaque scrollbar track/thumb regardless of the account accent. */
+:root {
+  --app-scrollbar-track: #e4e5e8;
+  --app-scrollbar-thumb: #868a92;
+  --app-scrollbar-thumb-hover: #5f636b;
+}
+.dark {
+  --app-scrollbar-track: #292a2d;
+  --app-scrollbar-thumb: #797b80;
+  --app-scrollbar-thumb-hover: #abaeb3;
+}
 * {
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--primary) 48%, var(--border)) transparent;
+  scrollbar-color: var(--app-scrollbar-thumb) var(--app-scrollbar-track);
 }
-*::-webkit-scrollbar { width: 9px; height: 9px; }
-*::-webkit-scrollbar-track { background: transparent; border-radius: 999px; }
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--app-scrollbar-track);
+  border-radius: 999px;
+}
 *::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--primary) 35%, var(--border));
-  border: 2px solid var(--background);
+  background: var(--app-scrollbar-thumb);
+  border: 2px solid var(--app-scrollbar-track);
   border-radius: 999px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--primary) 60%, var(--border));
+  background: var(--app-scrollbar-thumb-hover);
 }
-*::-webkit-scrollbar-corner { background: transparent; }
+*::-webkit-scrollbar-corner {
+  background: var(--app-scrollbar-track);
+}
+
+/* Lajur calendar: soft selection feedback and stable 36px touch targets.
+   The library handles month slide motion; keep the selected-day motion separate. */
+[data-testid='transaction-date-dialog'] .vc-day-content {
+  border-radius: 0.65rem;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-testid='transaction-date-dialog'] .vc-day-content:hover:not(.vc-disabled) {
+  transform: scale(1.06);
+}
+[data-testid='transaction-date-dialog'] .vc-day:has(.vc-highlight) .vc-day-content {
+  animation: lajur-calendar-selected 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+[data-testid='transaction-date-dialog'] .vc-highlight {
+  border-radius: 0.65rem !important;
+}
+@keyframes lajur-calendar-selected {
+  from {
+    transform: scale(0.84);
+    opacity: 0.65;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-testid='transaction-date-dialog'] .vc-day-content {
+    transition: none;
+    animation: none !important;
+  }
+}
+
+/* Payee, account and payment-leg regions exit/enter independently.
+   Does not discard reactive form state or change financial values. */
+.lajur-form-panel-enter-active,
+.lajur-form-panel-leave-active {
+  transition:
+    opacity 170ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 170ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lajur-form-panel-enter-from {
+  opacity: 0;
+  transform: translateY(7px);
+}
+.lajur-form-panel-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+/* Leaving forms may coexist briefly with incoming forms. Ignore clicks on the fading copy. */
+.lajur-form-panel-leave-active {
+  pointer-events: none;
+}
 
 @layer base {
   html,
@@ -362,7 +651,7 @@
 
     --border: rgb(234, 229, 220);
     --input: rgb(30 25 18 / 0.16);
-    --ring: rgba(27, 91, 74, 0.6);
+    --ring: rgba(115, 85, 190, 0.6);
     --radius: 0.75rem;
 
     --success: rgb(42, 141, 82);
@@ -479,7 +768,7 @@
 
     --border: rgb(42, 40, 37);
     --input: rgb(255 255 255 / 0.12);
-    --ring: rgb(91, 192, 149);
+    --ring: rgb(155, 125, 222);
 
     --success: rgb(16, 59, 49);
     --success-foreground: rgb(250, 250, 250);
@@ -680,4 +969,159 @@ select:focus-visible,
   --ph-survey-rating-text-color: var(--accent-foreground) !important;
   --ph-survey-rating-active-bg-color: var(--primary) !important;
   --ph-survey-rating-active-text-color: var(--primary-foreground) !important;
+}
+
+/* Smooth height changes for planned-date notices and multi-account panels. */
+.lajur-form-panel-enter-active,
+.lajur-form-panel-leave-active {
+  overflow: clip;
+  transition:
+    opacity 230ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 230ms cubic-bezier(0.22, 1, 0.36, 1),
+    max-height 270ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+.lajur-form-panel-enter-from,
+.lajur-form-panel-leave-to {
+  max-height: 0 !important;
+}
+.lajur-form-panel-enter-to,
+.lajur-form-panel-leave-from {
+  max-height: var(--lajur-panel-height, 1750px);
+}
+
+.lajur-payment-rows-enter-active,
+.lajur-payment-rows-leave-active,
+.lajur-payment-rows-move {
+  transition:
+    opacity 230ms ease,
+    transform 250ms ease,
+    max-height 260ms ease,
+    margin 260ms ease;
+}
+.lajur-payment-rows-enter-from,
+.lajur-payment-rows-leave-to {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.985);
+  max-height: 0;
+  margin: 0;
+}
+.lajur-payment-rows-enter-to,
+.lajur-payment-rows-leave-from {
+  opacity: 1;
+  max-height: 110px;
+}
+.lajur-payment-rows-leave-active {
+  pointer-events: none;
+}
+
+.lajur-category-items-enter-active,
+.lajur-category-items-leave-active,
+.lajur-category-items-move {
+  transition:
+    opacity 180ms ease,
+    transform 190ms ease;
+}
+.lajur-category-items-enter-from,
+.lajur-category-items-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+.lajur-category-items-leave-active {
+  position: absolute;
+  pointer-events: none;
+}
+
+.lajur-sidebar-enter-active,
+.lajur-sidebar-leave-active {
+  transition:
+    opacity 200ms ease,
+    transform 220ms ease;
+}
+.lajur-sidebar-enter-from,
+.lajur-sidebar-leave-to {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lajur-form-panel-enter-active,
+  .lajur-form-panel-leave-active,
+  .lajur-payment-rows-enter-active,
+  .lajur-payment-rows-leave-active,
+  .lajur-payment-rows-move,
+  .lajur-category-items-enter-active,
+  .lajur-category-items-leave-active,
+  .lajur-category-items-move,
+  .lajur-sidebar-enter-active,
+  .lajur-sidebar-leave-active {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Mode descriptions crossfade without replacing mounted form controls. */
+.lajur-form-copy-enter-active,
+.lajur-form-copy-leave-active {
+  transition:
+    opacity 170ms ease,
+    transform 190ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lajur-form-copy-enter-from {
+  opacity: 0;
+  transform: translateY(5px);
+}
+.lajur-form-copy-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lajur-form-copy-enter-active,
+  .lajur-form-copy-leave-active {
+    transition: none !important;
+  }
+}
+
+/* Edit overlays animate without unmounting their underlying charts. */
+.lajur-widget-overlay-enter-active,
+.lajur-widget-overlay-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lajur-widget-overlay-enter-from,
+.lajur-widget-overlay-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lajur-widget-overlay-enter-active,
+  .lajur-widget-overlay-leave-active {
+    transition: none !important;
+  }
+}
+
+/* Dashboard: soften widget rearrangement when leaving edit mode. */
+.kasana-dashboard-edit-return > [data-widget-id] {
+  animation: lajur-dashboard-return 330ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.kasana-dashboard-edit-return > [data-widget-id]:nth-child(2n) {
+  animation-delay: 35ms;
+}
+.kasana-dashboard-edit-return > [data-widget-id]:nth-child(3n) {
+  animation-delay: 70ms;
+}
+@keyframes lajur-dashboard-return {
+  from {
+    opacity: 0.68;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kasana-dashboard-edit-return > [data-widget-id] {
+    animation: none !important;
+  }
 }
