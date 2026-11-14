@@ -298,6 +298,17 @@ describe('create_holding', () => {
     }
   });
 
+  it('allows an absent or explicitly undefined inactive holding input', () => {
+    const byId = { portfolioId: PORTFOLIO_ID, securityId: SECURITY_ID };
+    const bySearch = { portfolioId: PORTFOLIO_ID, searchResult };
+    expect(createHoldingBodySchema.safeParse(byId).success).toBe(true);
+    expect(createHoldingBodySchema.safeParse({ ...byId, searchResult: undefined }).success).toBe(true);
+    expect(createHoldingBodySchema.safeParse(bySearch).success).toBe(true);
+    expect(createHoldingBodySchema.safeParse({ ...bySearch, securityId: undefined }).success).toBe(true);
+    expect(createHoldingBodySchema.safeParse({ ...byId, searchResult }).success).toBe(false);
+    expect(createHoldingBodySchema.safeParse({ portfolioId: PORTFOLIO_ID }).success).toBe(false);
+  });
+
   it('refuses a body with both ids, or neither, before the service', async () => {
     await expect(
       call({ tool, args: { portfolioId: PORTFOLIO_ID, securityId: SECURITY_ID, searchResult }, extra: WRITE }),
