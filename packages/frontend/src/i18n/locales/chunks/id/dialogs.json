@@ -100,7 +100,9 @@
         "selectTransfer": "Pilih transfer",
         "expenseHint": "Uang keluar untuk belanja, tagihan, atau pembayaran kepada pihak lain.",
         "incomeHint": "Uang dari luar masuk, misalnya gaji, honor, hadiah, atau hasil jualan.",
-        "transferHint": "Pindahkan uang antarrekening sendiri. Bayar orang lain? Gunakan Pengeluaran."
+        "transferHint": "Pindahkan uang antarrekening sendiri. Bayar orang lain? Gunakan Pengeluaran.",
+        "transferDisabledPlanned": "Transfer belum didukung untuk transaksi terencana.",
+        "transferDisabledMultiAccount": "Matikan Beberapa Rekening sebelum memilih Transfer."
       },
       "recordList": {},
       "form": {
@@ -111,6 +113,9 @@
         "createMoreHint": "Setelah transaksi berhasil disimpan, formulir tetap terbuka untuk mencatat transaksi berikutnya.",
         "addFieldsHint": "Detail tambahan, hanya pilih yang dibutuhkan.",
         "outOfWalletDocsLink": "Apa itu di luar rekening?",
+        "outOfWalletHelpTitle": "Apa arti Di Luar Rekening?",
+        "outOfWalletHelpDescription": "Gunakan pilihan ini untuk mencatat uang yang masuk atau keluar dari rekening tercatat, tetapi pihak di seberangnya tidak memiliki rekening di daftar Anda.",
+        "outOfWalletHelpExample": "Contohnya, Anda memindahkan uang tunai ke rekening bank atau menerima dana dari rekening yang tidak Anda catat. Pilihan ini bukan rekening baru, dan tidak menambah saldo akun lain secara otomatis.",
         "destinationGroupLabel": "Tujuan uang",
         "paymentTypeLabel": "Jenis Pembayaran",
         "noteLabel": "Catatan (opsional)",
@@ -663,86 +668,86 @@
       "title": "Pilih transaksi"
     },
     "attachInvoice": {
-      "title": "Attach invoice",
-      "description": "Drop an invoice or receipt. We read the total, date and merchant, then find the transaction it belongs to.",
-      "resultsTitle": "Pick the transaction",
-      "resultsDescription": "No transactions match this invoice. | {count} transaction could belong to this invoice. | {count} transactions could belong to this invoice.",
-      "analyzing": "Reading the invoice and searching your transactions…",
-      "attaching": "Attaching the invoice to the transaction…",
-      "privacyNote": "The file goes to the AI provider for reading only. Nothing is saved until you link it to a transaction.",
-      "aiPausedHint": "Invoice reading is paused. Open the AI badge above to see your options.",
+      "title": "Lampirkan nota atau tagihan",
+      "description": "Unggah nota atau tagihan. Total, tanggal, dan pihak terkait akan dibaca untuk mencari transaksi yang sesuai.",
+      "resultsTitle": "Pilih transaksi yang sesuai",
+      "resultsDescription": "Tidak ada transaksi yang cocok. | {count} transaksi mungkin cocok. | {count} transaksi mungkin cocok.",
+      "analyzing": "Membaca nota dan mencari transaksi…",
+      "attaching": "Menautkan nota ke transaksi…",
+      "privacyNote": "File dikirim ke penyedia AI untuk dibaca. Lampiran baru disimpan pada transaksi setelah Anda menautkannya.",
+      "aiPausedHint": "Pembacaan nota sedang dijeda. Buka informasi AI di atas untuk melihat pilihan.",
       "direction": {
-        "paid": "I paid this",
-        "gotPaid": "I got paid",
-        "paidHint": "We search your expenses for the payment.",
-        "gotPaidHint": "We search your income for the payment."
+        "paid": "Saya membayar",
+        "gotPaid": "Saya menerima",
+        "paidHint": "Mencari transaksi pengeluaran yang sesuai.",
+        "gotPaidHint": "Mencari transaksi pemasukan yang sesuai."
       },
       "invoice": {
-        "number": "Invoice №",
-        "issued": "Issued",
-        "total": "Total"
+        "number": "Nomor tagihan",
+        "issued": "Tanggal",
+        "total": "Jumlah"
       },
-      "fixDetails": "Fix details",
+      "fixDetails": "Perbaiki rincian",
       "form": {
-        "vendor": "Pedagang",
-        "vendorPlaceholder": "Enter the merchant name",
-        "customer": "Customer",
-        "customerPlaceholder": "Who the invoice is billed to",
-        "total": "Total",
-        "totalPlaceholder": "0.00",
-        "currency": "Mata Uang",
-        "currencyPlaceholder": "EUR",
-        "issued": "Invoice date",
-        "submit": "Search again"
+        "vendor": "Nama toko / penerima",
+        "vendorPlaceholder": "Nama toko atau penerima",
+        "customer": "Nama pembayar",
+        "customerPlaceholder": "Nama pihak yang membayar",
+        "total": "Jumlah",
+        "totalPlaceholder": "0",
+        "currency": "Mata uang",
+        "currencyPlaceholder": "Pilih mata uang",
+        "issued": "Tanggal nota",
+        "submit": "Cari ulang"
       },
       "signals": {
-        "amountExact": "Amount exact",
-        "amountClose": "{diff} off",
-        "amountConverted": "Matches after conversion",
-        "amountUnknown": "Amount not compared",
-        "sameDay": "Same day as invoice",
-        "daysAfter": "{count} day after invoice | {count} days after invoice",
-        "daysBefore": "{count} day before invoice | {count} days before invoice",
+        "amountExact": "Nominal sama",
+        "amountClose": "Selisih {diff}",
+        "amountConverted": "Cocok setelah konversi",
+        "amountUnknown": "Nominal belum dibandingkan",
+        "sameDay": "Tanggal sama",
+        "daysAfter": "{count} hari setelah tanggal nota",
+        "daysBefore": "{count} hari sebelum tanggal nota",
         "merchant": {
-          "match": "Merchant matches",
-          "partial": "Merchant looks similar",
-          "none": "Different merchant",
-          "unknown": "No payee set"
+          "match": "Nama toko cocok",
+          "partial": "Nama toko mirip",
+          "none": "Toko berbeda",
+          "unknown": "Penerima belum diisi"
         },
         "customer": {
-          "match": "Customer matches",
-          "partial": "Customer looks similar",
-          "none": "Different customer",
-          "unknown": "No payee set"
+          "match": "Nama pembayar cocok",
+          "partial": "Nama pembayar mirip",
+          "none": "Pembayar berbeda",
+          "unknown": "Pembayar belum diisi"
         }
       },
-      "alreadyHasFile": "Already has a file",
-      "bestMatch": "Best match · {score}%",
+      "alreadyHasFile": "Sudah ada lampiran",
+      "bestMatch": "Paling sesuai · {score}%",
       "empty": {
-        "title": "No matching transaction",
-        "description": "We looked for about {total} from 14 days before to 30 days after the invoice date, in all accounts. The payment may not be imported yet, or the invoice was read wrong."
+        "title": "Belum ada transaksi yang sesuai",
+        "description": "Pencarian sekitar {total} mencakup 14 hari sebelum hingga 30 hari setelah tanggal nota di semua rekening. Transaksi mungkin belum tercatat atau rincian nota perlu diperiksa."
       },
-      "searchManually": "Search manually",
+      "searchManually": "Cari manual",
       "createTransaction": "Buat transaksi",
-      "link": "Link invoice",
-      "linked": "Invoice linked to the transaction",
-      "created": "Transaction created and invoice attached",
-      "openTransaction": "Open transaction",
+      "link": "Tautkan nota",
+      "linked": "Nota berhasil ditautkan ke transaksi",
+      "created": "Transaksi dibuat dan nota dilampirkan",
+      "openTransaction": "Buka transaksi",
       "confirm": {
-        "title": "Link invoice to this transaction?",
-        "description": "{filename} will be attached to the {amount} transaction from {date}. You can remove it from the transaction later."
+        "title": "Tautkan nota ke transaksi ini?",
+        "description": "File {filename} akan dilampirkan ke transaksi {amount} pada {date}. Lampiran dapat dilepas melalui detail transaksi."
       },
       "errors": {
-        "match": "Could not read the invoice. Try again or use a clearer file.",
-        "link": "Could not link the invoice. Try again.",
-        "detailsNotFilled": "Invoice attached, but its details couldn't be copied to the transaction. Add them manually if you need them.",
-        "createdNotAttached": "Transaction created, but the invoice wasn't attached. Pick it from the list to attach it.",
-        "rematch": "Could not search again. Check the details and retry.",
-        "openTransaction": "Couldn't open the transaction. Find it in your transactions list."
+        "match": "Nota tidak dapat dibaca. Coba file yang lebih jelas.",
+        "link": "Gagal menautkan nota. Coba lagi.",
+        "detailsNotFilled": "Nota terlampir, tetapi rinciannya belum berhasil disalin. Anda dapat mengisinya secara manual.",
+        "createdNotAttached": "Transaksi dibuat, tetapi nota belum terlampir. Pilih transaksi untuk menautkannya.",
+        "rematch": "Gagal mencari ulang. Periksa rinciannya dan coba lagi.",
+        "openTransaction": "Gagal membuka transaksi. Cari melalui daftar transaksi."
       },
       "trial": {
-        "left": "1 free try left of {limit} | {count} free tries left of {limit}",
-        "spent": "You've used all your free tries. Upgrade to Plus to keep attaching invoices with AI."
+        "left": "Sisa 1 percobaan gratis dari {limit} | Sisa {count} percobaan gratis dari {limit}",
+        "spent": "Percobaan gratis habis. Periksa paket yang tersedia untuk memakai pembacaan nota dengan AI."
       }
     },
     "exchangeCurrency": {
@@ -893,6 +898,9 @@
       }
     },
     "loanPayment": {
+      "fillRecordedOutstanding": "Isi sisa pokok",
+      "fillOutstandingNotice": "Nominal ini hanya sisa pokok utang yang tercatat, bukan tagihan pelunasan final. Bunga berjalan, biaya layanan, dan penalti pelunasan belum tentu termasuk. Periksa tagihan resmi penyedia pinjaman.",
+      "fillRequiresSameCurrency": "Pengisian otomatis hanya tersedia jika mata uang rekening dan pinjaman sama.",
       "title": "Pembayaran pinjaman",
       "description": "Catat atau sunting pembayaran untuk pinjaman ini.",
       "createTitle": "Catat Pembayaran",

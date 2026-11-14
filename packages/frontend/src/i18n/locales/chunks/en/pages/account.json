@@ -102,6 +102,16 @@
         "title": "Archive account",
         "description": "Archiving preserves all transactions but removes the account from your active list. Bank connections and group memberships will be disconnected.",
         "compareOptionsLink": "Archive, exclude or delete?",
+        "comparison": {
+          "title": "Archive, exclude or delete?",
+          "description": "These actions have different effects on your financial records.",
+          "archivedTitle": "Archive an account",
+          "archived": "Hides an account from active lists and stops adding new transactions. Its past transactions remain saved. You can restore the account later.",
+          "excludedTitle": "Exclude from statistics",
+          "excluded": "The account and its transactions remain available, but its amounts are excluded from statistics that respect the exclusion setting. The balance is not deleted.",
+          "deletedTitle": "Delete an account",
+          "deleted": "Deletion is permanent and may also delete related transactions. Unlike archiving, it cannot be undone."
+        },
         "archiveButton": "Archive account",
         "confirmTitle": "Archive account",
         "confirmDescription": "Are you sure you want to archive \"{name}\"? This will:",

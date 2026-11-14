@@ -5,7 +5,7 @@ import FieldError from '@/components/fields/components/field-error.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import { cn } from '@/lib/utils';
 import type { AccountModel } from '@bt/shared/types';
-import { ref } from 'vue';
+import { onBeforeUnmount, ref } from 'vue';
 
 defineProps<{
   account: AccountModel | null;
@@ -28,14 +28,26 @@ const emit = defineEmits<{
 
 const amountFieldRef = ref<InstanceType<typeof FormattedAmountField> | null>(null);
 const accountWarningVisible = ref(false);
+let accountWarningTimeout: ReturnType<typeof setTimeout> | undefined;
+const clearAccountWarning = () => {
+  if (accountWarningTimeout) clearTimeout(accountWarningTimeout);
+  accountWarningTimeout = undefined;
+  accountWarningVisible.value = false;
+};
 const requireAccountChoice = () => {
-  // The user asked for guidance, not a nested account dropdown that may close the form on Escape.
+  // A transient tap hint, not a persistent validation error. Each deliberate tap renews its lifetime.
+  clearAccountWarning();
   accountWarningVisible.value = true;
+  accountWarningTimeout = setTimeout(() => {
+    accountWarningVisible.value = false;
+    accountWarningTimeout = undefined;
+  }, 3200);
 };
 const onAccountPicked = (value: AccountModel | null) => {
-  accountWarningVisible.value = false;
+  clearAccountWarning();
   emit('update:account', value);
 };
+onBeforeUnmount(clearAccountWarning);
 
 defineExpose({
   focus: () => amountFieldRef.value?.focus(),
@@ -104,8 +116,15 @@ defineExpose({
       </div>
     </div>
     <FieldError :error-message="errorMessage" />
-    <p v-if="accountWarningVisible && !account" class="text-warning-text mt-1 text-xs" role="status">
-      {{ $t('dialogs.manageTransaction.form.paymentLegs.chooseAccountFirst') }}
-    </p>
+    <Transition name="lajur-form-panel">
+      <p
+        v-if="accountWarningVisible && !account"
+        class="text-warning-text mt-1 text-xs"
+        role="status"
+        aria-live="polite"
+      >
+        {{ $t('dialogs.manageTransaction.form.paymentLegs.chooseAccountFirst') }}
+      </p>
+    </Transition>
   </div>
 </template>

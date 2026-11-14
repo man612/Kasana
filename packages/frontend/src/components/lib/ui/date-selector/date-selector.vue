@@ -86,6 +86,8 @@ function handleCancel() {
       :presets="presets"
       :earliest-date="earliestDate"
       :allowed-filter-modes="allowedFilterModes"
+      :hide-header="dialogOnDesktop && !isMobile"
+      :hide-cancel="dialogOnDesktop && !isMobile"
       @apply="applyAndClose"
       @cancel="handleCancel"
       @preset-apply="applyAndClose"
@@ -118,7 +120,7 @@ function handleCancel() {
       </Dialog.DialogTrigger>
       <Dialog.DialogContent
         blur-overlay
-        class="max-h-[min(88dvh,740px)] w-[calc(100vw-2rem)] max-w-2xl gap-2 overflow-hidden p-4"
+        class="grid max-h-[min(90dvh,800px)] w-[calc(100vw-1.5rem)] max-w-3xl grid-rows-[auto_minmax(0,1fr)] gap-2 overflow-hidden p-4"
       >
         <Dialog.DialogTitle class="pr-12 text-base font-semibold">
           {{ t('common.dateSelector.simpleTitle') }}
@@ -126,7 +128,7 @@ function handleCancel() {
         <Dialog.DialogDescription class="sr-only">
           {{ t('common.dateSelector.currentMonth') }}
         </Dialog.DialogDescription>
-        <div class="min-h-0 overflow-y-auto overscroll-contain">
+        <div class="min-h-0 overflow-hidden">
           <SlotContent />
         </div>
       </Dialog.DialogContent>

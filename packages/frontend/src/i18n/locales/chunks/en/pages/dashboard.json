@@ -14,6 +14,7 @@
       },
       "balanceTrend": {
         "title": "Balance trend",
+        "table": { "toggle": "View balance by date", "date": "Date", "amount": "Balance" },
         "balanceTypes": {
           "total": "Total",
           "accounts": "Accounts",
@@ -437,6 +438,14 @@
       }
     },
     "periodSelector": {
+      "presetsShort": {
+        "currentMonth": "This mo.",
+        "last3Months": "3 mo.",
+        "last6Months": "6 mo.",
+        "lastYear": "12 mo.",
+        "thisYear": "This yr.",
+        "previousYear": "Last yr."
+      },
       "presets": {
         "currentMonth": "Current month",
         "last3Months": "Last 3 months",

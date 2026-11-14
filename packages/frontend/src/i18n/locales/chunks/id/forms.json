@@ -191,7 +191,8 @@
     },
     "validators": {
       "invalidCurrencyDecimal": "Masukkan jumlah yang valid (hingga 2 desimal)",
-      "mustBePositive": "Jumlah harus positif"
+      "mustBePositive": "Jumlah harus positif",
+      "between": "Masukkan angka antara {min} dan {max}."
     },
     "exchangeCurrency": {
       "fromCurrencyLabel": "Dari Mata Uang",
@@ -240,7 +241,14 @@
         "error": "Gagal menambahkan kendaraan"
       },
       "vehicleClassPlaceholder": "Pilih jenis kendaraan",
-      "vehicleClassHint": "Jenis kendaraan memengaruhi estimasi penyusutan. MPV, LCGC, dan hatchback belum mempunyai rumus khusus Indonesia; gunakan Lainnya sementara dan periksa kembali perkiraan nilainya."
+      "vehicleClassHint": "Kategori kendaraan menentukan rumus perkiraan penurunan nilai. MPV, LCGC, hatchback, dan jenis lain mungkin memakai kategori penyusutan terdekat; periksa kembali hasil estimasinya.",
+      "errors": {
+        "positive": "Masukkan nilai lebih dari 0.",
+        "yearRange": "Masukkan tahun antara {min} dan {max}.",
+        "percentRange": "Masukkan angka antara 0 dan 100.",
+        "mileageRange": "Odometer harus antara 0 dan {max} km.",
+        "integer": "Masukkan bilangan bulat tanpa desimal."
+      }
     },
     "editVehicle": {
       "submitButton": "Simpan perubahan",
@@ -252,7 +260,7 @@
     },
     "loan": {
       "nameLabel": "Nama pinjaman",
-      "namePlaceholder": "mis. Kredivo – HP / KrediFazz – November",
+      "namePlaceholder": "mis. Pinjaman keluarga / Kredit motor",
       "loanTypeLabel": "Jenis pinjaman",
       "loanTypePlaceholder": "Pilih jenis pinjaman",
       "currencyLabel": "Mata Uang",
@@ -261,8 +269,8 @@
       "originalPrincipalPlaceholder": "mis. 1.000.000",
       "initialBalanceLabel": "Saldo terutang saat ini",
       "initialBalancePlaceholder": "Sisa pokok sesuai rincian pinjaman",
-      "interestRateLabel": "Bunga tahunan (APR %, bukan bunga flat)",
-      "interestRatePlaceholder": "Bunga efektif tahunan sesuai kontrak",
+      "interestRateLabel": "Bunga tahunan",
+      "interestRatePlaceholder": "mis. 12",
       "minPaymentEstimateTooltip": "Diperkirakan dari pokok, suku bunga tahunan, dan jangka waktu menggunakan rumus amortisasi standar.",
       "minPaymentApplyEstimateAriaLabel": "Gunakan perkiraan pembayaran minimum",
       "termMonthsLabel": "Jangka waktu (bulan)",
@@ -273,15 +281,15 @@
       "termMonthsPlaceholder": "mis. 3, 6, 12, atau 180 bulan",
       "startDateLabel": "Tanggal mulai",
       "startDatePlaceholder": "DD/MM/YYYY",
-      "startDateTooltip": "Tanggal perjanjian atau pencairan dimulai. Berbeda dari tanggal pertama kali saldo pinjaman dicatat ke Lajur..",
+      "startDateTooltip": "Tanggal perjanjian atau pencairan pinjaman dimulai. Ini berbeda dari tanggal saat Anda mulai mencatat sisa utang.",
       "plannedPaymentLabel": "Cicilan bulanan sesuai tagihan",
       "plannedPaymentPlaceholder": "mis. 350000",
-      "minPaymentLabel": "Pembayaran minimum (jika ada)",
+      "minPaymentLabel": "Bayar minimum",
       "minPaymentPlaceholder": "Masukkan jika tercantum dalam perjanjian",
-      "paymentDayLabel": "Hari pembayaran dalam bulan",
+      "paymentDayLabel": "Tanggal bayar",
       "paymentDayPlaceholder": "1–31",
       "lenderNameLabel": "Penyedia pembiayaan",
-      "lenderNamePlaceholder": "mis. Kredivo / KrediFazz / SPayLater",
+      "lenderNamePlaceholder": "mis. Bank, koperasi, keluarga, atau layanan pinjaman",
       "accountNumberLabel": "Nomor kontrak / referensi",
       "accountNumberPlaceholder": "Opsional",
       "currentBalanceLabel": "Saldo terutang saat ini",
@@ -307,7 +315,7 @@
         "asOfInFuture": "Tanggal tidak boleh di masa depan",
         "startDateInFuture": "Tanggal mulai tidak boleh di masa depan."
       },
-      "balanceExceedsPrincipalWarning": "Saldo terutang lebih tinggi dari pokok awal – periksa kembali jumlah ini.",
+      "balanceExceedsPrincipalWarning": "Sisa utang lebih besar dari pokok awal. Periksa apakah bunga atau biaya sudah ditambahkan ke saldo.",
       "modelWarning": "Perhitungan otomatis mengasumsikan bunga menurun atas sisa pokok; cicilan paylater Indonesia dengan bunga flat atau biaya layanan mungkin berbeda. Cocokkan selalu dengan rincian tagihan resmi.",
       "termPresetMonths": "{count} bulan | {count} bulan"
     },
@@ -462,15 +470,15 @@
       },
       "loanBalance": {
         "title": "Sisa pokok atau saldo terutang saat ini",
-        "meaning": "Angka positif ini menyatakan sisa utang pada tanggal kamu mulai mencatat. Lajur. akan menyimpannya sebagai kewajiban (saldo negatif). Angka dapat berbeda dari total cicilan masa depan yang sudah memasukkan bunga atau admin.",
+        "meaning": "Masukkan angka positif yang menunjukkan sisa utang saat mulai mencatat. Nilai ini dihitung sebagai kewajiban (saldo negatif) pada laporan. Jangan menganggapnya sama dengan jumlah semua cicilan mendatang yang mungkin sudah memuat bunga atau biaya.",
         "example": "Pokok awal Rp1.000.000, sisa pokok setelah pembayaran sebelumnya Rp750.000: masukkan 750000. Periksa detail tagihan resmi karena 'total yang harus dibayar' bisa termasuk biaya yang belum jatuh tempo.",
         "important": "Jangan menambahkan pokok dan total tagihan secara bersamaan. Dalam sistem ini pembayaran tercatat dapat langsung mengurangi pokok, sehingga perlu rekonsiliasi dengan sisa pokok resmi jika ada biaya bunga di setiap angsuran."
       },
       "loanAPR": {
         "title": "Suku bunga tahunan (APR)",
-        "meaning": "APR berarti persentase bunga tahunan. Proyeksi aplikasi menghitung bunga berdasarkan saldo yang tersisa, bukan otomatis memakai angka bunga flat bulanan atau seluruh biaya pinjaman.",
-        "example": "Bila kontrak menyatakan bunga efektif tahunan 12%, isilah 12. Tetapi 2,6% per bulan yang dihitung flat dari pokok awal tidak boleh begitu saja diubah menjadi 31,2% dan dianggap setara dengan APR untuk proyeksi.",
-        "important": "Jangan mengisi 0% hanya karena tidak tahu bunganya atau promo menyebut 'bunga 0%' tetapi masih ada biaya administrasi. Tanpa rincian tarif dan cara hitung dari kontrak, perhitungan otomatis dapat menyesatkan."
+        "meaning": "Bunga tahunan adalah persentase biaya bunga dalam setahun. Perhitungan proyeksi di sini memakai bunga atas sisa utang yang belum dilunasi, dengan tarif tahunan dibagi 12 untuk tiap bulan. Ini bukan otomatis APR total yang memasukkan semua biaya administrasi. Bunga flat dihitung dari pokok awal, sehingga besar cicilannya bisa berbeda.",
+        "example": "Misalnya Rp12.000.000 selama 12 bulan dengan bunga saldo menurun 12% setahun, tanpa biaya lain: cicilan anuitas sekitar Rp1.066.185 per bulan, total bunga sekitar Rp794.226. Jika 12% itu bunga flat dari pokok awal, cicilan menjadi Rp1.120.000 per bulan dan total bunga Rp1.440.000. Angkanya berbeda walaupun sama-sama tertulis 12%.",
+        "important": "Masukkan tarif efektif/menurun yang benar-benar sesuai kontrak. Jangan mengisi 0% hanya karena tarifnya tidak diketahui, dan jangan menyamakan bunga flat dengan bunga menurun. Untuk pinjaman dengan biaya layanan, bayar nanti, atau skema lain, gunakan tagihan resmi sebagai acuan cicilan dan sisa kewajiban."
       },
       "loanTerm": {
         "title": "Jangka waktu atau tenor",

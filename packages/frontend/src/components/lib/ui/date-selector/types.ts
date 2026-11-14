@@ -18,5 +18,6 @@ export interface CellState {
 
 export interface DateSelectorPreset {
   label: string;
+  shortLabel?: string;
   getValue: () => Period;
 }

@@ -31,7 +31,12 @@ const isOpen = inject<ComputedRef<boolean>>(PROVIDER_NAME);
   >
     <slot />
     <SelectIcon as-child>
-      <ChevronDown :class="['size-4 shrink-0 opacity-50', isOpen && 'rotate-180']" />
+      <ChevronDown
+        :class="[
+          'size-4 shrink-0 opacity-50 transition-transform duration-200 ease-out motion-reduce:transition-none',
+          isOpen && 'rotate-180',
+        ]"
+      />
     </SelectIcon>
   </SelectTrigger>
 </template>

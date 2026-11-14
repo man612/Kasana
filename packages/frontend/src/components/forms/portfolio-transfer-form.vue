@@ -2,7 +2,7 @@
 import PickTransactionDialog from '@/components/dialogs/pick-transaction-dialog.vue';
 import AccountSelectField from '@/components/fields/account-select-field.vue';
 import DateField from '@/components/fields/date-field.vue';
-import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
 import * as AlertDialog from '@/components/lib/ui/alert-dialog';
@@ -10,6 +10,7 @@ import UiButton from '@/components/lib/ui/button/Button.vue';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
 import TransactionRecord from '@/components/transactions-list/transaction-record.vue';
 import { useFormatCurrency } from '@/composable';
+import { formatUIAmount } from '@/js/helpers';
 import {
   type TransferContext,
   type TransferType,
@@ -43,6 +44,8 @@ const props = defineProps<{
   initialAccount?: AccountModel;
   /** Disable the form inputs */
   disabled?: boolean;
+  formId?: string;
+  showSubmitButton?: boolean;
 }>();
 
 const emit = defineEmits<Emit>();
@@ -190,10 +193,21 @@ const showFromAccount = computed(() => props.context === 'account' && transferTy
 const showToAccount = computed(() => transferType.value === 'portfolio-to-account');
 
 // Dynamic labels based on context
+const amountCurrencyCode = computed(
+  () => form.selectedCurrency?.currency?.code ?? form.fromAccount?.currencyCode ?? undefined,
+);
 const amountLabel = computed(() => {
-  return form.selectedCurrency
-    ? t('forms.portfolioTransfer.amountLabelWithCurrency', { currency: form.selectedCurrency.currency!.code })
+  return amountCurrencyCode.value
+    ? t('forms.portfolioTransfer.amountLabelWithCurrency', {
+        currency: amountCurrencyCode.value === 'IDR' ? 'Rp' : amountCurrencyCode.value,
+      })
     : t('forms.portfolioTransfer.amountLabel');
+});
+const amountModel = computed<number | null>({
+  get: () => (form.amount === '' ? null : Number(form.amount)),
+  set: (value) => {
+    form.amount = value === null ? '' : String(value);
+  },
 });
 
 // Form validation
@@ -333,7 +347,7 @@ const prepareConfirmationData = () => {
 
   if (isLinkExistingTx.value && linkedTransaction.value) {
     const tx = linkedTransaction.value;
-    amount = formatAmountByCurrencyCode(tx.amount, tx.currencyCode);
+    amount = formatUIAmount(tx.amount, { currency: tx.currencyCode });
     currency = tx.currencyCode;
 
     if (transferType.value === 'portfolio-to-account') {
@@ -355,7 +369,7 @@ const prepareConfirmationData = () => {
       toName = form.toPortfolio?.name || '';
     }
 
-    amount = formatAmountByCurrencyCode(Number(form.amount), form.selectedCurrency?.currency!.code!);
+    amount = formatUIAmount(Number(form.amount), { currency: form.selectedCurrency?.currency!.code ?? 'IDR' });
     currency = form.selectedCurrency?.currency!.code || '';
   }
 
@@ -453,10 +467,12 @@ const isSubmitDisabled = computed(() => {
     (!form.toPortfolio && !form.toAccount)
   );
 });
+
+defineExpose({ isSubmitting: isAnyMutationPending, isSubmitDisabled });
 </script>
 
 <template>
-  <form class="grid w-full max-w-150 gap-6" @submit.prevent="onSubmit">
+  <form :id="formId" class="grid w-full max-w-150 gap-4" @submit.prevent="onSubmit">
     <SelectField
       v-model="form.transferTypeOption"
       :label="$t('forms.portfolioTransfer.transferTypeLabel')"
@@ -553,15 +569,13 @@ const isSubmitDisabled = computed(() => {
         :error-message="getFieldErrorMessage('form.selectedCurrency')"
       />
 
-      <InputField
-        v-model="form.amount"
+      <FormattedAmountField
+        v-model="amountModel"
+        :currency-code="amountCurrencyCode"
         :label="amountLabel"
-        type="number"
-        step="0.01"
-        min="0.01"
         :placeholder="$t('forms.portfolioTransfer.amountPlaceholder')"
         :disabled="isAnyMutationPending || disabled"
-        :error="getFieldErrorMessage('form.amount')"
+        :error-message="getFieldErrorMessage('form.amount')"
         @blur="touchField('form.amount')"
       />
 
@@ -581,7 +595,7 @@ const isSubmitDisabled = computed(() => {
       />
     </template>
 
-    <div class="flex justify-end gap-4">
+    <div v-if="showSubmitButton !== false" class="flex justify-end gap-4">
       <UiButton type="button" variant="secondary" @click="emit('cancel')" :disabled="isAnyMutationPending || disabled">
         {{ $t('forms.portfolioTransfer.cancelButton') }}
       </UiButton>

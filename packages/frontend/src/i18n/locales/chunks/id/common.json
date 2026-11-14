@@ -115,12 +115,12 @@
       "none": "Tidak ada"
     },
     "vehicleClasses": {
-      "sedan": "Sedan",
-      "suv": "SUV",
-      "truck": "Truk",
-      "luxury": "Mewah",
+      "sedan": "Sedan / Hatchback",
+      "suv": "SUV / Crossover",
+      "truck": "Pikap / Truk",
+      "luxury": "Kelas premium",
       "ev": "Kendaraan listrik",
-      "motorcycle": "Motor",
+      "motorcycle": "Sepeda motor",
       "other": "Lainnya"
     },
     "depreciationPresets": {
@@ -365,6 +365,13 @@
   },
   "validation": {
     "required": "Wajib diisi",
+    "between": "Masukkan angka antara {min} dan {max}.",
+    "minValue": "Nilai minimal {min}.",
+    "maxValue": "Nilai maksimal {max}.",
+    "integer": "Masukkan bilangan bulat tanpa desimal.",
+    "numeric": "Masukkan angka yang valid.",
+    "decimal": "Masukkan angka yang valid.",
+    "maxLength": "Maksimal {max} karakter.",
     "minLength": "Panjang minimal adalah {length}.",
     "emailInvalid": "Silakan masukkan alamat email yang valid.",
     "passwordsNoMatch": "Kata sandi tidak cocok"

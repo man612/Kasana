@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { LayoutGridIcon } from '@lucide/vue';
-import { computed, provide, ref, watch } from 'vue';
+import { computed, nextTick, provide, ref, watch } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
 
 import { useDashboardLayout } from '../composables/use-dashboard-layout';
@@ -58,6 +58,29 @@ const editableWidgets = computed({
 });
 provide('dashboard-save-widget-config', saveWidgetConfigDirect);
 
+// Layout size changes are discrete in CSS Grid: View Transitions animate the
+// previous and next widget rectangles without remounting charts or changing
+// the saved layout. Older browsers use the existing instant layout behavior.
+const animateLayoutChange = (change: () => void) => {
+  const startViewTransition = (
+    document as Document & {
+      startViewTransition?: (callback: () => Promise<void>) => unknown;
+    }
+  ).startViewTransition;
+  if (!isEditMode.value || !startViewTransition || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+    change();
+    return;
+  }
+  startViewTransition.call(document, async () => {
+    change();
+    await nextTick();
+  });
+};
+const resizeWidgetAnimated = (widgetId: string, colSpan: number, rowSpan: number) =>
+  animateLayoutChange(() => resizeWidget({ widgetId, colSpan, rowSpan }));
+const removeWidgetAnimated = (widgetId: string) => animateLayoutChange(() => removeWidget({ widgetId }));
+const addWidgetAnimated = (widgetId: string) => animateLayoutChange(() => addWidget({ widgetId }));
+
 defineExpose({
   isEditMode,
   enterEditMode,
@@ -95,14 +118,14 @@ const GRID_CLASSES =
         :is-edit-mode="isEditMode"
         :can-remove="isEditMode && draftWidgets.length > 1"
         :current-period="currentPeriod"
-        @remove="(widgetId) => removeWidget({ widgetId })"
-        @resize="(widgetId, colSpan, rowSpan) => resizeWidget({ widgetId, colSpan, rowSpan })"
+        @remove="removeWidgetAnimated"
+        @resize="resizeWidgetAnimated"
         @config-change="(widgetId, key, value) => updateWidgetConfig({ widgetId, key, value })"
       />
     </VueDraggable>
 
     <div v-if="isEditMode" class="mt-6">
-      <DashboardAddWidgetPanel :available-widgets="availableWidgets" @add="(id) => addWidget({ widgetId: id })" />
+      <DashboardAddWidgetPanel :available-widgets="availableWidgets" @add="addWidgetAnimated" />
     </div>
   </div>
 </template>

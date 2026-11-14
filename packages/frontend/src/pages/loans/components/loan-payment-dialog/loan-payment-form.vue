@@ -4,7 +4,7 @@ import { VERBOSE_PAYMENT_TYPES } from '@/common/const';
 import { getMaxLoanPayment, isLoanOverpayment, isLoanPaymentPreAnchor } from '@/common/utils/loan-payment';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import DateField from '@/components/fields/date-field.vue';
-import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import AccountSelectField from '@/components/fields/account-select-field.vue';
 import FormRow from '@/components/dialogs/manage-transaction/components/form-row.vue';
 import { useDeleteTransaction, useSubmitTransaction } from '@/components/dialogs/manage-transaction/composables';
@@ -78,6 +78,7 @@ const sourceCurrency = computed(() => {
   return code ? currenciesMap.value[code]?.currency?.code : undefined;
 });
 const loanCurrency = computed(() => currenciesMap.value[props.loanAccount.currencyCode]?.currency?.code);
+const loanCurrencyLabel = computed(() => (props.loanAccount.currencyCode === 'IDR' ? 'Rp' : loanCurrency.value));
 
 const isCurrenciesDifferent = computed(
   () => !!form.value.account && form.value.account.currencyCode !== props.loanAccount.currencyCode,
@@ -108,6 +109,22 @@ const loanAnchorDate = computed(
 const isPreAnchorPayment = computed(() =>
   isLoanPaymentPreAnchor({ paymentDate: form.value.time, balanceAnchorDate: loanAnchorDate.value }),
 );
+const canFillRecordedOutstanding = computed(
+  () =>
+    !isLoading.value &&
+    !!form.value.account &&
+    !isCurrenciesDifferent.value &&
+    !isPreAnchorPayment.value &&
+    maxLoanPaymentAllowed.value > 0,
+);
+const showOutstandingNote = ref(false);
+const fillRecordedOutstanding = () => {
+  if (!canFillRecordedOutstanding.value) return;
+  // This is the recorded outstanding principal, not a lender-issued payoff quote.
+  // Interest accrued after the balance snapshot and early-settlement fees are unknown.
+  form.value.amount = Math.round(maxLoanPaymentAllowed.value * 100) / 100;
+  showOutstandingNote.value = true;
+};
 
 const anchorDateDisplay = computed(() =>
   loanAnchorDate.value ? formatDate(parseISO(loanAnchorDate.value), 'MMM d, yyyy') : '',
@@ -292,9 +309,9 @@ const unlinkPayment = () => {
 </script>
 
 <template>
-  <div class="rounded-t-xl">
-    <div class="bg-app-transfer-color h-3 rounded-t-lg" />
-    <div class="mb-4 flex items-center justify-between px-6 py-3">
+  <div class="flex max-h-[90dvh] min-h-0 flex-col overflow-hidden rounded-t-xl">
+    <div class="bg-app-transfer-color h-3 shrink-0 rounded-t-lg" />
+    <div class="mb-2 flex shrink-0 items-center justify-between px-6 py-3">
       <DialogTitle>
         <span class="text-2xl">
           {{ isEdit ? $t('dialogs.loanPayment.editTitle') : $t('dialogs.loanPayment.createTitle') }}
@@ -305,14 +322,14 @@ const unlinkPayment = () => {
       </DialogClose>
     </div>
 
-    <div class="space-y-1 px-6 pb-6">
+    <div class="lajur-dialog-scroll min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-6 pr-7 pb-4">
       <div class="bg-muted/40 mb-4 flex items-center gap-2 rounded-lg px-3 py-2.5">
         <HandCoinsIcon class="text-app-transfer-color size-4 shrink-0" />
         <div class="min-w-0 flex-1">
           <div class="text-muted-foreground text-xs">{{ $t('dialogs.loanPayment.payingTo') }}</div>
           <div class="truncate text-sm font-medium">{{ loanAccount.name }}</div>
         </div>
-        <div class="text-muted-foreground shrink-0 text-xs">{{ loanCurrency }}</div>
+        <div class="text-muted-foreground shrink-0 text-xs">{{ loanCurrencyLabel }}</div>
       </div>
 
       <FormRow>
@@ -331,38 +348,52 @@ const unlinkPayment = () => {
       </Callout>
 
       <FormRow>
-        <InputField
+        <FormattedAmountField
           v-model="form.amount"
+          :currency-code="form.account?.currencyCode"
           :label="$t('dialogs.loanPayment.amountLabel')"
-          type="number"
-          only-positive
           :placeholder="$t('dialogs.loanPayment.amountPlaceholder')"
           :disabled="isLoading"
           :error-message="amountErrorMessage"
           @blur="onAmountBlur"
-        >
-          <template #iconTrailing>
-            <span>{{ sourceCurrency }}</span>
-          </template>
-        </InputField>
+        />
       </FormRow>
+      <div class="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          :disabled="!canFillRecordedOutstanding"
+          class="transition-[background-color,color,transform] duration-200 active:scale-95 motion-reduce:transition-none"
+          @click="fillRecordedOutstanding"
+        >
+          {{ $t('dialogs.loanPayment.fillRecordedOutstanding') }}
+        </Button>
+        <span v-if="!canFillRecordedOutstanding && isCurrenciesDifferent" class="text-muted-foreground text-xs">
+          {{ $t('dialogs.loanPayment.fillRequiresSameCurrency') }}
+        </span>
+      </div>
+      <Transition name="lajur-info-reveal">
+        <p v-if="showOutstandingNote" class="text-muted-foreground text-xs leading-relaxed" role="status">
+          {{ $t('dialogs.loanPayment.fillOutstandingNotice') }}
+        </p>
+      </Transition>
 
       <p v-if="wouldOverdrawSource" class="text-warning-text -mt-1 px-1 text-xs">
         {{ $t('dialogs.loanPayment.overdrawWarning', { account: form.account?.name ?? '' }) }}
       </p>
 
       <FormRow v-if="isCurrenciesDifferent">
-        <InputField
+        <FormattedAmountField
           v-model="form.targetAmount"
+          :currency-code="loanAccount.currencyCode"
           :label="$t('dialogs.loanPayment.targetAmountLabel')"
-          type="number"
-          only-positive
           :placeholder="$t('dialogs.loanPayment.targetAmountPlaceholder')"
           :disabled="isLoading"
           :error-message="targetAmountErrorMessage"
           @blur="touchField('form.targetAmount')"
         >
-          <template #label-after>
+          <template #label-right>
             <HintIcon
               :content="
                 $t('dialogs.loanPayment.targetAmountTooltip', {
@@ -372,10 +403,7 @@ const unlinkPayment = () => {
               "
             />
           </template>
-          <template #iconTrailing>
-            <span>{{ loanCurrency }}</span>
-          </template>
-        </InputField>
+        </FormattedAmountField>
       </FormRow>
 
       <FormRow>
@@ -390,26 +418,26 @@ const unlinkPayment = () => {
       <p v-if="isPreAnchorPayment" class="text-warning-text -mt-1 px-1 text-xs">
         {{ $t('dialogs.loanPayment.preAnchorWarning', { date: anchorDateDisplay }) }}
       </p>
+    </div>
 
-      <div class="flex items-center justify-between pt-6">
-        <div v-if="isEdit" class="flex gap-2">
-          <Button class="min-w-25" variant="destructive" :disabled="isLoading" @click="isDeleteConfirmOpen = true">
-            {{ $t('dialogs.manageTransaction.form.deleteButton') }}
-          </Button>
-          <Button class="min-w-25" variant="destructive" :disabled="isLoading" @click="isUnlinkConfirmOpen = true">
-            {{ $t('dialogs.loanPayment.unlinkButton') }}
-          </Button>
-        </div>
-        <Button class="ml-auto min-w-30" :disabled="isLoading || !categoriesReady" @click="submit">
-          {{
-            isLoading
-              ? $t('dialogs.manageTransaction.form.loadingButton')
-              : isEdit
-                ? $t('dialogs.loanPayment.saveButton')
-                : $t('dialogs.loanPayment.recordButton')
-          }}
+    <div class="border-border bg-dialog flex shrink-0 flex-wrap items-center justify-between gap-2 border-t px-6 py-4">
+      <div v-if="isEdit" class="flex gap-2">
+        <Button class="min-w-25" variant="destructive" :disabled="isLoading" @click="isDeleteConfirmOpen = true">
+          {{ $t('dialogs.manageTransaction.form.deleteButton') }}
+        </Button>
+        <Button class="min-w-25" variant="destructive" :disabled="isLoading" @click="isUnlinkConfirmOpen = true">
+          {{ $t('dialogs.loanPayment.unlinkButton') }}
         </Button>
       </div>
+      <Button class="ml-auto min-w-30" :disabled="isLoading || !categoriesReady" @click="submit">
+        {{
+          isLoading
+            ? $t('dialogs.manageTransaction.form.loadingButton')
+            : isEdit
+              ? $t('dialogs.loanPayment.saveButton')
+              : $t('dialogs.loanPayment.recordButton')
+        }}
+      </Button>
     </div>
 
     <ResponsiveAlertDialog

@@ -29,9 +29,9 @@
     },
     "dialog": {
       "createTitle": "Tambah pinjaman",
-      "createDescription": "Lacak KPR, pinjaman mobil, pinjaman mahasiswa, atau kewajiban lainnya. Anda dapat mengeditnya nanti.",
+      "createDescription": "Catat sisa utang dan rincian cicilan yang Anda ketahui. Data dapat diperbarui kapan saja.",
       "editTitle": "Edit pinjaman",
-      "editDescription": "Perbarui ketentuan pinjaman. Perubahan pada suku bunga, jangka waktu, atau pembayaran yang direncanakan dicatat dalam linimasa peristiwa."
+      "editDescription": "Perbarui rincian pinjaman. Perubahan nilai dan ketentuan tercatat dalam riwayat."
     },
     "settings": {
       "title": "Pengaturan",
@@ -105,11 +105,11 @@
     "types": {
       "mortgage": "KPR",
       "auto": "Kendaraan",
-      "student": "Mahasiswa",
+      "student": "Pendidikan",
       "personal": "Pribadi",
       "heloc": "HELOC",
-      "business": "Bisnis",
-      "medical": "Medis",
+      "business": "Usaha",
+      "medical": "Kesehatan",
       "other": "Lainnya"
     },
     "warnings": {

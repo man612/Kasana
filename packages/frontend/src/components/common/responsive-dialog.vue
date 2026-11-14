@@ -85,6 +85,9 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         ]"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
+        <div v-if="$slots['header-actions']" class="absolute top-3 right-12 z-20 flex items-center">
+          <slot name="header-actions" />
+        </div>
         <template v-if="props.srOnlyHeader">
           <Drawer.DrawerTitle class="sr-only">
             <slot name="title" />
@@ -128,6 +131,9 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         :custom-close="customClose"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
+        <div v-if="$slots['header-actions']" class="absolute top-3 right-12 z-20 flex items-center">
+          <slot name="header-actions" />
+        </div>
         <template v-if="props.srOnlyHeader">
           <Dialog.DialogTitle class="sr-only">
             <slot name="title" />

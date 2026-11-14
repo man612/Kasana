@@ -3,19 +3,22 @@ import { createAccount } from '@/api';
 import {
   NO_PAYMENT_TYPE_OPTION,
   NULLABLE_PAYMENT_TYPE_OPTIONS,
+  VERBOSE_PAYMENT_TYPES,
+  type VerbosePaymentType,
   type NullablePaymentTypeOption,
   VUE_QUERY_GLOBAL_PREFIXES,
 } from '@/common/const';
 import { ACCOUNT_CATEGORIES_TRANSLATION_KEYS } from '@/common/const/account-categories-verbose';
 import AccountLogo from '@/components/common/account-logo.vue';
-import DocsLink from '@/components/common/docs-link.vue';
 import { type LogoSelection, toOptionalLogoPayload } from '@/components/common/logo-selection';
 import LogoSquareField from '@/components/common/logo-square-field.vue';
 import FormFieldHelp from '@/components/common/form-field-help.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import InputField from '@/components/fields/input-field.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
-import SelectField from '@/components/fields/select-field.vue';
+import OptionPickerDialog from '@/components/fields/option-picker-dialog.vue';
+import { getAccountTypeIcon, getAccountTypeTintedChipClass } from '@/pages/accounts/account-type-presentation';
+import PaymentMethodDialog from '@/components/fields/payment-method-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import * as Select from '@/components/lib/ui/select';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
@@ -117,6 +120,22 @@ const selectableAccountCategories = computed(() =>
     }),
 );
 
+const categoryOptions = computed(() =>
+  selectableAccountCategories.value.map(([value, labelKey]) => ({
+    value,
+    label: t(labelKey),
+    icon: getAccountTypeIcon({ category: value as ACCOUNT_CATEGORIES }),
+    iconClass: getAccountTypeTintedChipClass({ category: value as ACCOUNT_CATEGORIES }),
+  })),
+);
+const selectedPaymentMethod = computed<VerbosePaymentType | null>({
+  get: () => VERBOSE_PAYMENT_TYPES.find((item) => item.value === form.defaultPaymentType?.value) ?? null,
+  set: (value) => {
+    form.defaultPaymentType =
+      NULLABLE_PAYMENT_TYPE_OPTIONS.find((item) => item.value === value?.value) ?? NO_PAYMENT_TYPE_OPTION;
+  },
+});
+
 const createAccountMutation = useMutation({ mutationFn: createAccount });
 const isSubmitting = computed(() => createAccountMutation.isPending.value);
 defineExpose({ isSubmitting });
@@ -167,8 +186,8 @@ const submit = async () => {
 </script>
 
 <template>
-  <form :id="props.formId" class="grid gap-6" @submit.prevent="submit">
-    <div class="flex items-start gap-3">
+  <form :id="props.formId" class="@container/create-account grid gap-4" @submit.prevent="submit">
+    <div class="flex items-end gap-2.5">
       <div class="min-w-0 flex-1">
         <input-field
           v-model="form.name"
@@ -188,16 +207,16 @@ const submit = async () => {
         v-model="form.logo"
         :name-for-search="form.name"
         :reset-label="$t('common.logo.remove')"
-        size-class="size-10 rounded-lg md:size-9"
-        align="with-help-labeled-field"
+        size-class="size-9 rounded-lg"
+        align="default"
       >
         <template #placeholder>
-          <AccountLogo :account="logoPlaceholderAccount" class="size-10 rounded-lg md:size-9" />
+          <AccountLogo :account="logoPlaceholderAccount" class="size-9 rounded-lg" />
         </template>
       </LogoSquareField>
     </div>
 
-    <div>
+    <div class="grid grid-cols-1 items-start gap-3 @sm/create-account:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
       <FieldLabel :label="$t('forms.createAccount.currencyLabel')" :only-template="true">
         <template #label-right><FormFieldHelp topic="accountCurrency" /></template>
         <Select.Select v-model="form.currencyCode">
@@ -220,60 +239,46 @@ const submit = async () => {
           </Select.SelectContent>
         </Select.Select>
       </FieldLabel>
+
+      <FormattedAmountField
+        v-model="form.initialBalance"
+        :label="$t('forms.createAccount.initialBalanceLabel')"
+        :placeholder="$t('forms.createAccount.initialBalancePlaceholder')"
+        :aria-label="$t('forms.createAccount.initialBalanceLabel')"
+        :currency-code="form.currencyCode"
+      >
+        <template #label-right>
+          <FormFieldHelp topic="accountInitialBalance" />
+        </template>
+      </FormattedAmountField>
     </div>
 
-    <FormattedAmountField
-      v-model="form.initialBalance"
-      :label="$t('forms.createAccount.initialBalanceLabel')"
-      :placeholder="$t('forms.createAccount.initialBalancePlaceholder')"
-      :aria-label="$t('forms.createAccount.initialBalanceLabel')"
+    <OptionPickerDialog
+      :model-value="form.accountCategory"
+      :options="categoryOptions"
+      :label="$t('forms.createAccount.accountCategoryLabel')"
+      :placeholder="$t('forms.createAccount.accountCategoryPlaceholder')"
+      @update:model-value="(value) => (form.accountCategory = value as ACCOUNT_CATEGORIES)"
     >
-      <template #label-right>
-        <div class="flex items-center gap-1">
-          <DocsLink path="/accounts/create-an-account/#choose-the-right-initial-balance" class="text-xs">
-            {{ $t('forms.createAccount.initialBalanceHelpLink') }}
-          </DocsLink>
-          <FormFieldHelp topic="accountInitialBalance" />
-        </div>
-      </template>
-    </FormattedAmountField>
-
-    <FieldLabel :label="$t('forms.createAccount.accountCategoryLabel')" :only-template="true">
       <template #label-right><FormFieldHelp topic="accountCategory" /></template>
-      <Select.Select v-model="form.accountCategory">
-        <Select.SelectTrigger>
-          <Select.SelectValue :placeholder="$t('forms.createAccount.accountCategoryPlaceholder')" />
-        </Select.SelectTrigger>
-        <Select.SelectContent>
-          <template v-for="[category, labelKey] in selectableAccountCategories" :key="category">
-            <Select.SelectItem :value="category">
-              {{ t(labelKey) }}
-            </Select.SelectItem>
-          </template>
-        </Select.SelectContent>
-      </Select.Select>
-    </FieldLabel>
+    </OptionPickerDialog>
     <p
       v-if="form.accountCategory === ACCOUNT_CATEGORIES.general"
-      class="text-muted-foreground -mt-4 text-xs leading-relaxed"
+      class="text-muted-foreground -mt-2 text-xs leading-relaxed"
     >
       {{ $t('forms.createAccount.digitalWalletHint') }}
     </p>
 
-    <SelectField
-      v-model="form.defaultPaymentType"
-      :values="NULLABLE_PAYMENT_TYPE_OPTIONS"
-      :label-key="(item) => $t(item.label)"
-      :label="$t('forms.createAccount.defaultPaymentTypeLabel')"
-    >
+    <PaymentMethodDialog v-model="selectedPaymentMethod" :label="$t('forms.createAccount.defaultPaymentTypeLabel')">
       <template #label-right><FormFieldHelp topic="accountPaymentType" /></template>
-    </SelectField>
+    </PaymentMethodDialog>
 
     <FormattedAmountField
       v-model="form.creditLimit"
       :label="$t('forms.createAccount.creditLimitLabel')"
       :placeholder="$t('forms.createAccount.creditLimitPlaceholder')"
       :aria-label="$t('forms.createAccount.creditLimitLabel')"
+      :currency-code="form.currencyCode"
     >
       <template #label-right>
         <FormFieldHelp topic="accountCreditLimit" />

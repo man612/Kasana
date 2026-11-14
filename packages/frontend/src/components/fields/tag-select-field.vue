@@ -128,7 +128,7 @@ defineExpose({ open: openList });
       <span v-if="!selectedTags.length" class="text-muted-foreground min-w-0 flex-1 truncate">
         {{ placeholder ?? t('fields.tagSelect.placeholder') }}
       </span>
-      <span v-else class="flex min-w-0 flex-1 flex-wrap gap-1">
+      <TransitionGroup v-else name="lajur-tag-chip" tag="span" class="flex min-w-0 flex-1 flex-wrap gap-1">
         <span
           v-for="tag in selectedTags"
           :key="tag.id"
@@ -138,7 +138,7 @@ defineExpose({ open: openList });
           <TagIcon v-if="tag.icon" :name="tag.icon" class="size-3" />
           {{ tag.name }}
         </span>
-      </span>
+      </TransitionGroup>
       <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" />
     </button>
     <FieldError :error-message="errorMessage" />
@@ -164,7 +164,9 @@ defineExpose({ open: openList });
           class="border-input bg-input-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none"
         />
       </div>
-      <div class="max-h-[min(59dvh,460px)] min-h-0 space-y-4 overflow-y-auto overscroll-contain p-4">
+      <div
+        class="lajur-dialog-scroll max-h-[min(59dvh,460px)] min-h-0 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 pr-5"
+      >
         <section>
           <h3 class="text-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
             {{ t('fields.tagSelect.existingTitle') }}
@@ -186,7 +188,9 @@ defineExpose({ open: openList });
               >
                 <span class="size-3.5 shrink-0 rounded-full" :style="{ backgroundColor: tag.color }" />
                 <span class="min-w-0 flex-1 truncate text-sm">{{ tag.name }}</span>
-                <CheckIcon v-if="selectedIds.has(tag.id)" class="text-primary size-4" />
+                <Transition name="lajur-info-reveal"
+                  ><CheckIcon v-if="selectedIds.has(tag.id)" class="text-primary size-4"
+                /></Transition>
               </button>
               <button
                 v-if="!isCoreTagName(tag.name)"

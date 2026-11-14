@@ -2144,6 +2144,11 @@ onUnmounted(() => {
               :account="transaction ? accountsRecord[transaction.accountId] : undefined"
               :disabled="isFormFieldsDisabled"
               :is-transfer-disabled="Boolean(form.isPlanned) || isMultiAccount"
+              :transfer-disabled-reason="
+                form.isPlanned
+                  ? $t('dialogs.manageTransaction.typeSelector.transferDisabledPlanned')
+                  : $t('dialogs.manageTransaction.typeSelector.transferDisabledMultiAccount')
+              "
               :is-type-locked="isSavedMultiAccount || hasLinkedPaymentLegs"
               class="mb-2"
               @change-tx-type="selectTransactionType"

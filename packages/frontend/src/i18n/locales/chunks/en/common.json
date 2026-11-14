@@ -365,6 +365,13 @@
   },
   "validation": {
     "required": "Field is required",
+    "between": "Enter a number between {min} and {max}.",
+    "minValue": "Minimum value is {min}.",
+    "maxValue": "Maximum value is {max}.",
+    "integer": "Enter a whole number without decimals.",
+    "numeric": "Enter a valid number.",
+    "decimal": "Enter a valid number.",
+    "maxLength": "Maximum length is {max} characters.",
     "minLength": "Minimal length is {length}.",
     "emailInvalid": "Please enter a valid email address.",
     "passwordsNoMatch": "Passwords don't match"

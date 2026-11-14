@@ -22,6 +22,9 @@ export const SUPPORTED_LOAN_TYPES = [
   LOAN_TYPE.auto,
   LOAN_TYPE.student,
   LOAN_TYPE.personal,
+  LOAN_TYPE.business,
+  LOAN_TYPE.medical,
+  LOAN_TYPE.other,
 ] as const;
 
 /**

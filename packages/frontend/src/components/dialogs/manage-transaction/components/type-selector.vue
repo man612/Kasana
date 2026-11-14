@@ -14,37 +14,47 @@
         transform: 'translateX(' + selectedIndex * 100 + '%)',
       }"
     />
-    <button
+    <DesktopOnlyTooltip
       v-for="option in txOptions"
       :key="option.type"
-      type="button"
-      :class="
-        cn(
-          'relative z-10 inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-[10px] p-1.5 text-center text-sm font-medium transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none',
-          selectedTransactionType === option.type
-            ? 'text-foreground dark:text-background'
-            : 'text-muted-foreground hover:text-foreground',
-        )
-      "
-      :disabled="
-        disabled ||
-        (option.type === FORM_TYPES.expense && isExpenseDisabled) ||
-        (option.type === FORM_TYPES.income && isIncomeDisabled) ||
-        (option.type === FORM_TYPES.transfer && isTransferDisabled) ||
-        isLockedOut({ type: option.type })
-      "
-      :aria-label="t(option.aria)"
-      :aria-pressed="selectedTransactionType === option.type"
-      @click="selectTransactionType(option.type)"
+      :content="transferDisabledReason"
+      :disabled="option.type !== FORM_TYPES.transfer || !isTransferDisabled || disabled"
+      :delay-duration="550"
+      side="top"
     >
-      <component :is="option.icon" class="hidden size-3.5 shrink-0 sm:block" aria-hidden="true" />
-      {{ t(option.label) }}
-    </button>
+      <span class="relative z-10 flex min-w-0">
+        <button
+          type="button"
+          :class="
+            cn(
+              'relative z-10 inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[10px] p-1.5 text-center text-sm font-medium transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none',
+              selectedTransactionType === option.type
+                ? 'text-foreground dark:text-background'
+                : 'text-muted-foreground hover:text-foreground',
+            )
+          "
+          :disabled="
+            disabled ||
+            (option.type === FORM_TYPES.expense && isExpenseDisabled) ||
+            (option.type === FORM_TYPES.income && isIncomeDisabled) ||
+            (option.type === FORM_TYPES.transfer && isTransferDisabled) ||
+            isLockedOut({ type: option.type })
+          "
+          :aria-label="t(option.aria)"
+          :aria-pressed="selectedTransactionType === option.type"
+          @click="selectTransactionType(option.type)"
+        >
+          <component :is="option.icon" class="hidden size-3.5 shrink-0 sm:block" aria-hidden="true" />
+          {{ t(option.label) }}
+        </button>
+      </span>
+    </DesktopOnlyTooltip>
   </div>
 </template>
 
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
+import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { ACCOUNT_TYPES, type AccountModel, TRANSACTION_TYPES, type TransactionModel } from '@bt/shared/types';
 import { computed } from 'vue';
 import { ArrowDownLeftIcon, ArrowLeftRightIcon, ArrowUpRightIcon } from '@lucide/vue';
@@ -81,6 +91,7 @@ const props = defineProps<{
   disabled?: boolean;
   /** Planned rows must stay standalone, so transfer is off the table while the mode is on. */
   isTransferDisabled?: boolean;
+  transferDisabledReason?: string;
   /** Only the selected type stays enabled. */
   isTypeLocked?: boolean;
 }>();

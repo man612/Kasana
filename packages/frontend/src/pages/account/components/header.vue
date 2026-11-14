@@ -17,7 +17,7 @@ import { useNotificationCenter } from '@/components/notification-center';
 import { useFormValidation } from '@/composable';
 import { useAccountAccess } from '@/composable/use-account-access';
 import { useAccountProjectedBalance, usePlannedDateLabel } from '@/composable/use-projected-balance';
-import { toLocalCurrencyNumber } from '@/js/helpers';
+import { formatUIAmount } from '@/js/helpers';
 import * as validators from '@/js/helpers/validators';
 import { useAccountsStore, useCurrenciesStore } from '@/stores';
 import { ACCOUNT_TYPES, AccountModel, SHARE_PERMISSIONS, TRANSACTIONS_WRITE_SCOPES } from '@bt/shared/types';
@@ -32,7 +32,7 @@ import BalanceAdjustmentDialog from './balance-adjustment-dialog.vue';
 const props = defineProps<{
   account: AccountModel;
 }>();
-const { currenciesMap, baseCurrency } = storeToRefs(useCurrenciesStore());
+const { baseCurrency } = storeToRefs(useCurrenciesStore());
 const { displayBalance, displayRefBalance, projectedBalance, plannedCount, latestPlannedTime, hasPendingPlans } =
   useAccountProjectedBalance({ account: toRef(() => props.account) });
 const accountsStore = useAccountsStore();
@@ -47,7 +47,7 @@ const isSystemAccount = computed(() => props.account.type === ACCOUNT_TYPES.syst
 const { formatPlannedDate } = usePlannedDateLabel();
 
 const projectedBalanceDisplay = computed(() =>
-  toLocalCurrencyNumber(projectedBalance.value, { currency: props.account.currencyCode }),
+  formatUIAmount(projectedBalance.value, { currency: props.account.currencyCode }),
 );
 const latestPlannedDisplay = computed(() => formatPlannedDate({ time: latestPlannedTime.value }));
 const { isOwner, isSharedWithCaller, ownerHandle, permission, writeScope, isHouseholdGranted } = useAccountAccess(
@@ -229,24 +229,20 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
           @click="adjustmentDialogOpen = true"
         >
           <span class="text-amount text-3xl">
-            {{ toLocalCurrencyNumber(displayBalance, { currency: account.currencyCode }) }}
-            {{ currenciesMap[account.currencyCode]?.currency?.code }}
+            {{ formatUIAmount(displayBalance, { currency: account.currencyCode }) }}
           </span>
           <span v-if="baseCurrency && account.currencyCode !== baseCurrency.currencyCode" class="text-white opacity-50">
             ~
-            {{ toLocalCurrencyNumber(displayRefBalance, { currency: baseCurrency.currencyCode }) }}
-            {{ baseCurrency.currency?.code }}
+            {{ formatUIAmount(displayRefBalance, { currency: baseCurrency.currencyCode }) }}
           </span>
         </button>
         <div v-else class="flex flex-wrap items-end justify-start gap-2">
           <span class="text-amount text-3xl">
-            {{ toLocalCurrencyNumber(displayBalance, { currency: account.currencyCode }) }}
-            {{ currenciesMap[account.currencyCode]?.currency?.code }}
+            {{ formatUIAmount(displayBalance, { currency: account.currencyCode }) }}
           </span>
           <span v-if="baseCurrency && account.currencyCode !== baseCurrency.currencyCode" class="text-white opacity-50">
             ~
-            {{ toLocalCurrencyNumber(displayRefBalance, { currency: baseCurrency.currencyCode }) }}
-            {{ baseCurrency.currency?.code }}
+            {{ formatUIAmount(displayRefBalance, { currency: baseCurrency.currencyCode }) }}
           </span>
         </div>
       </div>

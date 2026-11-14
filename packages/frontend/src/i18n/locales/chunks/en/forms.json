@@ -218,6 +218,13 @@
       }
     },
     "createVehicle": {
+      "errors": {
+        "positive": "Enter a value greater than 0.",
+        "yearRange": "Enter a year between {min} and {max}.",
+        "percentRange": "Enter a number between 0 and 100.",
+        "mileageRange": "Odometer must be between 0 and {max} km.",
+        "integer": "Enter a whole number without decimals."
+      },
       "nameLabel": "Vehicle name",
       "namePlaceholder": "e.g. My Camry",
       "currencyLabel": "Currency",

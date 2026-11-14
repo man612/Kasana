@@ -534,6 +534,50 @@
   background: var(--app-scrollbar-track);
 }
 
+.lajur-info-reveal-enter-active,
+.lajur-info-reveal-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+.lajur-info-reveal-enter-from,
+.lajur-info-reveal-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lajur-info-reveal-enter-active,
+  .lajur-info-reveal-leave-active {
+    transition: none;
+  }
+}
+
+/* Modal scrollbars belong to their content viewport, not the entire dialog.
+   Reserve a thin internal gutter so they never cover the footer or close icon. */
+.lajur-dialog-scroll {
+  min-height: 0;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+/* Dashboard widget sizes use discrete CSS Grid spans. Animate each named view
+   transition's snapshot geometry, but never animate the root page or remount a chart. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0s;
+}
+::view-transition-group(*) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.01ms !important;
+  }
+}
+
 /* Lajur calendar: soft selection feedback and stable 36px touch targets.
    The library handles month slide motion; keep the selected-day motion separate. */
 [data-testid='transaction-date-dialog'] .vc-day-content {
@@ -1123,5 +1167,42 @@ select:focus-visible,
 @media (prefers-reduced-motion: reduce) {
   .kasana-dashboard-edit-return > [data-widget-id] {
     animation: none !important;
+  }
+}
+
+/* Lajur follow-up: compact live chips and data disclosure. */
+.lajur-tag-chip-move,
+.lajur-tag-chip-enter-active,
+.lajur-tag-chip-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+.lajur-tag-chip-enter-from,
+.lajur-tag-chip-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.96);
+}
+.lajur-balance-table-enter-active,
+.lajur-balance-table-leave-active {
+  overflow: clip;
+  transition:
+    opacity 210ms ease,
+    transform 210ms ease,
+    max-height 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lajur-balance-table-enter-from,
+.lajur-balance-table-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+  max-height: 0 !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lajur-tag-chip-move,
+  .lajur-tag-chip-enter-active,
+  .lajur-tag-chip-leave-active,
+  .lajur-balance-table-enter-active,
+  .lajur-balance-table-leave-active {
+    transition: none;
   }
 }

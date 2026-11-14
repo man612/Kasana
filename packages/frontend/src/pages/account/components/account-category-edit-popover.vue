@@ -1,49 +1,36 @@
 <script setup lang="ts">
 import { ACCOUNT_CATEGORIES_TRANSLATION_KEYS } from '@/common/const';
-import SelectField from '@/components/fields/select-field.vue';
-import { Button } from '@/components/lib/ui/button';
-import * as Popover from '@/components/lib/ui/popover';
-import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
+import OptionPickerDialog from '@/components/fields/option-picker-dialog.vue';
 import { useNotificationCenter } from '@/components/notification-center';
+import { getAccountTypeIcon, getAccountTypeTintedChipClass } from '@/pages/accounts/account-type-presentation';
 import { useAccountsStore } from '@/stores';
-import { ACCOUNT_CATEGORIES, AccountModel, isDedicatedFlowAccountCategory } from '@bt/shared/types';
-import { PencilIcon } from '@lucide/vue';
-import { computed, ref, watch } from 'vue';
+import { ACCOUNT_CATEGORIES, type AccountModel, isDedicatedFlowAccountCategory } from '@bt/shared/types';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-const props = defineProps<{
-  account: AccountModel;
-}>();
-
+const props = defineProps<{ account: AccountModel }>();
 const { t } = useI18n();
 const accountsStore = useAccountsStore();
 const { addSuccessNotification, addErrorNotification } = useNotificationCenter();
-
-const isOpen = ref(false);
 const isSaving = ref(false);
 
-type CategoryOption = { value: ACCOUNT_CATEGORIES; label: string };
-
-// Loan and vehicle own sidecar rows managed by dedicated flows, so the generic
-// update endpoint rejects moving accounts into them.
-const categoryOptions = computed<CategoryOption[]>(() =>
+const options = computed(() =>
   Object.values(ACCOUNT_CATEGORIES)
+    // Loan and vehicle accounts need dedicated sidecar data and cannot switch through generic edit.
     .filter((category) => !isDedicatedFlowAccountCategory(category))
-    .map((category) => ({ value: category, label: t(ACCOUNT_CATEGORIES_TRANSLATION_KEYS[category]) })),
+    .map((category) => ({
+      value: category,
+      label: t(ACCOUNT_CATEGORIES_TRANSLATION_KEYS[category]),
+      icon: getAccountTypeIcon({ category }),
+      iconClass: getAccountTypeTintedChipClass({ category }),
+    })),
 );
 
-const selected = ref<CategoryOption | null>(null);
-
-const updateCategory = async () => {
-  if (!selected.value || selected.value.value === props.account.accountCategory) return;
-
+const save = async (value: string) => {
+  if (isSaving.value || value === props.account.accountCategory) return;
   isSaving.value = true;
   try {
-    await accountsStore.editAccount({
-      id: props.account.id,
-      accountCategory: selected.value.value,
-    });
-    isOpen.value = false;
+    await accountsStore.editAccount({ id: props.account.id, accountCategory: value as ACCOUNT_CATEGORIES });
     addSuccessNotification(t('pages.account.details.accountCategoryUpdateSuccess'));
   } catch {
     addErrorNotification(t('pages.account.details.accountCategoryUpdateError'));
@@ -51,36 +38,16 @@ const updateCategory = async () => {
     isSaving.value = false;
   }
 };
-
-watch([isOpen, () => props.account.id], () => {
-  selected.value = categoryOptions.value.find((option) => option.value === props.account.accountCategory) ?? null;
-});
 </script>
 
 <template>
-  <DesktopOnlyTooltip :content="$t('pages.account.details.editAccountCategory')" :disabled="isOpen">
-    <Popover.Popover v-model:open="isOpen">
-      <Popover.PopoverTrigger as-child>
-        <Button variant="ghost" size="icon-sm">
-          <PencilIcon class="size-3.5" />
-        </Button>
-      </Popover.PopoverTrigger>
-      <Popover.PopoverContent>
-        <form class="grid gap-4" @submit.prevent="updateCategory">
-          <SelectField
-            v-model="selected"
-            :values="categoryOptions"
-            :label="$t('pages.account.details.accountCategory')"
-          />
-          <Button
-            type="submit"
-            :disabled="!selected || selected.value === account.accountCategory || isSaving"
-            :loading="isSaving"
-          >
-            {{ $t('pages.account.details.save') }}
-          </Button>
-        </form>
-      </Popover.PopoverContent>
-    </Popover.Popover>
-  </DesktopOnlyTooltip>
+  <OptionPickerDialog
+    icon-only
+    :disabled="isSaving"
+    :model-value="account.accountCategory"
+    :options="options"
+    :label="t('pages.account.details.editAccountCategory')"
+    :placeholder="t('pages.account.details.accountCategory')"
+    @update:model-value="save"
+  />
 </template>

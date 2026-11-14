@@ -14,6 +14,7 @@
       },
       "balanceTrend": {
         "title": "Tren saldo",
+        "table": { "toggle": "Lihat angka per tanggal", "date": "Tanggal", "amount": "Saldo" },
         "balanceTypes": {
           "total": "Total",
           "accounts": "Akun",
@@ -437,6 +438,14 @@
       }
     },
     "periodSelector": {
+      "presetsShort": {
+        "currentMonth": "Bln ini",
+        "last3Months": "3 bln",
+        "last6Months": "6 bln",
+        "lastYear": "12 bln",
+        "thisYear": "Thn ini",
+        "previousYear": "Thn lalu"
+      },
       "presets": {
         "currentMonth": "Bulan Ini",
         "last3Months": "3 Bulan Terakhir",

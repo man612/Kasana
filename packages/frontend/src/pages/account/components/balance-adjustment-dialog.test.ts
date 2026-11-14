@@ -113,12 +113,12 @@ const mountDialog = (overrides: Record<string, unknown> = {}) =>
 const confirmBtn = (w: VueWrapper) =>
   w.findAll('button').find((b) => b.text().trim() === t('pages.account.balanceAdjustmentDialog.confirm'))!;
 
-const amountInput = (w: VueWrapper) => w.find('input[type="number"]');
+const amountInput = (w: VueWrapper) => w.find('input[inputmode="decimal"]');
 
 const noteInput = (w: VueWrapper) => w.findAll('input').at(-1)!;
 
 const enterAmountAndSubmit = async (w: VueWrapper, amount: number | string) => {
-  await amountInput(w).setValue(String(amount));
+  await amountInput(w).setValue(String(amount).replace('.', ','));
   await nextTick();
   await confirmBtn(w).trigger('click');
   await flushPromises();
@@ -164,12 +164,17 @@ describe('BalanceAdjustmentDialog', () => {
       expect(confirmBtn(w).attributes('disabled')).toBeUndefined();
     });
 
-    it('blocks submit for amount with more than 2 decimal places', async () => {
+    it('limits entered fractions to two decimal places before submitting', async () => {
       const w = mountDialog();
-      await enterAmountAndSubmit(w, 100.123);
+      await amountInput(w).setValue('100,123');
+      await nextTick();
 
-      expect(mockMutateAsync).not.toHaveBeenCalled();
-      expect(w.text()).toContain(t('forms.validators.invalidCurrencyDecimal'));
+      // The shared formatted amount field accepts at most two decimal digits;
+      // the displayed amount must agree with the numeric value sent to the API.
+      expect((amountInput(w).element as HTMLInputElement).value).toBe('100,12');
+      await confirmBtn(w).trigger('click');
+      await flushPromises();
+      expect(mockMutateAsync).toHaveBeenCalledWith(expect.objectContaining({ targetBalance: 100.12 }));
     });
 
     it('allows submit for amount with exactly 2 decimal places', async () => {

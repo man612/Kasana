@@ -86,7 +86,12 @@ const isConfigChoiceActive = ({ option, value }: { option: WidgetConfigOption; v
 </script>
 
 <template>
-  <div v-if="def" :data-widget-id="widgetConfig.widgetId" :class="['relative h-full', colSpanClass, rowSpanClass]">
+  <div
+    v-if="def"
+    :data-widget-id="widgetConfig.widgetId"
+    :style="{ viewTransitionName: isEditMode ? `lajur-widget-${widgetConfig.widgetId}` : 'none' }"
+    :class="['relative h-full', colSpanClass, rowSpanClass]"
+  >
     <!-- Edit-mode only: always-on isolation would trap widgets' fixed z-50 panels
          (spike-transactions-panel, balance-trend tooltip) under the header. -->
     <div :class="cn('h-full', isEditMode && 'relative isolate')" :inert="isEditMode">
@@ -115,7 +120,7 @@ const isConfigChoiceActive = ({ option, value }: { option: WidgetConfigOption; v
                 v-for="size in def.allowedSizes"
                 :key="`${size.colSpan}x${size.rowSpan}`"
                 :class="[
-                  'rounded px-2 py-0.5 text-xs transition-colors',
+                  'rounded px-2 py-0.5 text-xs transition-[color,background-color,transform] duration-200 ease-out active:scale-95 motion-reduce:transition-none',
                   isSizeActive(size) ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground',
                 ]"
                 :aria-pressed="isSizeActive(size)"
@@ -137,7 +142,7 @@ const isConfigChoiceActive = ({ option, value }: { option: WidgetConfigOption; v
                 v-for="choice in option.choices"
                 :key="choice.value"
                 :class="[
-                  'rounded px-2 py-0.5 text-xs transition-colors',
+                  'rounded px-2 py-0.5 text-xs transition-[color,background-color,transform] duration-200 ease-out active:scale-95 motion-reduce:transition-none',
                   isConfigChoiceActive({ option, value: choice.value })
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-muted text-muted-foreground',

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import { Button } from '@/components/lib/ui/button';
 import * as Popover from '@/components/lib/ui/popover';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
@@ -81,18 +81,15 @@ watch([isOpen, () => props.account.id], () => {
       </Popover.PopoverTrigger>
       <Popover.PopoverContent>
         <form class="grid gap-4" @submit.prevent="updateCreditLimit">
-          <InputField
+          <FormattedAmountField
             v-model="form.creditLimit"
-            type="number"
+            :currency-code="currencyCode"
             :label="$t('pages.account.details.creditLimit')"
             :only-positive="true"
             :error-message="getFieldErrorMessage('form.creditLimit')"
             @blur="touchField('form.creditLimit')"
           >
-            <template #iconTrailing>
-              <span class="text-muted-foreground text-sm">{{ currencyCode }}</span>
-            </template>
-          </InputField>
+          </FormattedAmountField>
           <p class="text-muted-foreground text-xs">{{ $t('pages.account.details.creditLimitHint') }}</p>
           <Button
             type="submit"

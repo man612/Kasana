@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type CreateLoanPayload, type UpdateLoanPayload } from '@/api/loans';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import FormFieldHelp from '@/components/common/form-field-help.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
 import { useCreateLoan } from '@/composable/data-queries/loans';
@@ -40,6 +41,7 @@ const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
       <slot />
     </template>
 
+    <template #header-actions><FormFieldHelp topic="loanOverview" /></template>
     <template #title>{{ $t('loans.dialog.createTitle') }}</template>
     <template #description>{{ $t('loans.dialog.createDescription') }}</template>
 
@@ -47,9 +49,6 @@ const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
 
     <template #footer>
       <div class="flex justify-end gap-2">
-        <UiButton type="button" variant="ghost" :disabled="createLoanMutation.isPending.value" @click="isOpen = false">
-          {{ $t('forms.loan.cancelButton') }}
-        </UiButton>
         <UiButton type="submit" :form="FORM_ID" class="min-w-30" :disabled="createLoanMutation.isPending.value">
           {{
             createLoanMutation.isPending.value ? $t('forms.loan.submitButtonLoading') : $t('forms.loan.submitButton')

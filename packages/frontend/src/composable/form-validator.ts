@@ -6,6 +6,14 @@ import { ComputedRef, Ref, ToRefs, isRef } from 'vue';
 const GENERIC_VALIDATION_MESSAGE_KEYS: Readonly<Record<string, string>> = Object.freeze({
   email: 'validation.emailInvalid',
   required: 'validation.required',
+  between: 'validation.between',
+  minValue: 'validation.minValue',
+  maxValue: 'validation.maxValue',
+  integer: 'validation.integer',
+  numeric: 'validation.numeric',
+  decimal: 'validation.decimal',
+  maxLength: 'validation.maxLength',
+  minLength: 'validation.minLength',
 });
 
 /**
@@ -159,8 +167,17 @@ export const useFormValidation = <Vargs extends ValidationArgs, T extends Extrac
 
         const genericMessageKey = GENERIC_VALIDATION_MESSAGE_KEYS[rule];
 
+        const ruleParams = field[rule].$params ?? {};
         return (
-          customErrorMessage || (genericMessageKey && i18n.global.t(genericMessageKey)) || field[rule].$message || ''
+          customErrorMessage ||
+          (genericMessageKey &&
+            i18n.global.t(genericMessageKey, {
+              min: ruleParams.min ?? 0,
+              max: ruleParams.max ?? 0,
+              length: ruleParams.min ?? 0,
+            })) ||
+          field[rule].$message ||
+          ''
         );
       }
     }

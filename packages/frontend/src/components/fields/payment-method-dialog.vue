@@ -17,6 +17,7 @@ import {
   GlobeIcon,
   LandmarkIcon,
   NfcIcon,
+  PencilIcon,
   QrCodeIcon,
   ReceiptIcon,
   RepeatIcon,
@@ -33,6 +34,7 @@ const props = withDefaults(
     disabled?: boolean;
     required?: boolean;
     errorMessage?: string;
+    iconOnly?: boolean;
   }>(),
   { disabled: false, required: false },
 );
@@ -99,12 +101,24 @@ const pick = (value: VerbosePaymentType | null) => {
 </script>
 
 <template>
-  <FieldLabel :label="label" only-template>
+  <FieldLabel :label="iconOnly ? undefined : label" only-template>
+    <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
     <template #label-after><span v-if="required" class="text-destructive" aria-hidden="true">*</span></template>
     <div class="flex items-stretch gap-1.5">
       <Dialog.Dialog v-model:open="isOpen">
         <Dialog.DialogTrigger as-child>
           <button
+            v-if="iconOnly"
+            type="button"
+            :disabled="disabled"
+            :aria-label="label"
+            :title="label"
+            class="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring flex size-8 items-center justify-center rounded-md transition-colors focus-visible:ring-2 disabled:opacity-50"
+          >
+            <PencilIcon class="size-3.5" />
+          </button>
+          <button
+            v-else
             type="button"
             :disabled="disabled"
             :aria-label="label"

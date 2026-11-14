@@ -25,7 +25,7 @@
         "successNotification": "Loss alert settings saved"
       },
       "manualTransferMatching": {
-        "label": "Cocokkan transfer dengan akun manual",
+        "label": "Cocokkan transfer dengan akun yang dicatat sendiri",
         "description": "Izinkan transfer yang terdeteksi otomatis untuk menghubungkan transaksi bank yang tersinkronisasi dengan transaksi yang Anda buat secara manual.",
         "successNotification": "Pengaturan pencocokan transfer diperbarui",
         "errorNotification": "Gagal memperbarui pengaturan pencocokan transfer"

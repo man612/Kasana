@@ -27,6 +27,8 @@ const props = defineProps<{
   presets?: DateSelectorPreset[];
   earliestDate?: Date;
   allowedFilterModes?: DateSelectorFilterModeType[];
+  hideHeader?: boolean;
+  hideCancel?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -173,85 +175,92 @@ function setPeriodType(type: DateSelectorPeriodType) {
 </script>
 
 <template>
-  <div class="flex max-w-[calc(100vw-3rem)] min-w-0 flex-col gap-3">
-    <div class="space-y-1">
-      <p class="text-sm font-semibold">{{ t('common.dateSelector.simpleTitle') }}</p>
-      <p class="text-muted-foreground text-xs leading-relaxed">{{ t('common.dateSelector.simpleHint') }}</p>
-    </div>
-
-    <!-- One-tap choices, shared between the dashboard and other date selectors. -->
-    <div v-if="quickPresets.length" class="bg-muted/40 space-y-1 rounded-lg border p-2">
-      <p class="text-muted-foreground px-2 text-xs font-medium">{{ t('common.dateSelector.quickSelect') }}</p>
-      <DateSelectorPresets horizontal :presets="quickPresets" :current-period="period" @apply="handlePresetApply" />
-    </div>
-
-    <!-- Keep period granularity visible; uncommon query operators are optional. -->
-    <PillTabs
-      :items="periodTypeTabs"
-      :model-value="activePeriodType"
-      size="sm"
-      class="whitespace-nowrap"
-      @update:model-value="setPeriodType($event as DateSelectorPeriodType)"
-    />
-
-    <Button
-      variant="ghost"
-      size="sm"
-      class="text-muted-foreground h-8 gap-1.5 self-start px-1 text-xs"
-      :aria-expanded="showAdvancedFilters"
-      @click="showAdvancedFilters = !showAdvancedFilters"
-    >
-      <SlidersHorizontalIcon class="size-3.5" />
-      {{ t('common.dateSelector.advancedOptions') }}
-      <ChevronDownIcon
-        class="size-3.5 transition-transform duration-200"
-        :class="showAdvancedFilters && 'rotate-180'"
-      />
-    </Button>
-
-    <Transition name="kasana-feedback">
-      <div
-        v-if="showAdvancedFilters"
-        class="border-border bg-muted/30 flex min-w-0 flex-col gap-2 rounded-lg border p-3"
-      >
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs font-medium">{{ t('common.dateSelector.dueDate') }}</span>
-          <DateSelectorFilterMode v-model="activeFilterMode" :allowed-modes="allowedFilterModes" />
-        </div>
-        <input
-          v-model="inputValue"
-          type="text"
-          :placeholder="placeholderText"
-          :aria-label="t('common.dateSelector.manualDate')"
-          class="border-input bg-input-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
-          @keydown.enter="handleInputSubmit"
-        />
+  <div class="flex max-h-[min(77dvh,710px)] min-h-0 w-full min-w-0 flex-col">
+    <div class="lajur-dialog-scroll min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain pr-2 pb-3">
+      <div v-if="!hideHeader" class="space-y-1">
+        <p class="text-sm font-semibold">{{ t('common.dateSelector.simpleTitle') }}</p>
+        <p class="text-muted-foreground text-xs leading-relaxed">{{ t('common.dateSelector.simpleHint') }}</p>
       </div>
-    </Transition>
 
-    <div class="min-w-0">
-      <Transition name="kasana-section" mode="out-in">
-        <DateSelectorDayPanel
-          v-if="activePeriodType === 'day'"
-          key="day"
-          :start="draftDayRange.start"
-          :end="draftDayRange.end"
-          :number-of-months="numberOfMonths"
-          :single-select="isDaySingleSelect"
-          @update:range="handleDayRangeUpdate"
+      <!-- One-tap choices, shared between the dashboard and other date selectors. -->
+      <div v-if="quickPresets.length" class="bg-muted/40 space-y-1 rounded-lg border p-2">
+        <p class="text-muted-foreground px-2 text-xs font-medium">{{ t('common.dateSelector.quickSelect') }}</p>
+        <DateSelectorPresets horizontal :presets="quickPresets" :current-period="period" @apply="handlePresetApply" />
+      </div>
+
+      <!-- Keep period granularity visible; uncommon query operators are optional. -->
+      <PillTabs
+        :items="periodTypeTabs"
+        :model-value="activePeriodType"
+        size="sm"
+        class="whitespace-nowrap"
+        @update:model-value="setPeriodType($event as DateSelectorPeriodType)"
+      />
+
+      <Button
+        variant="ghost"
+        size="sm"
+        class="text-muted-foreground h-8 gap-1.5 self-start px-1 text-xs"
+        :aria-expanded="showAdvancedFilters"
+        @click="showAdvancedFilters = !showAdvancedFilters"
+      >
+        <SlidersHorizontalIcon class="size-3.5" />
+        {{ t('common.dateSelector.advancedOptions') }}
+        <ChevronDownIcon
+          class="size-3.5 transition-transform duration-200"
+          :class="showAdvancedFilters && 'rotate-180'"
         />
-        <DateSelectorPeriodGrid
-          v-else
-          :key="activePeriodType"
-          :period-type="activePeriodType"
-          :years="years"
-          :get-cell-state="getCellState"
-          @select-cell="selectCell"
-        />
+      </Button>
+
+      <Transition name="kasana-feedback">
+        <div
+          v-if="showAdvancedFilters"
+          class="border-border bg-muted/30 flex min-w-0 flex-col gap-2 rounded-lg border p-3"
+        >
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-medium">{{ t('common.dateSelector.dueDate') }}</span>
+            <DateSelectorFilterMode v-model="activeFilterMode" :allowed-modes="allowedFilterModes" />
+          </div>
+          <input
+            v-model="inputValue"
+            type="text"
+            :placeholder="placeholderText"
+            :aria-label="t('common.dateSelector.manualDate')"
+            class="border-input bg-input-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
+            @keydown.enter="handleInputSubmit"
+          />
+        </div>
       </Transition>
+
+      <div class="min-w-0">
+        <Transition name="kasana-section" mode="out-in">
+          <DateSelectorDayPanel
+            v-if="activePeriodType === 'day'"
+            key="day"
+            :start="draftDayRange.start"
+            :end="draftDayRange.end"
+            :number-of-months="numberOfMonths"
+            :single-select="isDaySingleSelect"
+            @update:range="handleDayRangeUpdate"
+          />
+          <DateSelectorPeriodGrid
+            v-else
+            :key="activePeriodType"
+            :period-type="activePeriodType"
+            :years="years"
+            :get-cell-state="getCellState"
+            @select-cell="selectCell"
+          />
+        </Transition>
+      </div>
     </div>
 
-    <DateSelectorFooter :apply-disabled="!hasSelection" @cancel="emit('cancel')" @apply="handleApply">
+    <DateSelectorFooter
+      :apply-disabled="!hasSelection"
+      :show-cancel="!hideCancel"
+      @cancel="emit('cancel')"
+      @apply="handleApply"
+    >
       <Button
         v-if="displayText"
         variant="secondary"

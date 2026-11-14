@@ -57,7 +57,11 @@ import { useI18n } from 'vue-i18n';
 
 import { type Period } from '../types';
 
-const { t } = useI18n();
+const { t, te } = useI18n();
+const presetShort = (key: string) =>
+  te(`dashboard.periodSelector.presetsShort.${key}`)
+    ? t(`dashboard.periodSelector.presetsShort.${key}`)
+    : t(`dashboard.periodSelector.presets.${key}`);
 
 const props = defineProps<{
   modelValue: Period;
@@ -123,22 +127,27 @@ watch(
 const quickPresets = computed<DateSelectorPreset[]>(() => [
   {
     label: t('dashboard.periodSelector.presets.currentMonth'),
+    shortLabel: presetShort('currentMonth'),
     getValue: getCurrentPayPeriod,
   },
   {
     label: t('dashboard.periodSelector.presets.last3Months'),
+    shortLabel: presetShort('last3Months'),
     getValue: lastPayPeriods(3),
   },
   {
     label: t('dashboard.periodSelector.presets.last6Months'),
+    shortLabel: presetShort('last6Months'),
     getValue: lastPayPeriods(6),
   },
   {
     label: t('dashboard.periodSelector.presets.lastYear'),
+    shortLabel: presetShort('lastYear'),
     getValue: lastPayPeriods(12),
   },
   {
     label: t('dashboard.periodSelector.presets.thisYear'),
+    shortLabel: presetShort('thisYear'),
     getValue: () => ({
       from: startOfYear(new Date()),
       to: new Date(),
@@ -146,6 +155,7 @@ const quickPresets = computed<DateSelectorPreset[]>(() => [
   },
   {
     label: t('dashboard.periodSelector.presets.previousYear'),
+    shortLabel: presetShort('previousYear'),
     getValue: () => {
       const prevYear = subYears(new Date(), 1);
       return {

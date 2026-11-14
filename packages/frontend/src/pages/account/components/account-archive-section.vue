@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import DocsLink from '@/components/common/docs-link.vue';
+import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import { Checkbox } from '@/components/lib/ui/checkbox';
 import { Button } from '@/components/lib/ui/button';
@@ -19,6 +19,7 @@ const { addSuccessNotification, addErrorNotification } = useNotificationCenter()
 const accountsStore = useAccountsStore();
 
 const isArchiveDialogOpen = ref(false);
+const isArchiveHelpOpen = ref(false);
 const alsoExcludeFromStats = ref(true);
 const isLoading = ref(false);
 
@@ -63,12 +64,35 @@ const unarchiveAccount = async () => {
     <template v-if="!isArchived">
       <div>
         <p class="mb-2 font-bold">{{ t('pages.account.archive.title') }}</p>
-        <p class="text-muted-foreground text-xs">
-          {{ t('pages.account.archive.description') }}
-          <DocsLink path="/accounts/manage-accounts/#archive-exclude-or-delete">
-            {{ t('pages.account.archive.compareOptionsLink') }}
-          </DocsLink>
-        </p>
+        <div class="text-muted-foreground text-xs">
+          <p>{{ t('pages.account.archive.description') }}</p>
+          <ResponsiveDialog v-model:open="isArchiveHelpOpen">
+            <template #trigger>
+              <button
+                type="button"
+                class="text-primary focus-visible:ring-ring rounded-sm text-xs underline-offset-2 hover:underline focus-visible:ring-2"
+              >
+                {{ t('pages.account.archive.compareOptionsLink') }}
+              </button>
+            </template>
+            <template #title>{{ t('pages.account.archive.comparison.title') }}</template>
+            <template #description>{{ t('pages.account.archive.comparison.description') }}</template>
+            <div class="space-y-4 px-1 pb-2 text-sm leading-relaxed">
+              <section class="space-y-1">
+                <h3 class="font-semibold">{{ t('pages.account.archive.comparison.archivedTitle') }}</h3>
+                <p class="text-muted-foreground">{{ t('pages.account.archive.comparison.archived') }}</p>
+              </section>
+              <section class="space-y-1">
+                <h3 class="font-semibold">{{ t('pages.account.archive.comparison.excludedTitle') }}</h3>
+                <p class="text-muted-foreground">{{ t('pages.account.archive.comparison.excluded') }}</p>
+              </section>
+              <section class="space-y-1">
+                <h3 class="font-semibold">{{ t('pages.account.archive.comparison.deletedTitle') }}</h3>
+                <p class="text-muted-foreground">{{ t('pages.account.archive.comparison.deleted') }}</p>
+              </section>
+            </div>
+          </ResponsiveDialog>
+        </div>
       </div>
 
       <Button variant="outline" :disabled="isLoading" :loading="isLoading" @click="isArchiveDialogOpen = true">

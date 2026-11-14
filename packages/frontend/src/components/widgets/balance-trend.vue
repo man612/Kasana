@@ -21,7 +21,7 @@
     </template>
     <template v-else-if="isDataEmpty">
       <EmptyState>
-        <ChartLineIcon class="size-32" />
+        <ChartLineIcon class="size-12 opacity-60" />
       </EmptyState>
     </template>
     <template v-else>
@@ -41,24 +41,26 @@
         <div class="flex min-w-0 flex-1 flex-col items-end gap-1">
           <div class="flex w-full items-center gap-1.5">
             <FitAmount
+              v-if="balancesDiffAbsolute !== null"
               :value="balancesDiffAbsolute"
               signed
               class="flex-1 text-right text-sm font-semibold tracking-tight"
               :class="{
-                'text-app-expense-color': balancesDiff < 0,
-                'text-success-text': balancesDiff > 0,
-                'text-muted-foreground': balancesDiff === 0,
+                'text-app-expense-color': comparisonTone < 0,
+                'text-success-text': comparisonTone > 0,
+                'text-muted-foreground': comparisonTone === 0,
               }"
             />
+            <span v-else class="text-muted-foreground flex-1 text-right text-sm">—</span>
             <span
               class="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold"
               :class="{
-                'bg-app-expense-color/15 text-app-expense-color': balancesDiff < 0,
-                'bg-success-text/15 text-success-text': balancesDiff > 0,
-                'bg-muted text-muted-foreground': balancesDiff === 0,
+                'bg-app-expense-color/15 text-app-expense-color': comparisonTone < 0,
+                'bg-success-text/15 text-success-text': comparisonTone > 0,
+                'bg-muted text-muted-foreground': comparisonTone === 0,
               }"
             >
-              {{ balancesDiff > 0 ? '+' : '' }}{{ balancesDiff }}%
+              {{ balancesDiff === null ? '—' : `${balancesDiff > 0 ? '+' : ''}${balancesDiff}%` }}
             </span>
           </div>
           <div class="text-muted-foreground text-xs tracking-tight">
@@ -85,7 +87,12 @@
 
       <Transition name="chart-fade" mode="out-in">
         <div :key="chartKey" ref="containerRef" class="max-xs:px-2 relative min-h-44 w-full flex-1">
-          <svg ref="svgRef" class="h-full w-full"></svg>
+          <svg
+            ref="svgRef"
+            class="h-full w-full"
+            role="group"
+            :aria-label="$t('dashboard.widgets.balanceTrend.title')"
+          ></svg>
 
           <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
           <Teleport to="body">
@@ -152,6 +159,64 @@
           />
         </div>
       </Transition>
+      <!-- Accessible numerical alternative to hovering the SVG. Sampled evenly,
+           always including the first and latest real balance observations. -->
+      <section class="border-border/60 mt-3 border-t pt-2 text-xs">
+        <button
+          type="button"
+          :aria-expanded="isBalanceTableOpen"
+          class="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex min-h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
+          @click="isBalanceTableOpen = !isBalanceTableOpen"
+        >
+          <ChartNoAxesCombinedIcon class="size-3.5 shrink-0" aria-hidden="true" />
+          {{ $t('dashboard.widgets.balanceTrend.table.toggle') }}
+          <ChevronDownIcon
+            class="ml-auto size-3.5 transition-transform duration-220 ease-out motion-reduce:transition-none"
+            :class="isBalanceTableOpen && 'rotate-180'"
+            aria-hidden="true"
+          />
+        </button>
+        <Transition name="lajur-balance-table">
+          <div
+            v-if="isBalanceTableOpen"
+            class="lajur-dialog-scroll max-h-60 overflow-y-auto overscroll-contain px-2 pt-2 pr-4"
+          >
+            <table class="w-full tabular-nums">
+              <caption class="sr-only">
+                {{
+                  $t('dashboard.widgets.balanceTrend.title')
+                }}
+              </caption>
+              <thead class="bg-card/90 sticky top-0 backdrop-blur-sm">
+                <tr class="text-muted-foreground border-border/50 border-b text-left">
+                  <th scope="col" class="py-2 font-medium">{{ $t('dashboard.widgets.balanceTrend.table.date') }}</th>
+                  <th scope="col" class="py-2 text-right font-medium">
+                    {{ $t('dashboard.widgets.balanceTrend.table.amount') }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="point in chartTableRows"
+                  :key="point.date"
+                  class="border-border/30 hover:bg-muted/30 border-b transition-colors last:border-0"
+                >
+                  <td class="py-2">
+                    {{
+                      new Date(point.date).toLocaleDateString(locale, {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })
+                    }}
+                  </td>
+                  <td class="py-2 text-right">{{ formatBaseCurrency(point.value) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Transition>
+      </section>
     </template>
   </WidgetWrapper>
 </template>
@@ -180,7 +245,8 @@ import {
 } from '@/composable/charts/use-spike-detection';
 import { useAnimatedNumber } from '@/composable/use-animated-number';
 import { currentTheme } from '@/common/utils/color-theme';
-import { calculatePercentageDifference, formatLargeNumber } from '@/js/helpers';
+import { formatLargeNumber } from '@/js/helpers';
+import { compareBalancePeriods } from './compare-balance-periods';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { loadCombinedBalanceTrendData } from '@/services/stats';
 import { useAccountsStore, useCurrenciesStore } from '@/stores';
@@ -189,7 +255,7 @@ import { useQuery } from '@tanstack/vue-query';
 import { useResizeObserver } from '@vueuse/core';
 import * as d3 from 'd3';
 import { differenceInDays, endOfDay, format, isSameMonth, min, startOfDay, subDays } from 'date-fns';
-import { ChartLineIcon } from '@lucide/vue';
+import { ChartLineIcon, ChartNoAxesCombinedIcon, ChevronDownIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import type { Ref } from 'vue';
 import { computed, inject, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
@@ -547,7 +613,7 @@ const periodLabel = computed(() => {
 
   // Specific month (not current) - show "November 2025"
   if (isSameMonth(from, to)) {
-    return format(to, 'MMMM yyyy');
+    return to.toLocaleDateString(locale.value, { month: 'long', year: 'numeric' });
   }
 
   // Check if it's a month-aligned range (starts on 1st day, ends on last day of month)
@@ -557,11 +623,11 @@ const periodLabel = computed(() => {
 
   if (isFromMonthStart && isToMonthEnd) {
     // Multi-month range like "Aug 2025 - Nov 2025"
-    return `${format(from, 'MMM yyyy')} - ${format(to, 'MMM yyyy')}`;
+    return `${from.toLocaleDateString(locale.value, { month: 'short', year: 'numeric' })} – ${to.toLocaleDateString(locale.value, { month: 'short', year: 'numeric' })}`;
   }
 
   // Custom date range - show "MMM d, yyyy - MMM d, yyyy"
-  return `${format(from, 'MMM d, yyyy')} - ${format(to, 'MMM d, yyyy')}`;
+  return `${from.toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' })} – ${to.toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' })}`;
 });
 
 // Chart data based on selected balance type
@@ -603,6 +669,16 @@ const chartData = computed(() => {
       totalBalance: effectiveTotal,
     };
   });
+});
+
+const isBalanceTableOpen = ref(false);
+
+// Keep the alternative data view compact even for multi-year daily series.
+const chartTableRows = computed(() => {
+  const rows = chartData.value;
+  if (rows.length <= 12) return rows;
+  const lastIndex = rows.length - 1;
+  return Array.from({ length: 12 }, (_, i) => rows[Math.round((i * lastIndex) / 11)]!);
 });
 
 const { spikePoints } = useSpikeDetection({ chartData, options: spikeSettings });
@@ -1022,7 +1098,7 @@ const renderChart = () => {
       hoverLine.attr('x1', xScale(d.date)).attr('x2', xScale(d.date));
 
       // Update tooltip
-      tooltip.date = new Date(d.date).toLocaleDateString('en-US', {
+      tooltip.date = new Date(d.date).toLocaleDateString(locale.value, {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
@@ -1083,9 +1159,26 @@ const renderChart = () => {
     .attr('r', hitAreaRadius)
     .attr('fill', 'transparent')
     .attr('cursor', 'pointer')
+    .attr('tabindex', 0)
+    .attr('role', 'button')
+    .attr(
+      'aria-label',
+      (d) =>
+        `${t('dashboard.widgets.balanceTrend.title')}, ${new Date(d.date).toLocaleDateString(locale.value)}, ${formatBaseCurrency(d.deltaAbsolute)}`,
+    )
     .on('click', (event: MouseEvent, d) => {
       event.stopPropagation();
       openSpikePanel({ event, spike: d });
+    })
+    .on('keydown', (event: KeyboardEvent, d) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      const rect = (event.currentTarget as SVGCircleElement).getBoundingClientRect();
+      const click = new MouseEvent('click', {
+        clientX: rect.left + rect.width / 2,
+        clientY: rect.top + rect.height / 2,
+      });
+      openSpikePanel({ event: click, spike: d });
     });
 
   // Visible markers
@@ -1214,23 +1307,17 @@ const { displayValue: animatedBalance } = useAnimatedNumber({
   value: computed(() => displayBalance.value.current),
 });
 
-const balancesDiff = computed<number>(() => {
-  if (!displayBalance.value.current || !displayBalance.value.previous) return 0;
-
-  const percentage = Number(
-    calculatePercentageDifference(displayBalance.value.current, displayBalance.value.previous),
-  ).toFixed(2);
-  return Number(percentage);
-});
-
-// Absolute change vs the previous period, shown next to the percentage so the
-// headline conveys how much money moved, not just the ratio. Guarded the same
-// way as balancesDiff so the amount and the percentage always agree on whether
-// a comparison is available.
-const balancesDiffAbsolute = computed<number>(() => {
-  if (!displayBalance.value.current || !displayBalance.value.previous) return 0;
-  return displayBalance.value.current - displayBalance.value.previous;
-});
+// Missing history is not the same as a zero balance. A zero starting
+// balance supports an absolute difference, but no meaningful percentage.
+const balanceComparison = computed(() =>
+  compareBalancePeriods({
+    current: displayBalance.value.current,
+    previous: prevPeriodBalance.value?.length ? displayBalance.value.previous : null,
+  }),
+);
+const balancesDiff = computed(() => balanceComparison.value.percent);
+const balancesDiffAbsolute = computed(() => balanceComparison.value.absolute);
+const comparisonTone = computed(() => Math.sign(balancesDiffAbsolute.value ?? 0));
 
 useResizeObserver(containerRef, renderChart);
 

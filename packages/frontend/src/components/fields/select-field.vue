@@ -202,16 +202,18 @@ watch(
             </Select.SelectValue>
           </Select.SelectTrigger>
           <!-- Outside the trigger: reka's trigger opens on pointerdown, so a nested button can't receive the click. -->
-          <button
-            v-if="showClear"
-            type="button"
-            :disabled="disabled"
-            :aria-label="t('common.components.selectField.clearSelection')"
-            class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute end-8 top-1/2 -translate-y-1/2 rounded focus:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50"
-            @click="clearSelection"
-          >
-            <XIcon class="size-3.5" />
-          </button>
+          <Transition name="lajur-info-reveal">
+            <button
+              v-if="showClear"
+              type="button"
+              :disabled="disabled"
+              :aria-label="t('common.components.selectField.clearSelection')"
+              class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute end-8 top-1/2 -translate-y-1/2 rounded focus:outline-none focus-visible:ring-1 disabled:pointer-events-none disabled:opacity-50"
+              @click="clearSelection"
+            >
+              <XIcon class="size-3.5 transition-transform duration-200 hover:rotate-90 motion-reduce:transition-none" />
+            </button>
+          </Transition>
         </div>
 
         <Select.SelectContent>

@@ -1,53 +1,58 @@
 <template>
-  <InputField
-    :model-value="modelValue"
-    type="number"
-    :label="label"
-    :placeholder="placeholder"
-    :disabled="disabled"
-    :error-message="errorMessage"
-    :non-label-wrapper="Boolean($slots['label-right'])"
-    @update:model-value="(value) => emit('update:modelValue', value === '' ? null : Number(value))"
-    @blur="emit('blur')"
-  >
-    <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
-    <template #iconTrailing>
-      <Popover.Popover>
-        <Popover.PopoverTrigger as-child>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            :disabled="disabled"
-            :aria-label="$t('forms.loan.termPresetsAriaLabel')"
-            class="text-muted-foreground hover:text-foreground -mr-2 size-6"
-          >
-            <ChevronDownIcon class="size-4" />
-          </Button>
-        </Popover.PopoverTrigger>
-        <Popover.PopoverContent align="end" class="max-h-[min(24rem,calc(100dvh-3rem))] w-52 overflow-y-auto p-1">
-          <div class="text-muted-foreground px-2 py-1.5 text-xs font-medium">
-            {{ $t('forms.loan.termPresetsHeader') }}
-          </div>
-          <Button
-            v-for="preset in presets"
-            :key="preset.months"
-            type="button"
-            variant="ghost"
-            size="sm"
-            class="flex w-full items-center justify-between px-2 font-normal"
-            :class="modelValue === preset.months && 'bg-accent'"
-            @click="selectPreset(preset.months)"
-          >
-            <span>{{ preset.label }}</span>
-            <span class="text-muted-foreground text-xs"
-              >{{ preset.months }}{{ $t('forms.loan.termMonthsSuffix') }}</span
+  <div>
+    <InputField
+      :model-value="modelValue"
+      type="number"
+      :label="label"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :error-message="errorMessage"
+      :non-label-wrapper="Boolean($slots['label-right'])"
+      @update:model-value="(value) => emit('update:modelValue', value === '' ? null : Number(value))"
+      @blur="emit('blur')"
+    >
+      <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
+      <template #iconTrailing>
+        <Popover.Popover>
+          <Popover.PopoverTrigger as-child>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              :disabled="disabled"
+              :aria-label="$t('forms.loan.termPresetsAriaLabel')"
+              class="text-muted-foreground hover:text-foreground -mr-2 size-6"
             >
-          </Button>
-        </Popover.PopoverContent>
-      </Popover.Popover>
-    </template>
-  </InputField>
+              <ChevronDownIcon class="size-4" />
+            </Button>
+          </Popover.PopoverTrigger>
+          <Popover.PopoverContent align="end" class="max-h-[min(24rem,calc(100dvh-3rem))] w-52 overflow-y-auto p-1">
+            <div class="text-muted-foreground px-2 py-1.5 text-xs font-medium">
+              {{ $t('forms.loan.termPresetsHeader') }}
+            </div>
+            <Button
+              v-for="preset in presets"
+              :key="preset.months"
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="flex w-full items-center justify-between px-2 font-normal"
+              :class="modelValue === preset.months && 'bg-accent'"
+              @click="selectPreset(preset.months)"
+            >
+              <span class="min-w-0 truncate">{{ preset.label }}</span>
+              <span class="text-muted-foreground shrink-0 text-xs"
+                >{{ preset.months }}{{ $t('forms.loan.termMonthsSuffix') }}</span
+              >
+            </Button>
+          </Popover.PopoverContent>
+        </Popover.Popover>
+      </template>
+    </InputField>
+    <p v-if="durationDescription" class="text-muted-foreground mt-1 px-1 text-xs" role="status">
+      {{ durationDescription }}
+    </p>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -56,6 +61,7 @@ import { Button } from '@/components/lib/ui/button';
 import * as Popover from '@/components/lib/ui/popover';
 import { ChevronDownIcon } from '@lucide/vue';
 import { computed } from 'vue';
+import { formatLoanDuration } from '../utils/loan-duration';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -71,23 +77,20 @@ const emit = defineEmits<{
   blur: [];
 }>();
 
-const { t } = useI18n();
+const { locale } = useI18n();
 
 // Year-aligned terms are what users actually quote ("a 30-year mortgage"); the months value beside
 // each one is a sanity-check.
 // Months are the common unit for Indonesian BNPL, cash loans, and short installments.
-const PRESET_MONTHS = [1, 2, 3, 6, 9, 12, 18, 24];
+const PRESET_MONTHS = [1, 2, 3, 6, 9, 12, 18, 24, 30, 36];
 const PRESET_YEARS = [3, 5, 7, 10, 15, 20, 25, 30];
 
+const durationDescription = computed(() =>
+  props.modelValue ? formatLoanDuration(props.modelValue, locale.value) : '',
+);
 const presets = computed(() => [
-  ...PRESET_MONTHS.map((months) => ({
-    months,
-    label: t('forms.loan.termPresetMonths', { count: months }),
-  })),
-  ...PRESET_YEARS.map((years) => ({
-    months: years * 12,
-    label: t('forms.loan.termPresetYears', { count: years }),
-  })),
+  ...PRESET_MONTHS.map((months) => ({ months, label: formatLoanDuration(months, locale.value) })),
+  ...PRESET_YEARS.map((years) => ({ months: years * 12, label: formatLoanDuration(years * 12, locale.value) })),
 ]);
 
 const selectPreset = (months: number) => {

@@ -101,7 +101,17 @@
       "archive": {
         "title": "Arsipkan Akun",
         "description": "Pengarsipan menyimpan semua transaksi tetapi menghapus akun dari daftar aktif Anda. Koneksi bank dan keanggotaan grup akan diputuskan.",
-        "compareOptionsLink": "Archive, exclude or delete?",
+        "compareOptionsLink": "Apa beda arsip, pengecualian, dan penghapusan?",
+        "comparison": {
+          "title": "Arsip, pengecualian, atau hapus?",
+          "description": "Ketiga tindakan ini memiliki dampak yang berbeda terhadap catatan keuangan.",
+          "archivedTitle": "Arsipkan akun",
+          "archived": "Akun disembunyikan dari daftar aktif dan tidak menerima transaksi baru. Transaksi lama tetap tersimpan. Akun yang diarsipkan dapat diaktifkan kembali.",
+          "excludedTitle": "Kecualikan dari statistik",
+          "excluded": "Akun dan transaksinya tetap dapat dikelola, tetapi nilainya tidak ikut dihitung dalam statistik yang menggunakan pengaturan pengecualian. Saldo akun tidak dihapus.",
+          "deletedTitle": "Hapus akun",
+          "deleted": "Penghapusan bersifat permanen dan dapat ikut menghapus transaksi terkait. Tindakan ini berbeda dari arsip dan tidak dapat dibatalkan."
+        },
         "archiveButton": "Arsipkan Akun",
         "confirmTitle": "Arsipkan Akun",
         "confirmDescription": "Yakin ingin mengarsipkan \"{name}\"? Ini akan:",
@@ -159,7 +169,7 @@
       },
       "details": {
         "creditLimit": "Batas Kredit:",
-        "creditLimitHint": "Set this only if the bank balance already includes the credit line.",
+        "creditLimitHint": "Isi hanya jika saldo yang tercatat sudah termasuk fasilitas batas kredit. Jika tidak, biarkan nol.",
         "editCreditLimit": "Edit batas kredit",
         "creditLimitUpdateSuccess": "Batas kredit diperbarui",
         "creditLimitUpdateError": "Gagal memperbarui batas kredit",

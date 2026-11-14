@@ -5,6 +5,7 @@ import Button from '../button/Button.vue';
 
 defineProps<{
   applyDisabled?: boolean;
+  showCancel?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -21,7 +22,9 @@ const { t } = useI18n();
       <slot />
     </div>
     <div class="flex shrink-0 gap-2">
-      <Button size="sm" variant="outline" @click="emit('cancel')">{{ t('common.actions.cancel') }}</Button>
+      <Button v-if="showCancel !== false" size="sm" variant="outline" @click="emit('cancel')">{{
+        t('common.actions.cancel')
+      }}</Button>
       <Button size="sm" :disabled="applyDisabled" @click="emit('apply')">{{ t('common.dateSelector.apply') }}</Button>
     </div>
   </div>

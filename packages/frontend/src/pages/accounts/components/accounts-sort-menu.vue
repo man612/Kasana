@@ -1,10 +1,19 @@
 <template>
   <Popover.Popover :open="isOpen" @update:open="isOpen = $event">
     <Popover.PopoverTrigger as-child>
-      <UiButton v-if="triggerVariant === 'labeled'" variant="outline">
+      <UiButton
+        v-if="triggerVariant === 'labeled'"
+        variant="outline"
+        class="transition-[inline-size,background-color,color] duration-220 ease-out [interpolate-size:allow-keywords] motion-reduce:transition-none"
+      >
         <ArrowUpDownIcon class="size-4" />
-        <span>{{ currentLabel }}</span>
-        <ChevronDownIcon class="size-4 opacity-60" />
+        <Transition name="kasana-form-copy" mode="out-in"
+          ><span :key="sortKey" class="inline-block whitespace-nowrap">{{ currentLabel }}</span></Transition
+        >
+        <ChevronDownIcon
+          class="size-4 opacity-60 transition-transform duration-200 motion-reduce:transition-none"
+          :class="isOpen && 'rotate-180'"
+        />
       </UiButton>
       <UiButton v-else variant="outline" size="icon" :aria-label="$t('accounts.sort.ariaLabel')">
         <ArrowUpDownIcon class="size-4" />
@@ -17,10 +26,14 @@
         :key="opt.key"
         variant="ghost"
         size="sm"
-        class="w-full justify-start gap-2"
+        class="w-full justify-start gap-2 transition-colors duration-150"
+        :aria-pressed="opt.key === sortKey"
         @click="selectSort(opt.key)"
       >
-        <CheckIcon class="size-4" :class="opt.key === sortKey ? 'opacity-100' : 'opacity-0'" />
+        <CheckIcon
+          class="size-4 transition-[opacity,transform] duration-180 motion-reduce:transition-none"
+          :class="opt.key === sortKey ? 'scale-100 opacity-100' : 'scale-75 opacity-0'"
+        />
         {{ opt.label }}
       </UiButton>
     </Popover.PopoverContent>

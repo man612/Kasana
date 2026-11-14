@@ -26,6 +26,14 @@
       >
         <ScrollArea :class="navMaxHeight" :viewport-class="cn('p-2', navMaxHeight)">
           <div class="flex flex-col gap-4 overflow-hidden">
+            <router-link
+              :to="{ name: ROUTES_NAMES.dashboard }"
+              class="text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-ring flex min-h-9 items-center gap-2 rounded-md px-3 text-sm transition-colors focus-visible:ring-2"
+              :aria-label="$t('navigation.dashboard')"
+            >
+              <HomeIcon class="size-4 shrink-0" />
+              <span v-if="!isIconOnly">{{ $t('navigation.dashboard') }}</span>
+            </router-link>
             <button
               v-if="!isCompactLayout"
               :class="

@@ -12,10 +12,17 @@
           :model-value="account"
           @update:model-value="updateFormAccount"
         >
-          <template v-if="account?.id === OUT_OF_WALLET_ACCOUNT_MOCK.id" #label-right>
-            <DocsLink :path="OUT_OF_WALLET_DOCS_PATH" class="text-xs">
-              {{ $t('dialogs.manageTransaction.form.outOfWalletDocsLink') }}
-            </DocsLink>
+          <template #label-right>
+            <Transition name="lajur-form-panel">
+              <button
+                v-if="account?.id === OUT_OF_WALLET_ACCOUNT_MOCK.id"
+                type="button"
+                class="text-primary text-xs hover:underline"
+                @click="isOutOfWalletHelpOpen = true"
+              >
+                {{ $t('dialogs.manageTransaction.form.outOfWalletDocsLink') }}
+              </button>
+            </Transition>
           </template>
           <template #select-bottom-content>
             <CreateAccountDialog>
@@ -53,10 +60,17 @@
                   :model-value="toAccount"
                   @update:model-value="updateToAccount"
                 >
-                  <template v-if="toAccount?.id === OUT_OF_WALLET_ACCOUNT_MOCK.id" #label-right>
-                    <DocsLink :path="OUT_OF_WALLET_DOCS_PATH" class="text-xs">
-                      {{ $t('dialogs.manageTransaction.form.outOfWalletDocsLink') }}
-                    </DocsLink>
+                  <template #label-right>
+                    <Transition name="lajur-form-panel">
+                      <button
+                        v-if="toAccount?.id === OUT_OF_WALLET_ACCOUNT_MOCK.id"
+                        type="button"
+                        class="text-primary text-xs hover:underline"
+                        @click="isOutOfWalletHelpOpen = true"
+                      >
+                        {{ $t('dialogs.manageTransaction.form.outOfWalletDocsLink') }}
+                      </button>
+                    </Transition>
                   </template>
                   <template #select-bottom-content>
                     <CreateAccountDialog>
@@ -168,10 +182,17 @@
       </input-field>
     </form-row>
   </template>
+  <ResponsiveDialog v-model:open="isOutOfWalletHelpOpen">
+    <template #title>{{ $t('dialogs.manageTransaction.form.outOfWalletHelpTitle') }}</template>
+    <template #description>{{ $t('dialogs.manageTransaction.form.outOfWalletHelpDescription') }}</template>
+    <p class="text-muted-foreground px-1 pb-2 text-sm leading-relaxed">
+      {{ $t('dialogs.manageTransaction.form.outOfWalletHelpExample') }}
+    </p>
+  </ResponsiveDialog>
 </template>
 
 <script setup lang="ts">
-import DocsLink from '@/components/common/docs-link.vue';
+import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import CreateAccountDialog from '@/components/dialogs/create-account-dialog.vue';
 import AccountSelectField from '@/components/fields/account-select-field.vue';
 import InputField from '@/components/fields/input-field.vue';
@@ -181,7 +202,7 @@ import { PillTabs } from '@/components/lib/ui/pill-tabs';
 import { OUT_OF_WALLET_ACCOUNT_MOCK } from '@/common/const';
 import { AccountModel, PortfolioModel, TRANSACTION_TYPES } from '@bt/shared/types';
 import { BriefcaseIcon, HandCoinsIcon, PlusIcon, WalletIcon } from '@lucide/vue';
-import { type Component, computed } from 'vue';
+import { type Component, computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { getAvailableTransferDestinationTypes } from '../helpers';
@@ -191,7 +212,7 @@ import FormRow from './form-row.vue';
 
 const { t } = useI18n();
 
-const OUT_OF_WALLET_DOCS_PATH = '/transfers-and-refunds/how-transfers-work/#out-of-wallet-transfers';
+const isOutOfWalletHelpOpen = ref(false);
 
 const DESTINATION_TYPE_META: Record<TransferDestinationType, { labelKey: string; icon: Component }> = {
   account: { labelKey: 'dialogs.manageTransaction.form.destinationTypeAccount', icon: WalletIcon },

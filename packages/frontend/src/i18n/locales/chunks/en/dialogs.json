@@ -100,7 +100,9 @@
         "selectTransfer": "Select transfer",
         "expenseHint": "Money leaving an account for purchases, bills, or payments to someone else.",
         "incomeHint": "Money received from outside, such as salary, freelance fees, gifts, or sales.",
-        "transferHint": "Move funds between your own accounts. Paying someone else is an expense."
+        "transferHint": "Move funds between your own accounts. Paying someone else is an expense.",
+        "transferDisabledPlanned": "Transfers are not currently supported for planned transactions.",
+        "transferDisabledMultiAccount": "Turn off multiple accounts before selecting Transfer."
       },
       "recordList": {},
       "form": {
@@ -111,6 +113,9 @@
         "createMoreHint": "After saving, keep this form open to enter another transaction.",
         "addFieldsHint": "Extra details — only add what you need.",
         "outOfWalletDocsLink": "What is out of wallet?",
+        "outOfWalletHelpTitle": "What does out of wallet mean?",
+        "outOfWalletHelpDescription": "Use this when money moves into or out of a tracked account, but the other side is not an account you track.",
+        "outOfWalletHelpExample": "For example, depositing cash into your bank account, or receiving money from an untracked account. This option does not create another account or automatically change its balance.",
         "destinationGroupLabel": "Where the money goes",
         "paymentTypeLabel": "Payment type",
         "noteLabel": "Note",
@@ -893,6 +898,9 @@
       }
     },
     "loanPayment": {
+      "fillRecordedOutstanding": "Fill recorded principal balance",
+      "fillOutstandingNotice": "This is only the recorded outstanding principal, not a final payoff quote. Accrued interest, service fees and early-settlement penalties may be extra. Check the lender's official statement.",
+      "fillRequiresSameCurrency": "Automatic fill is only available when the account and loan use the same currency.",
       "title": "Loan payment",
       "description": "Record or edit a payment against this loan.",
       "createTitle": "Record payment",
