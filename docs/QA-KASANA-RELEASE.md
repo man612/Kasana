@@ -1,10 +1,12 @@
-# Kasana — Release Gates and QA Checklist
+# Lajur. — Release Gates and QA Checklist
 
-This checklist applies to integration **PR #10** (combining historical PRs #8 and #9). The UI changes remain **Draft**, are not merged into `main`, have not been deployed to a VPS, and have not passed full application QA.
+This checklist applies to umbrella integration **PR #10** (combining historical PRs #8 and #9). As of November 14, 2026, PR #10 remains **Draft**, is not merged into `main`, has not been deployed to a VPS, and has not passed full application QA.
+
+Follow-up PRs **#27–#31** target `feat/lajur-finance-ux-dashboard-accounts-loans-20261114`, a branch currently two commits ahead of PR #10's head branch `feat/kasana-indonesia-ui-integrated`. Those follow-ups do **not** automatically appear in PR #10. Review and integrate their changes into the umbrella integration branch before the final merge; do not merge these follow-up PRs directly into `main`.
 
 ## 1. Source verification
 
-Run the following commands from a checkout of `feat/kasana-indonesia-ui-integrated` with the Node.js version configured by Volta (`24.22.1`) after `npm ci`:
+Run the following commands from the feature checkout with the Node.js version configured by Volta (`24.22.1`) after `npm ci`. For follow-up PRs #27–#31, use `feat/lajur-finance-ux-dashboard-accounts-loans-20261114`; for final umbrella validation, run again after the reviewed follow-up changes have been integrated into `feat/kasana-indonesia-ui-integrated`.
 
 ```bash
 npm run lint -w packages/frontend
@@ -18,7 +20,15 @@ npm run test:unit -w packages/backend -- --runInBand
 
 Backend unit tests require the correct test environment and may need `NODE_OPTIONS=--max-old-space-size=4096`. Run backend e2e tests in the project's Docker test environment, **never** against real credentials or production financial data. If a required step fails, **do not merge or deploy**.
 
-**Verified CI evidence — November 11, 2026:** [run #42878060359](https://github.com/man612/Kasana/actions/runs/42878060359) on commit `fe10505c` passed frontend build/lint/tests/knip, backend unit/typecheck/lint/knip, all four backend e2e shards, and both Docker image builds. Backend unit tests: 3,821 passed and 15 skipped. Later commits addressing public identity, privacy, and release safeguards must have **their own** successful CI run before merge. A green CI run does not prove mobile UI, real OAuth, data recovery, or VPS security.
+**Current CI evidence — November 14, 2026:**
+- Umbrella PR #10: [run #43556893156](https://github.com/man612/Kasana/actions/runs/43556893156) and [run #43556893248](https://github.com/man612/Kasana/actions/runs/43556893248) completed successfully.
+- Follow-up PR #27: [run #43600252633](https://github.com/man612/Kasana/actions/runs/43600252633) passed.
+- Follow-up PR #28: [run #43601239771](https://github.com/man612/Kasana/actions/runs/43601239771) passed.
+- Follow-up PR #29: [run #43602739733](https://github.com/man612/Kasana/actions/runs/43602739733) passed, including frontend tests, Docker image builds, synthetic PostgreSQL/attachment restore, and isolated mobile browser smoke.
+- Follow-up PR #30: [run #43603034498](https://github.com/man612/Kasana/actions/runs/43603034498) passed the same CI workflow.
+- Follow-up PR #31: its latest documentation commit is undergoing CI; use the [live PR checks](https://github.com/man612/Kasana/pull/31) for the current result.
+
+The November 11 run [#42878060359](https://github.com/man612/Kasana/actions/runs/42878060359) is historical evidence only. Passing CI does not prove physical-device UI, real OAuth, actual data recovery, or VPS security.
 
 ## 2. Functional browser QA using synthetic data
 
@@ -33,15 +43,15 @@ Backend unit tests require the correct test environment and may need `NODE_OPTIO
 | Quick Start gesture | Single tap opens the panel. Long press for approximately 420 ms, then drag to relocate. The position survives refresh; Reset is disabled at the default position, enabled after moving, and restores the original location. Simulate OS `pointercancel`: the unfinished move must be rolled back and the next tap must work. Use single-tap corner presets without requiring dragging. |
 | Hide Quick Start | Test hiding for 1 hour, 24 hours, and 7 days, and reopening through Settings → General. Refresh or reopen the tab before and after expiry. |
 | Navigation | Open account and vehicle details from their lists; on deep links, Back should return to a sensible list. The mobile hamburger remains available. Also test loan, portfolio, goals, budgets, trackers, recurring payments, investments, and ventures. |
-| Responsive layouts | Test widths of 360 px, 390 px, tablet, and 1280 px desktop with Kasana's 80% rem-based density (no root CSS zoom). Rotate the device and open the virtual keyboard. The dashboard must fill the viewport, without horizontal overflow, obscured actions, clipped popovers, or off-screen floating controls. |
+| Responsive layouts | Test widths of 360 px, 390 px, tablet, and 1280 px desktop with Lajur.'s 80% rem-based density (no root CSS zoom). Rotate the device and open the virtual keyboard. The dashboard must fill the viewport, without horizontal overflow, obscured actions, clipped popovers, or off-screen floating controls. |
 | Dialogs and accessibility | Test keyboard Tab/Escape, screen-reader labels, touch targets, back buttons, Indonesian/English language switching, and mobile drawers. Dropdowns/Selects must remain anchored 6 px from their trigger (or flip to the opposite side near a viewport edge); centered modal dialogs are intentionally different. |
 | Loans | Verify principal, outstanding balance, interest, term, installments, and projections. **Do not** assume declining-balance amortization models flat interest, deducted origination fees, or provider-specific BNPL schedules. |
 
-- An isolated Playwright/Chromium CI browser test starts Kasana's real frontend/backend and synthetic PostgreSQL data, checks an IDR transaction and account detail at mobile viewport with 80% rem-based UI density, verifies full viewport coverage, explicit deep-link Back, accent selection persistence, and anchored Select dropdown geometry. A passing synthetic browser test still does not replace physical Android, native pinch-zoom, or real VPS testing.
+- An isolated Playwright/Chromium CI browser test starts Lajur.'s real frontend/backend and synthetic PostgreSQL data, checks an IDR transaction and account detail at mobile viewport with 80% rem-based UI density, verifies full viewport coverage, explicit deep-link Back, accent selection persistence, and anchored Select dropdown geometry. A passing synthetic browser test still does not replace physical Android, native pinch-zoom, or real VPS testing.
 
 ### Motion and appearance checks
 
-See [Kasana Motion System](KASANA-MOTION-SYSTEM.md) for the implementation map, ownership boundaries and motion/performance policy.
+See [Lajur. Motion System](KASANA-MOTION-SYSTEM.md) for the implementation map, ownership boundaries and motion/performance policy.
 
 - Verify auth/login-to-dashboard shell fade, dashboard route changes, and nested Settings/Analytics/Planned/Payees/Data Management content transitions. Parent navigators should remain mounted when child tabs change.
 - Verify active Reka tab content animates in without delaying focus or changing form inputs; validate the underline/pill indicator independently.
@@ -72,4 +82,4 @@ See [Kasana Motion System](KASANA-MOTION-SYSTEM.md) for the implementation map, 
 
 PR #10 may only be considered ready when relevant lint, typecheck, unit tests, builds, and regression checks are **passing**, real-device browser QA is complete, review conflicts are resolved, and backup/restore plus rollback procedures are verified.
 
-Merge **only PR #10** for this combined feature work. PRs #8 and #9 were closed as superseded and must not be merged separately.
+Merge **only the umbrella PR #10** to `main` for this combined feature work. Follow-up PRs #27–#31 are branch-level review units, not independent mainline releases; integrate approved changes into the PR #10 head branch and rerun final CI/QA before merging. PRs #8 and #9 were closed as superseded and must not be merged separately.

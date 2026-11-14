@@ -7,7 +7,7 @@ This is a factual checkpoint for the local development preview, not a production
 - Windows repo: D:\Projects\lajur-preview-a631edfe
 - Branch: feat/lajur-finance-ux-dashboard-accounts-loans-20261114
 - Local preview: http://localhost:8082 (loopback only).
-- Active preview containers: kasana-podman-frontend-ux20261114 and kasana-podman-backend-ux20261114.
+- Preview containers observed running at the time of this checkpoint: kasana-podman-frontend-ux20261114 and kasana-podman-backend-ux20261114. This is a historical snapshot, not a live status; the containers may now be stopped.
 - PostgreSQL, Redis, attachments and currency-rates services retain existing Podman resources.
 - Previous preview containers were stopped, not deleted, for rollback.
 - The frontend and backend were compiled from this local branch; no VPS or production deploy was attempted.

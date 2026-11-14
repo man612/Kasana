@@ -1,4 +1,4 @@
-# Kasana — Windows and VPS Setup Guide
+# Lajur. — Windows and VPS Setup Guide
 
 Independent GitHub repository created from MoneyMatter upstream release **v0.33.14**
 (commit `a7ed310634ba3148d0c2b876fd051be11bc9ec04`).
@@ -33,7 +33,7 @@ Never run `docker compose down -v` on an instance with real data. It deletes per
 
 Use Ubuntu 24.04 LTS with Docker Engine and the Compose plugin. A 4 GB RAM VPS is a reasonable *runtime test* starting point; building the full frontend there may need 8–12 GB or a separate CI builder. No verified real-world benchmark has been performed.
 
-1. Clone the **public Kasana repository** to the VPS: `git clone https://github.com/man612/Kasana.git` (not MoneyMatter upstream). Public source does not expose private server data or `.env` files.
+1. Clone the **public Lajur. source repository** (GitHub slug `man612/Kasana`) to the VPS: `git clone https://github.com/man612/Kasana.git` (not MoneyMatter upstream). Public source does not expose private server data or `.env` files.
 2. In `self-hosting/`, copy `.env.example` to `.env` and replace the **four** `__REPLACE_ME__` placeholders with independent cryptographically random values. Do not reuse local secrets when creating a fresh empty database; if moving existing accounts, carefully preserve the original authentication secrets.
 3. Set `BETTER_AUTH_URL` and `AUTH_ORIGIN` to exactly the same external HTTPS URL, e.g. `https://finance.example.com`.
 4. Set `HTTP_PORT=127.0.0.1:8080` and `SYSTEM_MAX_SIGNUPS_ALLOWED=1` for a single-user private instance. Do not expose PostgreSQL or Redis to public interfaces.

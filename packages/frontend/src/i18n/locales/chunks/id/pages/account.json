@@ -317,7 +317,7 @@
       "backToAccounts": "Kembali ke akun",
       "editButton": "Sunting",
       "overrideValueButton": "Timpa nilai",
-      "currentValue": "Nilai saat ini",
+      "currentValue": "Estimasi nilai saat ini",
       "purchasePrice": "Harga beli",
       "totalDepreciation": "Total depresiasi",
       "vehicleClass": "Kelas",
@@ -387,7 +387,8 @@
         "monthsLabel": "{n} bln sejak pembelian",
         "yearsLabel": "{n} thn sejak pembelian",
         "yearsMonthsLabel": "{y}thn {m}bln sejak pembelian"
-      }
+      },
+      "estimateDisclaimer": "Dihitung dari harga beli atau penilaian manual terakhir, tanggal acuannya, dan pola depresiasi. Ini bukan harga jual pasar terkini; kilometer kendaraan belum memengaruhi perhitungan."
     }
   }
 }

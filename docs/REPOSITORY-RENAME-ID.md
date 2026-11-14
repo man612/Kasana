@@ -2,7 +2,7 @@
 
 > **Historical filename:** This document retains its `-ID.md` path so existing GitHub links do not break. Its content is now written in English, in keeping with Kasana's public documentation policy.
 
-As of **November 11, 2026**, the repository is [`man612/Kasana`](https://github.com/man612/Kasana), **Public**, with `main` as its default branch. **Kasana** is a working product name and can be renamed again later.
+As of **November 14, 2026**, the repository is [`man612/Kasana`](https://github.com/man612/Kasana), **Public**, with `main` as its default branch. **Lajur.** (including the final period) is the current app display name; **Kasana** remains the repository slug and internal project identity.
 
 ## Verified changes after the rename
 
@@ -15,7 +15,7 @@ As of **November 11, 2026**, the repository is [`man612/Kasana`](https://github.
 
 ## GitHub About: verified public metadata
 
-On **November 11, 2026**, the repository administrator applied and verified the About description and topics. The website remains empty until an independent Kasana site is deployed. A social-preview asset has not been verified.
+On **November 11, 2026**, the repository administrator applied and verified the About description and topics. The website remains empty until an independent Lajur. site is deployed. A social-preview asset has not been verified.
 
 **Description:**
 
@@ -49,8 +49,8 @@ Check Git remotes on Windows, VPS, Dokploy/Portainer integrations, Cloudflare, w
 
 ## Outstanding release and security requirements
 
-- [PR #10](https://github.com/man612/Kasana/pull/10) remains a separate UI integration under QA. Repository rename work must not be used as a reason to merge it early.
-- Previous frontend/backend CI failures were fixed; [run #42878060359](https://github.com/man612/Kasana/actions/runs/42878060359) passed all checks on commit `fe10505c`. Check the latest PR #10 head for newer changes before reporting current CI green.
+- [PR #10](https://github.com/man612/Kasana/pull/10) remains the umbrella UI integration against `main`. Follow-up PRs [#27](https://github.com/man612/Kasana/pull/27) through [#31](https://github.com/man612/Kasana/pull/31) target the newer `feat/lajur-finance-ux-dashboard-accounts-loans-20261114` branch; they are not automatically included in PR #10. Integrate reviewed follow-up changes into the umbrella branch and rerun its final checks before merging.
+- CI runs for PRs #10 and #27–#30 passed on November 14, 2026. PR #31's latest documentation commit is undergoing CI; check its live status before merging. See the [release QA checklist](QA-KASANA-RELEASE.md) for run IDs and remaining verification gates.
 - Legacy upstream backup and deployment jobs are blocked for Kasana. No Kasana production auto-deploy has been verified.
 - The inherited `packages/docs` and `packages/landing` content is not an official Kasana site.
 - Public Git history and old Actions logs/artifacts still need comprehensive secret auditing. Revoke and rotate exposed credentials at the provider.

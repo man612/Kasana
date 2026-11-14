@@ -1,4 +1,4 @@
-# Kasana Motion System — architecture and QA
+# Lajur. Motion System — architecture and QA
 
 This document applies to the unmerged integration PR #10. Animations are meant to communicate
 state changes and spatial relationships, **not** make every static surface move. It is not a
