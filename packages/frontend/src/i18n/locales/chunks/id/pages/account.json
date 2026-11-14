@@ -388,7 +388,7 @@
         "yearsLabel": "{n} thn sejak pembelian",
         "yearsMonthsLabel": "{y}thn {m}bln sejak pembelian"
       },
-      "estimateDisclaimer": "Dihitung dari harga beli, tanggal perolehan, dan pola depresiasi. Ini bukan harga jual pasar terkini; kilometer kendaraan belum memengaruhi perhitungan."
+      "estimateDisclaimer": "Dihitung dari harga beli atau penilaian manual terakhir, tanggal acuannya, dan pola depresiasi. Ini bukan harga jual pasar terkini; kilometer kendaraan belum memengaruhi perhitungan."
     }
   }
 }

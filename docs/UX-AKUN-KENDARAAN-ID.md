@@ -77,7 +77,7 @@ A follow-up review found useful local evidence, but not enough to safely replace
 - Do not add new MPV, LCGC, hatchback, bus or motorcycle coefficients from the evidence above. The available sources do not provide a sufficiently broad, transaction-based and comparable rate table for all those classes.
 - Keep the manual custom-rate and value-override paths available. A dated appraisal or a real local market comparison is more defensible than pretending a generic curve is a live quote.
 - A future Indonesia-calibrated model should collect model/trim, model year, acquisition date and price, odometer, condition, transmission, document completeness, service history, powertrain, location and observation date. Prefer completed transaction/auction prices; if only listings are available, explicitly model asking-price bias. Publish sample size, source date and confidence range.
-- The current projection is an **ownership book-value estimate** anchored to purchase price/date and the selected curve. It is not a market resale valuation. Model year and odometer are currently recorded for reference but do not change the depreciation formula.
+- The current projection is an **ownership book-value estimate** anchored to the purchase price/date or the latest manual value override and its effective date, then continued with the selected curve. It is not a market resale valuation. Model year and odometer are currently recorded for reference but do not change the depreciation formula.
 
 ### Sources
 
