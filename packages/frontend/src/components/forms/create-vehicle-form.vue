@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import { createVehicle } from '@/api/vehicles';
 import { VUE_QUERY_GLOBAL_PREFIXES } from '@/common/const';
-import {
-  DEPRECIATION_PRESET_TRANSLATION_KEYS,
-  VEHICLE_CLASS_TRANSLATION_KEYS,
-} from '@/common/const/vehicle-classes-verbose';
+import { DEPRECIATION_PRESET_TRANSLATION_KEYS } from '@/common/const/vehicle-classes-verbose';
 import FormFieldHelp from '@/components/common/form-field-help.vue';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
@@ -19,7 +16,7 @@ import { DEPRECIATION_PRESET, VEHICLE_CLASS } from '@bt/shared/types';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { between, helpers, integer, maxValue, minValue, required, requiredIf } from '@vuelidate/validators';
 import { format } from 'date-fns';
-import { CarFrontIcon, CarIcon, CircleEllipsisIcon, TruckIcon, ZapIcon, BikeIcon, CrownIcon } from '@lucide/vue';
+import { buildVehicleClassOptions } from './vehicle-class-options';
 import { computed, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -72,26 +69,7 @@ const form = reactive<FormState>({
   currentMileage: null,
 });
 
-const vehicleIconMeta = {
-  [VEHICLE_CLASS.sedan]: { icon: CarFrontIcon, iconClass: 'text-blue-500', description: 'Sedan dan hatchback' },
-  [VEHICLE_CLASS.suv]: { icon: CarIcon, iconClass: 'text-emerald-500', description: 'SUV dan crossover' },
-  [VEHICLE_CLASS.truck]: { icon: TruckIcon, iconClass: 'text-amber-500', description: 'Pikap dan kendaraan angkut' },
-  [VEHICLE_CLASS.luxury]: { icon: CrownIcon, iconClass: 'text-violet-500', description: 'Mobil premium' },
-  [VEHICLE_CLASS.ev]: { icon: ZapIcon, iconClass: 'text-teal-500', description: 'Kendaraan listrik' },
-  [VEHICLE_CLASS.motorcycle]: { icon: BikeIcon, iconClass: 'text-orange-500', description: 'Sepeda motor' },
-  [VEHICLE_CLASS.other]: {
-    icon: CircleEllipsisIcon,
-    iconClass: 'text-slate-500',
-    description: 'MPV, LCGC, dan jenis lain; periksa estimasi penyusutannya',
-  },
-} as const;
-const vehicleClassOptions = computed(() =>
-  Object.values(VEHICLE_CLASS).map((value) => ({
-    label: t(VEHICLE_CLASS_TRANSLATION_KEYS[value]),
-    value,
-    ...vehicleIconMeta[value],
-  })),
-);
+const vehicleClassOptions = computed(() => buildVehicleClassOptions((key) => t(key)));
 // Keep the persisted depreciation classes unchanged: creating new types without
 // tested rate curves would silently invent vehicle valuations.
 const vehicleYearInput = computed({

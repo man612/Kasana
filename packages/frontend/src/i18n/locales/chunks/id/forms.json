@@ -241,13 +241,28 @@
         "error": "Gagal menambahkan kendaraan"
       },
       "vehicleClassPlaceholder": "Pilih jenis kendaraan",
-      "vehicleClassHint": "Kategori kendaraan menentukan rumus perkiraan penurunan nilai. MPV, LCGC, hatchback, dan jenis lain mungkin memakai kategori penyusutan terdekat; periksa kembali hasil estimasinya.",
+      "vehicleClassHint": "Kategori ini memilih kurva penyusutan, bukan klasifikasi pada STNK. Kurva yang tersedia masih perkiraan umum dan belum tervalidasi dari harga pasar kendaraan bekas Indonesia. Untuk MPV, LCGC, hatchback, bus, atau jenis lain yang belum cocok, pilih Lainnya dan tinjau estimasinya.",
       "errors": {
         "positive": "Masukkan nilai lebih dari 0.",
         "yearRange": "Masukkan tahun antara {min} dan {max}.",
         "percentRange": "Masukkan angka antara 0 dan 100.",
         "mileageRange": "Odometer harus antara 0 dan {max} km.",
         "integer": "Masukkan bilangan bulat tanpa desimal."
+      },
+      "vehicleClassGroups": {
+        "carCurves": "Kurva mobil",
+        "goods": "Kendaraan barang",
+        "motorcycle": "Sepeda motor",
+        "fallback": "Kurva umum"
+      },
+      "vehicleClassDescriptions": {
+        "sedan": "Sedan.",
+        "suv": "SUV dan crossover.",
+        "luxury": "Mobil premium.",
+        "ev": "Mobil listrik.",
+        "truck": "Pikap dan truk angkutan barang.",
+        "motorcycle": "Sepeda motor.",
+        "other": "MPV, LCGC, hatchback, bus, dan jenis lain yang belum cocok dengan kurva khusus."
       }
     },
     "editVehicle": {
