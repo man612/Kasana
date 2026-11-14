@@ -26,6 +26,8 @@ export function toLocalNumber(
 
 // Fraction digits a fiat currency renders per ISO-4217/CLDR (KRW→0, USD→2, BHD→3),
 // clamped to 2 because Money stores cents (×100) so only 2 decimals are ever real.
+// Pin IDR to CLDR's zero-digit convention instead of trusting the browser's ICU version;
+// some installed runtimes still ship older CLDR data that formats IDR with ",00".
 // Codes Intl rejects (malformed, e.g. a stray ticker from DB data) resolve to null so
 // callers can skip currency-styled formatting instead of crashing the render. Cached —
 // building an Intl formatter per render is costly.
@@ -36,14 +38,18 @@ function resolveCurrencyDigits(currency: string): number | null {
   if (cached !== undefined) return cached;
 
   let digits: number | null;
-  try {
-    const cldrDigits = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-    }).resolvedOptions().maximumFractionDigits;
-    digits = Math.min(cldrDigits ?? 2, 2);
-  } catch {
-    digits = null;
+  if (currency.toUpperCase() === 'IDR') {
+    digits = 0;
+  } else {
+    try {
+      const cldrDigits = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency,
+      }).resolvedOptions().maximumFractionDigits;
+      digits = Math.min(cldrDigits ?? 2, 2);
+    } catch {
+      digits = null;
+    }
   }
 
   currencyFractionDigitsCache.set(currency, digits);
@@ -69,7 +75,9 @@ function toLocalFiatCurrency(
     return toLocalNumber(value, {
       ...options,
       minimumFractionDigits: options.minimumFractionDigits ?? currencyDigits,
-      maximumFractionDigits: options.maximumFractionDigits ?? currencyDigits,
+      // Keep the normal IDR display whole-rupiah, but don't hide a real fractional
+      // value if one exists in imported or historical data (Money stores 2 decimals).
+      maximumFractionDigits: options.maximumFractionDigits ?? (currency.toUpperCase() === 'IDR' ? 2 : currencyDigits),
       currency,
       currencyDisplay: options.currencyDisplay ?? currencyDisplayPreference.value,
       useGrouping: options.useGrouping ?? true,
@@ -97,7 +105,8 @@ export function toLocalCurrencyNumber(
   return toLocalNumber(value, {
     ...numberOptions,
     minimumFractionDigits: numberOptions.minimumFractionDigits ?? digits,
-    maximumFractionDigits: numberOptions.maximumFractionDigits ?? digits,
+    // IDR has no forced trailing decimals, while non-zero stored fractions remain visible.
+    maximumFractionDigits: numberOptions.maximumFractionDigits ?? (currency?.toUpperCase() === 'IDR' ? 2 : digits),
   });
 }
 
@@ -196,7 +205,7 @@ export const formatCompactIdr = (amount: number): string => {
           : abs >= 1e3
             ? { scale: 1e3, suffix: ' rb' }
             : null;
-  if (!unit) return formatUIAmount(amount, { currency: 'IDR', fractionDigits: 0 });
+  if (!unit) return formatUIAmount(amount, { currency: 'IDR' });
   return 'Rp' + new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(amount / unit.scale) + unit.suffix;
 };
 
