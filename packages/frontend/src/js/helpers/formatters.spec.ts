@@ -3,6 +3,7 @@ import {
   currencyDisplayPreference,
   numberFormatLocale,
   formatCompactFiat,
+  formatCompactIdr,
   formatCompactUIAmount,
   formatShortFiat,
   formatFiat,
