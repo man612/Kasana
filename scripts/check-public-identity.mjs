@@ -67,7 +67,7 @@ for (const localeDir of locales) walk(localeDir);
 // Do not ship a skill URL carrying the old project's name. The public catalog
 // stays unadvertised until an operator configures a real HTTPS origin.
 if (fs.existsSync(path.join(ROOT, 'packages/frontend/public/skills/connect-moneymatter/SKILL.md'))) {
-  failures.push('The public agent skill must use Lajur.'s existing connect-kasana path, not the upstream path');
+  failures.push('The public agent skill must use the existing Lajur. connect-kasana path, not the upstream path');
 }
 // An unreferenced legacy social image is still publicly downloadable after a
 // frontend build. Keep it out of the Lajur. runtime asset tree.
