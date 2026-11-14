@@ -117,6 +117,12 @@ const fromAvailableCash = computed(() => {
   return balancesByCurrency.value.get(form.fromCurrency.currencyCode) ?? null;
 });
 
+const formattedMaxAmount = computed(() =>
+  fromAvailableCash.value === null || !form.fromCurrency
+    ? ''
+    : formatAmountByCurrencyCode(fromAvailableCash.value, form.fromCurrency.currencyCode),
+);
+
 const handleMaxAmount = () => {
   if (fromAvailableCash.value !== null && fromAvailableCash.value > 0) {
     form.fromAmount = String(fromAvailableCash.value);
@@ -241,7 +247,7 @@ const onSubmit = async () => {
         class="mt-1 h-auto p-0"
         @click="handleMaxAmount"
       >
-        {{ $t('forms.exchangeCurrency.maxButton', { amount: fromAvailableCash }) }}
+        {{ $t('forms.exchangeCurrency.maxButton', { amount: formattedMaxAmount }) }}
       </UiButton>
     </div>
 
