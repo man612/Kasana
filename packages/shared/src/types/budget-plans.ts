@@ -62,6 +62,7 @@ export type BudgetAssignmentScope = (typeof BUDGET_ASSIGNMENT_SCOPES)[number];
 export const BUDGET_PLAN_ATTACHABLE_ACCOUNT_CATEGORIES: readonly ACCOUNT_CATEGORIES[] = [
   ACCOUNT_CATEGORIES.general,
   ACCOUNT_CATEGORIES.cash,
+  ACCOUNT_CATEGORIES.digitalWallet,
   ACCOUNT_CATEGORIES.currentAccount,
   ACCOUNT_CATEGORIES.saving,
   ACCOUNT_CATEGORIES.creditCard,

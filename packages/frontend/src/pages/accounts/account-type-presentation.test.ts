@@ -1,4 +1,8 @@
-import { ACCOUNT_CATEGORIES } from '@bt/shared/types';
+import {
+  ACCOUNT_CATEGORIES,
+  BUDGET_PLAN_ATTACHABLE_ACCOUNT_CATEGORIES,
+  isDedicatedFlowAccountCategory,
+} from '@bt/shared/types';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -8,6 +12,11 @@ import {
 } from './account-type-presentation';
 
 describe('account-type-presentation', () => {
+  it('treats digital wallets as ordinary budget-compatible asset accounts', () => {
+    expect(isDedicatedFlowAccountCategory(ACCOUNT_CATEGORIES.digitalWallet)).toBe(false);
+    expect(BUDGET_PLAN_ATTACHABLE_ACCOUNT_CATEGORIES).toContain(ACCOUNT_CATEGORIES.digitalWallet);
+  });
+
   describe('getAccountTypeIcon', () => {
     it('returns a defined icon component for every account category', () => {
       for (const category of Object.values(ACCOUNT_CATEGORIES)) {
@@ -31,6 +40,7 @@ describe('account-type-presentation', () => {
       [ACCOUNT_CATEGORIES.creditCard, 'bg-account-credit/15 text-account-credit'],
       [ACCOUNT_CATEGORIES.overdraft, 'bg-account-credit/15 text-account-credit'],
       [ACCOUNT_CATEGORIES.cash, 'bg-account-cash/15 text-account-cash'],
+      [ACCOUNT_CATEGORIES.digitalWallet, 'bg-account-cash/15 text-account-cash'],
       [ACCOUNT_CATEGORIES.investment, 'bg-account-investment/15 text-account-investment'],
       [ACCOUNT_CATEGORIES.crypto, 'bg-account-crypto/15 text-account-crypto'],
       [ACCOUNT_CATEGORIES.vehicle, 'bg-account-vehicle/15 text-account-vehicle'],

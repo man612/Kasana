@@ -51,6 +51,7 @@ export enum ACCOUNT_STATUSES {
 export enum ACCOUNT_CATEGORIES {
   general = 'general',
   cash = 'cash',
+  digitalWallet = 'digital-wallet',
   currentAccount = 'current-account',
   creditCard = 'credit-card',
   saving = 'saving',

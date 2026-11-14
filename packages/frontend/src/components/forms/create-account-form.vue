@@ -97,6 +97,7 @@ const logoPlaceholderAccount = computed(() => ({
 // Prioritize familiar Indonesian cash/banking flows without changing persisted enum values.
 const ACCOUNT_CATEGORY_ORDER: ACCOUNT_CATEGORIES[] = [
   ACCOUNT_CATEGORIES.cash,
+  ACCOUNT_CATEGORIES.digitalWallet,
   ACCOUNT_CATEGORIES.currentAccount,
   ACCOUNT_CATEGORIES.saving,
   ACCOUNT_CATEGORIES.creditCard,
@@ -263,7 +264,7 @@ const submit = async () => {
       <template #label-right><FormFieldHelp topic="accountCategory" /></template>
     </OptionPickerDialog>
     <p
-      v-if="form.accountCategory === ACCOUNT_CATEGORIES.general"
+      v-if="form.accountCategory === ACCOUNT_CATEGORIES.digitalWallet"
       class="text-muted-foreground -mt-2 text-xs leading-relaxed"
     >
       {{ $t('forms.createAccount.digitalWalletHint') }}

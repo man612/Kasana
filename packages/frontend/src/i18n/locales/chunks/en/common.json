@@ -86,6 +86,7 @@
     "accountCategories": {
       "general": "General",
       "cash": "Cash",
+      "digitalWallet": "Digital Wallet",
       "currentAccount": "Current account",
       "creditCard": "Credit card",
       "saving": "Saving account",

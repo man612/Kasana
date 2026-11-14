@@ -43,9 +43,9 @@ This checkpoint records source changes and known limitations for the latest 33-p
 - Vehicle depreciation rate curves are unchanged.
 - No live personal finance records are created by the UI refactor itself.
 
-## Decisions not yet shipped
+## Follow-up decisions and remaining work
 
-1. **Dompet Digital as a true account category**: PostgreSQL `enum_Accounts_accountCategory` needs a forward migration; shared types, backend Zod, account grouping, icon mapping, report and export paths all need tests. Payment method `eWallet` already exists but is a different concept. Do not silently alias it to an account category.
+1. **Dompet Digital as a true account category — implemented in the follow-up**: direct inspection of the local PostgreSQL database confirmed that `Accounts.accountCategory` is `character varying` / `varchar`, **not** a PostgreSQL ENUM. The app's Sequelize model also specifies `STRING(50)`. No schema migration was required. The follow-up adds `digital-wallet` to shared account categories, API Zod validation, Indonesian/English labels, selector ordering and icon mapping, with regression tests. Payment method `eWallet` remains a separate concept; it is not silently aliased to an account category. Legacy app versions may not recognize the new category, so deploy frontend and backend together.
 2. **Vehicle subcategories with new rates**: model new subtypes as descriptive metadata only or explicitly fall back to an existing class; no unverified depreciation coefficients.
 3. **Bayar Semua as a legally accurate payoff**: lender quote or all accrued interest/fees required; UI offers a recorded-principal shortcut instead.
 4. **Exhaustive authenticated visual/e2e QA** for all flows, scrollbars, dialog stacking, accessibility, currencies and internationalization remains a separate verification gate.

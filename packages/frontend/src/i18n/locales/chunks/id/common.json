@@ -86,6 +86,7 @@
     "accountCategories": {
       "general": "Umum",
       "cash": "Tunai",
+      "digitalWallet": "Dompet Digital",
       "currentAccount": "Rekening giro",
       "creditCard": "Kartu kredit",
       "saving": "Rekening tabungan",

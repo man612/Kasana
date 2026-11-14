@@ -9,7 +9,8 @@ const day = ({ date }: { date: Date }) => format(date, 'yyyy-MM-dd');
 describe('isCashAccount', () => {
   const base = { excludeFromStats: false };
 
-  it('keeps credit cards, drops loans and vehicles', () => {
+  it('keeps credit cards and digital wallets, drops loans and vehicles', () => {
+    expect(isCashAccount({ account: { ...base, accountCategory: ACCOUNT_CATEGORIES.digitalWallet } })).toBe(true);
     expect(isCashAccount({ account: { ...base, accountCategory: ACCOUNT_CATEGORIES.creditCard } })).toBe(true);
     expect(isCashAccount({ account: { ...base, accountCategory: ACCOUNT_CATEGORIES.loan } })).toBe(false);
     expect(isCashAccount({ account: { ...base, accountCategory: ACCOUNT_CATEGORIES.vehicle } })).toBe(false);

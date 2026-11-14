@@ -143,7 +143,7 @@
         "success": "Created successfully.",
         "error": "Unexpected error."
       },
-      "digitalWalletHint": "For DANA, GoPay, OVO or ShopeePay, use General provisionally. A dedicated e-wallet category is not yet available; balances still belong to their original accounts."
+      "digitalWalletHint": "Use this category for balances held in DANA, GoPay, OVO, ShopeePay, and similar services. The balance counts as an asset and transactions work like other accounts. A digital wallet is different from the QRIS payment method."
     },
     "directCashTransaction": {
       "methodTypes": {
