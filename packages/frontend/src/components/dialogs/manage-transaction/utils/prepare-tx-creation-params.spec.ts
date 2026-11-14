@@ -145,6 +145,17 @@ describe('prepareTxCreationParams', () => {
   });
 
   describe('transfer transactions', () => {
+    it('does not crash when the hidden payment method is unset', () => {
+      const form = createBaseForm({
+        type: FORM_TYPES.transfer,
+        paymentType: null,
+        toAccount: createMockAccount({ id: '00000000-0000-0000-0000-000000000002' as RecordId }),
+      });
+      const params = prepareTxCreationParams({ form, isTransferTx: true, isCurrenciesDifferent: false });
+      expect(params.paymentType).toBeUndefined();
+      expect(params.destinationAccountId).toBe(form.toAccount?.id);
+    });
+
     it('creates transfer with same currency', () => {
       const form = createBaseForm({
         type: FORM_TYPES.transfer,

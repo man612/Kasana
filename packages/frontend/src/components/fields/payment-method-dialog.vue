@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VerbosePaymentType } from '@/common/const';
 import { VERBOSE_PAYMENT_TYPES } from '@/common/const';
+import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { PAYMENT_TYPES } from '@bt/shared/types';
@@ -30,8 +31,10 @@ const props = withDefaults(
     modelValue: VerbosePaymentType | null;
     label: string;
     disabled?: boolean;
+    required?: boolean;
+    errorMessage?: string;
   }>(),
-  { disabled: false },
+  { disabled: false, required: false },
 );
 const emit = defineEmits<{ 'update:modelValue': [value: VerbosePaymentType | null] }>();
 const { t } = useI18n();
@@ -97,6 +100,7 @@ const pick = (value: VerbosePaymentType | null) => {
 
 <template>
   <FieldLabel :label="label" only-template>
+    <template #label-after><span v-if="required" class="text-destructive" aria-hidden="true">*</span></template>
     <div class="flex items-stretch gap-1.5">
       <Dialog.Dialog v-model:open="isOpen">
         <Dialog.DialogTrigger as-child>
@@ -104,6 +108,9 @@ const pick = (value: VerbosePaymentType | null) => {
             type="button"
             :disabled="disabled"
             :aria-label="label"
+            :aria-required="required"
+            :aria-invalid="Boolean(errorMessage)"
+            :class="errorMessage && 'border-destructive'"
             class="border-input bg-input-background hover:bg-muted/60 focus-visible:ring-ring flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border px-3 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="payment-method-dialog-trigger"
           >
@@ -171,6 +178,7 @@ const pick = (value: VerbosePaymentType | null) => {
               </button>
             </div>
             <button
+              v-if="!required"
               type="button"
               class="text-muted-foreground hover:bg-muted/40 mt-2 w-full rounded-lg border border-dashed px-3 py-2 text-left text-sm"
               @click="pick(null)"
@@ -181,6 +189,7 @@ const pick = (value: VerbosePaymentType | null) => {
         </Dialog.DialogContent>
       </Dialog.Dialog>
     </div>
+    <FieldError :error-message="errorMessage" />
   </FieldLabel>
   <Dialog.Dialog v-model:open="isHelpOpen">
     <Dialog.DialogContent blur-overlay class="w-[calc(100vw-2rem)] max-w-md gap-3 p-5">

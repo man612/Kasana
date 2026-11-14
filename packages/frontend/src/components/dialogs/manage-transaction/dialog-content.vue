@@ -1018,6 +1018,9 @@ const validationRules = computed(() => {
       category: {
         ...(isTransferTx.value ? {} : { required }),
       },
+      paymentType: {
+        ...(!isTransferTx.value && !isLoanDestination.value && isEditableAsManual.value ? { required } : {}),
+      },
       time: {
         ...(isPastDateRequired.value
           ? {
@@ -1085,6 +1088,7 @@ const { isFormValid, getFieldErrorMessage, touchField } = useFormValidation(
 
 const amountErrorMessage = computed(() => getFieldErrorMessage('form.amount'));
 const categoryErrorMessage = computed(() => getFieldErrorMessage('form.category'));
+const paymentTypeErrorMessage = computed(() => getFieldErrorMessage('form.paymentType'));
 const targetAmountErrorMessage = computed(() => getFieldErrorMessage('form.targetAmount'));
 const timeErrorMessage = computed(() => getFieldErrorMessage('form.time'));
 const noteErrorMessage = computed(() => getFieldErrorMessage('form.note'));
@@ -1177,6 +1181,7 @@ const submit = ({ keepOpen = false }: { keepOpen?: boolean } = {}) => {
   touchField('form.targetAmount');
   touchField('form.time');
   touchField('form.category');
+  touchField('form.paymentType');
   touchField('form.note');
   touchField('form.externalUrl');
   touchField('form.externalReference');
@@ -1720,6 +1725,8 @@ onUnmounted(() => {
     <FormRow v-if="!isLoanDestination && !isTransferTx">
       <PaymentMethodDialog
         v-model="form.paymentType"
+        :required="isEditableAsManual"
+        :error-message="paymentTypeErrorMessage"
         :label="
           currentTxType === FORM_TYPES.income
             ? $t('dialogs.manageTransaction.form.paymentReceiveLabel')

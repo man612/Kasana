@@ -29,6 +29,16 @@ describe('buildOptimisticTransaction', () => {
       ...overrides,
     }) as UI_FORM_STRUCT;
 
+  it('keeps the stored payment method if a transfer form has no visible method picker', () => {
+    const transaction = buildTransaction({ paymentType: PAYMENT_TYPES.bankTransfer });
+    const result = buildOptimisticTransaction({
+      form: buildForm({ type: FORM_TYPES.transfer, paymentType: null }),
+      transaction,
+      isRecordExternal: false,
+    });
+    expect(result.paymentType).toBe(PAYMENT_TYPES.bankTransfer);
+  });
+
   it('leaves amount and time untouched for a synced transaction', () => {
     const transaction = buildTransaction({ time: new Date('2024-01-01T00:00:00.000Z') });
 
