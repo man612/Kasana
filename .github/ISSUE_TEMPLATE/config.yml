@@ -1,8 +1,8 @@
 blank_issues_enabled: true
 contact_links:
-  - name: Kasana setup guide
+  - name: Lajur. setup guide
     url: https://github.com/man612/Kasana/blob/main/self-hosting/README.md
-    about: Build Kasana from source and review Docker volume safety before opening a setup issue.
+    about: Build Lajur. from source and review Docker volume safety before opening a setup issue.
   - name: Security reporting instructions
     url: https://github.com/man612/Kasana/blob/main/.github/SECURITY.md
     about: Learn how to report vulnerabilities without sharing sensitive details publicly.

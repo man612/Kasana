@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a bug in Kasana, its interface, or its self-hosted setup.
+description: Report a bug in Lajur., its interface, or its self-hosted setup.
 labels: ['bug']
 body:
   - type: checkboxes
@@ -12,7 +12,7 @@ body:
     attributes:
       label: Environment
       options:
-        - Self-hosted Kasana (Docker)
+        - Self-hosted Lajur. (Docker)
         - Local development (Windows / Linux / macOS)
         - Source code or build pipeline
     validations:
