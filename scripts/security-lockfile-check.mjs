@@ -37,6 +37,7 @@ function check(label, lock, suffix, byMajor) {
   }
 }
 check('root', main, 'dompurify', { 3: '3.4.17' });
+check('root', main, 'follow-redirects', { 1: '1.16.2' });
 check('root', main, 'body-parser', { 1: '1.20.9', 2: '2.4.0' });
 check('root', main, 'vue-i18n', { 11: '11.4.14' });
 for (const name of ['@intlify/core-base', '@intlify/shared', '@intlify/message-compiler', '@intlify/devtools-types']) {
