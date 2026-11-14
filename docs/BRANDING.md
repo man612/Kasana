@@ -28,7 +28,8 @@ Use a square PNG at least 512x512. Then regenerate all browser/PWA icons:
 The generated assets include multi-resolution favicon.ico, favicon.svg (a
 self-contained raster wrapper), PNG favicon, Apple touch, PWA 192/512 and
 maskable icons. Maskable versions use a neutral opaque background and safe area.
-Commit the assets; CI does not require Pillow.
+Commit the assets; CI does not require Pillow. The icon generator also refreshes all five shared SVG logo locations in `docs/brand/`, `packages/frontend/public/img/`, `packages/landing/public/img/`, and `packages/docs/` from the same generated favicon. The `check-public-identity.mjs` CI check rejects any stale or mismatched copies.
 
-The public repository still has the historical Kasana slug. MoneyMatter
-copyright and AGPL attributions are preserved independently of app branding.
+The repository retains the historical `Kasana` slug for link continuity. Copyright and AGPL attribution for MoneyMatter are preserved independently of branding.
+
+The old MoneyMatter-specific `docs/brand/generate-logo.py` was retired because it recreated the former icon and could overwrite the new browser/landing assets. **Do not regenerate branding from any historical M- or K-shaped logo.** The canonical maintained source is the S-curve PNG above. The copies in `docs/brand/logo.svg`, `packages/frontend/public/img/logo.svg`, `packages/landing/public/img/logo.svg`, and the inherited docs package now reuse the committed Lajur. favicon artwork.

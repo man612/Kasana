@@ -1,5 +1,6 @@
 version: 2
 updates:
+  # Retain regular review of pinned GitHub Actions and local composite actions.
   - package-ecosystem: github-actions
     directories:
       - '/'
@@ -8,3 +9,38 @@ updates:
       interval: monthly
     labels:
       - dependencies
+
+  # The root npm lockfile covers the backend, frontend, landing and shared workspaces.
+  # Dependabot proposes PRs; it does not auto-merge financial or security-sensitive changes.
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+    groups:
+      compatible-npm-updates:
+        applies-to: version-updates
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch
+
+  # Astro docs has its own lockfile, independent of the root npm workspaces.
+  - package-ecosystem: npm
+    directory: '/packages/docs'
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+    groups:
+      compatible-docs-updates:
+        applies-to: version-updates
+        patterns:
+          - '*'
+        update-types:
+          - minor
+          - patch

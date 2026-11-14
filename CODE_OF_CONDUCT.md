@@ -2,7 +2,7 @@
 
 ## Our commitment
 
-Kasana welcomes constructive contributions from people with different backgrounds, experience levels, and perspectives. We aim to keep project discussions respectful, useful, and accessible.
+Lajur. welcomes constructive contributions from people with different backgrounds, experience levels, and perspectives. We aim to keep project discussions respectful, useful, and accessible.
 
 ## Expected behavior
 

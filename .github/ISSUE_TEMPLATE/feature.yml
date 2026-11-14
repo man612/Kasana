@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest a new Kasana feature or improve an existing workflow.
+description: Suggest a new Lajur. feature or improve an existing workflow.
 labels: ['enhancement']
 body:
   - type: textarea

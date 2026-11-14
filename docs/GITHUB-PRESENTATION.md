@@ -1,69 +1,33 @@
-# Kasana — GitHub Presentation and Writing Guidelines
+# Lajur. — GitHub presentation guide
 
-This document defines the **English-first public presentation** of Kasana. The application itself remains **Indonesia-first**, with Bahasa Indonesia as the initial interface language.
+Public repository documentation uses **English**; the application defaults to **Bahasa Indonesia**. The display name includes the final period: **Lajur.** The `man612/Kasana` GitHub path is deliberately retained for link continuity.
 
-## Recommended GitHub About description
+## Accurate product description
 
 > Open-source, self-hosted personal finance with an Indonesia-first experience.
 
-Why this wording works:
+This identifies what the software does and how it runs without promising cloud hosting, automatic connections to Indonesian banks, a security audit, or production readiness. Lajur. is an independent adaptation of MoneyMatter; original attribution remains prominent in [README](../README.md) and [LICENSING](../LICENSING.md).
 
-- **What it is:** personal finance software.
-- **How it runs:** self-hosted, not a promised cloud service.
-- **Who it prioritizes:** an Indonesia-first experience without claiming Indonesian bank integration.
-- **Independent identity:** the short description markets Kasana only; source attribution remains prominent in the README, legal notices and license files.
+Recommended repository topics: `personal-finance`, `budgeting`, `expense-tracker`, `self-hosted`, `indonesia`, `rupiah`, `vue`, `typescript`, `agpl-3`.
 
-Do not put the former product or its original developer in the GitHub About summary: preserve required origin and copyright attribution in the appropriate licensing and acknowledgments sections instead.
+## Brand assets
 
-It avoids unsupported terms such as *official*, *secure by default*, *fully audited*, *bank-connected*, or *production-ready*.
+The root README displays `packages/frontend/public/web-app-manifest-192x192.png`. The actual source of the current logo is `packages/frontend/assets/app-icon-source.png`, not the retired upstream generator. Recreate browser/Apple/PWA sizes together via [BRANDING.md](BRANDING.md). The default accent is purple, but users can choose other themes.
 
-## Repository metadata
+Do not use old M-shaped MoneyMatter or K-shaped Kasana icons for current Lajur. surfaces. Historical source attribution does not require preserving an unrelated visual identity as the current logo.
 
-| Field | Recommended value |
-| --- | --- |
-| Repository name | `Kasana` (working name; can change later) |
-| Description | The sentence above |
-| Website | Empty until an official Kasana website is live |
-| Topics | `personal-finance`, `budgeting`, `expense-tracker`, `self-hosted`, `indonesia`, `rupiah`, `vue`, `typescript`, `agpl-3` |
-| Main language for repository copy | English |
-| Default product UI locale | Bahasa Indonesia |
-| License | AGPL-3.0-only |
-| Project maturity | Work in progress; check actual CI and open PRs |
+If adding a social preview, review rendered crops in both light and dark contexts. GitHub's repository social preview is managed in repository settings; **a committed image alone does not prove a GitHub social preview was configured**.
 
-## Writing style
+## Publication boundaries
 
-Use clear, international English with a restrained, product-focused tone. Keep headings short, prefer concrete nouns and verbs, and state current capabilities separately from plans.
+- The root README and `self-hosting/` describe the maintained open-source app.
+- `packages/landing/` and `packages/docs/` contain **inherited upstream material**. They are not live Lajur. marketing or docs websites and may still contain claims about another product, cloud pricing, screenshots, or an upstream domain. Do not deploy or present them as Lajur. without a separate content and licensing audit.
+- Do not imply that the latest feature branch has shipped to `main`. Validate the exact revision and deployment first.
+- Preserve `LICENSE`, original copyright statements, and [archived historical CLA](upstream/CLA.md). A name change does not confer new copyright rights.
+- Keep internal database, volume, and package identifiers unless a migration plan explicitly addresses them.
 
-A consistent documentation structure is:
+## Writing and review
 
-1. **What Kasana is**, and who it helps.
-2. **What works today**, with important limitations.
-3. **How to run or contribute**, with commands that actually use Kasana source.
-4. **Security, support, and release status**.
-5. **Upstream attribution and license**.
+Prefer short, verifiable feature descriptions. Clearly separate current capabilities from planned features, test evidence from assumptions, and self-hosted software from services offered by external operators. Do not use genuine financial data in screenshots, fixtures, or public issues.
 
-Do not copy MoneyMatter's cloud pricing, hosted demo, domain, security guarantees, or upstream community links as if they were Kasana's. Keep accurate source and historical attribution.
-
-## GitHub assets
-
-The main README uses `docs/brand/logo.svg`, the existing Kasana brand asset.
-
-If a social preview is added, GitHub recommends a **1280 × 640** image in PNG, JPEG, or GIF format, **under 1 MB**. Upload through repository **Settings → Social preview**. Use a solid, readable background, the Kasana mark, and one short descriptive line. Avoid stale screenshots and unverified claims.
-
-**Applied November 11, 2026:** the GitHub About description and all nine recommended topics were saved and verified on `man612/Kasana` using the connected maintainer account. The homepage remains empty. A custom social preview has not been uploaded or verified.
-
-## Localization boundary
-
-**Do not translate Indonesian app strings into English to match the README.** The product's locale choice is deliberate and separate from English developer documentation.
-
-When documenting Indonesia-specific input examples, use `Rp1.000.000` or `1.000.000,50` where appropriate. Define such examples in English prose and note differences between localized display strings and numeric API values.
-
-## Review checklist for new public copy
-
-- Is the text in English and understandable without project history?
-- Does it identify Kasana rather than impersonate upstream MoneyMatter?
-- Are product features, integration claims, QA results, and links verified?
-- Are code snippets runnable against **Kasana**, not upstream Docker images?
-- Are AGPL and original authorship respected?
-- Are secrets and private financial data excluded?
-- Does the copy still make sense if the product is renamed later?
+Review branding, public URLs, commands, accessibility, localization, security reporting, licensing, and test evidence before merging or publishing. See [REPOSITORY-HYGIENE.md](REPOSITORY-HYGIENE.md).

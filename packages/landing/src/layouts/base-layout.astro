@@ -18,7 +18,9 @@ const {
   title,
   description = 'Open-source budget tracking app. Connect your banks, track expenses, set budgets, and monitor investments. Self-host with Docker or use our cloud. Your data stays yours.',
   ogImage = '/img/og-image.jpg',
-  noindex = false,
+  // The inherited marketing site still advertises an unrelated hosted product.
+  // Keep it out of search results until explicitly adapted and reviewed.
+  noindex = true,
 } = Astro.props;
 
 const siteUrl = Astro.site?.origin || 'https://moneymatter.app';

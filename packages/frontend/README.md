@@ -1,14 +1,12 @@
-# Kasana Frontend
+# Lajur. frontend
 
-The Vue 3 / TypeScript frontend for Kasana. Its inherited workspace name `budget-tracker-fe` remains unchanged to preserve dependencies and lockfile compatibility.
+Vue 3, TypeScript and Vite interface for **Lajur.** The inherited npm workspace identifier `budget-tracker-fe` remains unchanged to avoid breaking imports, package-lock references, and deployment scripts.
 
-The frontend alone is **not** a complete application: authentication and financial data depend on the backend and its database.
+The frontend requires the backend and a database for authentication and real financial operations. Do not treat a standalone static build as a fully functional application.
 
-## Recommended setup
+## Development
 
-Start with the [root README](../../README.md), [self-hosting instructions](../../self-hosting/README.md), or [local development notes](../../docs/LOCAL-VPS-ID.md). The documented Docker workflow builds both services from **Kasana source**, not from published upstream MoneyMatter images.
-
-For contributors who have configured the backend and required environment variables, run from the repository root:
+Start with the [root README](../../README.md) and [self-hosting guide](../../self-hosting/README.md). Once the backend and environment configuration are available, run from the repository root:
 
 ```bash
 npm ci
@@ -18,4 +16,6 @@ npm -w packages/frontend run typecheck
 npm -w packages/frontend run build
 ```
 
-Do not use live financial data for testing. Do not publish Kasana Docker images to the upstream `letehaha` namespace; use the documented local Compose overlays or a registry under your control.
+The display name is controlled by [`branding.json`](branding.json), while browser and PWA icons are generated from [`assets/app-icon-source.png`](assets/app-icon-source.png). See [branding instructions](../../docs/BRANDING.md). A new visual identity must update all favicon, Apple touch, and manifest assets together.
+
+Use test accounts and synthetic transactions; never publish financial records or secrets. Deploy project-built images to infrastructure under your control, not to upstream MoneyMatter registries.

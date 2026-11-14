@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Protect the PUBLIC RUNTIME identity of the independent Kasana application.
+ * Protect the PUBLIC RUNTIME identity of the independent Lajur. application.
  * This is not a license-cleanup script: original copyright, provenance,
  * historical Git commits, upstream technical identifiers and billing IDs stay
  * untouched. Only public-facing names, outbound links, and email contacts
@@ -67,20 +67,45 @@ for (const localeDir of locales) walk(localeDir);
 // Do not ship a skill URL carrying the old project's name. The public catalog
 // stays unadvertised until an operator configures a real HTTPS origin.
 if (fs.existsSync(path.join(ROOT, 'packages/frontend/public/skills/connect-moneymatter/SKILL.md'))) {
-  failures.push('The public agent skill must use the Kasana path, not the inherited one');
+  failures.push('The public agent skill must use the existing Lajur. connect-kasana path, not the upstream path');
 }
 // An unreferenced legacy social image is still publicly downloadable after a
-// frontend build. Keep it out of the Kasana runtime asset tree.
+// frontend build. Keep it out of the Lajur. runtime asset tree.
 if (fs.existsSync(path.join(ROOT, 'packages/frontend/public/img/og-image.jpg'))) {
-  failures.push('The inherited promotional image must not ship with Kasana');
+  failures.push('The inherited promotional image must not ship with Lajur.');
 }
 const appHtml = read('packages/frontend/index.html');
 const manifest = JSON.parse(read('packages/frontend/public/site.webmanifest'));
 if (!appHtml.includes(`name="theme-color" content="${manifest.theme_color}"`)) {
-  failures.push('The frontend theme color must match Kasana PWA branding');
+  failures.push('The frontend theme color must match Lajur. PWA branding');
 }
 if (!appHtml.includes('property="og:image" content="/web-app-manifest-512x512.png"')) {
-  failures.push('Kasana social previews must use the current branded artwork');
+  failures.push('Lajur. social previews must use the current branded artwork');
+}
+// The S-curve icon is generated from one canonical source. Ensure every
+// inherited logo placement is updated together so former brand artwork
+// cannot creep back into docs, landing, or the application's public assets.
+const faviconPath = 'packages/frontend/public/favicon.svg';
+const faviconBytes = fs.readFileSync(path.join(ROOT, faviconPath));
+for (const asset of [
+  'docs/brand/logo.svg',
+  'packages/frontend/public/img/logo.svg',
+  'packages/landing/public/img/logo.svg',
+  'packages/docs/public/favicon.svg',
+  'packages/docs/src/assets/logo.svg',
+]) {
+  const target = path.join(ROOT, asset);
+  if (!fs.existsSync(target) || !faviconBytes.equals(fs.readFileSync(target))) {
+    failures.push(`${asset} differs from ${faviconPath}; regenerate icons from the canonical S-curve PNG`);
+  }
+}
+for (const icon of manifest.icons ?? []) {
+  const relativeIconPath = icon.src.startsWith('/') ? icon.src.slice(1) : icon.src;
+  const assetPath = path.join(ROOT, 'packages/frontend/public', relativeIconPath);
+  if (!fs.existsSync(assetPath)) failures.push(`PWA manifest icon ${icon.src} is missing`);
+}
+if (fs.existsSync(path.join(ROOT, 'docs/brand/generate-logo.py'))) {
+  failures.push('Retired MoneyMatter logo generator must not be restored');
 }
 // These build boundaries are security-critical on public forks. Shipping the
 // upstream marketing site or embedding Sentry credentials as ARG values can
@@ -90,10 +115,10 @@ if (/ARG\s+SENTRY_AUTH_TOKEN|ENV\s+SENTRY_AUTH_TOKEN/.test(frontendDockerfile)) 
   failures.push('Sentry credentials must be passed as BuildKit secrets, not Docker ARG/ENV');
 }
 if (/COPY\s+packages\/landing\s|COPY\s+--from=.*\/landing\/dist/.test(frontendDockerfile)) {
-  failures.push('Inherited landing content must never be copied into the Kasana production image');
+  failures.push('Inherited landing content must never be copied into the Lajur. production image');
 }
 if (!frontendDockerfile.includes('org.opencontainers.image.source="https://github.com/man612/Kasana"')) {
-  failures.push('Production Docker image source label must identify the Kasana repository');
+  failures.push('Production Docker image source label must identify the historical Kasana repository path');
 }
 // Require the vetted, patched NGINX stable release in production Dockerfiles.
 for (const [dockerfile, expected] of [
@@ -105,7 +130,7 @@ for (const [dockerfile, expected] of [
 // Both production images must identify this independent repository in OCI
 // metadata. A wrong label can misroute source and security reports.
 if (!read('self-hosting/backend/Dockerfile').includes('org.opencontainers.image.source="https://github.com/man612/Kasana"')) {
-  failures.push('Backend production Docker image source label must identify Kasana');
+  failures.push('Backend production Docker image source label must identify the Lajur. repository');
 }
 // Never allow a plain docker compose up to run another product's money app.
 const baseCompose = read('self-hosting/docker-compose.yml');
@@ -124,4 +149,4 @@ if (failures.length) {
   console.error(`${failures.length} independent-product identity regression(s)`);
   process.exit(1);
 }
-console.log('Kasana public identity and outbound destination audit OK');
+console.log('Lajur. public identity and outbound destination audit OK');

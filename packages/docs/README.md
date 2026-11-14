@@ -1,8 +1,8 @@
 # Inherited MoneyMatter Documentation — Reference Only
 
-> **Kasana:** This documentation package is inherited from MoneyMatter. Its URLs, subscriptions, screenshots, brand content, and hosted-service instructions have **not** all been adapted for Kasana. It is **not** a published Kasana documentation website. Use the [Kasana project README](../../README.md) and [self-hosting guide](../../self-hosting/README.md) for the active project.
+> **Lajur. notice:** This documentation package is inherited from MoneyMatter. Its URLs, subscriptions, screenshots, branding, and hosted-service instructions have **not** been fully adapted. It is **not** the official Lajur. documentation website. Use the [Lajur. README](../../README.md) and [self-hosting guide](../../self-hosting/README.md) for the maintained project.
 
-MoneyMatter's original documentation is served at https://docs.moneymatter.app and built with [Astro Starlight](https://starlight.astro.build). That URL belongs to the upstream project; it is **not** an official Kasana documentation endpoint.
+MoneyMatter's original documentation is served at https://docs.moneymatter.app and built with [Astro Starlight](https://starlight.astro.build). That URL belongs to the upstream project; it is **not** an official Lajur. documentation endpoint.
 
 This is a standalone npm project (not a root workspace), so install and run it from this directory:
 
@@ -43,8 +43,8 @@ The full workflow lives in the `user-docs` Claude skill (`.claude/skills/user-do
 
 ## Deployment
 
-Kasana does **not** deploy this documentation to MoneyMatter's Docker Hub or hosting infrastructure. The upstream publish job in `.github/workflows/docs.yml` is guarded to run only in `letehaha/moneymatter`; PR builds can still check documentation changes.
+Lajur. does **not** deploy this documentation to MoneyMatter's Docker Hub or hosting infrastructure. The upstream publish job in `.github/workflows/docs.yml` is guarded to run only in `letehaha/moneymatter`; PR builds can still check documentation changes.
 
-For Kasana documentation, publish only after auditing branding, product claims, licensed assets, and destination infrastructure. The notes below describe **upstream behavior**, not an available Kasana deployment.
+For Lajur. documentation, publish only after auditing branding, product claims, licensed assets, and destination infrastructure. The notes below describe **upstream behavior**, not an available Kasana deployment.
 
 `.github/workflows/docs.yml` builds the site on PRs that touch `packages/docs/**`. On `main` it pushes `letehaha/budget-tracker-docs` to Docker Hub and calls the `DOKPLOY_DOCS_DEPLOY_WEBHOOK_URL` secret.
