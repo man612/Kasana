@@ -296,7 +296,10 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await page.keyboard.press('Escape');
 
       // The unchecked left inset should match the checked right inset.
-      const createAnotherSwitch = txDialog.getByRole('switch').first();
+      const createAnotherSwitch = txDialog
+        .locator('label')
+        .filter({ hasText: /Buat lagi|Create more/i })
+        .getByRole('switch');
       await expect(createAnotherSwitch).toBeVisible();
       const readSwitchInsets = () =>
         createAnotherSwitch.evaluate((element) => {
