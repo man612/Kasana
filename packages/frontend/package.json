@@ -2,7 +2,7 @@
   "name": "budget-tracker-fe",
   "version": "0.33.14",
   "private": true,
-  "description": "Kasana frontend — Indonesia-first personal finance interface",
+  "description": "Lajur. frontend — Indonesia-first personal finance interface",
   "type": "module",
   "scripts": {
     "branding:sync": "node scripts/sync-branding.mjs",
