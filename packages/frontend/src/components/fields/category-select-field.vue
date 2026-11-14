@@ -130,7 +130,7 @@
                       </span>
                     </span>
                   </Transition>
-                <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
+                  <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
                 </button>
               </Dialog.DialogTrigger>
               <Transition name="lajur-info-reveal">
