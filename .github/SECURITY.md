@@ -20,7 +20,7 @@ There is no guaranteed response-time SLA or separately maintained long-term supp
 
 The repository uses Dependabot to propose dependency updates and a separate pull-request Dependency Review check to flag **new** high/critical vulnerabilities. Neither system establishes that the current default branch is vulnerability-free. Dependency alerts for existing versions must be reviewed independently and updated deliberately, including build-time tools.
 
-Review both lockfiles with `npm audit` from the repository root and from `packages/docs`; also inspect GitHub's **Security → Dependabot** alerts, advisory affected versions, exploitability, and real usage. Prefer a targeted version or lockfile fix with tests over `npm audit fix --force`, which may introduce breaking dependency changes. Do not enable automatic merging of security-sensitive dependency changes without verification.
+An informational GitHub Actions baseline audit scans the root and standalone documentation lockfiles weekly (and when its workflow or either lockfile changes). Review its report alongside GitHub's **Security → Dependabot** alerts, affected version ranges, exploitability, and actual application usage. Run `npm audit` from the repository root and from `packages/docs` for manual investigations. Prefer a targeted version or lockfile fix with tests over `npm audit fix --force`, which may introduce breaking dependency changes. Do not enable automatic merging of security-sensitive dependency changes without verification.
 
 ## Securing a self-hosted deployment
 

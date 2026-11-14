@@ -22,7 +22,7 @@ The feature-branch tree contained roughly 6,450 tracked files and 924 automated-
 
 The unported Astro landing layout and Starlight docs now default to `noindex` metadata to reduce accidental indexing. This is an advisory metadata boundary, **not** an access-control or deployment safeguard. The inherited pages still require full adaptation before any public Lajur. site launch.
 
-A separate [Dependency Review](../.github/workflows/dependency-review.yml) workflow checks changes introduced by pull requests for high/critical vulnerable dependencies; it does not remediate or certify the existing dependency inventory. Review GitHub security alerts and root/docs lockfiles separately.
+A [Dependency Review](../.github/workflows/dependency-review.yml) workflow checks changes introduced by pull requests for high/critical vulnerable dependencies. A separate [Dependency Baseline Audit](../.github/workflows/dependency-baseline-audit.yml) runs an informational npm audit against the root and docs lockfiles (production dependencies and full development trees) to monitor existing issues. Neither tool automatically remediates vulnerabilities or proves exploitability; review GitHub security alerts and patch affected packages deliberately.
 
 **Still pending:** Inherited packages under `packages/docs/` and `packages/landing/` contain historical MoneyMatter promotional material and social imagery. They are not deployed as Lajur. and have not been comprehensively reauthored. Audit or replace this material before publishing a new marketing or docs site; do not simply relabel cloud claims as Lajur. capabilities.
 
