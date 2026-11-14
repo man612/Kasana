@@ -103,7 +103,6 @@
                       'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
                       'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
                       disabled && 'cursor-not-allowed opacity-50',
-                      selectedValue && !disabled && 'pr-16',
                       $slots['field-right'] && 'rounded-r-none border-r-0',
                       $attrs.class ?? '',
                     )
@@ -112,7 +111,11 @@
                   :title="selectedValue?.name || $t('fields.categorySelect.selectCategoryLabel')"
                 >
                   <Transition name="lajur-info-reveal" mode="out-in">
-                    <span :key="selectedValue?.id ?? 'empty-category'" class="flex min-w-0 flex-1 items-center gap-2">
+                    <span
+                      :key="selectedValue?.id ?? 'empty-category'"
+                      class="flex min-w-0 flex-1 items-center gap-2"
+                      :class="selectedValue && !disabled && 'pe-5.5'"
+                    >
                       <CategoryCircle
                         v-if="selectedValue"
                         :category="selectedValue"
@@ -127,7 +130,7 @@
                       </span>
                     </span>
                   </Transition>
-                  <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
+                <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
                 </button>
               </Dialog.DialogTrigger>
               <Transition name="lajur-info-reveal">
@@ -197,7 +200,6 @@
                   'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
                   'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
                   disabled && 'cursor-not-allowed opacity-50',
-                  selectedValue && !disabled && 'pr-16',
                   $slots['field-right'] && 'rounded-r-none border-r-0',
                   $attrs.class ?? '',
                 )
@@ -207,7 +209,11 @@
               @click="openDropdown"
             >
               <Transition name="lajur-info-reveal" mode="out-in">
-                <span :key="selectedValue?.id ?? 'empty-category'" class="flex min-w-0 flex-1 items-center gap-2">
+                <span
+                  :key="selectedValue?.id ?? 'empty-category'"
+                  class="flex min-w-0 flex-1 items-center gap-2"
+                  :class="selectedValue && !disabled && 'pe-5.5'"
+                >
                   <CategoryCircle
                     v-if="selectedValue"
                     :category="selectedValue"
