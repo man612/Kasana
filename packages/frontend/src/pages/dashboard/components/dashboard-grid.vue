@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { LayoutGridIcon } from '@lucide/vue';
-import { provide, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
 
 import { useDashboardLayout } from '../composables/use-dashboard-layout';
@@ -48,6 +48,14 @@ const {
   saveWidgetConfigDirect,
 } = useDashboardLayout();
 
+// Keep a single widget tree mounted when entering/leaving edit mode. Recreating
+// the whole grid made charts and cards flash on every Save/Cancel action.
+const editableWidgets = computed({
+  get: () => displayWidgets.value,
+  set: (value: typeof draftWidgets.value) => {
+    if (isEditMode.value) draftWidgets.value = value;
+  },
+});
 provide('dashboard-save-widget-config', saveWidgetConfigDirect);
 
 defineExpose({
@@ -70,38 +78,28 @@ const GRID_CLASSES =
       </div>
     </template>
 
-    <!-- Edit mode: draggable grid -->
+    <!-- One stable DOM tree in both modes: Sortable is disabled outside edit mode.
+         This preserves each widget instance and chart state while the overlay animates. -->
     <VueDraggable
-      v-else-if="isEditMode"
-      v-model="draftWidgets"
+      v-else
+      v-model="editableWidgets"
       handle=".drag-handle"
+      :disabled="!isEditMode"
       :animation="200"
-      :class="[GRID_CLASSES, 'kasana-dashboard-edit-enter']"
+      :class="[GRID_CLASSES, isEditMode ? 'kasana-dashboard-edit-enter' : 'kasana-dashboard-edit-return']"
     >
       <DashboardWidgetSlot
-        v-for="widget in draftWidgets"
+        v-for="widget in displayWidgets"
         :key="widget.widgetId"
         :widget-config="widget"
-        :is-edit-mode="true"
-        :can-remove="draftWidgets.length > 1"
+        :is-edit-mode="isEditMode"
+        :can-remove="isEditMode && draftWidgets.length > 1"
         :current-period="currentPeriod"
         @remove="(widgetId) => removeWidget({ widgetId })"
         @resize="(widgetId, colSpan, rowSpan) => resizeWidget({ widgetId, colSpan, rowSpan })"
         @config-change="(widgetId, key, value) => updateWidgetConfig({ widgetId, key, value })"
       />
     </VueDraggable>
-
-    <!-- Normal mode: static grid -->
-    <div v-else :class="[GRID_CLASSES, 'kasana-dashboard-edit-return']">
-      <DashboardWidgetSlot
-        v-for="widget in activeWidgets"
-        :key="widget.widgetId"
-        :widget-config="widget"
-        :is-edit-mode="false"
-        :can-remove="false"
-        :current-period="currentPeriod"
-      />
-    </div>
 
     <div v-if="isEditMode" class="mt-6">
       <DashboardAddWidgetPanel :available-widgets="availableWidgets" @add="(id) => addWidget({ widgetId: id })" />

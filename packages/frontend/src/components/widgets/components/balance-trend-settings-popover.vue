@@ -55,13 +55,7 @@
                   <span class="text-sm font-medium">
                     {{ t('dashboard.widgets.balanceTrend.settings.fitToLatestData') }}
                   </span>
-                  <ResponsiveTooltip
-                    :delay-duration="100"
-                    :content="fitToLatestDataTooltip"
-                    content-class-name="max-w-60"
-                  >
-                    <InfoIcon class="text-muted-foreground size-3.5 cursor-help" @click.prevent.stop />
-                  </ResponsiveTooltip>
+                  <HintIcon :content="fitToLatestDataTooltip" />
                 </div>
                 <Switch
                   class="shrink-0"
@@ -75,16 +69,7 @@
                 <span class="max-w-45 text-sm font-medium">
                   {{ t('dashboard.widgets.common.includePlanned') }}
 
-                  <ResponsiveTooltip
-                    :delay-duration="100"
-                    :content="t('dashboard.widgets.balanceTrend.settings.includePlannedTooltip')"
-                    content-class-name="max-w-60"
-                  >
-                    <InfoIcon
-                      class="text-muted-foreground inline size-3.5 -translate-y-px cursor-help"
-                      @click.prevent.stop
-                    />
-                  </ResponsiveTooltip>
+                  <HintIcon :content="t('dashboard.widgets.balanceTrend.settings.includePlannedTooltip')" />
                 </span>
                 <Switch
                   class="shrink-0"
@@ -138,13 +123,7 @@
                   <span class="text-sm font-medium">
                     {{ t('dashboard.widgets.balanceTrend.componentsSettings.loans') }}
                   </span>
-                  <ResponsiveTooltip
-                    :delay-duration="100"
-                    :content="t('dashboard.widgets.balanceTrend.componentsSettings.loansTooltip')"
-                    content-class-name="max-w-60"
-                  >
-                    <InfoIcon class="text-muted-foreground size-3.5 cursor-help" @click.prevent.stop />
-                  </ResponsiveTooltip>
+                  <HintIcon :content="t('dashboard.widgets.balanceTrend.componentsSettings.loansTooltip')" />
                 </div>
                 <Switch
                   :model-value="persistedSettings.includeLoansInTotal"
@@ -172,13 +151,7 @@
                   <label class="text-sm font-medium">
                     {{ t('dashboard.widgets.balanceTrend.spikeSettings.showMarkers') }}
                   </label>
-                  <ResponsiveTooltip
-                    :delay-duration="100"
-                    :content="t('dashboard.widgets.balanceTrend.spikeSettings.showMarkersTooltip')"
-                    content-class-name="max-w-52"
-                  >
-                    <InfoIcon class="text-muted-foreground size-3.5 cursor-help" @click.prevent.stop />
-                  </ResponsiveTooltip>
+                  <HintIcon :content="t('dashboard.widgets.balanceTrend.spikeSettings.showMarkersTooltip')" />
                 </div>
                 <Switch v-model:model-value="form.enabled" />
               </div>
@@ -192,13 +165,7 @@
                   @blur="touchField('form.percentThreshold')"
                 >
                   <template #label-right>
-                    <ResponsiveTooltip
-                      :delay-duration="100"
-                      :content="t('dashboard.widgets.balanceTrend.spikeSettings.percentThresholdTooltip')"
-                      content-class-name="max-w-52"
-                    >
-                      <InfoIcon class="text-muted-foreground size-3.5 cursor-help" @click.prevent.stop />
-                    </ResponsiveTooltip>
+                    <HintIcon :content="t('dashboard.widgets.balanceTrend.spikeSettings.percentThresholdTooltip')" />
                   </template>
                 </InputField>
                 <InputField
@@ -211,13 +178,7 @@
                   @blur="touchField('form.absoluteThreshold')"
                 >
                   <template #label-right>
-                    <ResponsiveTooltip
-                      :delay-duration="100"
-                      :content="t('dashboard.widgets.balanceTrend.spikeSettings.absoluteThresholdTooltip')"
-                      content-class-name="max-w-52"
-                    >
-                      <InfoIcon class="text-muted-foreground size-3.5 cursor-help" @click.prevent.stop />
-                    </ResponsiveTooltip>
+                    <HintIcon :content="t('dashboard.widgets.balanceTrend.spikeSettings.absoluteThresholdTooltip')" />
                   </template>
                 </InputField>
                 <InputField
@@ -228,13 +189,7 @@
                   @blur="touchField('form.maxSpikes')"
                 >
                   <template #label-right>
-                    <ResponsiveTooltip
-                      :delay-duration="100"
-                      :content="t('dashboard.widgets.balanceTrend.spikeSettings.maxMarkersTooltip')"
-                      content-class-name="max-w-52"
-                    >
-                      <InfoIcon class="text-muted-foreground size-3.5 cursor-help" @click.prevent.stop />
-                    </ResponsiveTooltip>
+                    <HintIcon :content="t('dashboard.widgets.balanceTrend.spikeSettings.maxMarkersTooltip')" />
                   </template>
                 </InputField>
               </template>
@@ -256,8 +211,8 @@
 </template>
 
 <script lang="ts" setup>
+import HintIcon from '@/components/common/hint-icon.vue';
 import type { DashboardWidgetConfig } from '@/api/user-settings';
-import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import SlidingPanels from '@/components/common/sliding-panels.vue';
 import InputField from '@/components/fields/input-field.vue';
 import { Button } from '@/components/lib/ui/button';
@@ -268,7 +223,7 @@ import { SPIKE_DEFAULTS } from '@/composable/charts/use-spike-detection';
 import { useFormValidation } from '@/composable/form-validator';
 import { useFormatCurrency } from '@/composable/formatters';
 import { between, integer, required } from '@/js/helpers/validators';
-import { ArrowLeftIcon, ChevronRightIcon, InfoIcon, SettingsIcon } from '@lucide/vue';
+import { ArrowLeftIcon, ChevronRightIcon, SettingsIcon } from '@lucide/vue';
 import type { Ref } from 'vue';
 import { computed, inject, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

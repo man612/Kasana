@@ -18,12 +18,19 @@
             v-for="option in themeOptions"
             :key="option.value"
             :variant="themePreference === option.value ? 'default' : 'outline'"
-            class="transition-[background-color,border-color,color,box-shadow,transform] duration-250 ease-out active:scale-[0.97] motion-reduce:transition-none"
+            class="relative overflow-hidden transition-[background-color,border-color,color,box-shadow,transform] duration-300 ease-out active:scale-[0.97] motion-reduce:transition-none"
             size="sm"
             @click="setThemePreference(option.value)"
           >
-            <component :is="option.icon" class="size-4" />
+            <component
+              :is="option.icon"
+              class="size-4 transition-transform duration-200"
+              :class="themePreference === option.value && 'scale-110'"
+            />
             <span>{{ $t(option.labelKey) }}</span>
+            <Transition name="lajur-form-copy">
+              <CheckIcon v-if="themePreference === option.value" class="size-3.5 shrink-0" aria-hidden="true" />
+            </Transition>
           </Button>
         </div>
       </div>
@@ -50,7 +57,11 @@
               aria-hidden="true"
             />
             {{ $t('settings.appearance.accent.' + option.value) }}
-            <CheckIcon v-if="accentTheme === option.value" class="size-4" aria-hidden="true" />
+            <span class="relative inline-flex size-4 shrink-0 items-center justify-center">
+              <Transition name="lajur-form-copy">
+                <CheckIcon v-if="accentTheme === option.value" class="absolute size-4" aria-hidden="true" />
+              </Transition>
+            </span>
           </button>
         </div>
       </div>
@@ -70,12 +81,7 @@
               <LayersIcon class="text-muted-foreground size-4 shrink-0" />
               {{ $t('sidebar.accountsView.bankAccounts') }}
             </span>
-            <ResponsiveTooltip :content="$t('settings.appearance.sidebar.alwaysVisibleTooltip')">
-              <span class="text-muted-foreground flex cursor-help items-center gap-2">
-                <InfoIcon class="size-4" />
-                <Switch :model-value="true" disabled />
-              </span>
-            </ResponsiveTooltip>
+            <HintIcon :content="$t('settings.appearance.sidebar.alwaysVisibleTooltip')" />
           </div>
 
           <div
@@ -178,6 +184,7 @@
 </template>
 
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { ThemePreference, setThemePreference, themePreference } from '@/common/utils/color-theme';
 import { ACCENT_OPTIONS, accentTheme, setAccentTheme, type AccentTheme } from '@/common/utils/accent-theme';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
@@ -189,7 +196,7 @@ import { Switch } from '@/components/lib/ui/switch';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { TOGGLEABLE_SIDEBAR_SECTIONS, useSidebarSections } from '@/composable/use-sidebar-sections';
 import { useSupportButton } from '@/composable/use-support-button';
-import { CheckIcon, CoinsIcon, HeartIcon, InfoIcon, LayersIcon, MonitorIcon, MoonStarIcon, SunIcon } from '@lucide/vue';
+import { CheckIcon, CoinsIcon, HeartIcon, LayersIcon, MonitorIcon, MoonStarIcon, SunIcon } from '@lucide/vue';
 import { type Component } from 'vue';
 
 const { sidebarSections, toggleSection, isUpdating } = useSidebarSections();

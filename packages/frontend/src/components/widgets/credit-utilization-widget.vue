@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import HintIcon from '@/components/common/hint-icon.vue';
 import { computeCreditUsed } from '@/common/utils/account-balance';
 import AccountLogo from '@/components/common/account-logo.vue';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
@@ -10,7 +11,7 @@ import { useAnimatedNumber } from '@/composable/use-animated-number';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useAccountsStore, useCurrenciesStore } from '@/stores';
 import { ACCOUNT_STATUSES, ACCOUNT_TYPES } from '@bt/shared/types';
-import { CircleCheckIcon, InfoIcon } from '@lucide/vue';
+import { CircleCheckIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
@@ -95,13 +96,7 @@ const getUtilizationColors = ({ utilization }: { utilization: number }) => {
       <span class="inline-flex items-center gap-1">
         {{ $t('dashboard.widgets.creditUtilization.title') }}
 
-        <ResponsiveTooltip
-          :content="$t('dashboard.widgets.creditUtilization.description')"
-          content-class-name="max-w-56"
-          :delay-duration="100"
-        >
-          <InfoIcon class="text-muted-foreground ml-1 size-4 cursor-help" />
-        </ResponsiveTooltip>
+        <HintIcon :content="$t('dashboard.widgets.creditUtilization.description')" />
       </span>
     </template>
 

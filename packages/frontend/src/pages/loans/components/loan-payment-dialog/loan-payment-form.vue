@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { VERBOSE_PAYMENT_TYPES } from '@/common/const';
 import { getMaxLoanPayment, isLoanOverpayment, isLoanPaymentPreAnchor } from '@/common/utils/loan-payment';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
@@ -26,7 +27,7 @@ import { useFormatCurrency } from '@/composable/formatters';
 import { useAccountsStore, useCategoriesStore, useCurrenciesStore } from '@/stores';
 import { AccountModel, type TransactionModel } from '@bt/shared/types';
 import { helpers, minValue, required } from '@vuelidate/validators';
-import { HandCoinsIcon, InfoIcon } from '@lucide/vue';
+import { HandCoinsIcon } from '@lucide/vue';
 import { parseISO } from 'date-fns';
 import { DialogClose, DialogTitle } from 'reka-ui';
 import { storeToRefs } from 'pinia';
@@ -362,17 +363,14 @@ const unlinkPayment = () => {
           @blur="touchField('form.targetAmount')"
         >
           <template #label-after>
-            <DesktopOnlyTooltip
+            <HintIcon
               :content="
                 $t('dialogs.loanPayment.targetAmountTooltip', {
                   source: sourceCurrency ?? '',
                   loan: loanCurrency ?? '',
                 })
               "
-              side="top"
-            >
-              <InfoIcon class="text-muted-foreground size-3.5 cursor-help" />
-            </DesktopOnlyTooltip>
+            />
           </template>
           <template #iconTrailing>
             <span>{{ loanCurrency }}</span>

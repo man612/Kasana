@@ -358,26 +358,60 @@ const hasSplits = computed(() => form.value.splits && form.value.splits.length >
 
 // Animate changed form sections without remounting user-entered values.
 const transactionModeFieldsRef = ref<HTMLElement | null>(null);
+const animateModeChange = (element: HTMLElement | null) => {
+  if (!element || typeof element.animate !== 'function') return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  element.animate(
+    [
+      { opacity: 0.65, transform: 'translateY(8px)' },
+      { opacity: 1, transform: 'translateY(0)' },
+    ],
+    { duration: 260, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+  );
+};
+watch(
+  () => form.value.type,
+  async () => {
+    await nextTick();
+    animateModeChange(transactionModeFieldsRef.value);
+    animateModeChange(moreOptionsRef.value);
+  },
+  { flush: 'post' },
+);
+const setFormPanelHeight = (element: Element) => {
+  const node = element as HTMLElement;
+  node.style.setProperty('--lajur-panel-height', String(node.scrollHeight + 12) + 'px');
+};
 const isMultiAccount = computed(() => form.value.paymentLegs !== undefined);
 const isSavedMultiAccount = computed(() => hasPaymentParts({ transaction: transaction.value }));
 const hasLinkedPaymentLegs = computed(() => Boolean(form.value.paymentLegs?.some((leg) => leg.isLinked)));
 const showLegErrors = ref(false);
+const confirmDisableMultiAccountOpen = ref(false);
 const setPaymentLegs = (legs: FormPaymentLeg[]) => {
   form.value.paymentLegs = legs.length ? legs : undefined;
 };
-const toggleMultiAccount = () => {
+const disableMultiAccount = () => {
+  // Sum created legs into the main amount only after the operator confirms.
+  // Existing bank-linked transactions are not silently rewritten.
+  if (isEditableAsManual.value) {
+    form.value.amount = sumMainWithCreatedLegs({
+      mainAmount: form.value.amount,
+      legs: form.value.paymentLegs ?? [],
+      mainCurrencyCode: form.value.account?.currencyCode,
+    });
+  }
+  form.value.paymentLegs = undefined;
   showLegErrors.value = false;
+};
+const toggleMultiAccount = () => {
   if (isMultiAccount.value) {
-    // A locked main's amount is never sent, so a merged total would show but not save.
-    if (isEditableAsManual.value) {
-      form.value.amount = sumMainWithCreatedLegs({
-        mainAmount: form.value.amount,
-        legs: form.value.paymentLegs ?? [],
-        mainCurrencyCode: form.value.account?.currencyCode,
-      });
+    if (form.value.paymentLegs?.some((leg) => leg.account || leg.amount != null || leg.isLinked)) {
+      confirmDisableMultiAccountOpen.value = true;
+      return;
     }
-    form.value.paymentLegs = undefined;
+    disableMultiAccount();
   } else {
+    showLegErrors.value = false;
     form.value.paymentLegs = [{ account: null, amount: null }];
   }
 };
@@ -2107,22 +2141,25 @@ onUnmounted(() => {
               class="mb-2"
               @change-tx-type="selectTransactionType"
             />
-            <p
-              class="text-muted-foreground mb-5 flex items-start gap-2 px-0.5 text-xs leading-relaxed"
-              data-testid="transaction-mode-help"
-              role="note"
-            >
-              <InfoIcon class="mt-0.5 size-3.5 shrink-0" />
-              {{
-                $t(
-                  currentTxType === FORM_TYPES.expense
-                    ? 'dialogs.manageTransaction.typeSelector.expenseHint'
-                    : currentTxType === FORM_TYPES.income
-                      ? 'dialogs.manageTransaction.typeSelector.incomeHint'
-                      : 'dialogs.manageTransaction.typeSelector.transferHint',
-                )
-              }}
-            </p>
+            <Transition mode="out-in" name="lajur-form-copy">
+              <p
+                :key="currentTxType"
+                class="text-muted-foreground mb-5 flex items-start gap-2 px-0.5 text-xs leading-relaxed"
+                data-testid="transaction-mode-help"
+                role="note"
+              >
+                <InfoIcon class="mt-0.5 size-3.5 shrink-0" />
+                {{
+                  $t(
+                    currentTxType === FORM_TYPES.expense
+                      ? 'dialogs.manageTransaction.typeSelector.expenseHint'
+                      : currentTxType === FORM_TYPES.income
+                        ? 'dialogs.manageTransaction.typeSelector.incomeHint'
+                        : 'dialogs.manageTransaction.typeSelector.transferHint',
+                  )
+                }}
+              </p>
+            </Transition>
           </div>
 
           <div ref="transactionModeFieldsRef">
@@ -2173,7 +2210,7 @@ onUnmounted(() => {
               {{ $t('dialogs.loanPayment.overdrawWarning', { account: form.account?.name ?? '' }) }}
             </p>
 
-            <Transition name="lajur-form-panel">
+            <Transition name="lajur-form-panel" @enter="setFormPanelHeight" @before-leave="setFormPanelHeight">
               <PaymentLegsField
                 v-if="isMultiAccount && !isTransferTx"
                 ref="paymentLegsFieldRef"
@@ -2520,6 +2557,17 @@ onUnmounted(() => {
       >
         <template #title>{{ $t('dialogs.manageTransaction.form.deleteConfirmTitle') }}</template>
         <template #description>{{ $t('dialogs.manageTransaction.form.deleteConfirmDescription') }}</template>
+      </ResponsiveAlertDialog>
+      <ResponsiveAlertDialog
+        v-model:open="confirmDisableMultiAccountOpen"
+        :confirm-label="$t('dialogs.manageTransaction.form.paymentLegs.disableConfirmAction')"
+        confirm-variant="destructive"
+        @confirm="disableMultiAccount"
+      >
+        <template #title>{{ $t('dialogs.manageTransaction.form.paymentLegs.disableConfirmTitle') }}</template>
+        <template #description>{{
+          $t('dialogs.manageTransaction.form.paymentLegs.disableConfirmDescription')
+        }}</template>
       </ResponsiveAlertDialog>
       <ResponsiveAlertDialog
         v-model:open="isOptionalRemovalConfirmOpen"

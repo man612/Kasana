@@ -155,13 +155,9 @@
                 role="note"
               >
                 <span>{{ $t('fields.categorySelect.sharedOwnerNotice', { owner: sharedOwnerHandle }) }}</span>
-                <ResponsiveTooltip
+                <HintIcon
                   :content="$t('fields.categorySelect.sharedOwnerNoticeTooltip', { owner: sharedOwnerHandle })"
-                  content-class-name="max-w-64"
-                  :delay-duration="100"
-                >
-                  <InfoIcon class="text-muted-foreground size-3.5 shrink-0 cursor-help" />
-                </ResponsiveTooltip>
+                />
               </div>
               <div v-if="unlistedIds" class="text-muted-foreground border-b px-3 py-2 text-xs" role="note">
                 {{ $t('fields.categorySelect.unlistedNotice') }}
@@ -248,13 +244,7 @@
           role="note"
         >
           <span>{{ $t('fields.categorySelect.sharedOwnerNotice', { owner: sharedOwnerHandle }) }}</span>
-          <ResponsiveTooltip
-            :content="$t('fields.categorySelect.sharedOwnerNoticeTooltip', { owner: sharedOwnerHandle })"
-            content-class-name="max-w-64"
-            :delay-duration="100"
-          >
-            <InfoIcon class="text-muted-foreground size-3.5 shrink-0 cursor-help" />
-          </ResponsiveTooltip>
+          <HintIcon :content="$t('fields.categorySelect.sharedOwnerNoticeTooltip', { owner: sharedOwnerHandle })" />
         </div>
 
         <div v-if="unlistedIds" class="text-muted-foreground mb-3 text-xs" role="note">
@@ -294,10 +284,10 @@
 </template>
 
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { type FormattedCategory } from '@/common/types';
 import { truncateOwnerUsername } from '@/common/utils/account-display';
 import CategoryCircle from '@/components/common/category-circle.vue';
-import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import * as Drawer from '@/components/lib/ui/drawer';
@@ -306,7 +296,7 @@ import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-br
 import { cn } from '@/lib/utils';
 import { CATEGORY_TYPES, type CategoryModel } from '@bt/shared/types';
 import { createReusableTemplate } from '@vueuse/core';
-import { ChevronDownIcon, InfoIcon, SearchIcon, XIcon } from '@lucide/vue';
+import { ChevronDownIcon, SearchIcon, XIcon } from '@lucide/vue';
 import { ListboxContent, ListboxFilter, ListboxItem, ListboxRoot } from 'reka-ui';
 import { computed, ref, watch } from 'vue';
 

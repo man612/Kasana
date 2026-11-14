@@ -17,6 +17,7 @@ defineProps<{
   locked?: boolean;
   disabled?: boolean;
   errorMessage?: string;
+  requireAccountBeforeAmount?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -26,6 +27,16 @@ const emit = defineEmits<{
 }>();
 
 const amountFieldRef = ref<InstanceType<typeof FormattedAmountField> | null>(null);
+const accountFieldRef = ref<InstanceType<typeof AccountSelectField> | null>(null);
+const accountWarningVisible = ref(false);
+const requireAccountChoice = () => {
+  accountWarningVisible.value = true;
+  accountFieldRef.value?.open();
+};
+const onAccountPicked = (value: AccountModel | null) => {
+  accountWarningVisible.value = false;
+  emit('update:account', value);
+};
 
 defineExpose({
   focus: () => amountFieldRef.value?.focus(),
@@ -35,7 +46,7 @@ defineExpose({
 
 <template>
   <div class="@container">
-    <div class="flex min-w-0 items-start gap-1.5">
+    <div class="flex min-w-0 items-start gap-1">
       <div
         :class="
           cn(
@@ -46,18 +57,19 @@ defineExpose({
       >
         <div class="flex min-w-0 flex-[2] items-center overflow-hidden">
           <AccountSelectField
+            ref="accountFieldRef"
             class="min-w-0 flex-1"
             embedded
             :model-value="account"
             :accounts="accounts"
             :placeholder="accountPlaceholder"
             :disabled="disabled || locked"
-            @update:model-value="emit('update:account', $event)"
+            @update:model-value="onAccountPicked"
           />
           <slot name="account-addon" />
         </div>
 
-        <div class="border-input flex min-w-0 flex-[3] items-center border-l pr-1 pl-1 [&_input]:px-1.5">
+        <div class="border-input relative flex min-w-0 flex-[3] items-center border-l pr-1 pl-1 [&_input]:px-1.5">
           <span v-if="currencyCode === 'IDR'" class="text-muted-foreground shrink-0 pl-1 text-xs font-semibold"
             >Rp</span
           >
@@ -68,11 +80,18 @@ defineExpose({
             embedded
             :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
             :aria-label="$t('dialogs.manageTransaction.form.amountLabel')"
-            :disabled="disabled || locked"
+            :disabled="disabled || locked || (requireAccountBeforeAmount && !account)"
             @update:model-value="emit('update:amount', $event)"
             @blur="emit('amount-blur')"
           />
           <CurrencyChip v-if="currencyCode && currencyCode !== 'IDR'" :code="currencyCode" />
+          <button
+            v-if="requireAccountBeforeAmount && !account && !disabled && !locked"
+            type="button"
+            class="focus-visible:ring-ring absolute inset-0 z-10 cursor-pointer rounded-r-md focus-visible:ring-2"
+            :aria-label="$t('dialogs.manageTransaction.form.paymentLegs.chooseAccountFirst')"
+            @click="requireAccountChoice"
+          />
         </div>
 
         <div
@@ -82,10 +101,13 @@ defineExpose({
           <slot name="converted" />
         </div>
       </div>
-      <div v-if="$slots.actions" class="flex size-9 shrink-0 items-center justify-end">
+      <div v-if="$slots.actions" class="flex size-7 shrink-0 items-center justify-center pt-1">
         <slot name="actions" />
       </div>
     </div>
     <FieldError :error-message="errorMessage" />
+    <p v-if="accountWarningVisible && !account" class="text-warning-text mt-1 text-xs" role="status">
+      {{ $t('dialogs.manageTransaction.form.paymentLegs.chooseAccountFirst') }}
+    </p>
   </div>
 </template>

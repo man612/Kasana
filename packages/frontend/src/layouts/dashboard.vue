@@ -1,12 +1,12 @@
 <template>
   <div class="bg-background flex h-dvh max-md:flex-col">
     <div
-      v-if="!isMobileView"
+      v-if="!isMobileView && !isSettingsRoute"
       class="relative h-full shrink-0 overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
-      :class="isCollapsed || isSettingsRoute ? 'w-13' : 'w-75'"
+      :class="isCollapsed ? 'w-16' : 'w-75'"
     >
       <Transition name="lajur-sidebar" mode="out-in">
-        <SidebarRail v-if="isCollapsed || isSettingsRoute" key="rail" />
+        <SidebarRail v-if="isCollapsed" key="rail" />
         <Sidebar v-else key="full" />
       </Transition>
     </div>
@@ -76,8 +76,7 @@ const userCurrenciesStore = useCurrenciesStore();
 const onboardingStore = useOnboardingStore();
 const idleEnabled = useIdleEnabled();
 const { isCollapsed } = useSidebarCollapsed();
-// Settings owns a separate navigator: temporarily collapse the regular sidebar
-// without overwriting the user's persisted preference.
+// The settings page owns a fully functional navigator; hide the main sidebar there.
 const isSettingsRoute = computed(() => String(route.name ?? '').startsWith(ROUTES_NAMES.settings));
 const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile, {
   wait: 50,

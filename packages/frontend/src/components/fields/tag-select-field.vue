@@ -7,7 +7,7 @@ import FieldLabel from '@/components/fields/components/field-label.vue';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { useTagsStore } from '@/stores';
 import { type TagModel } from '@bt/shared/types';
-import { CheckIcon, ChevronRightIcon, PlusIcon, Trash2Icon, XIcon } from '@lucide/vue';
+import { CheckIcon, ChevronRightIcon, PlusIcon, Trash2Icon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -30,8 +30,6 @@ const isOpen = ref(false);
 const query = ref('');
 const isCreatingSuggestion = ref(false);
 const suggestionError = ref('');
-const isUnselectConfirmOpen = ref(false);
-const pendingTagUnselect = ref<TagModel | null>(null);
 const isDeleteConfirmOpen = ref(false);
 const pendingTagDelete = ref<TagModel | null>(null);
 const isDeleting = ref(false);
@@ -69,18 +67,9 @@ const toggleTag = (tag: TagModel) => {
   else ids.splice(index, 1);
   emit('update:model-value', ids);
 };
+// Selecting and deselecting are reversible edits to this transaction, not tag deletion.
 const requestTagToggle = (tag: TagModel) => {
-  if (props.disabled) return;
-  if (!selectedIds.value.has(tag.id)) {
-    toggleTag(tag);
-    return;
-  }
-  pendingTagUnselect.value = tag;
-  isUnselectConfirmOpen.value = true;
-};
-const confirmTagUnselect = () => {
-  if (pendingTagUnselect.value) toggleTag(pendingTagUnselect.value);
-  pendingTagUnselect.value = null;
+  if (!props.disabled) toggleTag(tag);
 };
 const requestDelete = (tag: TagModel) => {
   if (props.disabled || isCoreTagName(tag.name)) return;
@@ -177,15 +166,17 @@ defineExpose({ open: openList });
       </div>
       <div class="max-h-[min(59dvh,460px)] min-h-0 space-y-4 overflow-y-auto overscroll-contain p-4">
         <section>
-          <h3 class="mb-2 text-xs font-semibold">{{ t('fields.tagSelect.existingTitle') }}</h3>
+          <h3 class="text-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
+            {{ t('fields.tagSelect.existingTitle') }}
+          </h3>
           <p v-if="!filteredTags.length" class="text-muted-foreground py-3 text-xs">
             {{ t('fields.tagSelect.noTagsAvailable') }}
           </p>
-          <div class="grid gap-1.5">
+          <div class="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
             <div
               v-for="tag in filteredTags"
               :key="tag.id"
-              class="hover:bg-muted/40 flex items-center gap-1 rounded-lg border border-transparent px-1 py-0.5 transition-colors"
+              class="border-border/60 hover:bg-muted/40 focus-within:border-primary/40 flex min-w-0 items-center gap-1 rounded-lg border px-2 py-1 transition-colors"
             >
               <button
                 type="button"
@@ -240,18 +231,6 @@ defineExpose({ open: openList });
       </div>
     </Dialog.DialogContent>
   </Dialog.Dialog>
-  <ResponsiveAlertDialog
-    v-model:open="isUnselectConfirmOpen"
-    :confirm-label="t('fields.tagSelect.removeConfirmAction')"
-    confirm-variant="destructive"
-    @confirm="confirmTagUnselect"
-    @cancel="pendingTagUnselect = null"
-  >
-    <template #title>{{ t('fields.tagSelect.removeConfirmTitle') }}</template>
-    <template #description>{{
-      t('fields.tagSelect.removeConfirmDetail', { name: pendingTagUnselect?.name })
-    }}</template>
-  </ResponsiveAlertDialog>
   <ResponsiveAlertDialog
     v-model:open="isDeleteConfirmOpen"
     :confirm-label="t('fields.tagSelect.deleteTagAction')"

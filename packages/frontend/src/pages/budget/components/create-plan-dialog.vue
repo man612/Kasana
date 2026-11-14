@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { createBudgetPlan } from '@/api/budget-plans';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import AiUsageBadge from '@/components/common/ai-usage/ai-usage-badge.vue';
@@ -13,7 +14,7 @@ import { Button } from '@/components/lib/ui/button';
 import { Callout } from '@/components/lib/ui/callout';
 import { Label } from '@/components/lib/ui/label';
 import { useNotificationCenter } from '@/components/notification-center';
-import { ArrowRightIcon, InfoIcon, LoaderCircleIcon } from '@lucide/vue';
+import { ArrowRightIcon, LoaderCircleIcon } from '@lucide/vue';
 import { StatusBadge } from '@/components/lib/ui/status-badge';
 import { Switch } from '@/components/lib/ui/switch';
 import { useInvalidatingMutation } from '@/composable/data-queries/use-invalidating-mutation';
@@ -314,9 +315,7 @@ const submit = () => {
           <Label for="budget-create-suggested" class="cursor-pointer text-sm font-normal">
             {{ $t('budgetPlans.create.suggestedLinesLabel') }}
           </Label>
-          <ResponsiveTooltip :content="$t('budgetPlans.create.suggestedLinesHint')" content-class-name="max-w-72">
-            <InfoIcon class="text-muted-foreground size-3.5 shrink-0 cursor-help" />
-          </ResponsiveTooltip>
+          <HintIcon :content="$t('budgetPlans.create.suggestedLinesHint')" />
           <StatusBadge variant="info">{{ $t('budgetPlans.create.recommended') }}</StatusBadge>
           <AiUsageBadge />
         </span>

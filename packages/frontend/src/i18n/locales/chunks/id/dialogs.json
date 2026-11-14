@@ -254,6 +254,10 @@
           }
         },
         "paymentLegs": {
+          "chooseAccountFirst": "Pilih rekening terlebih dahulu sebelum mengisi nominal.",
+          "disableConfirmTitle": "Nonaktifkan pembayaran beberapa rekening?",
+          "disableConfirmDescription": "Rekening tambahan sudah memiliki data. Menonaktifkan pembagian akan menggabungkan nominalnya ke transaksi utama dan menghapus rincian rekening tambahan dari formulir.",
+          "disableConfirmAction": "Nonaktifkan pembagian",
           "severalAccountsPill": "Beberapa rekening",
           "paidFromLabel": "Dibayar dari",
           "receivedIntoLabel": "Diterima ke",
@@ -395,7 +399,7 @@
         "refundsOverPurchase": "These refunds add up to more than the purchase. Untick one.",
         "sharesOverRefund": "The linked shares add up to more than this refund. Open the link to adjust them.",
         "notCoveredWillUnlink": "Not covered by this refund, it will be unlinked on save",
-        "directionEmpty": "Tick earlier records this one refunds, or later records that refund it"
+        "directionEmpty": "Centang transaksi sebelumnya yang dananya dikembalikan oleh transaksi ini, atau transaksi berikutnya yang mengembalikan dana transaksi ini."
       },
       "refundInfo": {
         "trigger": "Bagaimana caranya?",
@@ -521,6 +525,9 @@
           "update": "Tidak dapat memperbarui templat. Silakan coba lagi.",
           "delete": "Tidak dapat menghapus templat. Silakan coba lagi."
         },
+        "quickHint": "Pakai kembali isian yang sering digunakan, tanpa membuat transaksi otomatis.",
+        "emptyTitle": "Belum ada templat",
+        "emptyDetail": "Simpan isian transaksi saat ini sebagai templat atau buat templat baru. Kamu tetap menentukan kapan transaksi dicatat.",
         "dialogTitle": "Templat transaksi",
         "dialogScenario": "Templat menyimpan pola transaksi yang sering berulang agar tidak perlu mengisi formulir dari awal. Contoh: belanja bulanan atau pembayaran parkir. “Simpan yang sekarang” menggunakan isian formulir ini; “Templat baru” membuat pola dari awal. Templat tidak langsung membuat transaksi dan tidak menggantikan transaksi terencana."
       },

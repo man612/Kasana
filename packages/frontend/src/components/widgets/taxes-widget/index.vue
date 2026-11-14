@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import HintIcon from '@/components/common/hint-icon.vue';
 import { getCashFlow } from '@/api/stats';
 import type { DashboardWidgetConfig } from '@/api/user-settings';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
@@ -16,15 +17,7 @@ import { useFormatCurrency } from '@/composable/formatters';
 import { cn } from '@/lib/utils';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useCategoriesStore, useRootStore } from '@/stores';
-import {
-  ArrowLeftIcon,
-  ArrowUpRightIcon,
-  CheckIcon,
-  ChevronRightIcon,
-  InfoIcon,
-  LandmarkIcon,
-  SettingsIcon,
-} from '@lucide/vue';
+import { ArrowLeftIcon, ArrowUpRightIcon, CheckIcon, ChevronRightIcon, LandmarkIcon, SettingsIcon } from '@lucide/vue';
 import { useQuery } from '@tanstack/vue-query';
 import { endOfMonth, format, parseISO, startOfMonth, subMonths } from 'date-fns';
 import { storeToRefs } from 'pinia';
@@ -187,13 +180,7 @@ const averageLineOffset = computed(() => 1 - windowMonths.value / (bars.value.le
       <span class="inline-flex items-center gap-1">
         {{ $t('dashboard.widgets.taxes.title') }}
 
-        <ResponsiveTooltip
-          :content="$t('dashboard.widgets.taxes.description')"
-          content-class-name="max-w-56"
-          :delay-duration="100"
-        >
-          <InfoIcon class="text-muted-foreground ml-1 size-4 cursor-help" />
-        </ResponsiveTooltip>
+        <HintIcon :content="$t('dashboard.widgets.taxes.description')" />
       </span>
     </template>
 

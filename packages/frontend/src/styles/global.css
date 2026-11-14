@@ -986,7 +986,7 @@ select:focus-visible,
 }
 .lajur-form-panel-enter-to,
 .lajur-form-panel-leave-from {
-  max-height: 1750px;
+  max-height: var(--lajur-panel-height, 1750px);
 }
 
 .lajur-payment-rows-enter-active,
@@ -1008,7 +1008,7 @@ select:focus-visible,
 .lajur-payment-rows-enter-to,
 .lajur-payment-rows-leave-from {
   opacity: 1;
-  max-height: 260px;
+  max-height: 110px;
 }
 .lajur-payment-rows-leave-active {
   pointer-events: none;
@@ -1056,6 +1056,47 @@ select:focus-visible,
   .lajur-sidebar-leave-active {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* Mode descriptions crossfade without replacing mounted form controls. */
+.lajur-form-copy-enter-active,
+.lajur-form-copy-leave-active {
+  transition:
+    opacity 170ms ease,
+    transform 190ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lajur-form-copy-enter-from {
+  opacity: 0;
+  transform: translateY(5px);
+}
+.lajur-form-copy-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lajur-form-copy-enter-active,
+  .lajur-form-copy-leave-active {
+    transition: none !important;
+  }
+}
+
+/* Edit overlays animate without unmounting their underlying charts. */
+.lajur-widget-overlay-enter-active,
+.lajur-widget-overlay-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lajur-widget-overlay-enter-from,
+.lajur-widget-overlay-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lajur-widget-overlay-enter-active,
+  .lajur-widget-overlay-leave-active {
+    transition: none !important;
   }
 }
 

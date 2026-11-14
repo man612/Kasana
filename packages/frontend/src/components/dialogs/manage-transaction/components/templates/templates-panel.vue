@@ -136,14 +136,20 @@ const onFilterKeydown = (event: KeyboardEvent) => {
         @close-auto-focus="onCloseAutoFocus"
         @open-auto-focus.prevent
       >
-        <div class="border-border border-b px-4 py-3 pr-14">
-          <Dialog.DialogTitle class="flex items-center gap-2 text-base font-semibold">
-            <LayoutTemplateIcon class="text-primary size-4 shrink-0" />
-            {{ $t('dialogs.manageTransaction.templates.dialogTitle') }}
-          </Dialog.DialogTitle>
-          <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
-            {{ $t('dialogs.manageTransaction.templates.dialogScenario') }}
-          </Dialog.DialogDescription>
+        <div class="border-border border-b px-5 py-4 pr-14">
+          <div class="flex items-start gap-3">
+            <div class="bg-primary/10 text-primary-text flex size-10 shrink-0 items-center justify-center rounded-xl">
+              <LayoutTemplateIcon class="size-5" />
+            </div>
+            <div class="min-w-0 pt-0.5">
+              <Dialog.DialogTitle class="text-base font-semibold">
+                {{ $t('dialogs.manageTransaction.templates.dialogTitle') }}
+              </Dialog.DialogTitle>
+              <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
+                {{ $t('dialogs.manageTransaction.templates.quickHint') }}
+              </Dialog.DialogDescription>
+            </div>
+          </div>
         </div>
         <div v-if="isLoading" aria-busy="true" class="grid min-h-0 flex-1 grid-cols-[270px_minmax(0,1fr)]">
           <div class="border-border flex flex-col gap-2 border-r p-3">
@@ -226,11 +232,19 @@ const onFilterKeydown = (event: KeyboardEvent) => {
           <Button variant="outline" size="sm" @click="emit('retry')">{{ $t('common.actions.retry') }}</Button>
         </div>
 
-        <p v-else class="text-muted-foreground mb-4 px-3 pt-3 text-xs leading-relaxed">
-          {{ $t('dialogs.manageTransaction.templates.emptyState') }}
-        </p>
+        <div v-else class="flex flex-col items-center justify-center gap-3 px-6 py-7 text-center">
+          <div class="border-border bg-muted/30 flex size-14 items-center justify-center rounded-2xl border">
+            <LayoutTemplateIcon class="text-muted-foreground size-6" />
+          </div>
+          <h3 class="text-foreground text-sm font-semibold">
+            {{ $t('dialogs.manageTransaction.templates.emptyTitle') }}
+          </h3>
+          <p class="text-muted-foreground max-w-88 text-xs leading-relaxed">
+            {{ $t('dialogs.manageTransaction.templates.emptyDetail') }}
+          </p>
+        </div>
 
-        <div class="border-border flex flex-wrap items-center gap-2 border-t p-3">
+        <div class="border-border bg-muted/20 flex flex-wrap items-center gap-2 border-t p-3">
           <Button
             v-for="action in footerActions"
             :key="action.key"

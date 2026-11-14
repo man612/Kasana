@@ -254,6 +254,10 @@
           }
         },
         "paymentLegs": {
+          "chooseAccountFirst": "Choose an account before entering an amount.",
+          "disableConfirmTitle": "Turn off multiple-account payment?",
+          "disableConfirmDescription": "An additional account already contains data. Turning off multiple accounts combines its amount into the main transaction and removes its allocation details from the form.",
+          "disableConfirmAction": "Turn off splitting",
           "severalAccountsPill": "Several accounts",
           "paidFromLabel": "Paid from",
           "receivedIntoLabel": "Received into",
@@ -521,6 +525,9 @@
           "update": "Couldn't update the template. Please try again.",
           "delete": "Couldn't delete the template. Please try again."
         },
+        "quickHint": "Reuse familiar transaction details without creating transactions automatically.",
+        "emptyTitle": "No saved templates yet",
+        "emptyDetail": "Save the current transaction fields or create a new template. You still decide when to record a transaction.",
         "dialogTitle": "Transaction templates",
         "dialogScenario": "Templates remember details for transactions you enter repeatedly, such as groceries or parking. “Save current” uses the form you have filled; “New template” starts a pattern from scratch. A template does not create a transaction automatically and is not a scheduled transaction."
       },

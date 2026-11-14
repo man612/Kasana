@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import SlidingPanels from '@/components/common/sliding-panels.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
 import { Switch } from '@/components/lib/ui/switch';
 import { TOGGLEABLE_SIDEBAR_SECTIONS, useSidebarSections } from '@/composable/use-sidebar-sections';
-import { ArrowLeftIcon, ChevronRightIcon, InfoIcon, LayersIcon, SettingsIcon } from '@lucide/vue';
+import { ArrowLeftIcon, ChevronRightIcon, LayersIcon, SettingsIcon } from '@lucide/vue';
 import { ref, watch } from 'vue';
 
 import { useHideZeroBalances } from './accounts-view/helpers/use-hide-zero-balances';
@@ -36,7 +37,12 @@ const goTo = (target: View) => {
   <Popover v-model:open="isOpen">
     <PopoverTrigger as-child>
       <Button size="icon-sm" variant="secondary" :aria-label="$t('sidebar.settings.title')">
-        <SettingsIcon :class="['size-3.5 origin-center transition-transform duration-300 ease-out motion-reduce:transition-none', isOpen && 'rotate-90']" />
+        <SettingsIcon
+          :class="[
+            'size-3.5 origin-center transition-transform duration-300 ease-out motion-reduce:transition-none',
+            isOpen && 'rotate-90',
+          ]"
+        />
       </Button>
     </PopoverTrigger>
     <PopoverContent class="w-64 overflow-hidden p-0" align="end">
@@ -94,12 +100,7 @@ const goTo = (target: View) => {
                   <LayersIcon class="text-muted-foreground size-4 shrink-0" />
                   {{ $t('sidebar.accountsView.bankAccounts') }}
                 </span>
-                <ResponsiveTooltip :content="$t('sidebar.settings.sections.alwaysVisibleTooltip')">
-                  <span class="text-muted-foreground flex cursor-help items-center gap-2">
-                    <InfoIcon class="size-4" />
-                    <Switch :model-value="true" disabled />
-                  </span>
-                </ResponsiveTooltip>
+                <HintIcon :content="$t('sidebar.settings.sections.alwaysVisibleTooltip')" />
               </div>
 
               <div

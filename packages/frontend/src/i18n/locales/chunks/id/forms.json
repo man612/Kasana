@@ -531,7 +531,7 @@
       "clearSelectionLabel": "Hapus pilihan",
       "searchPlaceholder": "Cari...",
       "sharedOwnerNotice": "Menampilkan kategori {owner}",
-      "unlistedNotice": "Search to find any category",
+      "unlistedNotice": "Cari untuk menemukan kategori lainnya",
       "sharedOwnerNoticeTooltip": "Transaksi di akun bersama selalu menggunakan kategori pemilik. Apa pun yang Anda simpan di sini akan diajukan di bawah set {owner} sehingga Anda berdua melihat total yang konsisten.",
       "sharedOwnerCategoriesLoadError": "Tidak dapat memuat kategori untuk akun bersama. Silakan coba lagi.",
       "dialogHint": "Pilih kategori utama atau subkategori agar laporan lebih teratur.",

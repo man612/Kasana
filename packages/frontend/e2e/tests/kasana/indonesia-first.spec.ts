@@ -261,9 +261,55 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await multipleAccounts.click();
       await expect(multipleAccounts).toHaveCount(1);
       await expect(multipleAccounts).toHaveAttribute('aria-pressed', 'true');
+      // An additional payment amount must not be editable before its account is chosen.
+      const accountFirstGuard = txDialog.getByRole('button', {
+        name: /Pilih rekening terlebih dahulu|Choose an account before/i,
+      });
+      await expect(accountFirstGuard).toBeVisible();
+      await accountFirstGuard.click();
+      await expect(
+        txDialog.getByRole('status').filter({
+          hasText: /Pilih rekening terlebih dahulu|Choose an account before/i,
+        }),
+      ).toBeVisible();
+      await page.keyboard.press('Escape');
+
       await multipleAccounts.click();
       await expect(multipleAccounts).toHaveCount(1);
       await expect(multipleAccounts).toHaveAttribute('aria-pressed', 'false');
+
+      // Selecting and unselecting a tag are reversible form edits, not deletion:
+      // neither should launch a destructive confirmation.
+      const tagPickerTrigger = txDialog.getByTestId('tag-picker-trigger');
+      await tagPickerTrigger.click();
+      const tagPicker = page.getByTestId('tag-picker-dialog');
+      await expect(tagPicker).toBeVisible();
+      const existingTag = tagPicker.locator('button[aria-pressed]').first();
+      if (await existingTag.count()) {
+        const initial = await existingTag.getAttribute('aria-pressed');
+        await existingTag.click();
+        await expect(existingTag).toHaveAttribute('aria-pressed', initial === 'true' ? 'false' : 'true');
+        await existingTag.click();
+        await expect(existingTag).toHaveAttribute('aria-pressed', initial ?? 'false');
+        await expect(page.getByRole('alertdialog')).toHaveCount(0);
+      }
+      await page.keyboard.press('Escape');
+
+      // The checked switch thumb should have matching left/right insets.
+      const createAnotherSwitch = txDialog.getByRole('switch').first();
+      await expect(createAnotherSwitch).toBeVisible();
+      await createAnotherSwitch.click();
+      await expect(createAnotherSwitch).toHaveAttribute('data-state', 'checked');
+      const thumbInset = await createAnotherSwitch.evaluate((element) => {
+        const thumb = element.querySelector<HTMLElement>('[data-state]');
+        if (!thumb) return null;
+        const parent = element.getBoundingClientRect();
+        const circle = thumb.getBoundingClientRect();
+        return { left: circle.left - parent.left, right: parent.right - circle.right };
+      });
+      expect(thumbInset).not.toBeNull();
+      if (thumbInset) expect(Math.abs(thumbInset.left - thumbInset.right)).toBeLessThanOrEqual(2);
+      await createAnotherSwitch.click();
 
       const saveTransaction = txDialog.getByRole('button', { name: /Buat transaksi|Create transaction/i });
       await expect(saveTransaction).toBeVisible();

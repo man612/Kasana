@@ -87,46 +87,48 @@
         <div :key="chartKey" ref="containerRef" class="max-xs:px-2 relative min-h-44 w-full flex-1">
           <svg ref="svgRef" class="h-full w-full"></svg>
 
-          <!-- Tooltip -->
-          <div
-            v-show="tooltip.visible"
-            ref="tooltipRef"
-            class="pointer-events-none fixed z-50"
-            :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
-          >
-            <ChartTooltip>
-              <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
+          <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
+          <Teleport to="body">
+            <div
+              v-show="tooltip.visible"
+              ref="tooltipRef"
+              class="pointer-events-none fixed isolate z-[100]"
+              :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
+            >
+              <ChartTooltip>
+                <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
 
-              <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
-                <template #value>
-                  {{ formatTooltipMoney(row.value)
-                  }}<span
-                    v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
-                    class="ml-1 text-xs font-medium"
-                    :class="deltaColorClass(row.delta)"
-                    >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
-                  >
-                </template>
-              </ChartTooltipRow>
+                <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
+                  <template #value>
+                    {{ formatTooltipMoney(row.value)
+                    }}<span
+                      v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
+                      class="ml-1 text-xs font-medium"
+                      :class="deltaColorClass(row.delta)"
+                      >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
+                    >
+                  </template>
+                </ChartTooltipRow>
 
-              <ChartTooltipDivider />
+                <ChartTooltipDivider />
 
-              <ChartTooltipRow
-                total
-                :label="$t('dashboard.widgets.balanceTrend.tooltip.total')"
-                :value="formatTooltipMoney(tooltip.totalBalance)"
-              />
+                <ChartTooltipRow
+                  total
+                  :label="$t('dashboard.widgets.balanceTrend.tooltip.total')"
+                  :value="formatTooltipMoney(tooltip.totalBalance)"
+                />
 
-              <div
-                v-if="tooltip.hasDelta"
-                class="mt-1 text-xs font-semibold tabular-nums"
-                :class="deltaColorClass(tooltip.deltaAbsolute)"
-              >
-                {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
-                ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
-              </div>
-            </ChartTooltip>
-          </div>
+                <div
+                  v-if="tooltip.hasDelta"
+                  class="mt-1 text-xs font-semibold tabular-nums"
+                  :class="deltaColorClass(tooltip.deltaAbsolute)"
+                >
+                  {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
+                  ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
+                </div>
+              </ChartTooltip>
+            </div>
+          </Teleport>
 
           <!-- Spike transactions panel -->
           <SpikeTransactionsPanel

@@ -18,9 +18,7 @@
         <div v-if="!isEdit" class="flex flex-col gap-2">
           <div class="flex items-center gap-1.5">
             <span class="text-sm font-medium">{{ $t('payees.logo.fieldLabel') }}</span>
-            <ResponsiveTooltip :delay-duration="100" :content="$t('payees.logo.domainHint')">
-              <InfoIcon class="text-muted-foreground size-3.5 cursor-help" @click.prevent.stop />
-            </ResponsiveTooltip>
+            <HintIcon :content="$t('payees.logo.domainHint')" />
           </div>
           <LogoField v-model="form.logo" :name-for-search="form.name" />
         </div>
@@ -37,18 +35,7 @@
           <span class="text-muted-foreground text-sm font-medium">{{
             $t('payees.form.categorizationMode.label')
           }}</span>
-          <ResponsiveTooltip
-            :content="$t('payees.form.categorizationMode.fullExplanation')"
-            content-class-name="max-w-80 whitespace-pre-line leading-relaxed"
-          >
-            <button
-              type="button"
-              class="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex size-7 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
-              :aria-label="$t('payees.form.categorizationMode.fullExplanationLabel')"
-            >
-              <InfoIcon class="size-4" />
-            </button>
-          </ResponsiveTooltip>
+          <HintIcon :content="$t('payees.form.categorizationMode.fullExplanation')" />
         </div>
         <SelectField
           v-model="form.categorizationMode"
@@ -74,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { useCreatePayee, useUpdatePayee } from '@/composable/data-queries/payees';
 import { useNotificationCenter } from '@/components/notification-center';
 import { useCategoriesStore } from '@/stores';
@@ -87,7 +75,7 @@ import { Button } from '@/components/lib/ui/button';
 import { ApiErrorResponseError, isApiErrorWithCode } from '@/js/errors';
 import { captureException } from '@/lib/sentry';
 import { API_ERROR_CODES, CATEGORIZATION_MODE, PayeeModel } from '@bt/shared/types';
-import { InfoIcon } from '@lucide/vue';
+
 import { storeToRefs } from 'pinia';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

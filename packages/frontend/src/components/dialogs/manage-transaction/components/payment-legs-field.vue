@@ -89,6 +89,23 @@ watch(mainCurrencyCode, (_, prev) => refreshAll({ resetEdited: Boolean(prev) }))
 watch(ratesMap, () => refreshAll());
 
 const canAddRow = computed(() => legs.value.length < MAX_PAYMENT_LEGS);
+// Index keys are reused after deleting an earlier row, so Vue cannot animate the
+// outgoing element. Stable UI-only keys survive immutable payment-leg updates.
+let nextRowKey = 0;
+const rowKeys = ref<string[]>([]);
+watch(
+  () => legs.value.length,
+  (length) => {
+    if (length < rowKeys.value.length) rowKeys.value = rowKeys.value.slice(0, length);
+    if (length > rowKeys.value.length) {
+      rowKeys.value = [
+        ...rowKeys.value,
+        ...Array.from({ length: length - rowKeys.value.length }, () => 'payment-leg-' + ++nextRowKey),
+      ];
+    }
+  },
+  { immediate: true },
+);
 
 const replaceLeg = ({ index, leg }: { index: number; leg: FormPaymentLeg }) => {
   legs.value = legs.value.map((item, i) => (i === index ? leg : item));
@@ -189,6 +206,7 @@ const removeLeg = ({ index }: { index: number }) => {
       mainCurrencyCode: mainCurrencyCode.value,
     });
   }
+  rowKeys.value = rowKeys.value.filter((_, i) => i !== index);
   legs.value = legs.value.filter((_, i) => i !== index);
 };
 
@@ -199,6 +217,7 @@ const removeMain = () => {
   if (!next) return;
   account.value = next.account;
   amount.value = next.amount;
+  rowKeys.value = rowKeys.value.filter((_, i) => i !== firstCreatedIndex.value);
   legs.value = legs.value.filter((_, i) => i !== firstCreatedIndex.value);
 };
 
@@ -313,7 +332,7 @@ defineExpose({
         </PaymentLegRow>
 
         <TransitionGroup name="lajur-payment-rows" tag="div" class="relative grid gap-2">
-          <div v-for="(leg, index) in legs" :key="leg.transactionId ?? leg.account?.id ?? index">
+          <div v-for="(leg, index) in legs" :key="rowKeys[index]">
             <PaymentLegRow
               :account="leg.account"
               :accounts="leg.isLinked ? (leg.account ? [leg.account] : []) : legOptions({ leg })"
@@ -322,12 +341,13 @@ defineExpose({
               :currency-code="leg.currencyCode ?? currencyCode"
               :locked="leg.isLinked"
               :disabled="disabled"
+              :require-account-before-amount="!leg.isLinked"
               :error-message="legError({ leg })"
               @update:account="setLegAccount({ index, value: $event })"
               @update:amount="setLegAmount({ index, value: $event })"
             >
               <template v-if="leg.isLinked" #account-addon>
-                <ResponsiveTooltip content-class-name="max-w-72">
+                <ResponsiveTooltip interaction="click" content-class-name="max-w-72">
                   <template #content>
                     <p class="mb-1 font-medium">
                       {{ $t('dialogs.manageTransaction.form.paymentLegs.linkedChangesTitle') }}
@@ -375,7 +395,7 @@ defineExpose({
                   "
                 />
                 <CurrencyChip v-if="currencyCode" class="hidden @sm:inline" :code="currencyCode" />
-                <ResponsiveTooltip content-class-name="max-w-72">
+                <ResponsiveTooltip interaction="click" content-class-name="max-w-72">
                   <template #content>
                     <div class="grid gap-2">
                       <div v-if="legRateInfos[index]!.conversion">

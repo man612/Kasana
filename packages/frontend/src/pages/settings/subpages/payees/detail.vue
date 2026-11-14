@@ -82,9 +82,7 @@
             class="text-muted-foreground flex shrink-0 items-center gap-1.5 text-[11px] font-semibold tracking-[0.07em] uppercase"
           >
             {{ $t('payees.columns.topCategory') }}
-            <ResponsiveTooltip :delay-duration="100" :content="$t('payees.detail.topCategoryHint')">
-              <InfoIcon class="size-3.5 cursor-help" @click.prevent.stop />
-            </ResponsiveTooltip>
+            <HintIcon :content="$t('payees.detail.topCategoryHint')" />
           </span>
           <span class="flex min-w-0 items-center gap-2 text-base font-semibold @[650px]/detail:text-lg">
             <CategoryCircle
@@ -351,7 +349,7 @@ import { captureException } from '@/lib/sentry';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { API_ERROR_CODES, CATEGORIZATION_MODE, type PayeeNameConflictDetails } from '@bt/shared/types';
 import { ApiErrorResponseError, getPayeeNameConflict, isApiErrorWithCode } from '@/js/errors';
-import { ChevronLeftIcon, InfoIcon, PencilIcon, PlusIcon, TagsIcon, Trash2Icon } from '@lucide/vue';
+import { ChevronLeftIcon, PencilIcon, PlusIcon, TagsIcon, Trash2Icon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
