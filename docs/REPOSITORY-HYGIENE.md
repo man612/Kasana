@@ -20,6 +20,8 @@ The feature-branch tree contained roughly 6,450 tracked files and 924 automated-
 | Upstream CLA | Archive at `docs/upstream/CLA.md` | Historical provenance, not an active contributor requirement |
 | `LICENSE` and original copyright notices | Preserve | AGPL and upstream attribution obligations |
 
+**Still pending:** Inherited packages under `packages/docs/` and `packages/landing/` contain historical MoneyMatter promotional material and social imagery. They are not deployed as Lajur. and have not been comprehensively reauthored. Audit or replace this material before publishing a new marketing or docs site; do not simply relabel cloud claims as Lajur. capabilities.
+
 ## Rebuilding brand assets
 
 1. Update `packages/frontend/assets/app-icon-source.png` only with artwork you are entitled to use.
