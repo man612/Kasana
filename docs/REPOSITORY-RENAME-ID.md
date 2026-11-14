@@ -50,7 +50,7 @@ Check Git remotes on Windows, VPS, Dokploy/Portainer integrations, Cloudflare, w
 ## Outstanding release and security requirements
 
 - [PR #10](https://github.com/man612/Kasana/pull/10) remains the umbrella UI integration against `main`. Follow-up PRs [#27](https://github.com/man612/Kasana/pull/27) through [#31](https://github.com/man612/Kasana/pull/31) target the newer `feat/lajur-finance-ux-dashboard-accounts-loans-20261114` branch; they are not automatically included in PR #10. Integrate reviewed follow-up changes into the umbrella branch and rerun its final checks before merging.
-- CI runs for PRs #10 and #27–#30 passed on November 14, 2026. PR #31 was still running at the time of this update. See the [release QA checklist](QA-KASANA-RELEASE.md) for exact run IDs and remaining verification gates.
+- CI runs for PRs #10 and #27–#30 passed on November 14, 2026. PR #31's latest documentation commit is undergoing CI; check its live status before merging. See the [release QA checklist](QA-KASANA-RELEASE.md) for run IDs and remaining verification gates.
 - Legacy upstream backup and deployment jobs are blocked for Kasana. No Kasana production auto-deploy has been verified.
 - The inherited `packages/docs` and `packages/landing` content is not an official Kasana site.
 - Public Git history and old Actions logs/artifacts still need comprehensive secret auditing. Revoke and rotate exposed credentials at the provider.

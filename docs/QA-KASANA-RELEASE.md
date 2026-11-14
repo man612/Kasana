@@ -26,7 +26,7 @@ Backend unit tests require the correct test environment and may need `NODE_OPTIO
 - Follow-up PR #28: [run #43601239771](https://github.com/man612/Kasana/actions/runs/43601239771) passed.
 - Follow-up PR #29: [run #43602739733](https://github.com/man612/Kasana/actions/runs/43602739733) passed, including frontend tests, Docker image builds, synthetic PostgreSQL/attachment restore, and isolated mobile browser smoke.
 - Follow-up PR #30: [run #43603034498](https://github.com/man612/Kasana/actions/runs/43603034498) passed the same CI workflow.
-- Follow-up PR #31: [run #43604027250](https://github.com/man612/Kasana/actions/runs/43604027250) was still running when this document was updated.
+- Follow-up PR #31: its latest documentation commit is undergoing CI; use the [live PR checks](https://github.com/man612/Kasana/pull/31) for the current result.
 
 The November 11 run [#42878060359](https://github.com/man612/Kasana/actions/runs/42878060359) is historical evidence only. Passing CI does not prove physical-device UI, real OAuth, actual data recovery, or VPS security.
 
