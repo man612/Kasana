@@ -1,6 +1,6 @@
 <template>
   <PageWrapper>
-    <div v-if="isLoading" class="@container/vehicle grid gap-6">
+    <div v-if="isLoading" class="@container/vehicle grid min-w-0 grid-cols-1 gap-6">
       <div class="bg-card h-28 animate-pulse rounded-2xl"></div>
       <div class="grid gap-4 @lg/vehicle:grid-cols-3">
         <div class="bg-card h-24 animate-pulse rounded-2xl"></div>
@@ -21,7 +21,7 @@
       </RouterLink>
     </div>
 
-    <div v-else class="@container/vehicle grid gap-6">
+    <div v-else class="@container/vehicle grid min-w-0 grid-cols-1 gap-6 wrap-anywhere">
       <!-- Hero / header -->
       <section
         class="bg-card relative overflow-hidden rounded-2xl border shadow-xs"
@@ -38,48 +38,66 @@
           }"
         ></div>
 
-        <div
-          v-if="isOwner"
-          class="absolute top-5 right-5 z-10 flex flex-wrap justify-end gap-2 @md/vehicle:top-6 @md/vehicle:right-6"
-        >
-          <UiButton variant="outline" @click="isOverrideOpen = true">
-            {{ $t('pages.vehicleDetails.overrideValueButton') }}
-          </UiButton>
-          <UiButton variant="outline" @click="isEditOpen = true">
-            {{ $t('pages.vehicleDetails.editButton') }}
-          </UiButton>
-          <DesktopOnlyTooltip :content="$t('pages.vehicleDetails.deleteTitle')">
-            <UiButton variant="soft-destructive" size="icon" @click="isDeleteOpen = true">
-              <Trash2Icon class="size-4" />
-            </UiButton>
-          </DesktopOnlyTooltip>
-        </div>
+        <div class="relative grid min-w-0 gap-6 p-5 @2xl/vehicle:p-8">
+          <div class="grid min-w-0 gap-4">
+            <div class="grid min-w-0 gap-4 @2xl/vehicle:grid-cols-[minmax(0,1fr)_auto] @2xl/vehicle:items-start">
+              <div class="flex min-w-0 items-start gap-3">
+                <AccountLogoPicker v-if="isOwner" :account-id="vehicle.accountId" class="size-9 shrink-0" />
+                <AccountLogo v-else-if="linkedAccount" :account="linkedAccount" class="size-9 shrink-0" />
+                <div class="grid min-w-0 gap-0.5 wrap-anywhere">
+                  <div class="text-muted-foreground text-xs tracking-wider uppercase">
+                    {{ $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass]) }}
+                  </div>
+                  <h1 class="text-2xl leading-tight font-semibold tracking-tight @2xl/vehicle:text-3xl">
+                    {{ vehicle.account?.name || `${vehicle.make} ${vehicle.model}` }}
+                  </h1>
+                  <div class="text-muted-foreground text-sm">
+                    {{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model
+                    }}<span v-if="vehicle.trim"> · {{ vehicle.trim }}</span>
+                  </div>
+                </div>
+              </div>
 
-        <div class="relative grid gap-6 p-5 pt-20 @md/vehicle:p-8 @md/vehicle:pt-8 @md/vehicle:pr-104">
-          <div class="grid gap-4">
-            <div class="flex items-center gap-3">
-              <AccountLogoPicker v-if="isOwner" :account-id="vehicle.accountId" class="size-9" />
-              <AccountLogo v-else-if="linkedAccount" :account="linkedAccount" class="size-9" />
-              <div class="grid gap-0.5">
-                <div class="text-muted-foreground text-xs tracking-wider uppercase">
-                  {{ $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass]) }}
-                </div>
-                <h1 class="text-2xl leading-tight font-semibold tracking-tight @md/vehicle:text-3xl">
-                  {{ vehicle.account?.name || `${vehicle.make} ${vehicle.model}` }}
-                </h1>
-                <div class="text-muted-foreground text-sm">
-                  {{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model
-                  }}<span v-if="vehicle.trim"> · {{ vehicle.trim }}</span>
-                </div>
+              <div
+                v-if="isOwner"
+                class="flex max-w-full min-w-0 flex-wrap items-start gap-2 @2xl/vehicle:max-w-sm @2xl/vehicle:justify-end"
+              >
+                <UiButton
+                  variant="outline"
+                  class="h-auto min-h-[44px] max-w-full min-w-[44px] wrap-anywhere whitespace-normal"
+                  @click="isOverrideOpen = true"
+                >
+                  {{ $t('pages.vehicleDetails.overrideValueButton') }}
+                </UiButton>
+                <UiButton
+                  variant="outline"
+                  class="h-auto min-h-[44px] max-w-full min-w-[44px] wrap-anywhere whitespace-normal"
+                  @click="isEditOpen = true"
+                >
+                  {{ $t('pages.vehicleDetails.editButton') }}
+                </UiButton>
+                <DesktopOnlyTooltip :content="$t('pages.vehicleDetails.deleteTitle')">
+                  <UiButton
+                    variant="soft-destructive"
+                    size="icon"
+                    class="size-[44px] shrink-0"
+                    :aria-label="$t('pages.vehicleDetails.deleteTitle')"
+                    @click="isDeleteOpen = true"
+                  >
+                    <Trash2Icon class="size-4" />
+                  </UiButton>
+                </DesktopOnlyTooltip>
               </div>
             </div>
 
-            <div class="grid gap-1">
+            <div class="grid min-w-0 gap-1">
               <span class="text-muted-foreground text-xs tracking-wider uppercase">
                 {{ $t('pages.vehicleDetails.currentValue') }}
               </span>
               <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span class="text-3xl font-semibold tracking-tight tabular-nums @md/vehicle:text-5xl">
+                <span
+                  class="max-w-full min-w-0 text-3xl font-semibold tracking-tight wrap-anywhere tabular-nums @2xl/vehicle:text-5xl"
+                >
                   {{ formatAmountByCurrencyCode(vehicle.account?.currentBalance ?? 0, currencyCode) }}
                 </span>
                 <span
