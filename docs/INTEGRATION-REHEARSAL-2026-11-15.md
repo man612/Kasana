@@ -16,7 +16,7 @@ Every head and base was revalidated against GitHub before integrating. All seven
 | [#30](https://github.com/man612/Kasana/pull/30) | `9061af272a7463e473f2be083f6ac4b8427bff26` | `ff8ef0bb074e7065616be89c7c0ea808b8df8a2f` |
 | [#31](https://github.com/man612/Kasana/pull/31) | `772c597e2eae589352f8bf9cd2daf67379737bc5` | `d17f3dd3c20a999514eed2870970829c510b4d01` |
 
-The published rehearsal PR and its Actions runs are the canonical final execution record. Recheck their exact head SHA; results on individual source PRs or an older rehearsal commit do not certify a newer tree.
+Draft [rehearsal PR #32](https://github.com/man612/Kasana/pull/32) and its Actions runs are the canonical final execution record. Recheck their exact head SHA; results on individual source PRs or an older rehearsal commit do not certify a newer tree.
 
 ## Conflicts resolved by content
 
@@ -42,6 +42,16 @@ No blanket whole-file “ours/theirs” resolution was used. #27–#30 merged wi
 | #31  | Documentation paths, i18n keys, vehicle view lint; executable shared vehicle definitions/coefficients compared with the feature baseline and unchanged; commit-hook lint    |
 
 The rehearsal adds a currency display-to-entry round-trip suite for IDR/USD in Indonesian/English locales, including nonzero fractional rupiah and negative values. This checks #29/#30 composition without changing stored amounts or rounding semantics. The disposable-stack browser suite also covers category selection/clearing with one scroll region, vehicle year/class editing beside the valuation disclaimer, and successful fractional-IDR portfolio cash submission. Seven inherited formatting violations in changed paths were corrected without semantic changes. Combined lint, full unit suites, typechecks, production builds, synthetic HTTP/browser checks and genuine PR CI are recorded on the rehearsal PR after execution; do not infer a passing result from this checklist alone.
+
+## Combined execution checkpoint
+
+The first combined [application run 43712666372](https://github.com/man612/Kasana/actions/runs/43712666372) at `28076921d6ef6de08b476724e5ebf21c62a93375` completed **19/20 jobs successfully**. All four backend E2E shards passed (**4,467 passed / 31 skipped / 7 todo**), backend CI units passed (**3,842 / 15 skipped**) and frontend CI units passed (**4,241 / 34 skipped**). Both production images, frontend build/typecheck, backend typecheck, lint/i18n, knip, Windows PowerShell mocks and synthetic restore passed. Docs, Dependency Review and informational audit workflows passed separately; preview deployment was skipped.
+
+The only failure was the rehearsal's new browser test: its redundant UI sign-in returned HTTP **429** under the unchanged production auth limiter. Reuse the already successful API session for this synthetic user; retain the original smoke's UI-login coverage. Local rendering also corrected the new test's selectors to the actual bilingual controls, excluded the independent split action from the clear-control assertion, and waited for the nested picker to unmount before closing its parent. No product assertion, auth limit or financial expectation was relaxed. The corrected cross-PR browser test passed locally against production bundles and own tmpfs services, including an HTTP **200** portfolio cash request with decimal string **`20000.5`** and displayed fractional IDR balance. The subsequent final-head CI must still pass; see #32 for its observed result.
+
+Local full backend units passed (**3,753 / 104 skipped**, 237 passing suites). The duplicate local full frontend run was interrupted after the exact-head CI unit job passed; do not count that local attempt as a pass. A local bundle attempt hit its 2 GiB heap cap; the same bundle passed with the established CI 4 GiB cap. Local focused HTTP verification passed the original two budget/statistics files (**35 tests**) and the category/loan-payment endpoint regressions (**7 tests**). Those checks used a new `bt-test-lajur-rc-e2e-20261115` namespace and matching locked dependencies with candidate source mounts; no existing installation was reused. The Cloud runtime's packaged Playwright browser was absent, so local screenshots used installed system Chromium through a temporary configuration; GitHub CI installs the matching Playwright Chromium.
+
+Rendered 390×844 inspection found a **pre-existing vehicle header issue**: owner action buttons can overlap a long vehicle name. Header positioning classes match the feature baseline; this rehearsal leaves that unrelated layout unchanged and records it for release QA. The new estimated-value disclaimer remains visible and readable, and the fractional-IDR amount field submits without losing decimals. Cloud screenshots do not replace real-device or Windows Podman verification.
 
 ## Safety and financial boundaries
 
