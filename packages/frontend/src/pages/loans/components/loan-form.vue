@@ -44,10 +44,7 @@ const isEdit = computed(() => props.mode === 'edit');
 
 const { t } = useI18n();
 const { formatAmountByCurrencyCode } = useFormatCurrency();
-const formatLoanMoney = (value: number) =>
-  form.currencyCode === 'IDR'
-    ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value)
-    : formatAmountByCurrencyCode(value, form.currencyCode);
+const formatLoanMoney = (value: number) => formatAmountByCurrencyCode(value, form.currencyCode);
 
 interface FormState {
   name: string;
