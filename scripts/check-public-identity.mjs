@@ -52,10 +52,7 @@ for (const file of files) {
 // Names may still appear in LICENSE, LICENSING, CLA and original-history
 // references. Customer-facing translations and server errors must not
 // redirect users to the original author's hosted service or support inbox.
-const locales = [
-  'packages/frontend/src/i18n/locales/chunks',
-  'packages/backend/src/i18n/locales',
-];
+const locales = ['packages/frontend/src/i18n/locales/chunks', 'packages/backend/src/i18n/locales'];
 const walk = (folder) => {
   for (const entry of fs.readdirSync(path.join(ROOT, folder), { withFileTypes: true })) {
     const child = path.posix.join(folder.replaceAll('\\', '/'), entry.name);
@@ -129,7 +126,11 @@ for (const [dockerfile, expected] of [
 }
 // Both production images must identify this independent repository in OCI
 // metadata. A wrong label can misroute source and security reports.
-if (!read('self-hosting/backend/Dockerfile').includes('org.opencontainers.image.source="https://github.com/man612/Kasana"')) {
+if (
+  !read('self-hosting/backend/Dockerfile').includes(
+    'org.opencontainers.image.source="https://github.com/man612/Kasana"',
+  )
+) {
   failures.push('Backend production Docker image source label must identify the Lajur. repository');
 }
 // Never allow a plain docker compose up to run another product's money app.
@@ -142,7 +143,7 @@ for (const image of ['kasana-build-required-frontend:local', 'kasana-build-requi
 }
 const associatedApps = JSON.parse(read('packages/frontend/public/.well-known/apple-app-site-association'));
 if (associatedApps.webcredentials?.apps?.length !== 0) {
-  failures.push('Apple webcredentials may not advertise the original project\'s native app identifiers');
+  failures.push("Apple webcredentials may not advertise the original project's native app identifiers");
 }
 if (failures.length) {
   console.error(failures.join('\n'));

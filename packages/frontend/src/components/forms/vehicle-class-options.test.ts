@@ -1,5 +1,6 @@
 import { VEHICLE_CLASS } from '@bt/shared/types';
 import { describe, expect, it } from 'vitest';
+
 import { buildVehicleClassOptions } from './vehicle-class-options';
 
 describe('buildVehicleClassOptions', () => {
@@ -15,7 +16,9 @@ describe('buildVehicleClassOptions', () => {
       VEHICLE_CLASS.motorcycle,
       VEHICLE_CLASS.other,
     ]);
-    expect(options.filter((option) => option.group === 'forms.createVehicle.vehicleClassGroups.carCurves')).toHaveLength(4);
+    expect(
+      options.filter((option) => option.group === 'forms.createVehicle.vehicleClassGroups.carCurves'),
+    ).toHaveLength(4);
     expect(options.find((option) => option.value === VEHICLE_CLASS.other)?.description).toBe(
       'forms.createVehicle.vehicleClassDescriptions.other',
     );

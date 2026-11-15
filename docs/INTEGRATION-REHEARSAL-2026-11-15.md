@@ -41,7 +41,7 @@ No blanket whole-file “ours/theirs” resolution was used. #27–#30 merged wi
 | #30  | Changed-path lint and amount-entry/currency formatter tests (115 passed)                                                                                                    |
 | #31  | Documentation paths, i18n keys, vehicle view lint; executable shared vehicle definitions/coefficients compared with the feature baseline and unchanged; commit-hook lint    |
 
-The rehearsal adds a currency display-to-entry round-trip suite for IDR/USD in Indonesian/English locales, including nonzero fractional rupiah and negative values. This checks #29/#30 composition without changing stored amounts or rounding semantics. Combined lint, full unit suites, typechecks, production builds, synthetic HTTP/browser checks and genuine PR CI are recorded on the rehearsal PR after execution; do not infer a passing result from this checklist alone.
+The rehearsal adds a currency display-to-entry round-trip suite for IDR/USD in Indonesian/English locales, including nonzero fractional rupiah and negative values. This checks #29/#30 composition without changing stored amounts or rounding semantics. The disposable-stack browser suite also covers category selection/clearing with one scroll region, vehicle year/class editing beside the valuation disclaimer, and successful fractional-IDR portfolio cash submission. Seven inherited formatting violations in changed paths were corrected without semantic changes. Combined lint, full unit suites, typechecks, production builds, synthetic HTTP/browser checks and genuine PR CI are recorded on the rehearsal PR after execution; do not infer a passing result from this checklist alone.
 
 ## Safety and financial boundaries
 

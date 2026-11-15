@@ -206,7 +206,11 @@ const handleClearAll = () => {
 
       <!-- Split rows -->
       <TransitionGroup name="lajur-category-items" tag="div" class="relative grid gap-3">
-        <div v-for="(split, index) in localSplits" :key="split.tempId ?? split.id ?? `split-${index}`" class="group w-full">
+        <div
+          v-for="(split, index) in localSplits"
+          :key="split.tempId ?? split.id ?? `split-${index}`"
+          class="group w-full"
+        >
           <div
             :class="
               cn(

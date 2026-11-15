@@ -1,16 +1,8 @@
-import { VEHICLE_CLASS } from '@bt/shared/types';
-import {
-  BikeIcon,
-  CarFrontIcon,
-  CarIcon,
-  CircleEllipsisIcon,
-  CrownIcon,
-  TruckIcon,
-  ZapIcon,
-} from '@lucide/vue';
-import type { Component } from 'vue';
 import { VEHICLE_CLASS_TRANSLATION_KEYS } from '@/common/const/vehicle-classes-verbose';
 import type { PickerOption } from '@/components/fields/option-picker-dialog.vue';
+import { VEHICLE_CLASS } from '@bt/shared/types';
+import { BikeIcon, CarFrontIcon, CarIcon, CircleEllipsisIcon, CrownIcon, TruckIcon, ZapIcon } from '@lucide/vue';
+import type { Component } from 'vue';
 
 type VehicleClassPresentation = {
   groupKey: string;

@@ -15,7 +15,11 @@ const scans = [
   { label: 'Application workspaces - all dependencies', directory: root, args: [] },
   { label: 'Application workspaces - runtime dependencies', directory: root, args: ['--omit=dev'] },
   { label: 'Standalone documentation - all dependencies', directory: path.join(root, 'packages/docs'), args: [] },
-  { label: 'Standalone documentation - runtime dependencies', directory: path.join(root, 'packages/docs'), args: ['--omit=dev'] },
+  {
+    label: 'Standalone documentation - runtime dependencies',
+    directory: path.join(root, 'packages/docs'),
+    args: ['--omit=dev'],
+  },
 ];
 const lines = [
   '## Npm dependency baseline (informational)',
@@ -42,7 +46,12 @@ for (const scan of scans) {
   const v = report?.metadata?.vulnerabilities;
   if (command.error || command.signal || !v || report.error) {
     failedToAudit = true;
-    const reason = command.error?.message || command.signal || report?.error?.summary || command.stderr?.slice(0, 250) || 'No valid npm audit report';
+    const reason =
+      command.error?.message ||
+      command.signal ||
+      report?.error?.summary ||
+      command.stderr?.slice(0, 250) ||
+      'No valid npm audit report';
     console.error('Audit could not complete:', scan.label, reason);
     lines.push('| ' + scan.label + ' | Audit unavailable | — | — | — | — |');
     continue;
@@ -50,9 +59,19 @@ for (const scan of scans) {
   const values = ['critical', 'high', 'moderate', 'low'].map((key) => Number(v[key] || 0));
   const total = Number(v.total ?? values.reduce((sum, n) => sum + n, 0));
   lines.push('| ' + scan.label + ' | ' + [...values, total].join(' | ') + ' |');
-  console.log(scan.label + ': ' + JSON.stringify({ critical: values[0], high: values[1], moderate: values[2], low: values[3], total }));
+  console.log(
+    scan.label +
+      ': ' +
+      JSON.stringify({ critical: values[0], high: values[1], moderate: values[2], low: values[3], total }),
+  );
   if (values[0] + values[1] > 0) {
-    console.log('::warning::' + scan.label + ' has ' + (values[0] + values[1]) + ' high/critical advisory matches; review GitHub Security alerts and affected package paths');
+    console.log(
+      '::warning::' +
+        scan.label +
+        ' has ' +
+        (values[0] + values[1]) +
+        ' high/critical advisory matches; review GitHub Security alerts and affected package paths',
+    );
   }
   const highRisk = Object.entries(report.vulnerabilities || {})
     .filter(([, item]) => (order[item.severity] || 0) >= 3)
@@ -65,7 +84,9 @@ for (const scan of scans) {
   }
 }
 lines.push('');
-lines.push('Production-only and all-dependency scans overlap and must not be added together. Compare with the active GitHub Dependabot alerts; do not force package upgrades without compatibility and regression review.');
+lines.push(
+  'Production-only and all-dependency scans overlap and must not be added together. Compare with the active GitHub Dependabot alerts; do not force package upgrades without compatibility and regression review.',
+);
 const summary = lines.join('\n') + '\n';
 console.log(summary);
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);

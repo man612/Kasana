@@ -1,4 +1,5 @@
 import { afterAll, beforeEach } from 'vitest';
+
 import {
   currencyDisplayPreference,
   numberFormatLocale,
@@ -14,8 +15,12 @@ import {
 
 // Legacy assertions in this suite explicitly use English number formatting.
 // Keep production Indonesia-first defaults unchanged and isolate the fixture locale.
-beforeEach(() => { numberFormatLocale.value = 'en-US'; });
-afterAll(() => { numberFormatLocale.value = 'id-ID'; });
+beforeEach(() => {
+  numberFormatLocale.value = 'en-US';
+});
+afterAll(() => {
+  numberFormatLocale.value = 'id-ID';
+});
 
 describe('js/helpers/formatters', () => {
   describe('formatUIAmount', () => {

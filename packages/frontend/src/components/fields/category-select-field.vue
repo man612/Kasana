@@ -141,7 +141,9 @@
                   :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
                   @click.stop="clearSelection"
                 >
-                  <XIcon class="size-4 transition-transform duration-200 hover:rotate-90 motion-reduce:transition-none" />
+                  <XIcon
+                    class="size-4 transition-transform duration-200 hover:rotate-90 motion-reduce:transition-none"
+                  />
                 </button>
               </Transition>
             </div>
@@ -180,7 +182,9 @@
                   :placeholder="$t('fields.categorySelect.searchPlaceholder')"
                   :aria-label="$t('fields.categorySelect.searchCategoryLabel')"
                 />
-                <div class="lajur-dialog-scroll max-h-[min(54dvh,390px)] min-h-0 overflow-y-auto overscroll-contain p-2 pr-5">
+                <div
+                  class="lajur-dialog-scroll max-h-[min(54dvh,390px)] min-h-0 overflow-y-auto overscroll-contain p-2 pr-5"
+                >
                   <CategoryListContent />
                 </div>
               </ListboxRoot>
