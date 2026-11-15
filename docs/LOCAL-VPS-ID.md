@@ -38,7 +38,7 @@ Podman machines and Docker daemons have **separate images, volumes, networks and
 
 ## Windows: first local run
 
-1. Complete the runtime/provider preflight above. Check out `chore/lajur-repository-hygiene-20261114` for these unmerged scripts; the feature baseline is `feat/lajur-finance-ux-dashboard-accounts-loans-20261114`, not `main`. Review current PR status before deployment.
+1. Complete the runtime/provider preflight above. Check out `integration/lajur-release-candidate-20261115` for these unmerged scripts; the feature baseline is `feat/lajur-finance-ux-dashboard-accounts-loans-20261114`, not `main`. Review current PR status before deployment.
 2. Open PowerShell 7 in the repository directory.
 3. Run `.\scripts\setup-local-private.ps1` once. It generates random secrets in gitignored `self-hosting/.env`, caps signups at one for initial testing, and binds the frontend to `127.0.0.1:8080`.
 4. Run `.\scripts\run-local-private.ps1 -Engine Podman -ValidateOnly`, then `.\scripts\run-local-private.ps1 -Engine Podman`. This builds the backend/frontend from **this repository's source**, not the upstream published application images.
@@ -56,7 +56,7 @@ Never run `docker compose down -v` on an instance with real data. It deletes per
 
 Use Ubuntu 24.04 LTS with Docker Engine and the Compose plugin. A 4 GB RAM VPS is a reasonable _runtime test_ starting point; building the full frontend there may need 8–12 GB or a separate CI builder. No verified real-world benchmark has been performed.
 
-1. Clone the **public Lajur. source repository** (GitHub slug `man612/Kasana`) at the reviewed development branch: `git clone --branch chore/lajur-repository-hygiene-20261114 --single-branch https://github.com/man612/Kasana.git`. This branch is unmerged development work, not a production release or MoneyMatter upstream. Public source does not expose private server data or `.env` files.
+1. Clone the **public Lajur. source repository** (GitHub slug `man612/Kasana`) at the reviewed development branch: `git clone --branch integration/lajur-release-candidate-20261115 --single-branch https://github.com/man612/Kasana.git`. This branch is unmerged development work, not a production release or MoneyMatter upstream. Public source does not expose private server data or `.env` files.
 2. In `self-hosting/`, copy `.env.example` to `.env` and replace the **four** `__REPLACE_ME__` placeholders with independent cryptographically random values. Do not reuse local secrets when creating a fresh empty database; if moving existing accounts, carefully preserve the original authentication secrets.
 3. Set `BETTER_AUTH_URL` and `AUTH_ORIGIN` to exactly the same external HTTPS URL, e.g. `https://finance.example.com`.
 4. Set `HTTP_PORT=127.0.0.1:8080` and `SYSTEM_MAX_SIGNUPS_ALLOWED=1` for a single-user private instance. Do not expose PostgreSQL or Redis to public interfaces.

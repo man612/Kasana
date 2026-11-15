@@ -1,0 +1,68 @@
+# Lajur. integration rehearsal — 15 November 2026
+
+This temporary candidate is `integration/lajur-release-candidate-20261115`, based on feature baseline `82f3812777427a2795bce97130aacac227144292`. It combines reviewed source snapshots for validation only. It does not merge or approve the original draft PRs, replace release authorization, or deploy an installation. `main` and the original feature/PR branches are untouched.
+
+## Source heads and merge history
+
+Every head and base was revalidated against GitHub before integrating. All seven individual application CI runs were successful; that does not certify their combination. Each integration step is a normal two-parent merge, in the requested order.
+
+| PR                                              | Exact source head                          | Local rehearsal merge                      |
+| ----------------------------------------------- | ------------------------------------------ | ------------------------------------------ |
+| [#24](https://github.com/man612/Kasana/pull/24) | `abcffdb08515f87a34cb4783c4e985dcd789052a` | `919164f389987037da3ebbc849d9ae0df0876c1f` |
+| [#26](https://github.com/man612/Kasana/pull/26) | `dea71f270cc1e54004cb35708a89d24920cc2cd2` | `d75855dd617d8c90e7462c988da960789d99a286` |
+| [#27](https://github.com/man612/Kasana/pull/27) | `afab87c4f2ec6734ded2c7ed4fee23dcbd9fe4d4` | `d14713b559d2ef49efacb1ee769d634530dca6b5` |
+| [#28](https://github.com/man612/Kasana/pull/28) | `2da7051353fa86a739c9c0cdaf689d4d47d7adb6` | `06befd43daa7a2ca8e3882a13bb93fafbe1bf837` |
+| [#29](https://github.com/man612/Kasana/pull/29) | `b51f4124d192f73dfdcb01289a8f19e0947952a1` | `35a86b2a3b37c288a2fc8b8c9e1f0383c115778f` |
+| [#30](https://github.com/man612/Kasana/pull/30) | `9061af272a7463e473f2be083f6ac4b8427bff26` | `ff8ef0bb074e7065616be89c7c0ea808b8df8a2f` |
+| [#31](https://github.com/man612/Kasana/pull/31) | `772c597e2eae589352f8bf9cd2daf67379737bc5` | `d17f3dd3c20a999514eed2870970829c510b4d01` |
+
+The published rehearsal PR and its Actions runs are the canonical final execution record. Recheck their exact head SHA; results on individual source PRs or an older rehearsal commit do not certify a newer tree.
+
+## Conflicts resolved by content
+
+- **#26 workflow:** retained #24's documentation validator and Windows PowerShell job **and** #26's selected-security-floor check and both script regression suites. The backend manifest auto-merged correctly; Lajur. metadata and Zod `~4.6.7` are both asserted.
+- **#31 README:** combined the explicit unmerged-feature warning, `main` badge limitation and open-PR link; candidate setup commands name the temporary rehearsal branch.
+- **#31 Windows/VPS guide:** retained PowerShell 7.2+, explicit Podman/Docker preflight, provider/readiness checks, separate engine storage and compatibility identifiers. Combined the source-repository slug explanation with an explicit development checkout, not a default-`main` clone.
+- **#31 release QA:** retained all seven follow-ups and #10's separation; compared the duplicated QA criteria after whitespace/product-wording normalization before retaining the formatted version. No acceptance criterion was dropped.
+- **#31 repository identity:** retained Lajur. branding, licensing, unported-site boundaries and compatibility names; reconciled the current branch map and individual-versus-combined CI claims.
+- Motion and historical local-preview notes auto-merged and were reviewed. #31's sourced Indonesian valuation evidence and estimated-value disclaimer are retained, without recalibrating any curve.
+
+No blanket whole-file “ours/theirs” resolution was used. #27–#30 merged without conflicts.
+
+## Per-step checks
+
+| Step | Executed validation                                                                                                                                                         |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #24  | Whitespace, public identity, 153 maintained documentation links, Compose boundaries; 32 mocked PowerShell assertions                                                        |
+| #26  | Both workflow families and backend metadata/Zod asserted; documentation/security guards; 13 script regressions; 101 focused schema/MCP/loan/account tests; commit-hook lint |
+| #27  | Changed-path lint and i18n-key check                                                                                                                                        |
+| #28  | Changed-path lint, i18n keys and persisted vehicle-class option test (1 passed)                                                                                             |
+| #29  | Changed-path lint and currency/chart formatter tests (90 passed)                                                                                                            |
+| #30  | Changed-path lint and amount-entry/currency formatter tests (115 passed)                                                                                                    |
+| #31  | Documentation paths, i18n keys, vehicle view lint; executable shared vehicle definitions/coefficients compared with the feature baseline and unchanged; commit-hook lint    |
+
+The rehearsal adds a currency display-to-entry round-trip suite for IDR/USD in Indonesian/English locales, including nonzero fractional rupiah and negative values. This checks #29/#30 composition without changing stored amounts or rounding semantics. Combined lint, full unit suites, typechecks, production builds, synthetic HTTP/browser checks and genuine PR CI are recorded on the rehearsal PR after execution; do not infer a passing result from this checklist alone.
+
+## Safety and financial boundaries
+
+- Preserve #26's `recordId().optional()` plus the non-transfer category requirement, real HTTP success/ID assertions and original budget-pool/cumulative expectations.
+- No stored financial records, schemas, historical migrations, calculation services, loan principal or depreciation coefficients are changed by conflict resolution.
+- Preserve the canonical S-curve PNG, AGPL license, archived upstream CLA, display-name synchronization and internal Compose/image/network/volume identifiers.
+- Cloud execution uses synthetic data and task-owned test resources only. The stock browser smoke refuses non-GitHub execution; local cloud rendering uses a separately isolated harness rather than spoofing its GitHub guard.
+- Root and standalone docs lockfiles match #26. Existing installed dependencies can be reused where their locked versions match; do not regenerate locks or force upgrades for the rehearsal.
+
+## Risk classification and gates
+
+| Issue                                                                                        | Feature integration                                                                                                  | Public deployment / release                                                                             |
+| -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Combined CI and maintainer review                                                            | Require final-SHA green checks and explicit approval; keep rehearsal and source PRs draft                            | Required, but not production certification                                                              |
+| Five high npm package findings (Polygon/query-string/decoder and Yahoo Finance/Zod 3 chains) | Explicit security review/risk disposition and tracked follow-ups; do not force incompatible ESM or provider upgrades | Resolve/mitigate applicable reachable risks before exposure; selected floors are not a clean audit      |
+| Moderate/low backlog, including docs Astro                                                   | Track exact advisories separately; scopes overlap                                                                    | Assess actual shipped/reachable paths and operator configuration                                        |
+| Jest worker teardown warnings                                                                | Assertions and exit codes must be reported accurately; retain focused open-handle follow-up                          | Do not claim clean lifecycle/resource behavior from `--forceExit`                                       |
+| Unverified icon permissions                                                                  | Retain provenance uncertainty; do not invent rights or substitute arbitrary artwork                                  | Public artwork distribution remains a release gate pending evidence or a separately approved resolution |
+| Real Windows Podman, browser/PWA and physical-device verification                            | Mocked/CI checks cover only their observed scope                                                                     | Required before claiming those deployment/device paths are verified                                     |
+| #10 is behind the feature baseline                                                           | Do not update or merge it during this rehearsal                                                                      | Only an approved complete candidate, with fresh checks against `main`, may become a release proposal    |
+
+## Later PR #10 handoff
+
+PR #10 at `30f5f83e6c4e42c0cecdcea71578d54ce616e1c4` is two commits behind the feature baseline and contains none of the seven follow-ups automatically. After maintainer approval, integrate the complete candidate history into the feature branch, then merge that updated feature branch normally into #10's umbrella branch. Verify all seven source heads remain ancestors, inspect its full diff against `main`, and rerun release CI and review. Do not replace the umbrella with an older snapshot, cherry-pick away source history, retarget it, force-push or merge into `main` as part of this task.

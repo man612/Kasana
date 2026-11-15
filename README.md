@@ -40,16 +40,18 @@ Lajur. is an **independent adaptation** of [MoneyMatter](https://github.com/lete
 
 ## Getting started
 
+For this temporary candidate, see the [integration rehearsal record](docs/INTEGRATION-REHEARSAL-2026-11-15.md).
+
 Build Lajur. **from this repository's source**. The base Compose file uses intentionally non-pullable placeholder images for the finance frontend and backend; it is **not** a standalone deployment. Always combine the base, build, and private-instance overlays as shown below.
 
 **Prerequisites:** Git, a Linux container runtime (Podman preferred on Windows; Docker supported), Docker Compose v2, and sufficient memory and storage for a frontend source build.
 
-These commands explicitly check out the **unmerged PR #24 branch** to match this guide. They are development setup instructions, not a release recommendation; `main` does not yet contain this work. Review the branch and CI before use.
+These commands explicitly check out the **temporary integration-rehearsal branch** to match this guide. This candidate combines PRs #24 and #26–#31 for synthetic verification; it is not release or deployment authorization. These are development setup instructions; `main` does not yet contain this work. Review the branch and CI before use.
 
 ### Linux / VPS
 
 ```bash
-git clone --branch chore/lajur-repository-hygiene-20261114 --single-branch https://github.com/man612/Kasana.git
+git clone --branch integration/lajur-release-candidate-20261115 --single-branch https://github.com/man612/Kasana.git
 cd Kasana/self-hosting
 cp .env.example .env
 # Edit .env: replace every __REPLACE_ME__ placeholder.

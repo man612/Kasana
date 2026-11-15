@@ -18,10 +18,10 @@ For bundled HTTPS via Traefik, append `-f docker-compose.traefik.yml` after thes
 
 ## Linux / VPS quickstart
 
-Install Docker Engine with the Compose v2 plugin. The example checks out the **unmerged PR #24 development branch**, not a released `main` version. Review its CI before use, then:
+Install Docker Engine with the Compose v2 plugin. The example checks out the **temporary integration-rehearsal branch**, not a released `main` version. Review its CI before use, then:
 
 ```bash
-git clone --branch chore/lajur-repository-hygiene-20261114 --single-branch https://github.com/man612/Kasana.git
+git clone --branch integration/lajur-release-candidate-20261115 --single-branch https://github.com/man612/Kasana.git
 cd Kasana/self-hosting
 cp .env.example .env
 # Edit .env and replace all __REPLACE_ME__ placeholders.
