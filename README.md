@@ -36,7 +36,7 @@ Lajur. is an **independent adaptation** of [MoneyMatter](https://github.com/lete
 - IDR-first onboarding and Indonesian-style number formatting.
 - Improvements to manual account management and everyday expense tracking.
 
-> **Current limitations:** Indonesia-first does **not** imply automatic Indonesian bank or e-wallet integration. The independent app is under active development; inherited translations, workflows, and documentation still need review. The [active feature branch](https://github.com/man612/Kasana/tree/feat/lajur-finance-ux-dashboard-accounts-loans-20261114) contains work not yet merged into `main`. Read the branch and pull request status before deploying; the `main` CI badge does not validate unmerged changes.
+> **Current limitations:** Indonesia-first does **not** imply automatic Indonesian bank or e-wallet integration. The independent app is under active development; inherited translations, workflows, and documentation still need review. The [active feature branch](https://github.com/man612/Kasana/tree/feat/lajur-finance-ux-dashboard-accounts-loans-20261114) and [open pull requests](https://github.com/man612/Kasana/pulls) contain work not yet merged into `main`. Read the exact branch and CI status before deploying; the `main` CI badge does not validate unmerged changes.
 
 ## Getting started
 

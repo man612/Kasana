@@ -2,7 +2,7 @@
 
 > **Historical filename:** This document retains its `-ID.md` path so existing GitHub links do not break. Its content is now written in English, in keeping with the Lajur. project’s public documentation policy.
 
-As of **November 11, 2026**, the repository is [`man612/Kasana`](https://github.com/man612/Kasana), **Public**, with `main` as its default branch. The current display name is **Lajur.**, including the period; the historical repository slug is retained for link continuity.
+As verified on **November 14, 2026**, the repository is [`man612/Kasana`](https://github.com/man612/Kasana), **Public**, with `main` as its default branch. The current display name is **Lajur.**, including the final period. **Kasana** remains the historical repository slug; existing internal compatibility identifiers are retained for link and installation stability.
 
 ## Verified changes after the rename
 
@@ -49,8 +49,8 @@ Check Git remotes on Windows, VPS, Dokploy/Portainer integrations, Cloudflare, w
 
 ## Outstanding release and security requirements
 
-- [PR #10](https://github.com/man612/Kasana/pull/10) remains a separate UI integration under QA. Repository rename work must not be used as a reason to merge it early.
-- Previous frontend/backend CI failures were fixed; [run #42878060359](https://github.com/man612/Kasana/actions/runs/42878060359) passed all checks on commit `fe10505c`. Check the latest PR #10 head for newer changes before reporting current CI green.
+- [PR #10](https://github.com/man612/Kasana/pull/10) remains the umbrella integration against `main`, two commits behind the feature baseline at the 15 November recheck. Follow-ups **#24 and #26–#31** target `feat/lajur-finance-ux-dashboard-accounts-loans-20261114`; they are not automatically included in PR #10.
+- Individual CI for all seven follow-up heads passed at the recheck. Their combination is being verified separately on `integration/lajur-release-candidate-20261115`; individual green runs do not certify this combined candidate. See the [release QA checklist](QA-KASANA-RELEASE.md).
 - Legacy upstream backup and deployment jobs are blocked for Lajur. No Lajur. production auto-deploy has been verified.
 - The inherited `packages/docs` and `packages/landing` content is not an official Lajur. site.
 - Public Git history and old Actions logs/artifacts still need comprehensive secret auditing. Revoke and rotate exposed credentials at the provider.

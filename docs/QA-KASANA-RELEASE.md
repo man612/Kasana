@@ -1,10 +1,12 @@
 # Lajur. — Release Gates and QA Checklist
 
-This checklist applies to integration **PR #10** (combining historical PRs #8 and #9) and the feature-branch follow-ups **#24 and #26–#31**. PR #10 is two commits behind `feat/lajur-finance-ux-dashboard-accounts-loans-20261114` at the 2026-11-14 inspection; verify every final combined revision. See [integration evidence](INTEGRATION-2026-11-14.md). The UI changes remain **Draft**, are not merged into `main`, have not been deployed to a VPS, and have not passed full application QA.
+This checklist applies to umbrella integration **PR #10** (combining historical PRs #8 and #9) and follow-ups **#24 and #26–#31**. PR #10 is two commits behind `feat/lajur-finance-ux-dashboard-accounts-loans-20261114` at the 15 November 2026 recheck and does **not** automatically include these follow-ups. See the [historical integration map](INTEGRATION-2026-11-14.md). The changes remain **Draft**, are not merged into `main`, and have not been deployed to a VPS or certified for production.
+
+The isolated rehearsal branch `integration/lajur-release-candidate-20261115` combines the seven follow-ups for validation against feature baseline `82f3812`. It is not approval to integrate them into their original bases or release through PR #10. After maintainer approval, preserve the complete candidate history when updating the umbrella branch and rerun its checks against `main`.
 
 ## 1. Source verification
 
-Run the following commands from the PR branch being reviewed (feature baseline: `feat/lajur-finance-ux-dashboard-accounts-loans-20261114`) with the Node.js version configured by Volta (`24.22.1`) after `npm ci`:
+Run the following commands from the exact PR/rehearsal checkout under review, with Node.js `24.22.1` after installing the matching lockfile. Use the final combined candidate for rehearsal; the feature base alone does not contain the follow-ups. Revalidate any later approved umbrella update separately.
 
 ```bash
 npm run lint -w packages/frontend
@@ -18,7 +20,16 @@ npm run test:unit -w packages/backend -- --runInBand
 
 Backend unit tests require the correct test environment and may need `NODE_OPTIONS=--max-old-space-size=4096`. Run backend e2e tests in the project's Docker test environment, **never** against real credentials or production financial data. If a required step fails, **do not merge or deploy**.
 
-**Verified CI evidence — November 11, 2026:** [run #42878060359](https://github.com/man612/Kasana/actions/runs/42878060359) on commit `fe10505c` passed frontend build/lint/tests/knip, backend unit/typecheck/lint/knip, all four backend e2e shards, and both Docker image builds. Backend unit tests: 3,821 passed and 15 skipped. Later commits addressing public identity, privacy, and release safeguards must have **their own** successful CI run before merge. A green CI run does not prove mobile UI, real OAuth, data recovery, or VPS security.
+**Current CI evidence — November 14, 2026:**
+
+- Umbrella PR #10: [run #43556893156](https://github.com/man612/Kasana/actions/runs/43556893156) and [run #43556893248](https://github.com/man612/Kasana/actions/runs/43556893248) completed successfully.
+- Follow-up PR #27: [run #43600252633](https://github.com/man612/Kasana/actions/runs/43600252633) passed.
+- Follow-up PR #28: [run #43601239771](https://github.com/man612/Kasana/actions/runs/43601239771) passed.
+- Follow-up PR #29: [run #43602739733](https://github.com/man612/Kasana/actions/runs/43602739733) passed, including frontend tests, Docker image builds, synthetic PostgreSQL/attachment restore, and isolated mobile browser smoke.
+- Follow-up PR #30: [run #43603034498](https://github.com/man612/Kasana/actions/runs/43603034498) passed the same CI workflow.
+- Follow-up PR #31: its latest documentation commit is undergoing CI; use the [live PR checks](https://github.com/man612/Kasana/pull/31) for the current result.
+
+The November 11 run [#42878060359](https://github.com/man612/Kasana/actions/runs/42878060359) is historical evidence only. Passing CI does not prove physical-device UI, real OAuth, actual data recovery, or VPS security.
 
 ## 2. Functional browser QA using synthetic data
 
@@ -72,4 +83,4 @@ See [Lajur. Motion System](KASANA-MOTION-SYSTEM.md) for the implementation map, 
 
 PR #10 may only be considered ready when relevant lint, typecheck, unit tests, builds, and regression checks are **passing**, real-device browser QA is complete, review conflicts are resolved, and backup/restore plus rollback procedures are verified.
 
-Merge **only PR #10** for this combined feature work. PRs #8 and #9 were closed as superseded and must not be merged separately.
+Merge **only the umbrella PR #10** to `main` for this combined feature work. Follow-up PRs #27–#31 are branch-level review units, not independent mainline releases; integrate approved changes into the PR #10 head branch and rerun final CI/QA before merging. PRs #8 and #9 were closed as superseded and must not be merged separately.
