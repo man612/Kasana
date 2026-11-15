@@ -247,7 +247,22 @@
         "error": "Failed to add vehicle"
       },
       "vehicleClassPlaceholder": "Choose a vehicle class",
-      "vehicleClassHint": "Class affects depreciation estimates. MPVs, LCGCs and hatchbacks do not yet have Indonesia-specific curves; choose Other provisionally and verify the estimated value."
+      "vehicleClassHint": "This category selects a depreciation curve, not the vehicle's registration class. Available curves are general estimates and have not been validated against Indonesian used-vehicle prices. For MPVs, LCGCs, hatchbacks, buses, or other unmatched types, choose Other and review the estimate.",
+      "vehicleClassGroups": {
+        "carCurves": "Car depreciation curves",
+        "goods": "Goods vehicles",
+        "motorcycle": "Motorcycles",
+        "fallback": "General fallback curve"
+      },
+      "vehicleClassDescriptions": {
+        "sedan": "Sedans.",
+        "suv": "SUVs and crossovers.",
+        "luxury": "Premium cars.",
+        "ev": "Electric cars.",
+        "truck": "Pickups and goods vehicles.",
+        "motorcycle": "Motorcycles.",
+        "other": "MPVs, LCGCs, hatchbacks, buses, and other types without a suitable dedicated curve."
+      }
     },
     "editVehicle": {
       "submitButton": "Save changes",
