@@ -1,6 +1,6 @@
-# Kasana — Indonesia-first UI/UX and Localization Decisions
+# Lajur. — Indonesia-first UI/UX and Localization Decisions
 
-This document records design and implementation decisions made while adapting MoneyMatter v0.33.14 for an independent Kasana deployment. **Kasana is a working name**, not necessarily the final product name.
+This document records design and implementation decisions made while adapting MoneyMatter v0.33.14 for an independent Lajur. deployment. The current display name is **Lajur.**, including the final period; the repository slug remains `man612/Kasana`.
 
 ## Replaceable product identity
 
@@ -27,7 +27,7 @@ With `zoom: 0.8` on the root element, Tailwind's `h-dvh` based on `100dvh` cover
 
 **Do not remove this compensation** when changing the default UI scale.
 
-An isolated headless Chromium reproduction using 1280×800 desktop and 390×844 phone viewports showed heights of 640 and approximately 675 physical pixels before compensation. With compensation they returned to 800 and 844 pixels; a scale of `1` was also checked. **These are isolated layout checks, not a full-browser QA pass of Kasana routes.**
+An isolated headless Chromium reproduction using 1280×800 desktop and 390×844 phone viewports showed heights of 640 and approximately 675 physical pixels before compensation. With compensation they returned to 800 and 844 pixels; a scale of `1` was also checked. **These are isolated layout checks, not a full-browser QA pass of Lajur. routes.**
 
 ## Monetary-input scope
 

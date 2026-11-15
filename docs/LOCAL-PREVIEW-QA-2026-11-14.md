@@ -1,10 +1,12 @@
 # Lajur. — local preview checkpoint (14 November 2026)
 
+**Historical checkpoint only:** container names, ports, worktree state and checks below describe the recorded local session, not the current workstation, PR head or VPS status. See [current integration reconnaissance](INTEGRATION-2026-11-14.md).
+
 This is a factual checkpoint for the local development preview, not a production release certification.
 
 ## Environment and source
 
-- Windows repo: D:\Projects\lajur-preview-a631edfe
+- Windows repo: a separate local preview worktree (path omitted; machine-specific).
 - Branch: feat/lajur-finance-ux-dashboard-accounts-loans-20261114
 - Local preview: http://localhost:8082 (loopback only).
 - Active preview containers: kasana-podman-frontend-ux20261114 and kasana-podman-backend-ux20261114.
@@ -26,9 +28,10 @@ This is a factual checkpoint for the local development preview, not a production
 
 These are reflected in earlier Git commits. Their end-to-end behavior was not re-tested completely in this checkpoint.
 
-## Current working branch changes (present in deployed preview)
+## Changes recorded in the historical local preview
 
 ### Dashboard
+
 - Balance Trend comparison clarified; projection and spike information preserved.
 - Added expandable numerical balance-by-date view for keyboard/screen-reader access.
 - Period labels use current UI locale, including Indonesian dates.
@@ -37,6 +40,7 @@ These are reflected in earlier Git commits. Their end-to-end behavior was not re
 - Notification bell: open-state feedback, icon motion and better constrained panel layout.
 
 ### Accounts and vehicles
+
 - Sort selector animated text/indicator and clearer selected state.
 - Section name in Indonesian changed from 'Akun manual' to 'Dicatat sendiri'.
 - Create Account: more compact layout, logo alignment, currency + balance side-by-side when space allows; removed balance tutorial link.
@@ -46,12 +50,14 @@ These are reflected in earlier Git commits. Their end-to-end behavior was not re
 - Portfolio transfer dialog: sticky footer submit, disabled while invalid or submitting.
 
 ### Account details
+
 - Main balance and credit-limit presentation use formatted currency.
 - Credit-limit and initial-balance edit fields use shared formatted amount input.
 - Balance adjustment: currency input, transition/close-control update while preserving balance calculation and validations.
 - Account details and archive language cleaned up where touched; remaining dialog-by-dialog language audit is not declared exhaustive.
 
 ### Loans
+
 - Loan name/type use responsive asymmetric two-column layout.
 - Personal loan is default; supported pickable categories expanded (business, medical, other); category labels localized and icons use existing presentation helpers.
 - Currency input hidden with IDR default, while payload retains currencyCode.
@@ -59,7 +65,7 @@ These are reflected in earlier Git commits. Their end-to-end behavior was not re
 - Simplified 'Bunga tahunan' label and technical explainer behind help affordance; eliminated redundant extra help/Cancel controls.
 - Loan Simple mode is NOT implemented. Architecture/risk brief lives in docs/loan-simple-mode-architecture.md; a UI-only toggle would misstate unknown interest/principal and requires an additive data/API strategy.
 
-## Verification completed
+## Verification recorded at that checkpoint
 
 - Backend production bundle built with exit 0.
 - Frontend production bundle built with exit 0 after raising Node heap to 4 GB.

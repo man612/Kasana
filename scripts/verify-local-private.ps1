@@ -1,52 +1,52 @@
-# Safe smoke-test: reads Docker/HTTP health without changing database or creating a user.
+#Requires -Version 7.2
+# Read-only service/HTTP smoke test; never registers users or changes data.
+[CmdletBinding()]
+param(
+  [ValidateSet('Auto', 'Podman', 'Docker')][string]$Engine = 'Auto',
+  [uri]$BaseUri = 'http://127.0.0.1:8080'
+)
 $ErrorActionPreference = 'Stop'
-$root = Split-Path -Parent $PSScriptRoot
-$selfHost = Join-Path $root 'self-hosting'
-$docker = (Get-Command docker -ErrorAction SilentlyContinue).Source
-if (-not $docker -and (Test-Path 'F:\Applications\DockerDesktop\resources\bin\docker.exe')) {
-  $docker = 'F:\Applications\DockerDesktop\resources\bin\docker.exe'
-}
-if (-not $docker) { throw 'Docker CLI not found.' }
-$dockerBin = Split-Path -Parent $docker
-$env:PATH = $dockerBin + ';' + $env:PATH
-
-$compose = @('-f','docker-compose.yml','-f','docker-compose.build.yml','-f','docker-compose.private.yml')
-$services = @('db','redis','currency-rates-api','backend','frontend')
+. (Join-Path $PSScriptRoot 'local-container-engine.ps1')
+$selfHost = Join-Path (Split-Path -Parent $PSScriptRoot) 'self-hosting'
+if (-not (Test-Path -LiteralPath (Join-Path $selfHost '.env'))) { throw 'Missing self-hosting/.env.' }
+$runtime = Get-LocalContainerRuntime -Engine $Engine
 $bad = @()
-
 Push-Location $selfHost
 try {
-  & $docker compose @compose ps
-  foreach ($service in $services) {
-    $containerId = (& $docker compose @compose ps -q $service)
-    if ($LASTEXITCODE -ne 0 -or -not $containerId) {
-      $bad += "${service}: missing container"
-      continue
+  Invoke-LocalCompose -Runtime $runtime -Arguments @('config', '--quiet')
+  Invoke-LocalCompose -Runtime $runtime -Arguments @('ps')
+  foreach ($service in @('db', 'redis', 'currency-rates-api', 'backend', 'frontend')) {
+    try {
+      $ids = @(Invoke-LocalCompose -Runtime $runtime -Arguments @('ps', '-q', $service))
+      if ($ids.Count -ne 1 -or -not $ids[0]) { throw 'Expected exactly one running container.' }
+      $json = & $runtime.Command inspect $ids[0]
+      if ($LASTEXITCODE -ne 0) { throw "Container inspect failed (exit $LASTEXITCODE)." }
+      $container = @($json | ConvertFrom-Json)[0]
+      $state = $container.State.Status
+      # Docker uses Health; Podman versions can expose Healthcheck instead.
+      $health = $container.State.Health.Status
+      if (-not $health) { $health = $container.State.Healthcheck.Status }
+      if (-not $health) { $health = 'no-healthcheck' }
+      Write-Host "${service}: $state / $health"
+      if ($state -ne 'running') { throw "Container is $state." }
+      if ($service -eq 'frontend') {
+        if ($health -notin @('healthy', 'no-healthcheck')) { throw "Health is $health." }
+      }
+      elseif ($health -ne 'healthy') { throw "Required healthcheck is $health." }
     }
-    $state = & $docker inspect --format '{{.State.Status}}' $containerId
-    $health = & $docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' $containerId
-    Write-Host "$service : $state / $health"
-    if ($state -ne 'running' -or ($health -ne 'healthy' -and $health -ne 'no-healthcheck')) {
-      $bad += "${service}: $state / $health"
-    }
+    catch { $bad += "${service}: $($_.Exception.Message)" }
   }
 }
-finally {
-  Pop-Location
-}
-
+finally { Pop-Location }
 try {
-  $response = Invoke-WebRequest -Uri 'http://127.0.0.1:8080/sign-in' -TimeoutSec 15 -UseBasicParsing
+  $url = $BaseUri.AbsoluteUri.TrimEnd('/') + '/sign-in'
+  $response = Invoke-WebRequest -Uri $url -TimeoutSec 15 -UseBasicParsing
   Write-Host "Frontend /sign-in: HTTP $($response.StatusCode)"
-  if ($response.StatusCode -ne 200) { $bad += "frontend HTTP $($response.StatusCode)" }
+  if ($response.StatusCode -ne 200) { $bad += "Frontend HTTP $($response.StatusCode)" }
 }
-catch {
-  $bad += "Frontend HTTP request failed: $($_.Exception.Message)"
-}
-
+catch { $bad += "Frontend HTTP request failed: $($_.Exception.Message)" }
 if ($bad.Count) {
   $bad | ForEach-Object { Write-Warning $_ }
-  throw 'Smoke test incomplete/failed. No data was changed.'
+  throw 'FAIL: service/HTTP checks incomplete. Starting services may need more time; rerun verification. No data changed.'
 }
-Write-Host 'PASS: Five services healthy and sign-in page responds with HTTP 200.'
-Write-Host 'Next: register your first account and verify IDR + Bahasa Indonesia in browser.'
+Write-Host 'PASS: five services running; four required healthchecks healthy; frontend /sign-in HTTP 200.'
