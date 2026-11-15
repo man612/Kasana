@@ -40,6 +40,10 @@ jobs:
         run: node scripts/check-public-identity.mjs
       - name: Validate maintained documentation links
         run: node scripts/check-doc-links.mjs
+      - name: Check selected dependency security floors and guard regressions
+        run: |
+          node scripts/security-lockfile-check.mjs
+          node --test scripts/security-lockfile-check.test.mjs scripts/setup-e2e-tests.test.mjs
       - id: prepare-env
         uses: ./.github/actions/prepare-local-env
       - name: Install dependencies
