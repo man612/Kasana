@@ -105,6 +105,13 @@ export TMPDIR="$workdir/working"
 restic init >/dev/null
 
 bash "$ROOT/scripts/backup-offsite.sh" --synthetic-test >/dev/null
+# The staging path changes every run; host+tags grouping must still permit
+# one retention policy to operate across successive snapshots.
+bash "$ROOT/scripts/backup-offsite.sh" --synthetic-test >/dev/null
+restic forget --dry-run --group-by host,tags --tag lajur-offsite,lajur-v1 --keep-last 1 \
+  > "$workdir/retention-dry-run.log"
+grep -qi 'remove 1 snapshots' "$workdir/retention-dry-run.log" || \
+  { echo 'Retention grouping did not identify the older snapshot' >&2; exit 1; }
 [[ -z "$(find "$TMPDIR" -mindepth 1 -maxdepth 1 -print -quit)" ]] ||
   { echo 'Plaintext staging files survived successful backup' >&2; exit 1; }
 before="$(restic snapshots --json)"
