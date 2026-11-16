@@ -60,7 +60,7 @@ Cloudflare Access is **not** placed in front of the entire public sign-in flow b
 
 ### Offline public configuration preflight (new candidate)
 
-Run \`node scripts/check-public-deployment-env.mjs self-hosting/.env\` from the repository root only after preparing the operator's **private** environment file. The validator is read-only and does not contact providers, create services, print secrets, or authorize deployment. It checks explicit registration cap, HTTPS same-origin configuration, loopback-only published frontend port, Resend sender/key shape, unique secrets and passkey RP ID.
+Run `node scripts/check-public-deployment-env.mjs self-hosting/.env` from the repository root only after preparing the operator's **private** environment file. The validator is read-only and does not contact providers, create services, print secrets, or authorize deployment. It checks explicit registration cap, HTTPS same-origin configuration, loopback-only published frontend port, Resend sender/key shape, unique secrets and passkey RP ID.
 
 The application still preserves its historical **unset cap = unlimited** behavior. If a cap is configured incorrectly, registration now fails closed. This is protection against typos, **not** proof of anti-abuse rate limits or race-free atomic capacity enforcement. Never mistake a passing offline preflight for verified DNS, Cloudflare Tunnel/WAF, private object storage, actual email delivery, backup restoration, legal/operator obligations or icon rights.
 
