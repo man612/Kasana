@@ -1,11 +1,10 @@
-# Kasana Backend
+# Lajur. backend
 
-This package contains Kasana's backend code, adapted from MoneyMatter. The internal workspace name `budget-tracker-be` remains unchanged for compatibility. The setup information below largely originates from upstream development notes and should be cross-checked with the current [Kasana setup guide](../../self-hosting/README.md); do not use development credentials or databases for production.
+This package contains Lajur. backend code, adapted from MoneyMatter. The internal workspace name `budget-tracker-be` remains unchanged for compatibility. The setup information below largely originates from upstream development notes and should be cross-checked with the current [Lajur. setup guide](../../self-hosting/README.md); do not use development credentials or databases for production.
 
 ## First run instructions
 
-You need to make sure you have Docker installed. Current instruction is written
-for the Docker v4.34.
+The inherited development/test harness below uses Docker Engine and Compose. The PowerShell local source-build scripts also support Podman; see the current self-hosting guide. Do not assume the Docker E2E harness supports Podman.
 
 ### 1. Install dependencies
 
@@ -120,7 +119,7 @@ CREATE DATABASE "budget-tracker";
 npm run migrate:dev
 ```
 
-If you have an error running this command, you probably need to install Postgres. Read [the guide below](#setup-postgres).
+If you have an error running this command, you probably need to install Postgres. Read [the guide below](#3-setup-postgres).
 
 If you encountered any errors during `npm run migrate:dev`, you can run
 `npm run migrate-undo:dev` to undo migrations. If you still facing issues, you

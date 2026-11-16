@@ -91,7 +91,7 @@ export const createTransactionBodyShape = {
   destinationAmount: positiveAmountSchema().optional(),
   destinationAccountId: recordId().optional(),
   destinationTransactionId: recordId().optional(),
-  categoryId: z.union([recordId(), z.undefined()]),
+  categoryId: recordId().optional(),
   transferNature: z.nativeEnum(TRANSACTION_TRANSFER_NATURE),
   refundForTxId: recordId().optional(),
   refundForSplitId: recordId().optional(),

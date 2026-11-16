@@ -1,13 +1,13 @@
-# Kasana Motion System — architecture and QA
+# Lajur. Motion System — architecture and QA
 
 This document applies to the unmerged integration PR #10. Animations are meant to communicate
 state changes and spatial relationships, **not** make every static surface move. It is not a
-claim that every one of Kasana's Vue files has a unique animation.
+claim that every one of the application’s Vue files has a unique animation.
 
 ## Decisions and sources
 
 - **Vue 3 Transition** for route entry/exit, validation and status icons. **TransitionGroup**
-  for additions, removals and reorders in *small keyed lists*. References:
+  for additions, removals and reorders in _small keyed lists_. References:
   [Vue Transition](https://vuejs.org/guide/built-ins/transition.html),
   [Vue TransitionGroup](https://vuejs.org/guide/built-ins/transition-group.html).
 - Keep **Reka UI** presence/overlay lifecycle for modal dialogs, selects, popovers and tooltips;
@@ -26,12 +26,12 @@ claim that every one of Kasana's Vue files has a unique animation.
 
 All values are in `packages/frontend/src/styles/global.css`:
 
-| Motion | Timing | Scope |
-| --- | --- | --- |
-| `--kasana-motion-fast` | 140 ms | Form validation, nested page changes, icon feedback |
-| `--kasana-motion-normal` | 210 ms | Shell fade, dashboard pages, tab content, small lists |
-| `--kasana-motion-slow` | 320 ms | Existing longer panels where needed |
-| `--kasana-motion-ease` | cubic-bezier(0.22, 1, 0.36, 1) | Gentle deceleration |
+| Motion                   | Timing                         | Scope                                                 |
+| ------------------------ | ------------------------------ | ----------------------------------------------------- |
+| `--kasana-motion-fast`   | 140 ms                         | Form validation, nested page changes, icon feedback   |
+| `--kasana-motion-normal` | 210 ms                         | Shell fade, dashboard pages, tab content, small lists |
+| `--kasana-motion-slow`   | 320 ms                         | Existing longer panels where needed                   |
+| `--kasana-motion-ease`   | cubic-bezier(0.22, 1, 0.36, 1) | Gentle deceleration                                   |
 
 `kasana-shell` fades layout changes; `kasana-page` handles dashboard parent routes;
 `kasana-section` handles nested routes. Dashboard uses the **matched parent route** as its
@@ -41,7 +41,7 @@ animate short-lived messages and task completion states. Nested AI/Security tab 
 independent child keys so their parent tab bars stay mounted. Compact settings/analytics
 navigation uses `kasana-section` on its sidebar presence.
 
-`kasana-list` is an *opt-in* FLIP (First–Last–Invert–Play) transition for keyed DOM children.
+`kasana-list` is an _opt-in_ FLIP (First–Last–Invert–Play) transition for keyed DOM children.
 Tag and tracker lists use it only when the displayed collection has **40 or fewer** rows.
 The wrapper is positioned relative so leaving rows can be absolutely positioned without
 moving the whole document. Do not add this to the virtualized transaction list, drag handles,

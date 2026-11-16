@@ -15,7 +15,7 @@ Open-source, self-hosted personal finance with an Indonesia-first experience.
 
 </div>
 
-The app display name is **Lajur.** (period included). The GitHub repository still uses **Kasana** for link continuity. To rename the display again, see [branding instructions](docs/BRANDING.md). Original MoneyMatter attribution and AGPL-3.0 remain intact.
+The app display name is **Lajur.** (including the period). The historical GitHub repository path remains `man612/Kasana` to preserve existing links. Brand assets are maintained using the [branding guide](docs/BRANDING.md); upstream copyright and AGPL-3.0 obligations remain intact.
 
 ## Overview
 
@@ -36,18 +36,22 @@ Lajur. is an **independent adaptation** of [MoneyMatter](https://github.com/lete
 - IDR-first onboarding and Indonesian-style number formatting.
 - Improvements to manual account management and everyday expense tracking.
 
-> **Current limitations:** Indonesia-first does **not** mean automatic integration with Indonesian banks or e-wallets. Some inherited UI, translations, and workflows still need review. The latest interface changes are under review in [PR #10](https://github.com/man612/Kasana/pull/10) and may not yet exist on `main`.
+> **Current limitations:** Indonesia-first does **not** imply automatic Indonesian bank or e-wallet integration. The independent app is under active development; inherited translations, workflows, and documentation still need review. The [active feature branch](https://github.com/man612/Kasana/tree/feat/lajur-finance-ux-dashboard-accounts-loans-20261114) and [open pull requests](https://github.com/man612/Kasana/pulls) contain work not yet merged into `main`. Read the exact branch and CI status before deploying; the `main` CI badge does not validate unmerged changes.
 
 ## Getting started
 
+For this temporary candidate, see the [integration rehearsal record](docs/INTEGRATION-REHEARSAL-2026-11-15.md).
+
 Build Lajur. **from this repository's source**. The base Compose file uses intentionally non-pullable placeholder images for the finance frontend and backend; it is **not** a standalone deployment. Always combine the base, build, and private-instance overlays as shown below.
 
-**Prerequisites:** Git, Docker Engine or Docker Desktop, Docker Compose, and sufficient memory and storage for a frontend source build.
+**Prerequisites:** Git, a Linux container runtime (Podman preferred on Windows; Docker supported), Docker Compose v2, and sufficient memory and storage for a frontend source build.
+
+These commands explicitly check out the **temporary integration-rehearsal branch** to match this guide. This candidate combines PRs #24 and #26–#31 for synthetic verification; it is not release or deployment authorization. These are development setup instructions; `main` does not yet contain this work. Review the branch and CI before use.
 
 ### Linux / VPS
 
 ```bash
-git clone https://github.com/man612/Kasana.git
+git clone --branch integration/lajur-release-candidate-20261115 --single-branch https://github.com/man612/Kasana.git
 cd Kasana/self-hosting
 cp .env.example .env
 # Edit .env: replace every __REPLACE_ME__ placeholder.
@@ -57,16 +61,19 @@ docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compo
 docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml ps
 ```
 
-For a local test installation with the default port, open `http://localhost:8080`. Read the [self-hosting guide](self-hosting/README.md) and [Windows/VPS setup notes](docs/LOCAL-VPS-ID.md) before deploying.
+For a local test installation, open `http://localhost:8080`; use `-BaseUri` with the verifier if you configured another port. Read the [self-hosting guide](self-hosting/README.md) and [Windows/VPS setup notes](docs/LOCAL-VPS-ID.md) before deploying.
 
-### Windows / Docker Desktop
+### Windows / Podman (preferred) or Docker
 
-From the repository root in PowerShell:
+Install **PowerShell 7.2+**, Podman with a running Linux machine, and **Docker Compose v2** as its external Compose provider. Docker Engine/Desktop with its Compose plugin is also supported (`-Engine Docker`). See the [runtime preflight and storage cautions](docs/LOCAL-VPS-ID.md).
+
+From the repository root in PowerShell 7 (`pwsh`):
 
 ```powershell
 .\scripts\setup-local-private.ps1
-.\scripts\run-local-private.ps1
-.\scripts\verify-local-private.ps1
+.\scripts\run-local-private.ps1 -Engine Podman -ValidateOnly
+.\scripts\run-local-private.ps1 -Engine Podman
+.\scripts\verify-local-private.ps1 -Engine Podman
 ```
 
 These scripts generate local configuration, build Lajur. from source, and perform a non-destructive health check. The historical `-private` filenames do **not** imply that this GitHub repository is private.
@@ -75,29 +82,33 @@ These scripts generate local configuration, build Lajur. from source, and perfor
 
 ## Repository structure
 
-| Path | Purpose |
-| --- | --- |
-| `packages/frontend/` | Vue 3, TypeScript, Vite, application UI |
-| `packages/backend/` | Node.js API, authentication, and financial services |
-| `packages/shared/` | Shared types and utilities |
-| `self-hosting/` | Docker Compose configuration and build files |
-| `docs/` | Development notes, setup guides, design decisions |
-| `packages/docs/`, `packages/landing/` | Inherited upstream material; **not** live Kasana websites |
+| Path                                  | Purpose                                                        |
+| ------------------------------------- | -------------------------------------------------------------- |
+| `packages/frontend/`                  | Vue 3, TypeScript, Vite, application UI                        |
+| `packages/backend/`                   | Node.js API, authentication, and financial services            |
+| `packages/shared/`                    | Shared types and utilities                                     |
+| `self-hosting/`                       | Docker Compose configuration and build files                   |
+| `docs/`                               | Development notes, setup guides, design decisions              |
+| `packages/docs/`, `packages/landing/` | Inherited upstream material; **not** published Lajur. websites |
 
 ## Development status
 
-Kasana is **under active development**. A passing build does not establish data integrity, safe backups, or production readiness. Check [open pull requests](https://github.com/man612/Kasana/pulls), [CI runs](https://github.com/man612/Kasana/actions), and [tracking issues](https://github.com/man612/Kasana/issues) for the latest status.
+Lajur. is **under active development**. A passing build does not establish data integrity, safe backups, or production readiness. Check [open pull requests](https://github.com/man612/Kasana/pulls), [CI runs](https://github.com/man612/Kasana/actions), and [tracking issues](https://github.com/man612/Kasana/issues) for the latest status.
 
 Internal package names such as `budget-tracker-*` and the Docker Compose project name `moneymatter-private` are kept for compatibility. **Renaming the Compose project without a migration may make existing database volumes appear missing.** A public GitHub name does not need to match internal identifiers.
 
 ## Contributing and security
 
-Contributions are welcome through [issues](https://github.com/man612/Kasana/issues) and pull requests. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). Kasana does **not** require signing the upstream MoneyMatter CLA.
+Contributions are welcome through [issues](https://github.com/man612/Kasana/issues) and pull requests. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md). Lajur. does **not** require signing the upstream MoneyMatter CLA; its historical copy is archived in [docs/upstream/CLA.md](docs/upstream/CLA.md).
 
 For vulnerabilities, follow the [Security Policy](.github/SECURITY.md). Do not publish credentials, personal finance records, or undisclosed exploit details in public issues.
 
+## Branding and repository housekeeping
+
+The current app icon is generated from `packages/frontend/assets/app-icon-source.png`. Use the documented [asset regeneration command](docs/BRANDING.md) rather than any inherited logo generator. Review the [repository hygiene guide](docs/REPOSITORY-HYGIENE.md) before removing tests, fixtures, migrations, localization assets, or legacy compatibility paths.
+
 ## License and acknowledgments
 
-Kasana is based on **MoneyMatter by its original author and contributors**, with independent adaptations. See [LICENSE](LICENSE) and [LICENSING.md](LICENSING.md) for the GNU Affero General Public License v3.0 and upstream licensing history.
+Lajur. is derived from **MoneyMatter by its original author and contributors**, with independent modifications. See [LICENSE](LICENSE) and [LICENSING.md](LICENSING.md) for the GNU Affero General Public License v3.0 and upstream licensing history.
 
-Kasana is not affiliated with MoneyMatter's commercial cloud service, documentation domain, or external communities. Upstream URLs identify the original project only.
+Lajur. is not affiliated with MoneyMatter's commercial cloud service, documentation domain, or external communities. Upstream URLs identify the original project only.

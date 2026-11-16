@@ -1,5 +1,7 @@
 # Environment Variable Reference
 
+`AUTH_RP_NAME` defaults to **Lajur.** for passkey prompts and outbound-email branding. Set a custom value to override both; display-name changes do not rename cookies, accounts or OAuth provider IDs.
+
 Grouped as in `.env.example`. Only the REQUIRED block is needed to
 boot; everything else is optional.
 
@@ -45,7 +47,7 @@ Ignored unless you use the [Traefik overlay](traefik-overlay.md)
 | Variable                                                                       | Enables                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL`                                          | All outbound email: address verification, password reset, share invitations, membership notices. Unset means invitations are created but never delivered – the link must be shared manually, and the **Forgot password?** link is hidden                                                                                                                                                                                                                                        |
-| `APP_URL`                                                                      | Public URL of your frontend, used as the base for links inside invitation / notification emails (defaults to `https://moneymatter.app`)                                                                                                                                                                                                                                                                                                                                         |
+| `APP_URL`                                                                      | Public URL of your frontend, used as the base for links inside invitation / notification emails (defaults to the configured application origin; set explicitly for your deployment)                                                                                                                                                                                                                                                                                             |
 | `GOOGLE_CLIENT_ID` + `GOOGLE_CLIENT_SECRET`                                    | Google sign-in                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `GITHUB_CLIENT_ID` + `GITHUB_CLIENT_SECRET`                                    | GitHub sign-in                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `APPLE_CLIENT_ID` + `APPLE_TEAM_ID` + `APPLE_KEY_ID` + `APPLE_PRIVATE_KEY`     | Apple sign-in. `APPLE_CLIENT_ID` is the Services ID, `APPLE_PRIVATE_KEY` the `.p8` key contents (newlines may be written as `\n`). Add `APPLE_APP_BUNDLE_IDENTIFIER` to accept sign-ins from a native iOS app. The client secret is signed at startup and expires after 6 months, so restart the backend at least that often                                                                                                                                                    |
@@ -78,23 +80,23 @@ Ignored unless you use the [Traefik overlay](traefik-overlay.md)
 Interpolated into the frontend container's `environment:` block. Change and
 `up -d` – **no image rebuild** needed.
 
-| Variable                                     | Purpose                                                                 |
-| -------------------------------------------- | ----------------------------------------------------------------------- |
-| `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST`      | Product analytics (PostHog)                                             |
-| `VITE_SENTRY_DSN`                            | Frontend error tracking (Sentry)                                        |
-| `VITE_SENTRY_RELEASE`                        | Release tag Sentry events report — also a build arg, see below          |
-| `VITE_LOGO_DEV_TOKEN`                        | Brand logos for payees, subs, banks, tickers (logo.dev publishable key) |
-| `MCP_BASE_URL`                               | Backend origin advertised to MCP clients — required for MCP, see below  |
-| `API_HTTP`, `API_VER`                        | Point the SPA at a separate API origin (leave unset for same-origin)    |
-| `CSP_EXTRA_CONNECT`, `CSP_EXTRA_FORM_ACTION` | Extra CSP allow-list hosts (default to `API_HTTP`)                      |
-| `CSP_EXTRA_ANALYTICS`                        | CSP allow-list for analytics — **set this if you use Sentry**           |
+| Variable                                     | Purpose                                                                                                  |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST`      | Product analytics (PostHog)                                                                              |
+| `VITE_SENTRY_DSN`                            | Frontend error tracking (Sentry)                                                                         |
+| `VITE_SENTRY_RELEASE`                        | Release tag Sentry events report — also a build arg, see below                                           |
+| `VITE_LOGO_DEV_TOKEN`                        | Brand logos for payees, subs, banks, tickers (logo.dev publishable key)                                  |
+| `MCP_BASE_URL`                               | Backend origin advertised to MCP clients — required for MCP, see below                                   |
+| `API_HTTP`, `API_VER`                        | Point the SPA at a separate API origin (leave unset for same-origin)                                     |
+| `CSP_EXTRA_CONNECT`, `CSP_EXTRA_FORM_ACTION` | Extra CSP allow-list hosts (default to `API_HTTP`)                                                       |
+| `CSP_EXTRA_ANALYTICS`                        | CSP allow-list for analytics — **set this if you use Sentry**                                            |
 | `SKIP_LANDING`                               | Deprecated; the inherited marketing site is never built or served. `/` always redirects to `/dashboard`. |
 
 `CSP_EXTRA_ANALYTICS` defaults to `VITE_POSTHOG_HOST` only. Sentry's ingest host
 is not derivable from the DSN by the entrypoint, so a Sentry deployment that
 leaves this unset gets a `connect-src` that blocks every error report.
 
-By default, the private Kasana Compose overlay leaves `MCP_BASE_URL` blank and does not advertise an MCP connection. Set this variable only after deploying and testing OAuth/MCP at your intended origin.
+By default, the private Lajur. Compose overlay leaves `MCP_BASE_URL` blank and does not advertise an MCP connection. Set this variable only after deploying and testing OAuth/MCP at your intended origin.
 
 `MCP_BASE_URL` is the URL the app advertises to external MCP clients (Claude
 Desktop, ChatGPT). In same-origin mode set it to the origin you reach the app on
@@ -122,10 +124,10 @@ maps them onto the unprefixed names the image expects (`VITE_POSTHOG_KEY` →
 
 Used with `docker-compose.build.yml` (`--build`).
 
-| Variable                                            | Purpose                                                         |
-| --------------------------------------------------- | --------------------------------------------------------------- |
+| Variable                       | Purpose                                                                                    |
+| ------------------------------ | ------------------------------------------------------------------------------------------ |
 | `SENTRY_ORG`, `SENTRY_PROJECT` | Optional public Sentry build identifiers. Normal Compose builds do not upload source maps. |
-| `VITE_SENTRY_RELEASE`                               | Names the uploaded source maps; baked in as the release default |
+| `VITE_SENTRY_RELEASE`          | Names the uploaded source maps; baked in as the release default                            |
 
 The Sentry upload token is **never a build argument**. The frontend image accepts a BuildKit secret named `sentry_auth_token` only for the Vite build step. The GitHub Actions frontend build action passes it through `secrets:`. The standard self-hosted Compose build deliberately does not pass a token; omit source-map uploads unless you have securely configured a custom BuildKit secret. Never put `SENTRY_AUTH_TOKEN` into a Docker `ARG`, `ENV`, `VITE_*`, or a committed configuration file.
 

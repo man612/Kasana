@@ -38,11 +38,29 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Audit public identity and outbound destinations
         run: node scripts/check-public-identity.mjs
+      - name: Validate maintained documentation links
+        run: node scripts/check-doc-links.mjs
+      - name: Check selected dependency security floors and guard regressions
+        run: |
+          node scripts/security-lockfile-check.mjs
+          node --test scripts/security-lockfile-check.test.mjs scripts/setup-e2e-tests.test.mjs
       - id: prepare-env
         uses: ./.github/actions/prepare-local-env
       - name: Install dependencies
         if: steps.prepare-env.outputs.cache-hit != 'true'
         run: npm ci
+      - name: Verify installation failure modes
+        run: node --test scripts/dependency-installation.test.mjs scripts/runtime-advisories.test.mjs
+
+  local-script-checks:
+    name: Local PowerShell scripts
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Parse scripts and test mocked runtime selection and health checks
+        shell: pwsh
+        run: ./scripts/tests/local-container-engine.tests.ps1
 
   detect-changes:
     name: Detect code changes
@@ -353,5 +371,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: backend-docker-build
         uses: ./.github/actions/backend-docker-build
+      - name: Verify installed provider runtime in production image
+        run: docker run --rm --network none --entrypoint node local/budget-tracker-be:latest /app/scripts/check-provider-runtime.cjs
       - name: Image digest
         run: echo ${{ steps.backend-docker-build.outputs.docker-build-digest }}

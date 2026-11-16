@@ -1,6 +1,6 @@
 <template>
   <PageWrapper>
-    <div v-if="isLoading" class="@container/vehicle grid gap-6">
+    <div v-if="isLoading" class="@container/vehicle grid min-w-0 grid-cols-1 gap-6">
       <div class="bg-card h-28 animate-pulse rounded-2xl"></div>
       <div class="grid gap-4 @lg/vehicle:grid-cols-3">
         <div class="bg-card h-24 animate-pulse rounded-2xl"></div>
@@ -21,7 +21,7 @@
       </RouterLink>
     </div>
 
-    <div v-else class="@container/vehicle grid gap-6">
+    <div v-else class="@container/vehicle grid min-w-0 grid-cols-1 gap-6 wrap-anywhere">
       <!-- Hero / header -->
       <section
         class="bg-card relative overflow-hidden rounded-2xl border shadow-xs"
@@ -38,70 +38,90 @@
           }"
         ></div>
 
-        <div
-          v-if="isOwner"
-          class="absolute top-5 right-5 z-10 flex flex-wrap justify-end gap-2 @md/vehicle:top-6 @md/vehicle:right-6"
-        >
-          <UiButton variant="outline" @click="isOverrideOpen = true">
-            {{ $t('pages.vehicleDetails.overrideValueButton') }}
-          </UiButton>
-          <UiButton variant="outline" @click="isEditOpen = true">
-            {{ $t('pages.vehicleDetails.editButton') }}
-          </UiButton>
-          <DesktopOnlyTooltip :content="$t('pages.vehicleDetails.deleteTitle')">
-            <UiButton variant="soft-destructive" size="icon" @click="isDeleteOpen = true">
-              <Trash2Icon class="size-4" />
-            </UiButton>
-          </DesktopOnlyTooltip>
-        </div>
+        <div class="relative grid min-w-0 gap-6 p-5 @2xl/vehicle:p-8">
+          <div class="grid min-w-0 gap-4">
+            <div class="grid min-w-0 gap-4 @2xl/vehicle:grid-cols-[minmax(0,1fr)_auto] @2xl/vehicle:items-start">
+              <div class="flex min-w-0 items-start gap-3">
+                <AccountLogoPicker v-if="isOwner" :account-id="vehicle.accountId" class="size-9 shrink-0" />
+                <AccountLogo v-else-if="linkedAccount" :account="linkedAccount" class="size-9 shrink-0" />
+                <div class="grid min-w-0 gap-0.5 wrap-anywhere">
+                  <div class="text-muted-foreground text-xs tracking-wider uppercase">
+                    {{ $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass]) }}
+                  </div>
+                  <h1 class="text-2xl leading-tight font-semibold tracking-tight @2xl/vehicle:text-3xl">
+                    {{ vehicle.account?.name || `${vehicle.make} ${vehicle.model}` }}
+                  </h1>
+                  <div class="text-muted-foreground text-sm">
+                    {{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model
+                    }}<span v-if="vehicle.trim"> · {{ vehicle.trim }}</span>
+                  </div>
+                </div>
+              </div>
 
-        <div class="relative grid gap-6 p-5 pt-20 @md/vehicle:p-8 @md/vehicle:pt-8 @md/vehicle:pr-104">
-          <div class="grid gap-4">
-            <div class="flex items-center gap-3">
-              <AccountLogoPicker v-if="isOwner" :account-id="vehicle.accountId" class="size-9" />
-              <AccountLogo v-else-if="linkedAccount" :account="linkedAccount" class="size-9" />
-              <div class="grid gap-0.5">
-                <div class="text-muted-foreground text-xs tracking-wider uppercase">
-                  {{ $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass]) }}
-                </div>
-                <h1 class="text-2xl leading-tight font-semibold tracking-tight @md/vehicle:text-3xl">
-                  {{ vehicle.account?.name || `${vehicle.make} ${vehicle.model}` }}
-                </h1>
-                <div class="text-muted-foreground text-sm">
-                  {{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model
-                  }}<span v-if="vehicle.trim"> · {{ vehicle.trim }}</span>
-                </div>
+              <div
+                v-if="isOwner"
+                class="flex max-w-full min-w-0 flex-wrap items-start gap-2 @2xl/vehicle:max-w-sm @2xl/vehicle:justify-end"
+              >
+                <UiButton
+                  variant="outline"
+                  class="h-auto min-h-[44px] max-w-full min-w-[44px] wrap-anywhere whitespace-normal"
+                  @click="isOverrideOpen = true"
+                >
+                  {{ $t('pages.vehicleDetails.overrideValueButton') }}
+                </UiButton>
+                <UiButton
+                  variant="outline"
+                  class="h-auto min-h-[44px] max-w-full min-w-[44px] wrap-anywhere whitespace-normal"
+                  @click="isEditOpen = true"
+                >
+                  {{ $t('pages.vehicleDetails.editButton') }}
+                </UiButton>
+                <DesktopOnlyTooltip :content="$t('pages.vehicleDetails.deleteTitle')">
+                  <UiButton
+                    variant="soft-destructive"
+                    size="icon"
+                    class="size-[44px] shrink-0"
+                    :aria-label="$t('pages.vehicleDetails.deleteTitle')"
+                    @click="isDeleteOpen = true"
+                  >
+                    <Trash2Icon class="size-4" />
+                  </UiButton>
+                </DesktopOnlyTooltip>
               </div>
             </div>
 
-            <div class="grid gap-1">
+            <div class="grid min-w-0 gap-1">
               <span class="text-muted-foreground text-xs tracking-wider uppercase">
                 {{ $t('pages.vehicleDetails.currentValue') }}
               </span>
               <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <span class="text-3xl font-semibold tracking-tight tabular-nums @md/vehicle:text-5xl">
-                  {{ formatAmountByCurrencyCode(vehicle.account?.currentBalance ?? 0, currencyCode) }}
-                </span>
+                <VehicleAmount
+                  :formatted="formatAmountByCurrencyCode(vehicle.account?.currentBalance ?? 0, currencyCode)"
+                  class="max-w-full min-w-0 text-3xl font-semibold tracking-tight tabular-nums @2xl/vehicle:text-5xl"
+                />
                 <span
-                  class="inline-flex items-center gap-1 text-sm font-medium tabular-nums"
+                  class="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1 text-sm font-medium tabular-nums"
                   :class="depreciationDirection === 'down' ? 'text-app-expense-color' : 'text-app-income-color'"
                 >
                   <component
                     :is="depreciationDirection === 'down' ? ArrowDownRightIcon : ArrowUpRightIcon"
                     class="size-4"
                   />
-                  {{ formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode) }}
-                  <span class="text-muted-foreground font-normal">
+                  <VehicleAmount :formatted="formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode)" />
+                  <span class="text-muted-foreground font-normal whitespace-nowrap">
                     ({{ depreciationDirection === 'down' ? '-' : '+' }}{{ Math.abs(depreciationPercent).toFixed(1) }}%)
                   </span>
                 </span>
               </div>
               <span v-if="showRefValue" class="text-muted-foreground text-sm tabular-nums">
-                ≈ {{ formatAmountByCurrencyCode(refCurrentBalance, baseCurrencyCode) }}
+                ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(refCurrentBalance, baseCurrencyCode)" />
               </span>
               <span class="text-muted-foreground text-xs">
                 {{ $t('pages.vehicleDetails.sinceAcquired', { date: formatDisplayDate(vehicle.purchaseDate) }) }}
               </span>
+              <p class="text-muted-foreground max-w-lg text-xs leading-relaxed">
+                {{ $t('pages.vehicleDetails.estimateDisclaimer') }}
+              </p>
             </div>
           </div>
         </div>
@@ -113,11 +133,12 @@
           <div class="text-muted-foreground text-xs tracking-wider uppercase">
             {{ $t('pages.vehicleDetails.purchasePrice') }}
           </div>
-          <div class="mt-2 text-2xl font-semibold tabular-nums">
-            {{ formatAmountByCurrencyCode(vehicle.purchasePrice, currencyCode) }}
-          </div>
+          <VehicleAmount
+            :formatted="formatAmountByCurrencyCode(vehicle.purchasePrice, currencyCode)"
+            class="mt-2 block text-2xl font-semibold tabular-nums"
+          />
           <div v-if="showRefValue" class="text-muted-foreground mt-0.5 text-xs tabular-nums">
-            ≈ {{ formatAmountByCurrencyCode(refPurchasePrice, baseCurrencyCode) }}
+            ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(refPurchasePrice, baseCurrencyCode)" />
           </div>
           <div class="text-muted-foreground mt-1 text-xs">{{ formatDisplayDate(vehicle.purchaseDate) }}</div>
         </div>
@@ -126,16 +147,18 @@
           <div class="text-muted-foreground text-xs tracking-wider uppercase">
             {{ $t('pages.vehicleDetails.totalDepreciation') }}
           </div>
-          <div class="mt-2 flex items-baseline gap-2 text-2xl font-semibold tabular-nums">
-            <span :class="depreciationDirection === 'down' ? 'text-app-expense-color' : 'text-app-income-color'">
-              {{ formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode) }}
-            </span>
-            <span class="text-muted-foreground text-sm font-normal">
+          <div class="mt-2 flex flex-wrap items-baseline gap-2 text-2xl font-semibold tabular-nums">
+            <VehicleAmount
+              :formatted="formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode)"
+              :class="depreciationDirection === 'down' ? 'text-app-expense-color' : 'text-app-income-color'"
+            />
+            <span class="text-muted-foreground text-sm font-normal whitespace-nowrap">
               {{ Math.abs(depreciationPercent).toFixed(1) }}%
             </span>
           </div>
           <div v-if="showRefValue" class="text-muted-foreground mt-0.5 text-xs tabular-nums">
-            ≈ {{ formatAmountByCurrencyCode(Math.abs(refDepreciationAmount), baseCurrencyCode) }}
+            ≈
+            <VehicleAmount :formatted="formatAmountByCurrencyCode(Math.abs(refDepreciationAmount), baseCurrencyCode)" />
           </div>
           <div class="text-muted-foreground mt-1 text-xs">
             {{ $t('pages.vehicleDetails.depreciationCadence', { years: ownedYears.toFixed(1) }) }}
@@ -146,11 +169,12 @@
           <div class="text-muted-foreground text-xs tracking-wider uppercase">
             {{ $t('pages.vehicleDetails.projectedFiveYear') }}
           </div>
-          <div class="mt-2 text-2xl font-semibold tabular-nums">
-            {{ formatAmountByCurrencyCode(projectedFiveYearValue, currencyCode) }}
-          </div>
+          <VehicleAmount
+            :formatted="formatAmountByCurrencyCode(projectedFiveYearValue, currencyCode)"
+            class="mt-2 block text-2xl font-semibold tabular-nums"
+          />
           <div v-if="showRefValue" class="text-muted-foreground mt-0.5 text-xs tabular-nums">
-            ≈ {{ formatAmountByCurrencyCode(refProjectedFiveYearValue, baseCurrencyCode) }}
+            ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(refProjectedFiveYearValue, baseCurrencyCode)" />
           </div>
           <div class="text-muted-foreground mt-1 text-xs">
             {{
@@ -203,9 +227,9 @@
           <DetailRow :label="$t('pages.vehicleDetails.salvageFloor')">
             <span class="tabular-nums">{{ vehicle.salvageFloorPct }}%</span>
             <span class="text-muted-foreground ml-2 text-xs">
-              ≈ {{ formatAmountByCurrencyCode(salvageFloorValue, currencyCode) }}
+              ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(salvageFloorValue, currencyCode)" />
               <span v-if="showRefValue">
-                ({{ formatAmountByCurrencyCode(refSalvageFloorValue, baseCurrencyCode) }})
+                (<VehicleAmount :formatted="formatAmountByCurrencyCode(refSalvageFloorValue, baseCurrencyCode)" />)
               </span>
             </span>
           </DetailRow>
@@ -273,6 +297,7 @@ import DepreciationChart from '@/pages/accounts/components/vehicle-details/depre
 import DetailRow from '@/pages/accounts/components/vehicle-details/detail-row.vue';
 import DetailsCard from '@/pages/accounts/components/vehicle-details/details-card.vue';
 import OverrideHistoryCard from '@/pages/accounts/components/vehicle-details/override-history-card.vue';
+import VehicleAmount from '@/pages/accounts/components/vehicle-details/vehicle-amount.vue';
 import { buildDepreciationTimeline, getSalvageFloorValue } from '@/pages/accounts/utils/depreciation-math';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useAccountsStore, useCurrenciesStore } from '@/stores';

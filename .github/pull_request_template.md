@@ -28,4 +28,4 @@ List completed commands, outcomes, and anything not yet tested.
 
 <!-- If AI tools were used, describe their role and confirm that the diff and tests were reviewed. -->
 
-Kasana does not require MoneyMatter's upstream CLA. See [CONTRIBUTING.md](../CONTRIBUTING.md).
+Lajur. does not require MoneyMatter's upstream CLA; an archived copy is available at [docs/upstream/CLA.md](../docs/upstream/CLA.md). See [CONTRIBUTING.md](../CONTRIBUTING.md).

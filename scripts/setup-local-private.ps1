@@ -1,4 +1,5 @@
-# Generate a localhost-only Kasana environment. Existing secrets are never overwritten.
+#Requires -Version 7.2
+# Generate a localhost-only Lajur. environment. Existing secrets are never overwritten.
 # Run from any PowerShell working directory: .\scripts\setup-local-private.ps1
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -37,9 +38,15 @@ foreach ($key in $required.Keys) {
 
 $contents = $contents.Replace('# HTTP_PORT=8080', 'HTTP_PORT=127.0.0.1:8080')
 $contents = $contents.Replace('# SYSTEM_MAX_SIGNUPS_ALLOWED=1', 'SYSTEM_MAX_SIGNUPS_ALLOWED=1')
-$contents += "`n# Limit Docker source-build Node heap on a ~12 GB development machine.`nNODE_BUILD_HEAP_MB=4096`n"
+$contents += "`n# Source-build Node heap cap; adjust for your container runtime memory budget.`nNODE_BUILD_HEAP_MB=4096`n"
 
-[System.IO.File]::WriteAllText($target, $contents, [System.Text.UTF8Encoding]::new($false))
+# CreateNew also refuses replacement if another process creates the file after preflight.
+$stream = [System.IO.File]::Open($target, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write)
+try {
+  $encoded = [System.Text.UTF8Encoding]::new($false).GetBytes($contents)
+  $stream.Write($encoded, 0, $encoded.Length)
+}
+finally { $stream.Dispose() }
 Write-Host 'Created self-hosting/.env with unique random secrets (not printed, excluded from git).'
 Write-Host 'Local URL: http://localhost:8080'
-Write-Host 'Next: install/start Docker Desktop, then .\scripts\run-local-private.ps1'
+Write-Host 'Next: start Podman and its Compose provider (or Docker), then .\scripts\run-local-private.ps1 -Engine Podman'

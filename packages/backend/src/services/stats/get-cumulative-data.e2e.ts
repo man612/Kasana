@@ -1,6 +1,7 @@
 import { type RecordId, TRANSACTION_TRANSFER_NATURE, TRANSACTION_TYPES } from '@bt/shared/types';
 import { generateRandomRecordId } from '@common/lib/record-id-helpers';
 import { describe, expect, it } from '@jest/globals';
+import type { TransactionApiResponse } from '@root/serializers/transactions.serializer';
 import * as helpers from '@tests/helpers';
 
 // Fixed windows in the past: the report stops iterating at the current month, so a window that
@@ -213,7 +214,9 @@ const uncategorizedExpense = async ({ accountId, amount }: { accountId: RecordId
     raw: true,
   });
 
-  await helpers.createTransaction({
+  const response = await helpers.makeRequest<[TransactionApiResponse, TransactionApiResponse?]>({
+    method: 'post',
+    url: '/transactions',
     payload: {
       ...helpers.buildTransactionPayload({ accountId, amount, time: '2026-01-12T12:00:00.000Z' }),
       categoryId: undefined,
@@ -221,8 +224,22 @@ const uncategorizedExpense = async ({ accountId, amount }: { accountId: RecordId
       destinationAmount: amount,
       destinationAccountId: loan.id as RecordId,
     },
-    raw: true,
   });
+  expect({ status: response.statusCode, body: response.body }).toMatchObject({
+    status: 200,
+    body: {
+      status: 'success',
+      response: [
+        expect.objectContaining({ id: expect.any(String) }),
+        expect.objectContaining({ id: expect.any(String) }),
+      ],
+    },
+  });
+  const [cashLeg, loanLeg] = helpers.extractResponse(response);
+  expect(cashLeg.categoryId).toBeNull();
+  expect(loanLeg!.categoryId).toBeNull();
+  expect(cashLeg.accountId).toBe(accountId);
+  expect(loanLeg!.accountId).toBe(loan.id);
 };
 
 describe('GET /stats/cumulative – page-level scope filters', () => {

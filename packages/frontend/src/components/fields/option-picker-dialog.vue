@@ -9,6 +9,8 @@ export interface PickerOption {
   value: string;
   label: string;
   description?: string;
+  /** Optional section heading; adjacent options with the same group are shown together. */
+  group?: string;
   icon?: Component;
   iconClass?: string;
 }
@@ -81,30 +83,37 @@ const pick = (value: string) => {
           </Dialog.DialogDescription>
         </div>
         <div class="lajur-dialog-scroll min-h-0 space-y-1 overflow-y-auto overscroll-contain p-3">
-          <button
-            v-for="option in options"
-            :key="option.value"
-            type="button"
-            class="hover:bg-muted/60 focus-visible:ring-ring flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
-            :class="modelValue === option.value && 'bg-primary/10'"
-            :aria-pressed="modelValue === option.value"
-            @click="pick(option.value)"
-          >
-            <span
-              v-if="option.icon"
-              class="bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg"
-              :class="option.iconClass"
+          <div v-for="(option, index) in options" :key="option.value">
+            <p
+              v-if="option.group && (index === 0 || option.group !== options[index - 1]?.group)"
+              class="text-muted-foreground px-3 pt-3 pb-1 text-[10px] font-semibold tracking-wider uppercase"
+              :class="index === 0 && 'pt-1'"
             >
-              <component :is="option.icon" class="size-4" />
-            </span>
-            <span class="min-w-0 flex-1">
-              <span class="block text-sm font-medium">{{ option.label }}</span>
-              <span v-if="option.description" class="text-muted-foreground mt-0.5 block text-xs leading-relaxed">{{
-                option.description
-              }}</span>
-            </span>
-            <CheckIcon v-if="modelValue === option.value" class="text-primary size-4 shrink-0" />
-          </button>
+              {{ option.group }}
+            </p>
+            <button
+              type="button"
+              class="hover:bg-muted/60 focus-visible:ring-ring flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
+              :class="modelValue === option.value && 'bg-primary/10'"
+              :aria-pressed="modelValue === option.value"
+              @click="pick(option.value)"
+            >
+              <span
+                v-if="option.icon"
+                class="bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg"
+                :class="option.iconClass"
+              >
+                <component :is="option.icon" class="size-4" />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block text-sm font-medium">{{ option.label }}</span>
+                <span v-if="option.description" class="text-muted-foreground mt-0.5 block text-xs leading-relaxed">{{
+                  option.description
+                }}</span>
+              </span>
+              <CheckIcon v-if="modelValue === option.value" class="text-primary size-4 shrink-0" />
+            </button>
+          </div>
         </div>
       </Dialog.DialogContent>
     </Dialog.Dialog>

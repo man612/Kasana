@@ -43,4 +43,4 @@ npx playwright install --with-deps chromium
 export PLAYWRIGHT_BASE_URL=http://localhost:8080
 export PLAYWRIGHT_API_BASE_URL=http://localhost:8080
 npx playwright test --config packages/frontend/playwright.config.ts \
-  packages/frontend/e2e/tests/kasana/indonesia-first.spec.ts --project chromium --workers=1 --retries=0
+  packages/frontend/e2e/tests/kasana --project chromium --workers=1 --retries=0

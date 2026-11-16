@@ -12,12 +12,13 @@ export const escapeHtml = (value: string): string =>
 export const isEmailEnabled = isEnvConfigured(EnvVar.RESEND_API_KEY, process.env.RESEND_API_KEY);
 export const resend = isEmailEnabled ? new Resend(process.env.RESEND_API_KEY) : null;
 export const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-export const appName = process.env.AUTH_RP_NAME || 'Kasana';
+// Shared public display label for transactional email and passkey prompts.
+export const appName = process.env.AUTH_RP_NAME || 'Lajur.';
 export const appUrl = process.env.APP_URL || process.env.AUTH_ORIGIN || 'http://localhost:8080';
 
 /**
  * Wraps `innerHtml` (a sequence of `<tr>` rows) in the shared transactional email shell:
- * outer bg table → 560 px card → Kasana accent bar → brand name row → inner rows.
+ * outer bg table → 560 px card → Lajur. accent bar → brand name row → inner rows.
  */
 export const buildEmailShell = ({ innerHtml }: { innerHtml: string }): string => {
   const safeAppName = escapeHtml(appName);
