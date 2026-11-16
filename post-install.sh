@@ -9,13 +9,23 @@ else
     echo "Not in a git repository, skipping git commands."
 fi
 
-# Backend images copy only their query-string interoperability patch; full
-# workspace installs also apply the existing frontend patches.
+# --exclude filters patch creation, not application. Select files explicitly.
 if [ -d patches ]; then
+    patch_dir=patches
     if [ -d node_modules/query-string ]; then
-        npx --no-install patch-package
+        :
     else
-        # Frontend-only images do not install the Polygon dependency tree.
-        npx --no-install patch-package --exclude 'query-string'
+        patch_dir=$(mktemp -d .lajur-patches.XXXXXX)
+        trap 'rm -rf "$patch_dir"' EXIT HUP INT TERM
+        for patch in patches/*.patch; do
+            [ -f "$patch" ] || continue
+            case "$patch" in
+                patches/query-string+7.1.3.patch) continue ;;
+            esac
+            cp "$patch" "$patch_dir/"
+        done
     fi
+    ./node_modules/.bin/patch-package --error-on-fail --patch-dir "$patch_dir"
 fi
+
+node scripts/check-provider-runtime.cjs --if-present

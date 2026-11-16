@@ -17,6 +17,9 @@ for var in APPLICATION_JWT_SECRET APP_SESSION_ID_SECRET BETTER_AUTH_SECRET APPLI
     esac
 done
 
+# Validate installed dependencies before application or migration code runs.
+node /app/scripts/check-provider-runtime.cjs
+
 # Run migrations
 echo "Running migrations..."
 if npm run migrate; then

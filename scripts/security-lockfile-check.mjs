@@ -58,6 +58,12 @@ export function checkSecurityLockfiles({ main, docs, log = console.log }) {
   rootCheck({ suffix: 'zod', byMajor: { 3: '4.6.6', 4: '4.6.6' } });
   // GHSA-qr28-fpjm-wq7f: 0.5.0 still has quadratic fallback replacement.
   rootCheck({ suffix: 'decode-uri-component', byMajor: { 0: '0.5.1' } });
+  // Vendor floors and reachability: docs/security/2026-11-16-secure-integration.md.
+  rootCheck({ suffix: 'hono', byMajor: { 4: '4.13.16' } });
+  rootCheck({ suffix: '@hono/node-server', byMajor: { 1: '1.19.19', 2: '2.1.3' } });
+  rootCheck({ suffix: 'fast-uri', byMajor: { 3: '3.1.9' } });
+  rootCheck({ suffix: 'ip-address', byMajor: { 10: '10.7.4' } });
+  rootCheck({ suffix: 'qs', byMajor: { 6: '6.16.1' } });
   for (const [entry, item] of Object.entries(main.packages || {})) {
     if (entry.endsWith('/node_modules/zod') && item.version.startsWith('3.')) {
       log('UNRESOLVED: ' + entry + '@' + item.version + ' - Zod v3 alias requires separate migration review');
