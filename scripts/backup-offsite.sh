@@ -68,6 +68,12 @@ compose config --quiet >/dev/null
 for service in db backend; do
   [[ -n "$(compose ps -q "$service")" ]] || die "Required service $service is not running. No services were started."
 done
+# env_file may also include stack.env (Portainer), and a container can receive
+# host overrides. Inspect the actual running backend, without printing secrets.
+storage_mode="$(compose exec -T backend sh -ec 'if [ -n "${ATTACHMENTS_S3_BUCKET:-}" ]; then printf REMOTE; else printf LOCAL; fi')" ||
+  die 'Could not inspect backend storage mode; refusing potentially incomplete backup.'
+[[ "$storage_mode" == LOCAL ]] ||
+  die 'The running backend uses R2/S3; local-only attachments archive would be incomplete.'
 
 # Do not implicitly init repositories or delete snapshots. A wrong B2 target
 # must be rejected before reading/staging sensitive data.
@@ -108,11 +114,19 @@ tar -tf "$stage/attachments.tar" >/dev/null ||
 # Restic at the remote destination; the staging copy is private and ephemeral.
 cp -- "$SELFHOST/.env" "$stage/app.env"
 chmod 600 "$stage/app.env"
+archive_files=(database.dump attachments.tar app.env)
+# Portainer's optional stack.env may contain the actual runtime secrets. Store
+# both configured env files within the encrypted snapshot, never in Git or logs.
+if [[ -f "$SELFHOST/stack.env" ]]; then
+  cp -- "$SELFHOST/stack.env" "$stage/stack.env"
+  chmod 600 "$stage/stack.env"
+  archive_files+=(stack.env)
+fi
 (
   cd "$stage"
-  sha256sum database.dump attachments.tar app.env > SHA256SUMS
+  sha256sum "${archive_files[@]}" > SHA256SUMS
 )
-printf 'format=lajur-offsite-v1\ncreated_utc=%s\nsource=postgresql16+local-attachments+app-env\n' \
+printf 'format=lajur-offsite-v1\ncreated_utc=%s\nsource=postgresql16+local-attachments+env-files\n' \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$stage/manifest.txt"
 
 restic backup --group-by host,tags --tag lajur-offsite --tag lajur-v1 "$stage" ||
