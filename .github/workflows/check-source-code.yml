@@ -49,6 +49,8 @@ jobs:
       - name: Install dependencies
         if: steps.prepare-env.outputs.cache-hit != 'true'
         run: npm ci
+      - name: Verify installation failure modes
+        run: node --test scripts/dependency-installation.test.mjs scripts/runtime-advisories.test.mjs
 
   local-script-checks:
     name: Local PowerShell scripts
@@ -369,5 +371,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - id: backend-docker-build
         uses: ./.github/actions/backend-docker-build
+      - name: Verify installed provider runtime in production image
+        run: docker run --rm --network none --entrypoint node local/budget-tracker-be:latest /app/scripts/check-provider-runtime.cjs
       - name: Image digest
         run: echo ${{ steps.backend-docker-build.outputs.docker-build-digest }}

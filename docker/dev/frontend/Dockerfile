@@ -9,6 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY tsconfig.json ./
 COPY post-install.sh ./
+COPY scripts/check-provider-runtime.cjs ./scripts/
 COPY patches ./patches
 
 # Install shared and frontend package.json files separately to leverage Docker cache
@@ -18,12 +19,10 @@ COPY packages/frontend/package*.json ./packages/frontend/
 RUN chmod +x ./post-install.sh
 
 # Install dependencies
-# Note: There was previously a workaround for @rollup/rollup-linux-arm64-gnu
-# optional dependency issue (https://github.com/npm/cli/issues/4828).
-# Using npm ci with --legacy-peer-deps as a more secure alternative.
+# Use the committed dependency tree; installation/patch failures must be fatal.
 # In offline mode, skip installation (use cached layer from previous build)
 RUN if [ "$OFFLINE_MODE" = "false" ]; then \
-      npm ci --legacy-peer-deps || npm install; \
+      npm ci; \
     else \
       echo "Offline mode: skipping npm install, using cached dependencies"; \
     fi

@@ -23,6 +23,9 @@ else
     echo "Dependencies are up to date"
 fi
 
+# Validate installed dependencies before application or migration code runs.
+node /app/scripts/check-provider-runtime.cjs
+
 # Run migrations (for now disabled since not sure it's needed)
 # echo "Running migrations..."
 # if npm run -w packages/backend migrate:dev; then

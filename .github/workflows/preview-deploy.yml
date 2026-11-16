@@ -334,7 +334,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.prepare-env.outputs.cache-hit != 'true'
-        run: npm ci --ignore-scripts
+        run: npm ci
 
       - name: Resolve Playwright version
         id: playwright-version

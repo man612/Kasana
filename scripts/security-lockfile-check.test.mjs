@@ -63,3 +63,20 @@ test('rejects reintroduced Zod 3 and retains explicit reporting of unreviewed ma
   assert.ok(messages.some((message) => message.startsWith('UNRESOLVED: ') && message.includes('Zod v3')));
   assert.ok(messages.some((message) => message.startsWith('REVIEW: ') && message.includes('not covered')));
 });
+
+for (const [suffix, version, minimum] of [
+  ['hono', '4.13.15', '4.13.16'],
+  ['@hono/node-server', '1.19.18', '1.19.19'],
+  ['@hono/node-server', '2.1.2', '2.1.3'],
+  ['fast-uri', '3.1.8', '3.1.9'],
+  ['ip-address', '10.7.3', '10.7.4'],
+  ['qs', '6.16.0', '6.16.1'],
+]) {
+  test(`rejects advisory-affected ${suffix}@${version}`, () => {
+    const mutated = structuredClone(main);
+    const key = `node_modules/${suffix}`;
+    assert.ok(mutated.packages[key]);
+    mutated.packages[key].version = version;
+    assert.deepEqual(audit({ main: mutated, docs }), [`root ${key}@${version} below ${minimum}`]);
+  });
+}
