@@ -2,6 +2,7 @@ import { isPerfDebugEnabled, perfDebugMiddleware } from '@common/lib/perf/perf-d
 import { resolveTrustedProxies, TRUSTED_PROXIES_ENV } from '@config/trusted-proxies';
 import { logger } from '@js/utils/logger';
 import { setClientIpHeaderMiddleware } from '@middlewares/client-ip-header';
+import { safeRequestLogUrl } from '@middlewares/safe-request-log-url';
 import { requestIdMiddleware } from '@middlewares/request-id';
 import { sessionMiddleware } from '@middlewares/session-id';
 import { stripCloudflareAccessCookiesMiddleware } from '@middlewares/strip-cloudflare-access-cookies';
@@ -218,7 +219,7 @@ export function setupMiddleware(app: Express) {
     express.urlencoded({ extended: false })(req, res, next);
   });
   if (process.env.NODE_ENV !== 'test') {
-    morgan.token<Request>('url', (req) => req.originalUrl.replace(/(\/reset-password\/)[^/?]+/, '$1[redacted]'));
+    morgan.token<Request>('url', (req) => safeRequestLogUrl({ originalUrl: req.originalUrl }));
     app.use(morgan('dev'));
   }
   app.use(sessionMiddleware);
