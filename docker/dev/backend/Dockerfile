@@ -8,6 +8,7 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 COPY post-install.sh ./
+COPY patches/query-string+7.1.3.patch ./patches/
 COPY packages/backend/package*.json ./packages/backend/
 COPY packages/shared/package*.json ./packages/shared/
 

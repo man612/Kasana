@@ -26,6 +26,10 @@ const files = [
     .readdirSync(path.join(root, 'self-hosting/docs'))
     .filter((name) => name.endsWith('.md'))
     .map((name) => `self-hosting/docs/${name}`),
+  ...fs
+    .readdirSync(path.join(root, 'docs/security'))
+    .filter((name) => name.endsWith('.md'))
+    .map((name) => `docs/security/${name}`),
 ];
 const withoutCode = (text) => text.replace(/^```[^\n]*\n[\s\S]*?^```/gm, '');
 const anchors = (text) => {

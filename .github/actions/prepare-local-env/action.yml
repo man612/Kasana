@@ -26,6 +26,6 @@ runs:
         path: |
           **/node_modules
           ${{ steps.npm-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', 'patches/**', 'post-install.sh') }}
         restore-keys: |
           ${{ runner.os }}-node-

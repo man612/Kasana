@@ -42,9 +42,24 @@ test('checks nested docs dependencies independently of the root', () => {
   assert.deepEqual(audit({ main, docs: mutated }), [`docs ${key}@8.12.3 below 8.12.4`]);
 });
 
-test('retains explicit reporting of unresolved Zod 3 and unreviewed majors', () => {
+for (const version of ['0.2.2', '0.4.3', '0.5.0']) {
+  test(`rejects advisory-affected decoder ${version}`, () => {
+    const mutated = structuredClone(main);
+    const key = Object.keys(mutated.packages).find((entry) => entry.endsWith('/decode-uri-component'));
+    assert.ok(key);
+    mutated.packages[key].version = version;
+    assert.deepEqual(audit({ main: mutated, docs }), [`root ${key}@${version} below 0.5.1`]);
+  });
+}
+
+test('rejects reintroduced Zod 3 and retains explicit reporting of unreviewed majors', () => {
+  const mutated = structuredClone(main);
+  mutated.packages['node_modules/legacy-provider/node_modules/zod'] = { version: '3.25.76' };
+  mutated.packages['node_modules/future-provider/node_modules/zod'] = { version: '99.0.0' };
   const messages = [];
-  checkSecurityLockfiles({ main, docs, log: (message) => messages.push(message) });
+  assert.deepEqual(checkSecurityLockfiles({ main: mutated, docs, log: (message) => messages.push(message) }), [
+    'root node_modules/legacy-provider/node_modules/zod@3.25.76 below 4.6.6',
+  ]);
   assert.ok(messages.some((message) => message.startsWith('UNRESOLVED: ') && message.includes('Zod v3')));
   assert.ok(messages.some((message) => message.startsWith('REVIEW: ') && message.includes('not covered')));
 });

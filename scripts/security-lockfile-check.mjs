@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Selected advisory floors, not a full audit or a claim that Zod 3 is patched. */
+/** Selected advisory floors, not a full audit. */
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -53,7 +53,11 @@ export function checkSecurityLockfiles({ main, docs, log = console.log }) {
   }
   // GHSA-mqg3-3v4r-cm32 requires 7.30.2; 7.30.1 is affected.
   rootCheck({ suffix: 'undici', byMajor: { 6: '6.29.1', 7: '7.30.2', 8: '8.12.4' } });
-  rootCheck({ suffix: 'zod', byMajor: { 4: '4.6.6' } });
+  // The provider migration removes Zod 3; reject its reintroduction rather than
+  // treating that known affected major as an unreviewed version.
+  rootCheck({ suffix: 'zod', byMajor: { 3: '4.6.6', 4: '4.6.6' } });
+  // GHSA-qr28-fpjm-wq7f: 0.5.0 still has quadratic fallback replacement.
+  rootCheck({ suffix: 'decode-uri-component', byMajor: { 0: '0.5.1' } });
   for (const [entry, item] of Object.entries(main.packages || {})) {
     if (entry.endsWith('/node_modules/zod') && item.version.startsWith('3.')) {
       log('UNRESOLVED: ' + entry + '@' + item.version + ' - Zod v3 alias requires separate migration review');

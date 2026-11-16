@@ -16,6 +16,7 @@
     "migrate:generate": "cross-env NODE_ENV=development npx sequelize-cli migration:generate",
     "test": "cross-env NODE_ENV=test npm run test:lint-rules && npm run test:unit && npm run test:e2e",
     "test:unit": "cross-env NODE_ENV=test TZ=UTC jest -c jest.config.unit.ts --passWithNoTests --forceExit --detectOpenHandles",
+    "test:provider-runtime": "node --test src/tests/runtime/financial-providers.test.cjs",
     "test:lint-rules": "node --test lint/*.test.mjs",
     "test:e2e": "cross-env NODE_ENV=test chmod +x ./src/tests/setup-e2e-tests.sh && ./src/tests/setup-e2e-tests.sh",
     "lint": "oxlint .",
@@ -85,7 +86,7 @@
     "winston": "3.13.0",
     "winston-loki": "^6.1.3",
     "xirr": "^1.1.0",
-    "yahoo-finance2": "^3.15.2",
+    "yahoo-finance2": "^4.0.6",
     "zod": "~4.6.7"
   },
   "devDependencies": {

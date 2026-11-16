@@ -9,8 +9,13 @@ else
     echo "Not in a git repository, skipping git commands."
 fi
 
-# Images that skip the patches/ directory (backend) have neither the patched
-# packages nor a reason to run this.
+# Backend images copy only their query-string interoperability patch; full
+# workspace installs also apply the existing frontend patches.
 if [ -d patches ]; then
-    npx --no-install patch-package
+    if [ -d node_modules/query-string ]; then
+        npx --no-install patch-package
+    else
+        # Frontend-only images do not install the Polygon dependency tree.
+        npx --no-install patch-package --exclude 'query-string'
+    fi
 fi
