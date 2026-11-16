@@ -37,7 +37,7 @@ This is a loader bridge, not a reimplementation of URI decoding. The patched ups
 
 The current lock has one decoder consumer: query-string through Polygon. The exact decoder override must be reviewed if another consumer is added. The patch is tied to query-string 7.1.3; retire/revisit it when upstream provides a tested compatible fix. Polygon's optional websocket dependency `bufferutil` also resolves from 4.1.0 to 4.2.0 during the npm-generated provider-subtree resolution; it remains in the provider chain.
 
-Backend production/build, test and development Dockerfiles copy this runtime patch before installing dependencies. Frontend-only installs skip this specific patch only when query-string is absent. Other patch failures remain fatal. CI dependency-cache keys include patches and the install hook. Jest transforms the **real** ESM decoder with the existing transformer because its VM does not implement Node 24's native CJS/ESM loader; separate native tests verify actual production loading.
+Backend production/build, test and development Dockerfiles copy this runtime patch before installing dependencies. The initial frontend-only `--exclude` and local failure handling were subsequently found incorrect. The [installation-security correction](2026-11-16-secure-integration.md) explicitly selects patch files, adds `--error-on-fail` and verifies the installed runtime; its evidence supersedes that initial installation claim. CI dependency-cache keys include patches and the install hook. Jest transforms the **real** ESM decoder with the existing transformer because its VM does not implement Node 24's native CJS/ESM loader; separate native tests verify actual production loading.
 
 ## Yahoo: tested v4 migration
 
