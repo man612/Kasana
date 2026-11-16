@@ -4,6 +4,8 @@ import { connection } from '@models/index';
 import SignupLedger from '@models/signup-ledger.model';
 import { createHash } from 'crypto';
 
+import { parseSignupLimit } from './signup-limit';
+
 /** Lowercase, drop `+alias`, and for gmail drop dots – all of those deliver to one inbox. */
 const normalizeEmail = ({ email }: { email: string }): string => {
   const [rawLocal = '', rawDomain = ''] = email.trim().toLowerCase().split('@');
@@ -39,18 +41,19 @@ export const forgetSignup = async ({ email }: { email: string }): Promise<void> 
 /**
  * SYSTEM_MAX_SIGNUPS_ALLOWED: on cloud it caps signups ever seen (the ledger), so
  * deleting a user does not free a trial slot. Self-host counts live users, so a
- * "just me" instance can delete and re-create its account. Unset or non-numeric
- * means unlimited; 0 blocks all signups. Read per call so tests can toggle it.
+ * "just me" instance can delete and re-create its account. Missing/empty
+ * remains unlimited for backward compatibility; malformed configured values
+ * fail closed. 0 blocks all new signups. Read per call for test/operator changes.
  */
 export async function areSignupsOpen(): Promise<boolean> {
-  const raw = process.env.SYSTEM_MAX_SIGNUPS_ALLOWED;
-  if (raw === undefined || raw === '') return true;
-
-  const max = Number(raw);
-  if (!Number.isFinite(max)) {
-    logger.error(`SYSTEM_MAX_SIGNUPS_ALLOWED is not a number ("${raw}"); signups stay unlimited.`);
-    return true;
+  const limit = parseSignupLimit(process.env.SYSTEM_MAX_SIGNUPS_ALLOWED);
+  if (limit.kind === 'unlimited') return true;
+  if (limit.kind === 'invalid') {
+    logger.error('SYSTEM_MAX_SIGNUPS_ALLOWED must be a non-negative safe integer; new signups are blocked.');
+    return false;
   }
+  const { max } = limit;
+  if (max === 0) return false;
 
   if (!isSelfHost()) return (await SignupLedger.count()) < max;
 
