@@ -8,7 +8,7 @@
 
 1. `database.dump`: a PostgreSQL 16 `pg_dump --format=custom` logical archive of the running Lajur. Compose database, with `pg_restore --list` validation;
 2. `attachments.tar`: private local receipt/invoice attachments streamed **read-only** from the backend's mounted storage directory, independent of whether the operator uses a named volume or a host bind mount;
-3. `app.env`: a protected copy of `self-hosting/.env` required to recover auth secrets and configuration;
+3. `app.env`: a protected copy of `self-hosting/.env` required to recover auth secrets and configuration, plus `stack.env` when Portainer's optional `self-hosting/stack.env` exists;
 4. `SHA256SUMS` and `manifest.txt`: encrypted integrity metadata for the three files.
 
 Restic encrypts the snapshot **before** sending it to its repository. The local staging copies of financial data and secrets are temporarily **plaintext**, held in a mode-0700 temporary directory, then removed on normal exit, failure or handled signals. Use only trusted storage with sufficient free space, private permissions and, preferably, full-disk encryption; unplanned power loss can leave data behind. The backup script does not contact Cloudflare, Resend or R2.
@@ -19,7 +19,9 @@ The script deliberately **does not** modify databases or application volumes, ex
 
 `pg_dump` creates a transaction-consistent logical database snapshot. The separate attachment archive is taken afterwards; they are **not a single atomic snapshot**. The operator must stop new writes and uploads **through a separately verified maintenance procedure**, ensure in-flight requests have completed, and only then set `LAJUR_BACKUP_MAINTENANCE_CONFIRMED=1`. The flag is an acknowledgement, **not software that prevents writes**. Without this guarantee, an attachment uploaded between the two exports may not match the metadata from the database point in time.
 
-If `ATTACHMENTS_S3_BUCKET` is configured, **this script refuses to run** rather than silently backing up only the now-unused local attachment volume. R2 needs a separately verified private-object export + point-in-time recovery strategy. Do not enable R2 until this requirement is satisfied.
+If `ATTACHMENTS_S3_BUCKET` is configured **in `.env`, the operator environment, or the running backend container** (including Portainer's `stack.env`), **this script refuses to run** rather than silently backing up only the now-unused local attachment volume. R2 needs a separately verified private-object export + point-in-time recovery strategy. Do not enable R2 until this requirement is satisfied.
+
+If other secret values are supplied solely through an external secret manager, Docker runtime overrides, CI/CD platform or operator environment, their **values are not automatically exported** by this script. Maintain a separate access-controlled recovery inventory; never print them in diagnostics. `stack.env` is copied and checksummed only when present on disk. The backend's live environment is probed **only to identify R2 versus local storage**, not to dump its secrets.
 
 The script does not capture PostgreSQL global roles/tablespaces outside the app's one database, Redis ephemeral state, or the currency-rates SQLite helper cache. Assess if your installation uses other persistent integrations before calling a backup complete.
 
@@ -72,7 +74,7 @@ A successful backup reports that Restic stored a snapshot and `restic check` ver
 
 1. On a separate, disposable machine or isolated Docker project, with independently obtained key material, list snapshots using `restic snapshots --tag lajur-offsite`.
 2. Restore a **specific snapshot ID** into a fresh, private directory via `restic restore SNAPSHOT_ID --target /new/isolated/path`. Restic preserves the backed-up temporary directory structure; search for `database.dump`.
-3. In the folder containing `database.dump`, run `sha256sum -c SHA256SUMS` and `pg_restore --list database.dump` using a compatible PostgreSQL client. Inspect the `app.env` file privately; its secrets are **live credentials from the backed-up installation**.
+3. In the folder containing `database.dump`, run `sha256sum -c SHA256SUMS` and `pg_restore --list database.dump` using a compatible PostgreSQL client. Inspect `app.env` and optional `stack.env` privately; their secrets are **live credentials from the backed-up installation**.
 4. Start a **new PostgreSQL 16 instance with brand-new disposable credentials and an empty database**. Use `pg_restore --no-owner --no-acl --exit-on-error -d NEW_DB database.dump` only against that instance. Never pass production DB connection credentials/addresses to the restore command.
 5. Unpack `attachments.tar` under a new private directory and compare representative file hashes against the snapshot. Inspect recovered users, transactions, IDR values, budgets, loans, investments, sharing permissions and links to attachments. Actual Better Auth login recovery needs a carefully isolated application and preserved keys; CI's simple fixtures cannot prove it.
 6. Test failed dump and cloud-outage behavior. Verify an independent failure alert and that no success heartbeat is sent for failed backups. Confirm recovery time and snapshot age against your RTO/RPO targets.
