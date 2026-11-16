@@ -38,8 +38,11 @@ Example environment **names and shapes only** (do not paste real keys into the r
 export RESTIC_REPOSITORY='s3:https://s3.us-west-002.backblazeb2.com/PRIVATE_BUCKET/lajur/restic'
 export AWS_ACCESS_KEY_ID='YOUR_B2_BUCKET_LIMITED_KEY_ID'
 export AWS_SECRET_ACCESS_KEY='YOUR_B2_BUCKET_LIMITED_APPLICATION_KEY'
+export AWS_DEFAULT_REGION='us-west-002' # must match the endpoint region
 export RESTIC_PASSWORD_FILE='/secure/offline-copied/restic-password'
 ```
+
+The S3 signature region must match the region embedded in the B2 bucket endpoint; otherwise Restic can receive a signature-mismatch error. The operator script rejects a mismatched or missing `AWS_DEFAULT_REGION` instead of retrying blindly. See [Backblaze S3 API region](https://www.backblaze.com/apidocs/introduction-to-the-s3-compatible-api) and [Restic S3 region](https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html#s3-compatible-storage).
 
 After creating the private bucket and credentials **and verifying the expected destination**, initialize the repository exactly once with `restic init`. The backup script **never** executes `restic init` on your behalf. `restic snapshots` must work before backup starts.
 
