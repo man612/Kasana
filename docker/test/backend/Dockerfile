@@ -6,6 +6,7 @@ WORKDIR /app
 # npm dependencies as long as these files don't change.
 COPY package*.json ./
 COPY post-install.sh ./
+COPY patches/query-string+7.1.3.patch ./patches/
 COPY packages/backend/package*.json ./packages/backend/
 COPY packages/shared/package*.json ./packages/shared/
 

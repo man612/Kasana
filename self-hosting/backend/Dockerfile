@@ -9,6 +9,7 @@ RUN apk add --no-cache python3 make g++
 # Copy root-level package files
 COPY package*.json ./
 COPY post-install.sh ./
+COPY patches/query-string+7.1.3.patch ./patches/
 RUN chmod +x ./post-install.sh
 
 # Copy backend package files
@@ -46,6 +47,7 @@ RUN addgroup -g 1001 nodejs && adduser -u 1001 -G nodejs -s /bin/sh -D nodejs
 # which is all the nodejs runtime needs.
 COPY --chown=nodejs:nodejs package*.json ./
 COPY --chown=nodejs:nodejs post-install.sh ./
+COPY --chown=nodejs:nodejs patches/query-string+7.1.3.patch ./patches/
 RUN chmod +x ./post-install.sh
 
 COPY --chown=nodejs:nodejs packages/backend/package*.json ./packages/backend/
