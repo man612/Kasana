@@ -19,7 +19,7 @@ This document separates **confirmed source behavior**, **vendor guidance**, **op
 | Attachments | `packages/backend/src/services/attachments/storage.ts` defaults to disk volume; specifying an S3-compatible bucket switches **new** storage operations to that bucket | Keep the bucket **private**, ensure server authorization for downloads, and never assume setting R2 credentials migrates old local blobs. Test DB+blob restoration together |
 | Data rights | `packages/frontend/public/operator-notice.html` expressly says it is **not** the operator's privacy notice/terms | Publish operator-specific identity/contact, processing disclosure, retention, user-rights and incident procedures before accepting real third-party finances |
 | Backups | `self-hosting/tests/backup-restore-synthetic.sh` verifies isolated disposable PostgreSQL + fabricated attachment restore in CI | Does **not** prove encrypted off-site backups, recoverability of actual Better Auth accounts, complete attachment/R2 backup, or operator recovery after VPS failure |
-| Logs | The prior Nginx `log_format main` recorded `$request` (including query) and `$http_referer`; backend Morgan recorded raw query parameters | Reset links carry `?token=...`. This branch removes query/Referer from Nginx access logs and query strings from backend Morgan logs, retaining explicit path-token redaction. CI and real image validation are still required |
+| Logs | The prior Nginx `log_format main` recorded `$request` (including query) and `$http_referer`; backend Morgan recorded raw query parameters | Reset links carry `?token=...`. This branch removes query/Referer from Nginx access logs and query strings from backend Morgan logs, retaining explicit path-token redaction. It also sets `Referrer-Policy: no-referrer` specifically for the `/reset-password` response (including its SPA fallback) without relaxing other app routes. Production image smoke tests inspect the initial response header with a synthetic token. CI and real image validation are still required |
 | Legal and artwork | AGPL/source information is available; [branding provenance](../BRANDING.md#icon-provenance-and-permissions) records unverified icon rights | Confirm right to distribute the icon; publish corresponding source of the **actual deployed SHA**, preserve upstream attribution and obtain legal review for applicable PSE/PDP obligations |
 
 ### Why the access-log change matters
@@ -82,6 +82,6 @@ pwsh -NoProfile -File scripts/verify-local-private.ps1 -Engine Podman
 
 ## Review status
 
-- **Implemented on this isolated branch:** Nginx/backend access-log query redaction + unit/static CI guards.
+- **Implemented on this isolated branch:** Nginx/backend access-log query redaction, reset-route `no-referrer` response header, unit/static CI guards and production-image header smoke.
 - **Not implemented:** Resend, Tunnel, private R2, off-site B2/Restic jobs, operator privacy/terms, legal registration, physical Podman/device QA, real restore testing, or production security hardening beyond the narrow log change.
 - **Approval required:** Any merge into PR #10 or `main`, production installation or use of genuine personal financial data.
