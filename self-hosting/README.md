@@ -58,6 +58,7 @@ Changing the Compose project name without a migration creates a different resour
 
 - Do not run `docker compose down -v` against a data-bearing instance.
 - Back up PostgreSQL, attachments, and secrets, then verify a restore in an isolated environment.
+- The opt-in Linux VPS [encrypted Restic/B2 off-site backup runbook](docs/offsite-backup-restic.md) and [operator script](../scripts/backup-offsite.sh) are provided for review. They never auto-run, touch production databases, or bypass explicit maintenance confirmation. The [synthetic encrypted restore test](tests/offsite-restic-synthetic.sh) is independent of the existing synthetic SQL/gzip smoke. Production B2 credentials, R2 exports, scheduling and operator restore sign-off remain pending.
 - CI executes [a disposable PostgreSQL and attachments backup/restore smoke test](tests/backup-restore-synthetic.sh) using **synthetic data**. This verifies basic `pg_dump`/gzip/`psql` and `tar` mechanics but **does not back up or restore your actual VPS**. Before production, separately test backup integrity, operator secret recovery, restored login, migrations, and every configured attachment storage backend.
 - Audit login, sessions, OAuth redirects, and HTTPS before exposing the app publicly.
 - Lajur. has **no verified production auto-deployment**; inherited upstream deploy and backup workflows have been guarded against running here.
