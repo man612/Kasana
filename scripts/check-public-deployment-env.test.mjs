@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import { test } from 'node:test';
 import { checkPublicDeploymentEnv } from './check-public-deployment-env.mjs';
 
@@ -61,4 +64,13 @@ test('messages never print raw secrets or request provider connections', () => {
   assert.ok(errors.includes('BETTER_AUTH_URL'));
   assert.ok(!errors.includes(raw));
   assert.ok(!errors.includes(env.APPLICATION_DB_PASSWORD));
+});
+
+test('localhost setup preserves its exact one-account template anchor', () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+  const example = readFileSync(path.join(root, 'self-hosting/.env.example'), 'utf8');
+  const setup = readFileSync(path.join(root, 'scripts/setup-local-private.ps1'), 'utf8');
+  const anchor = '# SYSTEM_MAX_SIGNUPS_ALLOWED=1';
+  assert.ok(example.includes(anchor));
+  assert.ok(setup.includes(".Replace('" + anchor + "', 'SYSTEM_MAX_SIGNUPS_ALLOWED=1')"));
 });
