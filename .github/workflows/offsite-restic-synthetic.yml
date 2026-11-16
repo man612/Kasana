@@ -1,0 +1,32 @@
+name: Synthetic encrypted offsite backup
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/backup-offsite.sh'
+      - 'self-hosting/tests/offsite-restic-synthetic.sh'
+      - '.github/workflows/offsite-restic-synthetic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  restic-offsite-synthetic:
+    name: Encrypted Restic + isolated PostgreSQL restore
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout candidate source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install tested local Restic tool
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends restic
+          restic version
+      - name: Check shell syntax
+        run: |
+          bash -n scripts/backup-offsite.sh
+          bash -n self-hosting/tests/offsite-restic-synthetic.sh
+      - name: Exercise encrypted snapshots and independent recovery (synthetic only)
+        run: bash self-hosting/tests/offsite-restic-synthetic.sh
