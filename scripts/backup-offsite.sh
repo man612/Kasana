@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Lajur. operator-initiated, read-only-from-app PostgreSQL + attachments export.
-# Encrypts files to an EXISTING Restic repository (B2 in production).
+# Encrypts files to an EXISTING Restic repository (Backblaze B2 S3 API in production).
 # Never starts/stops services, creates/migrates DBs, prunes backups or restores data.
 set -Eeuo pipefail
 umask 077
@@ -29,9 +29,11 @@ fi
 [[ -f "$RESTIC_PASSWORD_FILE" && -r "$RESTIC_PASSWORD_FILE" ]] ||
   die 'RESTIC_PASSWORD_FILE must exist and be readable (keep its key offline).'
 if [[ "$TEST_MODE" == false ]]; then
-  [[ "$RESTIC_REPOSITORY" == b2:* ]] || die 'Production destination must use a private Backblaze B2 Restic repository.'
-  [[ -n "${B2_ACCOUNT_ID:-}" && -n "${B2_ACCOUNT_KEY:-}" ]] ||
-    die 'Backblaze B2 application key pair is missing from operator environment.'
+  # Restic upstream recommends B2's S3-compatible API over its native B2 driver.
+  [[ "$RESTIC_REPOSITORY" == s3:https://s3.*.backblazeb2.com/* ]] ||
+    die 'Production destination must use Backblaze B2 S3-compatible HTTPS repository.'
+  [[ -n "${AWS_ACCESS_KEY_ID:-}" && -n "${AWS_SECRET_ACCESS_KEY:-}" ]] ||
+    die 'B2 S3-compatible application key pair is missing from operator environment.'
 fi
 for executable in docker restic tar mktemp sha256sum head grep cp date; do need "$executable"; done
 
