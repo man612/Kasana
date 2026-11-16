@@ -2,10 +2,14 @@
 const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { createServer } = require('node:http');
+const { createRequire } = require('node:module');
 const { dirname, join } = require('node:path');
 const { after, before, test } = require('node:test');
 const { restClient } = require('@polygon.io/client-js');
-const queryString = require('query-string');
+// Resolve through the SDK's own dependency edges, including nested installs.
+const polygonRequire = createRequire(require.resolve('@polygon.io/client-js'));
+const queryString = polygonRequire('query-string');
+const queryRequire = createRequire(polygonRequire.resolve('query-string'));
 const YahooFinance = require('yahoo-finance2').default;
 
 // All Yahoo HTTP is injected below; fail closed if a library path escapes it.
@@ -38,7 +42,7 @@ after(async () => {
 const polygon = ({ pagination = false } = {}) => restClient('synthetic-provider-key', baseUrl, { pagination });
 
 test('the actual CJS consumer parses with the patched ESM decoder', () => {
-  const decoderFile = require.resolve('decode-uri-component');
+  const decoderFile = queryRequire.resolve('decode-uri-component');
   assert.equal(JSON.parse(readFileSync(join(dirname(decoderFile), 'package.json'))).version, '0.5.1');
   assert.deepEqual(
     { ...queryString.parse('currency=IDR&name=Rp%20%E2%82%AC&repeat=1&repeat=2&empty=') },
@@ -57,7 +61,7 @@ test('the actual CJS consumer parses with the patched ESM decoder', () => {
 });
 
 test('patched malformed-run decoding completes in the isolated process', () => {
-  const decode = require('decode-uri-component').default;
+  const decode = queryRequire('decode-uri-component').default;
   const input =
     Array.from(
       { length: 32_000 },
