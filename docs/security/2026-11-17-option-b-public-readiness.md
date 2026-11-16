@@ -12,7 +12,7 @@ This document separates **confirmed source behavior**, **vendor guidance**, **op
 | --- | --- | --- |
 | Edge routing | `self-hosting/docker-compose.yml` keeps backend/Postgres/Redis on an internal network; frontend exposes `HTTP_PORT`, defaulting to all-host port `8080` when unset | Set `HTTP_PORT=127.0.0.1:8080` if tunnel daemon runs on the VPS host, or use an **internal** Docker network route. Independently block direct ingress; verify actual bindings and firewall. Never expose DB/Redis ports |
 | Auth origin | `BETTER_AUTH_URL` and `AUTH_ORIGIN` default to `http://localhost:8080`; secure-cookie mode depends on an actual HTTPS origin | Set **both** to exactly the same deployed HTTPS origin; test redirects, cookies, CSRF, proxy IP attribution, OAuth/MCP and passkeys |
-| Registration | `areSignupsOpen()` treats an omitted or invalid `SYSTEM_MAX_SIGNUPS_ALLOWED` as **unlimited**; template leaves cap commented out | Explicitly decide whether/when public signups are permitted. For a pre-launch instance, start with cap **0**, then choose a reviewed finite cap or a consciously approved unlimited policy. Rate-limiting does not impose an account-count ceiling |
+| Registration | `areSignupsOpen()` preserves **unlimited** signups when the cap is omitted/empty, but now blocks signups for an invalid configured cap; template leaves cap commented out | Explicitly decide whether/when public signups are permitted. For a pre-launch instance, start with cap **0**, then choose a reviewed finite cap or a consciously approved unlimited policy. Rate-limiting does not impose an account-count ceiling |
 | Email | Better Auth `emailAndPassword.requireEmailVerification` is conditional on `RESEND_API_KEY` being configured; password reset delivery requires email integration | Public signups without Resend allow email/password registration without verification. Configure a verified sending domain, then test verify/reset/resend, failed delivery, exhaustion and anti-abuse using synthetic accounts |
 | WebAuthn | Passkey RP ID defaults to `localhost` if not set | Set `AUTH_RP_ID` to the correct public domain; verify origin/RP ID on actual devices; the display fallback was already corrected to `Lajur.` |
 | Cloudflare ingress | Better Auth checks the session; Cloudflare Tunnel is only a network route | Do not assume Tunnel enforces user login; Access in front of the **whole** public domain would introduce a second identity gate. Review operator-only route protection separately |
@@ -29,6 +29,12 @@ This document separates **confirmed source behavior**, **vendor guidance**, **op
 The isolated implementation on this branch now logs `$request_method $uri $server_protocol` in Nginx (no arguments), and passes backend `req.originalUrl` through `safeRequestLogUrl` (strip query and redact old path-based reset tokens). It deliberately preserves HTTP status, route-level visibility where available, user-agent and source IP; `$uri` can reflect internal Nginx rewrites, which may reduce path granularity. The change cannot retroactively erase old logs or guarantee that **other** upstream/CDN/proxy/analytics/error logs are sanitized. Set log access control and retention separately.
 
 References: [OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html); [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html); [Nginx variables](https://nginx.org/en/docs/http/ngx_http_core_module.html); [Nginx access logging](https://nginx.org/en/docs/http/ngx_http_log_module.html).
+
+## New implementation on this branch: guardrails, not public authorization
+
+- **Registration cap:** `packages/backend/src/services/user/signup-limit.ts` requires a non-negative safe decimal integer when configured. Typos, NaN, scientific notation and overflow now block new registrations; an omitted/empty cap intentionally remains unlimited for compatible existing self-hosted installations. This does not guarantee an atomic cap under concurrent requests.
+- **Read-only operator preflight:** run `node scripts/check-public-deployment-env.mjs self-hosting/.env` from the repository root. It checks the local environment's HTTPS origin pair, loopback-only host exposure, explicit account cap, sender/key presence, distinct secrets and passkey RP ID. It does **not** create or edit .env, call providers, or verify actual DNS, TLS, email delivery, legal compliance, storage, Cloudflare or backups. Synthetic regression tests run in CI.
+- **Reset-password referrer:** Nginx maps the *original* `$request_uri` to a stricter no-referrer response policy for the password reset route; an image smoke test checks the real first HTTP response before JS token removal. Other SPA routes retain their previous policy.
 
 ## Mandatory acceptance gates before a public launch
 
@@ -82,6 +88,6 @@ pwsh -NoProfile -File scripts/verify-local-private.ps1 -Engine Podman
 
 ## Review status
 
-- **Implemented on this isolated branch:** Nginx/backend access-log query redaction, reset-route `no-referrer` response header, unit/static CI guards and production-image header smoke.
+- **Implemented on this isolated branch:** Nginx/backend log redaction, reset-route `no-referrer`, fail-closed invalid signup caps, offline Option B preflight, focused tests and real-image header smoke.
 - **Not implemented:** Resend, Tunnel, private R2, off-site B2/Restic jobs, operator privacy/terms, legal registration, physical Podman/device QA, real restore testing, or production security hardening beyond the narrow log change.
 - **Approval required:** Any merge into PR #10 or `main`, production installation or use of genuine personal financial data.
