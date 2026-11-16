@@ -51,6 +51,7 @@ for file in docker-compose.yml docker-compose.build.yml docker-compose.private.y
   printf '# Disposable compose fixture; never a real service.\n' > "$workdir/private-selfhost/$file"
 done
 printf 'NODE_ENV=production\nATTACHMENTS_S3_BUCKET=\nTEST_ONLY=synthetic-fixtures\n' > "$workdir/private-selfhost/.env"
+printf 'PORTAINER_ONLY=synthetic-secret-fixture\n' > "$workdir/private-selfhost/stack.env"
 printf 'local-test-only-restic-password-not-for-any-real-data\n' > "$workdir/password"
 chmod 600 "$workdir/password"
 
@@ -83,6 +84,12 @@ while (( $# )); do
           ;;
         backend)
           [[ "$1" == sh ]] || exit 90
+          # Read-only probe of actual backend environment; simulate Portainer
+          # configuration independently from the fake self-hosting .env.
+          if [[ "$*" == *ATTACHMENTS_S3_BUCKET* ]]; then
+            if [[ "${FAKE_RUNTIME_R2:-}" == 1 ]]; then printf REMOTE; else printf LOCAL; fi
+            exit 0
+          fi
           exec tar -C "$FAKE_ATTACHMENT_DIR" -cf - .
           ;;
         *) exit 89 ;;
@@ -128,6 +135,7 @@ mkdir -p "$workdir/restore-attachments"
 tar -C "$workdir/restore-attachments" -xf "$snapshot_folder/attachments.tar"
 cmp "$workdir/attachments/57/receipt-fixture.txt" "$workdir/restore-attachments/57/receipt-fixture.txt"
 cmp "$workdir/private-selfhost/.env" "$snapshot_folder/app.env"
+cmp "$workdir/private-selfhost/stack.env" "$snapshot_folder/stack.env"
 
 start_pg "$restore_container"
 "$REAL_DOCKER_BIN" exec -i "$restore_container" \
@@ -154,7 +162,16 @@ if bash "$ROOT/scripts/backup-offsite.sh" --synthetic-test >/dev/null 2>&1; then
 fi
 [[ "$(restic snapshots --json)" == "$before" ]] ||
   { echo 'R2 incomplete export created a snapshot' >&2; exit 1; }
+# A misleading .env with an empty bucket must not hide the *running*
+# backend's R2 configuration injected via Portainer stack.env or overrides.
+sed -i '/ATTACHMENTS_S3_BUCKET=synthetic-r2/d' "$workdir/private-selfhost/.env"
+if FAKE_RUNTIME_R2=1 bash "$ROOT/scripts/backup-offsite.sh" --synthetic-test >/dev/null 2>&1; then
+  echo 'ERROR: active backend R2 unexpectedly accepted' >&2
+  exit 1
+fi
+[[ "$(restic snapshots --json)" == "$before" ]] ||
+  { echo 'Runtime R2 incomplete export created a snapshot' >&2; exit 1; }
 [[ -z "$(find "$TMPDIR" -mindepth 1 -maxdepth 1 -print -quit)" ]] ||
   { echo 'Plaintext staging files survived failed backup' >&2; exit 1; }
 
-echo 'PASS: encrypted Restic snapshot, checksums, independent PG+attachment restore, failed-dump/R2 rejection, plaintext cleanup.'
+echo 'PASS: encrypted Restic snapshot, checksums, independent PG+attachment restore, failed-dump/.env+runtime-R2 rejection, Portainer secrets, plaintext cleanup.'
