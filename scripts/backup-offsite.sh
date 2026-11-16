@@ -110,7 +110,7 @@ chmod 600 "$stage/app.env"
 printf 'format=lajur-offsite-v1\ncreated_utc=%s\nsource=postgresql16+local-attachments+app-env\n' \
   "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$stage/manifest.txt"
 
-restic backup --tag lajur-offsite --tag lajur-v1 "$stage" ||
+restic backup --group-by host,tags --tag lajur-offsite --tag lajur-v1 "$stage" ||
   die 'Encrypted Restic backup failed; no success signal was issued.'
 restic check >/dev/null ||
   die 'Restic repository metadata check failed; investigate before declaring success.'
