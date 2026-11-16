@@ -3,7 +3,7 @@
  * A configured cap must be a non-negative, decimal, safe integer: invalid
  * configuration must never silently open unlimited public signups.
  */
-export type SignupLimit =
+type SignupLimit =
   | { kind: 'unlimited' }
   | { kind: 'capped'; max: number }
   | { kind: 'invalid' };
