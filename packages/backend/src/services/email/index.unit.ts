@@ -1,4 +1,4 @@
-import { buildEmailShell, escapeHtml } from './index';
+import { appName, buildEmailShell, escapeHtml } from './index';
 
 describe('escapeHtml', () => {
   it.each([
@@ -43,24 +43,30 @@ describe('buildEmailShell', () => {
     expect(contentIdx).toBeGreaterThan(brandIdx);
   });
 
-  it('includes the Kasana accent top bar', () => {
+  it('includes the Lajur. accent top bar', () => {
     const html = buildEmailShell({ innerHtml: '' });
     expect(html).toContain('#17443d');
   });
 
   it('includes the brand name (escaped)', () => {
     const html = buildEmailShell({ innerHtml: '' });
-    // Default appName is 'Kasana' when AUTH_RP_NAME env var is not set
-    expect(html).toContain('Kasana');
+    expect(html).toContain(escapeHtml(appName));
   });
 
   it('escapes special chars in appName', () => {
     const original = process.env.AUTH_RP_NAME;
-    process.env.AUTH_RP_NAME = '<Evil&Co>';
-    // Re-import would not pick up env change since appName is module-level const,
-    // so we test escapeHtml directly for this edge case
-    expect(escapeHtml('<Evil&Co>')).toBe('&lt;Evil&amp;Co&gt;');
-    process.env.AUTH_RP_NAME = original;
+    try {
+      process.env.AUTH_RP_NAME = '<Evil&Co>';
+      jest.isolateModules(() => {
+        const configured = jest.requireActual<typeof import('./index')>('./index');
+        const html = configured.buildEmailShell({ innerHtml: '' });
+        expect(html).toContain('&lt;Evil&amp;Co&gt;');
+        expect(html).not.toContain('<Evil&Co>');
+      });
+    } finally {
+      if (original === undefined) delete process.env.AUTH_RP_NAME;
+      else process.env.AUTH_RP_NAME = original;
+    }
   });
 
   it('includes light color-scheme meta tags', () => {

@@ -15,7 +15,7 @@ import { identifyUser, trackSignup } from '@js/utils/posthog';
 import { captureException } from '@js/utils/sentry';
 import { CLIENT_IP_HEADER } from '@middlewares/client-ip-header';
 import { redisClient } from '@root/redis-client';
-import { appName, fromEmail, isEmailEnabled } from '@services/email';
+import { appName, escapeHtml, fromEmail, isEmailEnabled } from '@services/email';
 import { sendEmail } from '@services/email/send-email';
 import { OAUTH_PROVIDER_SCOPES } from '@services/mcp/oauth-scopes';
 import { createAppUserWithUniqueUsername, seedUserDefaults } from '@services/user/create-user-with-defaults.service';
@@ -107,7 +107,7 @@ export const auth = betterAuth({
       .map((o) => o.trim())
       .filter(Boolean),
     ...DEV_TRUSTED_ORIGINS,
-    // Do not trust the original project's native callback scheme on independent Kasana instances.
+    // Do not trust the original project's native callback scheme on independent Lajur. instances.
     // Apple posts the OAuth callback (response_mode=form_post) from its own origin.
     ...(appleClientSecret ? ['https://appleid.apple.com'] : []),
   ],
@@ -234,7 +234,7 @@ export const auth = betterAuth({
           subject: `Verify your ${appName} email`,
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2>Welcome to ${appName}!</h2>
+              <h2>Welcome to ${escapeHtml(appName)}!</h2>
               <p>Please verify your email address by clicking the button below:</p>
               <p style="margin: 24px 0;">
                 <a href="${url}" style="background-color: #0070f3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
@@ -300,7 +300,7 @@ export const auth = betterAuth({
                 pkce: true,
                 requireEmailVerification: isEmailEnabled,
                 requireIdTokenVerification: true,
-                // Off by default: sign-out ends only the Kasana session and keeps the IdP session.
+                // Off by default: sign-out ends only the Lajur. session and keeps the IdP session.
                 disableProviderLogout: !oidcConfig.providerLogout,
                 // better-auth passes the raw claim through and checks truthiness, so "false" would pass.
                 mapProfileToUser: (profile) => ({
@@ -349,7 +349,7 @@ export const auth = betterAuth({
     }),
     passkey({
       rpID: process.env.AUTH_RP_ID || 'localhost',
-      rpName: process.env.AUTH_RP_NAME || 'Kasana',
+      rpName: appName,
       origin: process.env.AUTH_ORIGIN || 'https://localhost:8100',
       schema: {
         passkey: {

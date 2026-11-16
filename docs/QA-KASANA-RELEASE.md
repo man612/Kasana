@@ -1,12 +1,14 @@
 # Lajur. — Release Gates and QA Checklist
 
-This checklist applies to umbrella integration **PR #10** (combining historical PRs #8 and #9) and follow-ups **#24 and #26–#31**. PR #10 is two commits behind `feat/lajur-finance-ux-dashboard-accounts-loans-20261114` at the 15 November 2026 recheck and does **not** automatically include these follow-ups. See the [historical integration map](INTEGRATION-2026-11-14.md). The changes remain **Draft**, are not merged into `main`, and have not been deployed to a VPS or certified for production.
+This checklist applies to umbrella **PR #10**, the integrated history from **#24 and #26–#31**, the mobile header/amount corrections in **#32**, provider security in **#33**, and the Option B ADR in **#34**. The historical #8/#9 work is preserved through #10. See the [historical integration map](INTEGRATION-2026-11-14.md) and [secure integration disposition](security/2026-11-16-secure-integration.md).
 
-The isolated rehearsal branch `integration/lajur-release-candidate-20261115` combines the seven follow-ups for validation against feature baseline `82f3812`. It is not approval to integrate them into their original bases or release through PR #10. After maintainer approval, preserve the complete candidate history when updating the umbrella branch and rerun its checks against `main`.
+The verified development candidate is `integration/lajur-release-candidate-20261115`. Promotion into `feat/lajur-finance-ux-dashboard-accounts-loans-20261114` and the existing #10 branch must preserve that exact history, follow a passing final-head CI run, and recheck concurrent commits. Do not infer current branch contents from old PR descriptions: inspect live refs and [PR #32](https://github.com/man612/Kasana/pull/32) / [PR #10](https://github.com/man612/Kasana/pull/10) evidence. PR #10 remains draft; no merge to `main` or deployment is authorized by this checklist.
+
+Option B's Cloudflare/Tunnel, Resend-domain setup, off-site backups and monitoring are **planned operational services**, not configured by the implemented application changes. The [ADR](DEPLOYMENT-OPTION-B-DECISION.md) lists their production acceptance gates. Artwork [provenance and distribution permissions](BRANDING.md#icon-provenance-and-permissions) remain unresolved.
 
 ## 1. Source verification
 
-Run the following commands from the exact PR/rehearsal checkout under review, with Node.js `24.22.1` after installing the matching lockfile. Use the final combined candidate for rehearsal; the feature base alone does not contain the follow-ups. Revalidate any later approved umbrella update separately.
+Run the following commands from the exact PR/rehearsal checkout under review, with Node.js `24.22.1` after installing the matching lockfile. Use the exact approved combined commit and revalidate any promoted umbrella head separately; branch contents must be confirmed from ancestry.
 
 ```bash
 npm run lint -w packages/frontend
@@ -20,14 +22,16 @@ npm run test:unit -w packages/backend -- --runInBand
 
 Backend unit tests require the correct test environment and may need `NODE_OPTIONS=--max-old-space-size=4096`. Run backend e2e tests in the project's Docker test environment, **never** against real credentials or production financial data. If a required step fails, **do not merge or deploy**.
 
-**Current CI evidence — November 14, 2026:**
+**Verified integrated checkpoint — November 16, 2026:** candidate `860e8d032d61fcb345030ef63766d90b21053fb6` passed [all 20 application jobs](https://github.com/man612/Kasana/actions/runs/43890331099), including production/runtime and browser checks. Later authentication-branding and promotion heads require their own completed CI; follow the live PR evidence above. Green CI does not certify real-device or production readiness.
+
+**Historical source CI — November 14, 2026:**
 
 - Umbrella PR #10: [run #43556893156](https://github.com/man612/Kasana/actions/runs/43556893156) and [run #43556893248](https://github.com/man612/Kasana/actions/runs/43556893248) completed successfully.
 - Follow-up PR #27: [run #43600252633](https://github.com/man612/Kasana/actions/runs/43600252633) passed.
 - Follow-up PR #28: [run #43601239771](https://github.com/man612/Kasana/actions/runs/43601239771) passed.
 - Follow-up PR #29: [run #43602739733](https://github.com/man612/Kasana/actions/runs/43602739733) passed, including frontend tests, Docker image builds, synthetic PostgreSQL/attachment restore, and isolated mobile browser smoke.
 - Follow-up PR #30: [run #43603034498](https://github.com/man612/Kasana/actions/runs/43603034498) passed the same CI workflow.
-- Follow-up PR #31: its latest documentation commit is undergoing CI; use the [live PR checks](https://github.com/man612/Kasana/pull/31) for the current result.
+- Follow-up PR #31: its valuation documentation is preserved in the integrated candidate; consult the [source PR](https://github.com/man612/Kasana/pull/31) for its historical checks.
 
 The November 11 run [#42878060359](https://github.com/man612/Kasana/actions/runs/42878060359) is historical evidence only. Passing CI does not prove physical-device UI, real OAuth, actual data recovery, or VPS security.
 

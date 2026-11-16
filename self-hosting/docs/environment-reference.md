@@ -1,5 +1,7 @@
 # Environment Variable Reference
 
+`AUTH_RP_NAME` defaults to **Lajur.** for passkey prompts and outbound-email branding. Set a custom value to override both; display-name changes do not rename cookies, accounts or OAuth provider IDs.
+
 Grouped as in `.env.example`. Only the REQUIRED block is needed to
 boot; everything else is optional.
 
