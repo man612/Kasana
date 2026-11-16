@@ -34,6 +34,11 @@ if [[ "$TEST_MODE" == false ]]; then
     die 'Production destination must use Backblaze B2 S3-compatible HTTPS repository.'
   [[ -n "${AWS_ACCESS_KEY_ID:-}" && -n "${AWS_SECRET_ACCESS_KEY:-}" ]] ||
     die 'B2 S3-compatible application key pair is missing from operator environment.'
+  # A mismatched signing region produces 403/SignatureDoesNotMatch on B2.
+  endpoint_suffix="${RESTIC_REPOSITORY#s3:https://s3.}"
+  b2_region="${endpoint_suffix%%.backblazeb2.com/*}"
+  [[ -n "${AWS_DEFAULT_REGION:-}" && "$AWS_DEFAULT_REGION" == "$b2_region" ]] ||
+    die 'AWS_DEFAULT_REGION must equal the B2 endpoint region (for example us-west-002).'
 fi
 for executable in docker restic tar mktemp sha256sum head grep cp date; do need "$executable"; done
 
