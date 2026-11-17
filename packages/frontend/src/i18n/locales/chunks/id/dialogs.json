@@ -480,7 +480,7 @@
       "templates": {
         "trigger": "Templat",
         "filterPlaceholder": "Cari templat…",
-        "emptyState": "Templat mengisi formulir ini dengan detail yang sering Anda masukkan — jumlah, akun, kategori, penerima, tag, catatan. Templat tidak pernah menambahkan apa pun dengan sendirinya; untuk sesuatu yang berulang sesuai jadwal, gunakan Biaya Berulang.",
+        "emptyState": "Belum ada templat. Simpan isian transaksi ini atau buat templat baru. Transaksi tidak akan dicatat otomatis.",
         "noMatches": "Tidak ada templat yang cocok.",
         "loadError": "Tidak dapat memuat templat Anda.",
         "saveCurrent": "Simpan yang sekarang sebagai templat",

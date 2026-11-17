@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import InputField from '@/components/fields/input-field.vue';
 import { Button } from '@/components/lib/ui/button';
-import * as Drawer from '@/components/lib/ui/drawer';
+import * as Dialog from '@/components/lib/ui/dialog';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { TransactionTemplateModel } from '@bt/shared/types';
@@ -24,7 +24,7 @@ const { query, isOpen, filtered, amountLabelOf, staleReasonOf, footerActions, cl
 });
 
 const expandedId = ref<string | null>(null);
-let appliedFromDrawer = false;
+let appliedFromDialog = false;
 
 const isFilterVisible = computed(() => props.templates.length > FILTER_VISIBLE_FROM);
 
@@ -48,7 +48,7 @@ const toggleRow = async ({ template }: { template: TransactionTemplateModel }) =
 };
 
 const applyTemplate = ({ template }: { template: TransactionTemplateModel }) => {
-  appliedFromDrawer = true;
+  appliedFromDialog = true;
   isOpen.value = false;
   emit('apply', template);
 };
@@ -56,17 +56,17 @@ const applyTemplate = ({ template }: { template: TransactionTemplateModel }) => 
 // Fires once the drawer is gone. Returning focus to the trigger here would undo the field
 // focus the parent moves to after an apply.
 const onCloseAutoFocus = (event: Event) => {
-  if (!appliedFromDrawer) return;
-  appliedFromDrawer = false;
+  if (!appliedFromDialog) return;
+  appliedFromDialog = false;
   event.preventDefault();
   emit('closed-after-apply');
 };
 </script>
 
 <template>
-  <Drawer.Drawer v-model:open="isOpen">
+  <Dialog.Dialog v-model:open="isOpen">
     <div class="flex min-w-0 items-center gap-1">
-      <Drawer.DrawerTrigger as-child>
+      <Dialog.DialogTrigger as-child>
         <Button
           variant="secondary"
           size="sm"
@@ -84,7 +84,7 @@ const onCloseAutoFocus = (event: Event) => {
           </span>
           <ChevronUpIcon class="size-3.5 shrink-0" />
         </Button>
-      </Drawer.DrawerTrigger>
+      </Dialog.DialogTrigger>
 
       <Button
         v-if="applied"
@@ -98,11 +98,15 @@ const onCloseAutoFocus = (event: Event) => {
       </Button>
     </div>
 
-    <Drawer.DrawerContent class="px-4 pb-4" @close-auto-focus="onCloseAutoFocus">
-      <Drawer.DrawerTitle class="px-1 pt-4 text-base">
+    <Dialog.DialogContent
+      blur-overlay
+      class="max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-2xl p-4"
+      @close-auto-focus="onCloseAutoFocus"
+    >
+      <Dialog.DialogTitle class="pr-10 text-base font-semibold">
         {{ $t('dialogs.manageTransaction.templates.trigger') }}
-      </Drawer.DrawerTitle>
-      <p v-if="templates.length" class="text-muted-foreground px-1 pb-2 text-xs">
+      </Dialog.DialogTitle>
+      <p v-if="templates.length" class="text-muted-foreground mt-1 pb-3 text-xs">
         {{ $t('dialogs.manageTransaction.templates.tapHint') }}
       </p>
 
@@ -125,7 +129,7 @@ const onCloseAutoFocus = (event: Event) => {
         {{ $t('dialogs.manageTransaction.templates.noMatches') }}
       </p>
 
-      <ScrollArea v-else viewport-class="max-h-[55dvh]">
+      <ScrollArea v-else class="min-h-0 flex-1 overflow-hidden" viewport-class="max-h-[40dvh]">
         <div class="flex flex-col">
           <div
             v-for="template in filtered"
@@ -179,12 +183,12 @@ const onCloseAutoFocus = (event: Event) => {
         />
       </div>
 
-      <div class="border-border mt-3 flex gap-1 border-t pt-3">
+      <div class="border-border mt-3 grid grid-cols-1 gap-2 border-t pt-3 min-[390px]:grid-cols-2">
         <Button
           v-for="action in footerActions"
           :key="action.key"
           :variant="action.variant"
-          class="h-11 w-full justify-start font-normal"
+          class="h-auto min-h-11 min-w-0 w-full justify-start gap-2 px-3 text-left text-sm font-normal whitespace-normal"
           :disabled="action.disabled"
           @click="closeAnd({ run: action.run })"
         >
@@ -192,6 +196,6 @@ const onCloseAutoFocus = (event: Event) => {
           {{ action.label }}
         </Button>
       </div>
-    </Drawer.DrawerContent>
-  </Drawer.Drawer>
+    </Dialog.DialogContent>
+  </Dialog.Dialog>
 </template>

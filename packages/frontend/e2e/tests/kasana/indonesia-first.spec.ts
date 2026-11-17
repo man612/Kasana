@@ -131,6 +131,14 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await mobileNewTransaction.click();
       const mobileForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
       await expect(mobileForm).toBeVisible();
+      // At 320px, the transaction date is on a separate row and inline
+      // time controls are hidden (the calendar dialog still edits the time).
+      const amountBox = await mobileForm.locator('input[inputmode="decimal"]').first().boundingBox();
+      const dateBox = await mobileForm.getByTestId('date-field-numeric-input').boundingBox();
+      expect(amountBox).not.toBeNull();
+      expect(dateBox).not.toBeNull();
+      expect(dateBox!.y).toBeGreaterThan(amountBox!.y + 30);
+      await expect(mobileForm.getByTestId('date-field-time-input')).toHaveCount(0);
       const primaryAmount = mobileForm.locator('input[inputmode="decimal"]').first();
       await expect(primaryAmount).toBeVisible();
       const mobileAmountMetrics = await primaryAmount.evaluate((element) => ({
