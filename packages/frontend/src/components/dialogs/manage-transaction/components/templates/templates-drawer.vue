@@ -5,7 +5,7 @@ import * as Dialog from '@/components/lib/ui/dialog';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { TransactionTemplateModel } from '@bt/shared/types';
-import { ChevronDownIcon, ChevronUpIcon, LayoutTemplateIcon, XIcon } from '@lucide/vue';
+import { ChevronDownIcon, LayoutTemplateIcon, XIcon } from '@lucide/vue';
 import { computed, nextTick, ref, watch } from 'vue';
 
 import TemplatePreview from './template-preview.vue';
@@ -82,7 +82,10 @@ const onCloseAutoFocus = (event: Event) => {
           <span class="truncate">
             {{ applied ? applied.name : $t('dialogs.manageTransaction.templates.trigger') }}
           </span>
-          <ChevronUpIcon class="size-3.5 shrink-0" />
+          <ChevronDownIcon
+            class="size-3.5 shrink-0 transition-transform duration-200 motion-reduce:transition-none"
+            :class="isOpen && 'rotate-180'"
+          />
         </Button>
       </Dialog.DialogTrigger>
 
@@ -100,10 +103,10 @@ const onCloseAutoFocus = (event: Event) => {
 
     <Dialog.DialogContent
       blur-overlay
-      class="max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-2xl p-4"
+      class="max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-2xl p-5 duration-200 ease-out motion-reduce:transition-none"
       @close-auto-focus="onCloseAutoFocus"
     >
-      <Dialog.DialogTitle class="pr-10 text-base font-semibold">
+      <Dialog.DialogTitle class="pr-14 text-base font-semibold">
         {{ $t('dialogs.manageTransaction.templates.trigger') }}
       </Dialog.DialogTitle>
       <p v-if="templates.length" class="text-muted-foreground mt-1 pb-3 text-xs">

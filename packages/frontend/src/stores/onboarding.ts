@@ -280,7 +280,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
       // Auto-open panel on first visit if not dismissed and not all complete.
       // Demo users land on a data-rich dashboard — starting collapsed avoids
       // shrinking the page content on first impression.
-      if (!data.isDismissed && completedTasks.value.length < allTasks.value.length && !isDemo.value) {
+      if (!data.isDismissed && !isTemporarilyHidden.value && completedTasks.value.length < allTasks.value.length && !isDemo.value) {
         isPanelOpen.value = true;
 
         // Expand the first category that has incomplete tasks
@@ -359,6 +359,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   };
 
   const openPanel = () => {
+    if (isTemporarilyHidden.value) return;
     isPanelOpen.value = true;
   };
 

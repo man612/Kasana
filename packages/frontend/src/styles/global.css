@@ -1235,3 +1235,14 @@ select:focus-visible,
     overscroll-behavior-y: contain;
   }
 }
+
+/* Chevron motion for generic openable triggers; specific component transforms
+   keep their own more detailed states. */
+:where(button[data-state='open'], button[aria-expanded='true'])
+  :where(svg.lucide-chevron-down, svg.lucide-chevron-up) {
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(button[data-state='open'], button[aria-expanded='true'])
+    :where(svg.lucide-chevron-down, svg.lucide-chevron-up) { transition: none; }
+}

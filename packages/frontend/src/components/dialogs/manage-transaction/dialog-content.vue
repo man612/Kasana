@@ -781,6 +781,20 @@ watch(
   },
 );
 
+// Keep planned-mode changes out of the numeric field's focus path. Turning a
+// schedule off must never open the Android keyboard unexpectedly.
+const setPlannedMode = (value: boolean) => {
+  form.value.isPlanned = value;
+  if (!value && isMobileView.value) {
+    void nextTick().then(() => {
+      requestAnimationFrame(() => {
+        const focused = document.activeElement;
+        if (focused instanceof HTMLInputElement && focused.inputMode === 'decimal') focused.blur();
+      });
+    });
+  }
+};
+
 const isPastDateRequired = computed(
   () => wasPlannedUnchecked.value && isDateUserTouched.value && !form.value.isPlanned,
 );
@@ -2279,7 +2293,7 @@ onUnmounted(() => {
                     :readonly="isPlannedBadgeVisible"
                     :disabled="isFormFieldsDisabled"
                     :tooltip-override="isPlannedBadgeVisible ? undefined : plannedTooltipOverride"
-                    @update:model-value="(value) => (form.isPlanned = value)"
+                    @update:model-value="setPlannedMode"
                   />
                 </template>
 
@@ -2292,7 +2306,7 @@ onUnmounted(() => {
                     :readonly="isPlannedBadgeVisible"
                     :disabled="isFormFieldsDisabled"
                     :tooltip-override="isPlannedBadgeVisible ? undefined : plannedTooltipOverride"
-                    @update:model-value="(value) => (form.isPlanned = value)"
+                    @update:model-value="setPlannedMode"
                   />
                 </template>
 
@@ -2301,9 +2315,11 @@ onUnmounted(() => {
                 </template>
 
                 <template #account-hint>
-                  <PlannedUnlockHint v-if="isFormCreation && form.isPlanned && hasConnectedAccountsToOffer">
-                    {{ $t('dialogs.manageTransaction.form.plannedAccountsUnlockedHint') }}
-                  </PlannedUnlockHint>
+                  <Transition name="lajur-form-panel" mode="out-in">
+                    <PlannedUnlockHint v-if="isFormCreation && form.isPlanned && hasConnectedAccountsToOffer">
+                      {{ $t('dialogs.manageTransaction.form.plannedAccountsUnlockedHint') }}
+                    </PlannedUnlockHint>
+                  </Transition>
                 </template>
 
                 <template #account-target-amount>
