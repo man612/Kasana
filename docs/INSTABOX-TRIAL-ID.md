@@ -85,7 +85,7 @@ SYSTEM_DEMO_DISABLED=true
 
 The HTTPS preview origin is **not** the private link query token. `BETTER_AUTH_URL` and `AUTH_ORIGIN` must match, otherwise secure cookies, login or trusted-origin checks can fail. Internal DB/Redis hostnames (`db`, `redis`) and backend port 8081 stay as provided by the example.
 
-When you are ready to register a disposable user, change signup cap from **0** to **1** in the local `.env` and recreate the backend service; use **2** only to test two-user isolation. Without a transactional email provider, password signup does **not** verify email ownership and password reset will not work. Never remove the cap for this trial.
+When you are ready to register a disposable user, run `bash self-hosting/instabox-trial.sh cap 1` from the repository root; it sets a maximum of **1** registered account and recreates **only Lajur.'s backend** if already running. Use `cap 2` only when testing two-user isolation, and `cap 0` to close signups again. Without a transactional email provider, password signup does **not** verify email ownership and password reset will not work. Never remove the cap for this trial.
 
 Do not configure OAuth/passkeys, Cloudflare R2, live bank providers or external AI API keys yet. Use synthetic data only.
 ## Phase 3 — verify Compose and start, only AFTER disk preflight
