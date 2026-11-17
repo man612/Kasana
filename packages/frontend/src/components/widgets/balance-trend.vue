@@ -919,8 +919,11 @@ const renderChart = () => {
   const height = containerRef.value.clientHeight;
   const isMobile = width < 500;
 
-  // Size the margin from translated Y-labels to prevent clipping the Rp prefix.
-  const [dataMin = 0, dataMax = 0] = d3.extent(chartData.value, (item) => item.value);
+  // Use the same value universe for Y-axis label width and Y-axis domain.
+  // Projection can exceed historical values; otherwise its larger labels clip
+  // against the left side on narrow Android viewports.
+  const yValues = [...chartData.value.map((d) => d.value), ...(projection.value?.points.map((p) => p.value) ?? [])];
+  const [dataMin = 0, dataMax = 0] = d3.extent(yValues);
   const approxTickStep = Math.max(1, (dataMax - dataMin) / 4 || 500);
   const longestLabel = Math.max(
     6,
@@ -952,9 +955,8 @@ const renderChart = () => {
 
   // Y scale - limit to 5 ticks. Projected points count as data: a projection landing
   // above the real maximum must not exit the plot.
-  const yValues = [...chartData.value.map((d) => d.value), ...(projection.value?.points.map((p) => p.value) ?? [])];
-  const yMin = d3.min(yValues) || 0;
-  const yMax = d3.max(yValues) || 0;
+  const yMin = dataMin;
+  const yMax = dataMax;
   const yPadding = (yMax - yMin) * 0.1 || 1000;
   const yScale = d3
     .scaleLinear()
