@@ -62,6 +62,22 @@ case "${1:-}" in
     fi
     compose up -d --no-build
     ;;
+  cap)
+    require_env
+    case "${2:-}" in
+      0|1|2) ;;
+      *) echo 'ERROR: choose signup cap 0, 1 or 2.' >&2; exit 2 ;;
+    esac
+    if ! grep -Eq '^SYSTEM_MAX_SIGNUPS_ALLOWED=(0|1|2)$' .env; then
+      echo 'ERROR: expected a local capped trial configuration.' >&2
+      exit 1
+    fi
+    sed -i -E "s/^SYSTEM_MAX_SIGNUPS_ALLOWED=(0|1|2)$/SYSTEM_MAX_SIGNUPS_ALLOWED=$2/" .env
+    if [ -n "$(compose ps -q backend)" ]; then
+      compose up -d --no-build backend
+    fi
+    echo "Trial signup cap set to $2. No other app was changed."
+    ;;
   status)
     compose ps
     ;;
@@ -72,7 +88,7 @@ case "${1:-}" in
     compose stop
     ;;
   *)
-    echo 'Usage: bash self-hosting/instabox-trial.sh {init|check|build-backend|build-frontend|up|status|logs|stop}' >&2
+    echo 'Usage: bash self-hosting/instabox-trial.sh {init|check|build-backend|build-frontend|up|cap|status|logs|stop}' >&2
     echo 'First run scripts/check-instabox-preview.sh to inspect Docker and root disk.' >&2
     exit 2
     ;;
