@@ -32,12 +32,12 @@ async function countCapacity(scope: 'self-host' | 'hosted'): Promise<number> {
   return Number(row.count);
 }
 
-async function createAuthUser(pool: Pool, suffix: string): Promise<string> {
+async function createAuthUser(pool: Pool, suffix: string, email?: string): Promise<string> {
   const id = randomUUID();
   await pool.query(
     `INSERT INTO ba_user (id, name, email, "emailVerified", image, "createdAt", "updatedAt")
      VALUES ($1, 'Capacity Test', $2, false, NULL, NOW(), NOW())`,
-    [id, 'capacity-' + suffix + '@test.local'],
+    [id, email ?? ('capacity-' + suffix + '@test.local')],
   );
   return id;
 }
@@ -141,6 +141,30 @@ describe('Atomic PostgreSQL signup admission on real migrated database', () => {
         { replacements: { emailHash: 'f'.repeat(63) + '0' } },
       );
       expect(await countCapacity('hosted')).toBe(hostedBaseline + 1);
+    } finally {
+      await pool.end();
+    }
+  });
+
+  it('does not let Gmail dot/plus aliases bypass the hosted physical account cap', async () => {
+    const baseline = await countCapacity('hosted');
+    await setCapacity('hosted', baseline + 1);
+    const pool = separatePool();
+    try {
+      const local = 'lajur' + randomUUID().replace(/-/g, '').slice(0, 16);
+      await createAuthUser(pool, 'canonical', local + '@gmail.com');
+      expect(await countCapacity('hosted')).toBe(baseline + 1);
+
+      const alias = local.slice(0, 5) + '.' + local.slice(5) + '+another@googlemail.com';
+      let rejectedAsQuota = false;
+      try {
+        await createAuthUser(pool, 'alias', alias);
+      } catch (error) {
+        if ((error as { code?: string }).code !== '23514') throw error;
+        rejectedAsQuota = true;
+      }
+      expect(rejectedAsQuota).toBe(true);
+      expect(await countCapacity('hosted')).toBe(baseline + 1);
     } finally {
       await pool.end();
     }
