@@ -1217,3 +1217,21 @@ select:focus-visible,
     transition: none;
   }
 }
+
+/* Mobile-only visual scrollbar suppression; scroll and text selection remain usable. */
+@media (max-width: 767px) {
+  :where(html, body, #app, #app *) { scrollbar-width: none; -ms-overflow-style: none; }
+  :where(html, body, #app, #app *)::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  :where(button, nav a, [role='button'], [role='tab']) {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  :where(.lajur-transaction-scroll, .lajur-dialog-scroll, [data-reka-scroll-area-viewport]) {
+    overscroll-behavior-y: contain;
+  }
+}

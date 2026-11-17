@@ -7,7 +7,9 @@ import { computed, inject, provide } from 'vue';
 import { IS_INSIDE_DRAWER } from './context';
 
 const props = withDefaults(defineProps<DrawerRootProps>(), {
-  shouldScaleBackground: true,
+  shouldScaleBackground: false,
+  // Scroll gestures inside a sheet must not drag the sheet itself.
+  handleOnly: true,
 });
 
 const emits = defineEmits<DrawerRootEmits>();
