@@ -74,11 +74,16 @@
         <p class="mb-4 text-sm leading-relaxed">{{ $t('settings.appearance.interactionSound.description') }}</p>
         <div class="flex items-center justify-between gap-4">
           <span class="text-sm">{{ $t('settings.appearance.interactionSound.toggle') }}</span>
-          <Switch
+          <div class="flex shrink-0 items-center gap-2">
+            <Button variant="outline" size="sm" @click="previewInteractionSound">
+              {{ $t('settings.appearance.interactionSound.preview') }}
+            </Button>
+            <Switch
             :model-value="mobileSoundEnabled"
             :aria-label="$t('settings.appearance.interactionSound.toggle')"
             @update:model-value="(v) => updateMobileSound(!!v)"
-          />
+            />
+          </div>
         </div>
       </div>
 
@@ -202,7 +207,11 @@
 <script setup lang="ts">
 import HintIcon from '@/components/common/hint-icon.vue';
 import { ThemePreference, setThemePreference, themePreference } from '@/common/utils/color-theme';
-import { getMobileInteractionSoundEnabled, setMobileInteractionSoundEnabled } from '@/common/utils/mobile-interaction-sound';
+import {
+  getMobileInteractionSoundEnabled,
+  previewInteractionSound,
+  setMobileInteractionSoundEnabled,
+} from '@/common/utils/mobile-interaction-sound';
 import { ACCENT_OPTIONS, accentTheme, setAccentTheme, type AccentTheme } from '@/common/utils/accent-theme';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import Button from '@/components/lib/ui/button/Button.vue';
