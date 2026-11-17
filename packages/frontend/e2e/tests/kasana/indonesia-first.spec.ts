@@ -110,7 +110,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       // the viewport when the bottom sheet is open on a short 320px phone.
       await page.setViewportSize({ width: 320, height: 568 });
       await page.goto('/dashboard');
-      const mobileNewTransaction = page.getByRole('button', { name: /Transaksi Baru|New transaction/i }).first();
+      const mobileNewTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();
       await expect(mobileNewTransaction).toBeVisible();
       await mobileNewTransaction.click();
       const mobileForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
@@ -133,7 +133,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await page.keyboard.press('Escape');
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto('/dashboard');
-      const mobileDateTransaction = page.getByRole('button', { name: /Transaksi Baru|New transaction/i }).first();
+      const mobileDateTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();
       await mobileDateTransaction.click();
       const mobileDateForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
       await expect(mobileDateForm).toBeVisible();
