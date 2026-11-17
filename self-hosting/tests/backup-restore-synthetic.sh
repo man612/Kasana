@@ -90,4 +90,45 @@ if [ "$result" != "2:85000.25" ]; then
   exit 1
 fi
 
+# Exercise the clean-bootstrap read-only inventory in disposable PostgreSQL.
+# These nine skeletal tables are a SQL behavior fixture only; not a substitute
+# for checking the actual app migration/schema on a new isolated deployment.
+docker exec -i "$restored_container" psql -U "$user" -d "$database" \
+  -v ON_ERROR_STOP=1 >/dev/null <<'SQL'
+CREATE TABLE "Users" (id integer);
+CREATE TABLE ba_user (id integer);
+CREATE TABLE ba_session (id integer);
+CREATE TABLE "Accounts" (id integer);
+CREATE TABLE "Transactions" (id integer);
+CREATE TABLE "Balances" (id integer);
+CREATE TABLE "TransactionAttachments" (id integer);
+CREATE TABLE "UsersCurrencies" (id integer);
+CREATE TABLE "UserExchangeRates" (id integer);
+SQL
+
+probe_fresh_install() {
+  docker exec -i "$restored_container" psql -X -U "$user" -d "$database" \
+    -tA -v ON_ERROR_STOP=1 < scripts/finance-fresh-install-readonly.sql \
+    | grep -E '^(EMPTY_APP_DATA_CANDIDATE_ONLY|NOT_EMPTY_STOP_AND_REVIEW)
+
+}
+
+empty_probe="$(probe_fresh_install)"
+if [ "$empty_probe" != "EMPTY_APP_DATA_CANDIDATE_ONLY" ]; then
+  echo "FAIL: empty synthetic app tables were not identified as an empty install" >&2
+  exit 1
+fi
+
+# An occupied transaction table must block a false fresh-install PASS;
+# the only inserted row is a fabricated test marker.
+docker exec "$restored_container" psql -U "$user" -d "$database" \
+  -v ON_ERROR_STOP=1 -c 'INSERT INTO "Transactions" (id) VALUES (1)' >/dev/null
+occupied_probe="$(probe_fresh_install)"
+if [ "$occupied_probe" != "NOT_EMPTY_STOP_AND_REVIEW" ]; then
+  echo "FAIL: an occupied transaction table was misclassified as empty" >&2
+  exit 1
+fi
+
+echo "Lajur. synthetic read-only fresh-install gate passed (empty + occupied; no user data)"
+
 echo "Kasana synthetic PostgreSQL + attachments backup/restore passed (no user data)"
