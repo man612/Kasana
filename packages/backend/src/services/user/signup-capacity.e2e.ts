@@ -169,4 +169,41 @@ describe('Atomic PostgreSQL signup admission on real migrated database', () => {
       await pool.end();
     }
   });
+
+  it('allows a zero-row INSERT without charging capacity at cap zero', async () => {
+    await setCapacity('self-host', 0);
+    const pool = separatePool();
+    try {
+      await expect(pool.query(
+        `INSERT INTO ba_user (id, name, email, "emailVerified", image, "createdAt", "updatedAt")
+         SELECT 'no-record', 'Nothing', 'nothing@test.local', false, NULL, NOW(), NOW()
+         WHERE FALSE`,
+      )).resolves.toBeDefined();
+    } finally {
+      await pool.end();
+    }
+  });
+
+  it('fails closed if user creation uses a non-READ COMMITTED transaction', async () => {
+    const baseline = await countCapacity('self-host');
+    await setCapacity('self-host', baseline + 1);
+    const pool = separatePool();
+    try {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ');
+        await expect(client.query(
+          `INSERT INTO ba_user (id, name, email, "emailVerified", image, "createdAt", "updatedAt")
+           VALUES ($1, 'Unsafe Isolation', $2, false, NULL, NOW(), NOW())`,
+          [randomUUID(), 'isolation-' + randomUUID() + '@test.local'],
+        )).rejects.toMatchObject({ code: '23514' });
+      } finally {
+        await client.query('ROLLBACK');
+        client.release();
+      }
+      expect(await countCapacity('self-host')).toBe(baseline);
+    } finally {
+      await pool.end();
+    }
+  });
 });
