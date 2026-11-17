@@ -243,7 +243,10 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await page.goto('/settings/appearance');
       const accents = page.getByRole('group', { name: /Warna aksen|Accent color/i });
       await expect(accents).toBeVisible();
-      await expect(accents.getByRole('button', { name: /Ungu|Purple/i })).toHaveAttribute('aria-pressed', 'true');
+      // Fresh accounts default to blue in Lajur. Mobile UX Round 2; purple
+      // remains a selectable user preference, not the initial default.
+      await expect(accents.getByRole('button', { name: /Biru|Blue/i })).toHaveAttribute('aria-pressed', 'true');
+      await expect(accents.getByRole('button', { name: /Ungu|Purple/i })).toHaveAttribute('aria-pressed', 'false');
       const accentSaved = page.waitForResponse(
         (response) =>
           response.request().method() === 'PATCH' &&
