@@ -241,7 +241,19 @@ for (const currency of ['IDR', 'USD']) {
             expect(after.outerWidth).toBe(before.outerWidth);
             expect(after.cssZoom).toBe('1');
             expect(after.visualViewportScale).toBe(1);
-            expect(after.rootFont).toBe(before.rootFont);
+            // At 200% browser zoom, 780px becomes 390 CSS px, crossing our
+            // 768px density breakpoint. Native zoom must be allowed to switch
+            // from dense desktop typography (12.8px) to readable mobile (16px),
+            // rather than requiring a fixed root font-size across the resize.
+            const expectedRootFont = (cssWidth: number) => (cssWidth <= 767 ? 16 : 12.8);
+            expect(Number.parseFloat(before.rootFont), 'initial responsive rem baseline').toBeCloseTo(
+              expectedRootFont(before.innerWidth),
+              1,
+            );
+            expect(Number.parseFloat(after.rootFont), 'native zoom responsive rem baseline').toBeCloseTo(
+              expectedRootFont(after.innerWidth),
+              1,
+            );
             await writeFile(test.info().outputPath('native-zoom.json'), JSON.stringify({ before, after }, null, 2));
             const session = await context.newCDPSession(page);
             const capture = async ({ name }: { name: string }) => {
