@@ -7,9 +7,18 @@ import { API_LAYER_BASE_CURRENCY_CODE } from './constants';
 
 export const MS_PER_DAY = 86_400_000;
 
-/** Same 5-decimal truncation `getExchangeRate` applies, so a resolved rate matches
- *  what every other conversion in the app produces for that day. */
-export const formatRate = (rate: number) => Math.trunc(rate * 100000) / 100000;
+/**
+ * Keep 12 SIGNIFICANT digits for currency pairs, including tiny reciprocal
+ * rates such as IDR -> USD. Truncating to 5 fixed decimal PLACES silently
+ * changes 1/16000 (0.0000625) to 0.00006 (-4%), and can round small
+ * currencies all the way to zero. Preserve non-finite behavior; upstream
+ * validation still rejects non-positive/invalid provider rates.
+ *
+ * This shared formatter is used by both getExchangeRate and daily balance
+ * revaluation so the two paths agree without a schema/data migration.
+ */
+export const formatRate = (rate: number): number =>
+  Number.isFinite(rate) ? Number(rate.toPrecision(12)) : rate;
 
 /** UTC calendar day of a timestamp, or the day part of a `DATEONLY` string. */
 export const toDayKey = (date: Date | string): string =>
@@ -22,7 +31,7 @@ export type DailyPairRateResolver = (dayKey: string) => number | null;
  * most recent earlier day, else the earliest day known for that currency.
  *
  * Returns `null` when either leg has no stored rate dated on or before `to`. The
- * resolver returns `null` only for a day whose rate is zero or truncates to zero.
+ * resolver returns `null` only when a currency pair has no usable positive rate.
  */
 export const buildDailyPairRateResolver = async ({
   baseCode,
@@ -79,8 +88,8 @@ export const buildDailyPairRateResolver = async ({
     const usdToQuote = findLatestUsdRate(quoteCode, dayKey);
     if (!usdToBase || !usdToQuote || usdToBase.rate === 0) return null;
 
-    // Truncation to 5 decimals collapses a sub-0.00001 rate to 0, and a zero rate
-    // would be written as a valid history of zero balances.
+    // Precision-sensitive pairs remain nonzero even when their value is less
+    // than 0.00001, so native holdings are never silently zero-valued.
     const rate = formatRate(usdToQuote.rate / usdToBase.rate);
     return rate > 0 ? rate : null;
   };
