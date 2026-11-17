@@ -125,7 +125,7 @@ watch(
     <div
       :class="
         cn(
-          'border-input bg-input-background focus-within:border-ring flex h-10 w-full items-stretch overflow-hidden rounded-md border md:h-9',
+          'border-input bg-input-background focus-within:border-ring flex h-11 w-full items-stretch overflow-hidden rounded-md border md:h-9',
           disabled && 'opacity-50',
         )
       "
