@@ -106,7 +106,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       // Swiping the four-item bottom navbar moves one destination at a time.
       const navGestureTarget = page.getByRole('navigation', { name: 'Navigasi utama' });
       await swipeElement(navGestureTarget, 0.85, 0.15);
-      await expect(page).toHaveURL(/\\/accounts(?:\\?.*)?$/);
+      await expect(page).toHaveURL(/\/accounts(?:\?.*)?$/);
       await expect(page.getByText(accountName).first()).toBeVisible({ timeout: 20_000 });
 
       // The mobile account menu is deliberately an anchored popover, not a
