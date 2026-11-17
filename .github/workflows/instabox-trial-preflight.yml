@@ -1,0 +1,92 @@
+name: InstaBox trial preflight
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/instabox-trial-preflight.yml'
+      - 'self-hosting/docker-compose.instabox.yml'
+      - 'self-hosting/instabox-trial.sh'
+      - 'scripts/check-instabox-preview.sh'
+      - 'scripts/init-instabox-preview-env.py'
+      - 'docs/INSTABOX-TRIAL-ID.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trial-config:
+    name: Safe isolated trial config
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout tested candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate Bash and Python syntax
+        run: |
+          bash -n self-hosting/instabox-trial.sh
+          bash -n scripts/check-instabox-preview.sh
+          python3 -m py_compile scripts/init-instabox-preview-env.py
+
+      - name: Generate synthetic secrets and check origin sanitization
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from runpy import run_path
+
+          functions = run_path("scripts/init-instabox-preview-env.py")
+          parse_origin = functions["parse_origin"]
+          build_trial_env = functions["build_trial_env"]
+          origin = parse_origin("https://8080-example.instabox.tech/?_token=VERY_PRIVATE_TEST_ONLY")
+          assert origin == "https://8080-example.instabox.tech"
+
+          for invalid in ("http://8080-example.instabox.tech", "https://evil.com", "https://8080-example.instabox.tech.evil.com"):
+              try:
+                  parse_origin(invalid)
+              except ValueError:
+                  pass
+              else:
+                  raise AssertionError(f"Unsafe origin accepted: {invalid!r}")
+
+          template = Path("self-hosting/.env.example").read_text(encoding="utf-8")
+          result = build_trial_env(template, origin)
+          assert result.count("SYSTEM_MAX_SIGNUPS_ALLOWED=0") == 1
+          assert "BETTER_AUTH_URL=https://8080-example.instabox.tech" in result
+          assert "AUTH_ORIGIN=https://8080-example.instabox.tech" in result
+          assert "_token=" not in result
+          for key in ("APPLICATION_JWT_SECRET", "APP_SESSION_ID_SECRET", "BETTER_AUTH_SECRET", "APPLICATION_DB_PASSWORD"):
+              line = next(line for line in result.splitlines() if line.startswith(key + "="))
+              assert len(line.split("=", 1)[1]) >= 32, key
+              assert "__REPLACE_ME__" not in line
+          Path("self-hosting/.env").write_text(result, encoding="utf-8")
+          PY
+
+      - name: Verify Compose isolation without running containers
+        run: |
+          bash self-hosting/instabox-trial.sh check
+          cd self-hosting
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.build.yml \
+            -f docker-compose.private.yml \
+            -f docker-compose.instabox.yml \
+            config --format json > /tmp/lajur-instabox-compose.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          data = json.loads(Path("/tmp/lajur-instabox-compose.json").read_text())
+          assert data["name"] == "lajur-instabox-trial", data["name"]
+          assert data["networks"]["budget-tracker"]["name"] == "lajur-instabox-trial-net"
+          services = data["services"]
+          assert set(services) == {"backend", "frontend", "db", "redis", "currency-rates-api"}
+          assert services["backend"]["image"] == "lajur-instabox-backend:local"
+          assert services["frontend"]["image"] == "lajur-instabox-frontend:local"
+          assert not services["db"].get("ports")
+          assert not services["redis"].get("ports")
+          ports = services["frontend"].get("ports", [])
+          assert len(ports) == 1, ports
+          assert ports[0]["published"] == "8080", ports
+          assert data["volumes"]["db_data"]["name"].startswith("lajur-instabox-trial_")
+          assert data["volumes"]["attachments_data"]["name"].startswith("lajur-instabox-trial_")
+          PY
