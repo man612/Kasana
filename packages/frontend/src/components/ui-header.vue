@@ -35,7 +35,14 @@
               <Sheet.SheetTitle></Sheet.SheetTitle>
               <Sheet.SheetDescription></Sheet.SheetDescription>
 
-              <Sidebar mobile-view />
+              <div
+                class="h-full"
+                @touchstart.passive="onSidebarTouchStart"
+                @touchend="onSidebarTouchEnd"
+                @touchcancel="clearSidebarTouch"
+              >
+                <Sidebar mobile-view />
+              </div>
             </Sheet.SheetContent>
           </Sheet.Sheet>
         </template>
@@ -187,6 +194,22 @@ const AttachInvoiceDialog = defineAsyncComponent(() => import('@/components/dial
 
 const userStore = useUserStore();
 const isAddMenuOpen = ref(false);
+let sidebarTouch: { x: number; y: number } | null = null;
+const clearSidebarTouch = () => { sidebarTouch = null; };
+const onSidebarTouchStart = (event: TouchEvent) => {
+  if (!isMobileSheetOpen.value || event.touches.length !== 1) return;
+  const touch = event.touches[0]!;
+  sidebarTouch = { x: touch.clientX, y: touch.clientY };
+};
+const onSidebarTouchEnd = (event: TouchEvent) => {
+  if (!sidebarTouch || event.changedTouches.length !== 1) return;
+  const start = sidebarTouch;
+  sidebarTouch = null;
+  const touch = event.changedTouches[0]!;
+  const dx = touch.clientX - start.x;
+  const dy = touch.clientY - start.y;
+  if (dx < -85 && Math.abs(dx) > Math.abs(dy) * 1.5) isMobileSheetOpen.value = false;
+};
 const isAttachInvoiceMounted = ref(false);
 const isAttachInvoiceOpen = ref(false);
 
