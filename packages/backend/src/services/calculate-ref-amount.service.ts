@@ -1,7 +1,6 @@
 import { Money } from '@common/types/money';
 import { t } from '@i18n/index';
 import { ValidationError } from '@js/errors';
-import { CacheClient } from '@js/utils/cache';
 import { logger } from '@js/utils/logger';
 import * as Currencies from '@models/currencies.model';
 import * as UsersCurrencies from '@models/users-currencies.model';
@@ -9,12 +8,6 @@ import * as userExchangeRateService from '@services/user-exchange-rate';
 
 import { calculateRefAmountFromParams } from './calculate-ref-amount.utils';
 import { withTransaction } from './common/with-transaction';
-
-const refAmountCache = new CacheClient<string>({
-  logPrefix: 'calculateRefAmountImpl',
-  ttl: 3600, // 1 hour
-  parseJson: true,
-});
 
 /**
  * Calculates the reference amount for the provided currencies and parameters.
@@ -36,9 +29,6 @@ const refAmountCache = new CacheClient<string>({
  */
 async function calculateRefAmountImpl(params: Params): Promise<Money> {
   const { baseCode, quoteCode, userId, amount, bypassCache = false } = params;
-
-  const dateStr = new Date(params.date).toISOString().split('T')[0];
-  const amountCents = amount.toCents();
 
   try {
     // Resolve the quote currency BEFORE building the cache key: when `quoteCode` is
@@ -70,24 +60,15 @@ async function calculateRefAmountImpl(params: Params): Promise<Money> {
       });
     }
 
-    // v2 never reuses monetary conversions computed from the legacy truncated FX rate.
-    const cacheKey = `ref_amount:v2:${userId}:${amountCents}:${baseCode}:${resolvedQuoteCode}:${dateStr}`;
-
-    if (!bypassCache) {
-      const cachedAmount = await refAmountCache.read(cacheKey);
-
-      if (cachedAmount !== null) {
-        return Money.fromCents(parseInt(cachedAmount, 10));
-      }
-    }
-
-    // If baseCode equals the resolved quote currency, no conversion is needed.
-    if (resolvedQuoteCode === baseCode) {
-      if (!bypassCache) {
-        await refAmountCache.write({ key: cacheKey, value: amountCents.toString() });
-      }
-      return amount;
-    }
+    // A converted monetary amount depends on mutable per-user custom rates and
+    // the latest live-rate preference. Caching only amount/date/currency allows
+    // a previous conversion to override a newly committed FX edit for up to 1h.
+    // Never read or write converted *amounts* in Redis. getExchangeRate still
+    // caches unchanged global market cross-rates for 4h, while consulting the
+    // user's connection/custom rate before that cache on each conversion.
+    // This also avoids invalidation-vs-concurrent-cache-refill races and
+    // failures to invalidate Redis after a committed DB transaction.
+    if (resolvedQuoteCode === baseCode) return amount;
 
     const result = await userExchangeRateService.getExchangeRate({
       userId,
@@ -97,16 +78,7 @@ async function calculateRefAmountImpl(params: Params): Promise<Money> {
       bypassCache,
     });
 
-    const finalAmount = calculateRefAmountFromParams({ amount, rate: result.rate });
-
-    // Cache the final result as cents. Skipped under `bypassCache` (see its doc):
-    // a write-back inside an uncommitted rate-write transaction would poison the
-    // cache on rollback.
-    if (!bypassCache) {
-      await refAmountCache.write({ key: cacheKey, value: finalAmount.toCents().toString() });
-    }
-
-    return finalAmount;
+    return calculateRefAmountFromParams({ amount, rate: result.rate });
   } catch (e) {
     if (process.env.NODE_ENV !== 'test') {
       logger.error(e as Error);
@@ -124,11 +96,10 @@ type Params = {
   baseCode: string;
   quoteCode?: string;
   /**
-   * Skip the redis cache entirely — no read, no write-back — on both this layer and
-   * the cross-rate layer inside `getExchangeRate`. Required for balance remeasure
-   * inside the custom-rate edit/remove `withTransaction`: it must observe a rate that
-   * changed within the cache TTL, and writing the computed amount back before that
-   * rate write commits would poison the 1h-TTL cache with a value that may roll back.
+   * Bypass the shared four-hour market cross-rate cache in `getExchangeRate`.
+   * Cross-currency converted amounts are deliberately not cached. Required for
+   * rate-sync and custom-rate remeasurement inside transactions, so they observe
+   * uncommitted rate writes without poisoning global cache state.
    */
   bypassCache?: boolean;
 };

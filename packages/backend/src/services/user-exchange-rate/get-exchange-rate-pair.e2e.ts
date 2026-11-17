@@ -204,6 +204,61 @@ describe('GET /currencies/rates/pair', () => {
     }
   });
 
+  it('never reuses amount-cache cents after a custom FX edit, live-rate toggle, or removal', async () => {
+    // Synthetic rates only. Previous v2 amount cache would return 60.00 AED
+    // even after the owner edits a quote to 300.00/400.00 AED.
+    await insertRate({ quoteCode: 'IDR', rate: 16_000 });
+    await helpers.addUserCurrencies({ currencyCodes: ['IDR'] });
+    const owner = await helpers.getUserInfo({ raw: true });
+    const baseCode = global.BASE_CURRENCY_CODE;
+    const legacyV2 = `ref_amount:v2:${owner.id}:100000000:IDR:${baseCode}:${RATE_DATE}`;
+    const conversion = () =>
+      calculateRefAmount({
+        userId: owner.id,
+        amount: Money.fromDecimal(1_000_000),
+        date: new Date(RATE_DATE),
+        baseCode: 'IDR',
+        // Omitted quote verifies the currently configured base currency resolves correctly.
+      });
+    const customPairs = (rate: number) => [
+      { baseCode: 'IDR', quoteCode: baseCode, rate },
+      { baseCode, quoteCode: 'IDR', rate: 1 / rate },
+    ];
+
+    await redisClient.del(legacyV2);
+    try {
+      expect((await conversion()).toCents()).toBe(22_500); // 1m IDR * 3.6/16000
+      await redisClient.set(legacyV2, '6000'); // poisoned cents from an old conversion
+      expect((await conversion()).toCents()).toBe(22_500); // must not return 6,000 cents
+
+      await helpers.editCurrencyExchangeRate({ pairs: customPairs(0.0003), raw: true });
+      expect((await conversion()).toCents()).toBe(30_000);
+
+      await helpers.editCurrencyExchangeRate({ pairs: customPairs(0.0004), raw: true });
+      expect((await conversion()).toCents()).toBe(40_000);
+
+      // Switching to live rates must not inherit the previous manual valuation.
+      await helpers.updateUserCurrency({ currency: { currencyCode: 'IDR', liveRateUpdate: true }, raw: true });
+      expect((await conversion()).toCents()).toBe(22_500);
+
+      await helpers.updateUserCurrency({ currency: { currencyCode: 'IDR', liveRateUpdate: false }, raw: true });
+      expect((await conversion()).toCents()).toBe(40_000);
+
+      await helpers.removeCurrencyExchangeRate({
+        pairs: [
+          { baseCode: 'IDR', quoteCode: baseCode },
+          { baseCode, quoteCode: 'IDR' },
+        ],
+        raw: true,
+      });
+      expect((await conversion()).toCents()).toBe(22_500);
+      // A stale entry can remain in Redis until TTL; conversions never consume it.
+      expect(await redisClient.get(legacyV2)).toBe('6000');
+    } finally {
+      await redisClient.del(legacyV2);
+    }
+  });
+
   it('returns the rate for a currency the user has NOT connected', async () => {
     const userCurrencies = await helpers.getUserCurrencies();
     expect(userCurrencies.some((item) => item.currencyCode === 'JPY')).toBe(false);
