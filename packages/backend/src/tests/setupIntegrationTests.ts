@@ -200,6 +200,7 @@ global.APP_AUTH_COOKIES = null;
  */
 const SEED_DATA_TABLES = [
   'sequelizemeta', // Migration tracking (SequelizeMeta)
+  'signupcapacity', // Admission-policy singleton: retain row and reset limit per test
   'currencies', // All world currencies - seeded in migration
   'exchangerates', // Exchange rates - seeded with historical rates (10 days ago)
 ];
@@ -362,6 +363,8 @@ beforeEach(async () => {
     // Schema comes from template database (created in setup-e2e-tests.sh).
     // We just need to truncate data between tests.
     await truncateAllTables();
+    // PostgreSQL signup trigger reads this singleton even for fixture users.
+    await connection.sequelize.query(`UPDATE "SignupCapacity" SET "maxSignups" = NULL, "scope" = 'self-host' WHERE id = 1`);
 
     // ExchangeRates is preserved across tests (it's in SEED_DATA_TABLES) so the
     // historical seed survives, but that also means today-dated rows written by
