@@ -1236,6 +1236,38 @@ select:focus-visible,
   }
 }
 
+/* A compact active rail and a gentle icon lift make navigation state easier
+   to track after tapping or swiping; motion is optional for reduced-motion users. */
+.lajur-bottom-nav-item::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 24px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--primary);
+  opacity: 0;
+  transform: translateX(-50%) scaleX(0.35);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lajur-bottom-nav-item.lajur-bottom-nav-active::before {
+  opacity: 1;
+  transform: translateX(-50%) scaleX(1);
+}
+.lajur-bottom-nav-item > svg {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lajur-bottom-nav-item.lajur-bottom-nav-active > svg {
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lajur-bottom-nav-item::before,
+  .lajur-bottom-nav-item > svg {
+    transition: none !important;
+  }
+}
+
 /* Chevron motion for generic openable triggers; specific component transforms
    keep their own more detailed states. */
 :where(button[data-state='open'], button[aria-expanded='true'])
