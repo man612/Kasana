@@ -70,11 +70,11 @@ import { useI18n } from 'vue-i18n';
 import { CurrencyWithExchangeRate } from '../types';
 
 const calculateRatio = (value: number) => {
-  const exp = 10 ** 6;
-  const num = 1 / value;
-  const result = Math.round(num * exp) / exp;
-
-  return Number.isFinite(result) ? result : 0;
+  const reciprocal = 1 / value;
+  // 6 decimal places used to round valid IDR/USD reciprocals (e.g.
+  // 0.0000625) up to 0.000063, or much smaller rates down to zero.
+  // Match backend's 12 significant FX digits without changing money units.
+  return Number.isFinite(reciprocal) ? Number(reciprocal.toPrecision(12)) : 0;
 };
 
 const props = defineProps<{
