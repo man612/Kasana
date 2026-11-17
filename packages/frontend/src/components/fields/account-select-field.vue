@@ -148,7 +148,7 @@ import { getAccountDisplayLabel } from '@/common/utils/account-display';
 import { filterDropdownAccounts, useAccountDropdownPrefs } from '@/composable/use-account-dropdown-prefs';
 import { ChevronDownIcon, StarIcon, XIcon } from '@lucide/vue';
 import { AccountModel } from '@bt/shared/types';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 type AccountOption = AccountModel & { _isOutOfWallet?: boolean };
@@ -191,6 +191,10 @@ const { t } = useI18n();
 const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const mobileOpen = ref(false);
 const mobileSearch = ref('');
+// Escape, backdrop taps and the close X should not preserve a stale filter.
+watch(mobileOpen, (open) => {
+  if (!open) mobileSearch.value = '';
+});
 const mobileAccounts = computed(() => {
   const search = mobileSearch.value.trim().toLowerCase();
   return search
