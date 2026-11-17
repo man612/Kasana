@@ -88,6 +88,61 @@ describe('Nightly balance revalue sweep', () => {
     expect(await readBalanceRow({ accountId: account.id, date: corruptedDay })).not.toBe(CORRUPTED_CENTS);
   });
 
+  it('revalues legacy five-decimal IDR history during the nightly sweep and produces stable repeat values', async () => {
+    // Isolated synthetic USD-pivot fixtures, NOT historical/live market quotes:
+    // USD 1 = IDR 16,000 and USD 1 = AED 3.6.
+    // Old IDR -> AED: 0.00022; corrected reciprocal: 0.000225.
+    const historicalDay = subDays(new Date(), 5);
+    const today = new Date();
+    const legacyCents = 22_000; // AED 220.00 under the old five-decimal formatter
+    const correctedCents = 22_500; // AED 225.00 for IDR 1,000,000
+    const dates = [historicalDay, today];
+
+    try {
+      for (const date of dates) {
+        await helpers.seedUsdExchangeRates({ date, ratesPerUsd: { IDR: 16_000, AED: 3.6 } });
+      }
+      await helpers.addUserCurrencies({ currencyCodes: ['IDR'] });
+      const account = await helpers.createAccount({
+        payload: helpers.buildAccountPayload({ currencyCode: 'IDR', initialBalance: 1_000_000 }),
+        raw: true,
+      });
+
+      // Simulate an existing old-format snapshot. The account's native IDR
+      // opening balance is unchanged; only these derived AED rows are stale.
+      for (const date of dates) {
+        await writeBalanceRow({ accountId: account.id, date, cents: legacyCents });
+        expect(await readBalanceRow({ accountId: account.id, date })).toBe(legacyCents);
+      }
+
+      const firstRun = await runBalanceRevalueSweep();
+      expect(firstRun.totalProcessed).toBe(1);
+      expect(firstRun.successfulUpdates).toBe(1);
+      expect(firstRun.failedUpdates).toBe(0);
+
+      // This proves that merely enabling the new formatter can change stored
+      // historical Balances automatically, without editing a transaction.
+      for (const date of dates) {
+        expect(await readBalanceRow({ accountId: account.id, date })).toBe(correctedCents);
+      }
+
+      const secondRun = await runBalanceRevalueSweep();
+      expect(secondRun.totalProcessed).toBe(1);
+      expect(secondRun.successfulUpdates).toBe(1);
+      expect(secondRun.failedUpdates).toBe(0);
+      for (const date of dates) {
+        expect(await readBalanceRow({ accountId: account.id, date })).toBe(correctedCents);
+      }
+
+      // A revaluation updates reference-currency history, not native holdings.
+      const unchanged = await Accounts.findByPk(account.id);
+      expect(unchanged?.initialBalance.toCents()).toBe(100_000_000);
+      expect(unchanged?.currentBalance.toCents()).toBe(100_000_000);
+    } finally {
+      await helpers.clearExchangeRatesForDates({ dates });
+    }
+  }, 60_000);
+
   it('re-values today for a foreign-currency bank account the provider did not sync', async () => {
     const today = new Date();
     await helpers.seedUsdExchangeRates({ date: today, ratesPerUsd: { AED: helpers.AED_PER_USD } });
