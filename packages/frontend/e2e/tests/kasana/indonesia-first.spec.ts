@@ -115,6 +115,14 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await mobileNewTransaction.click();
       const mobileForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
       await expect(mobileForm).toBeVisible();
+      const primaryAmount = mobileForm.locator('input[inputmode="decimal"]').first();
+      await expect(primaryAmount).toBeVisible();
+      const mobileAmountMetrics = await primaryAmount.evaluate((element) => ({
+        fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
+        height: element.getBoundingClientRect().height,
+      }));
+      expect(mobileAmountMetrics.fontSize, '320px money input text should remain readable').toBeGreaterThanOrEqual(16);
+      expect(mobileAmountMetrics.height, '320px money input should have a full touch target').toBeGreaterThanOrEqual(43);
       const mobileSave = mobileForm.getByRole('button', { name: /Buat transaksi|Create transaction/i });
       await expect(mobileSave).toBeVisible();
       const mobileSaveBox = await mobileSave.boundingBox();
