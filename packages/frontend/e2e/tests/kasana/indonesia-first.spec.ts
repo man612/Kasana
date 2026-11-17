@@ -97,7 +97,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         await expect(adjustBalanceAction).toBeVisible();
         await adjustBalanceAction.focus();
         await deepLink.keyboard.press('Enter');
-        await expect(deepLink.getByRole('dialog')).toBeVisible();
+        await expect(deepLink.getByRole('dialog', { name: /Sesuaikan Saldo|Adjust Balance/i })).toBeVisible();
         await deepLink.keyboard.press('Escape');
 
         await back.click();
