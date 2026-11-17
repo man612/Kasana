@@ -16,6 +16,8 @@ The script:
 - reports the total number of custom FX rate records, without exposing per-user identifiers or financial balances;
 - uses a read-only repeatable-read transaction, a 10-second statement limit and a 2-second lock wait limit; it makes no persistent schema/data changes.
 
+**Observed on the disposable E2E PostgreSQL migration (17 November 2026):** log `FX_STORAGE_SCHEMA_DISPOSABLE` from [CI run 44033608543](https://github.com/man612/Kasana/actions/runs/44033608543) confirmed `ExchangeRates.rate` and `UserExchangeRates.rate` are `double precision` (53 binary precision bits) and `Transactions.refAmount` / `Balances.amount` are `bigint` (64 bits). Earlier assumptions that Sequelize's `FLOAT` must create PostgreSQL `REAL` were incorrect for this tested schema. This is not a read of the operator's production database; verify the destination using this script on an isolated restore. Float still does not represent many decimal fractions exactly; a future `NUMERIC` migration requires a measured, separate proposal.
+
 **Explicit limitations:** This inventory cannot calculate the old/new value differences, reconstruct historical manual-rate provenance, prove invariants for transfer/loan/investment ledgers, or substitute for a full encrypted backup restore. Run side-by-side synthetic database comparisons with exact before/after transaction and `Balances` rows before approval. Do not infer historical correctness from a green CI job alone.
 
 Source mapping:

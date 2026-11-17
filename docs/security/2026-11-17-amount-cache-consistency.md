@@ -19,7 +19,7 @@ Blindly deleting all matching nominal keys after an edit is not a proof of corre
 
 A cache hit for a repeated nominal now requires `getExchangeRate` and its user-connection check instead of directly returning cached cents. This can increase backend SQL reads during high-volume imports, although the global cross-rate remains cached. Benchmark E2E bulk-import throughput and query count before any public rollout; **correctness is prioritized over an unversioned financial amount cache**.
 
-This fix does not guarantee market quotes are fresh within the existing four-hour `cross_rate:v2` TTL if an exact-date upstream quote itself changes. That is a separate freshness policy and needs measured tests. It also does not reconcile historical transaction `refAmount` or upgrade PostgreSQL `ExchangeRates.rate` from its declared FLOAT type.
+This fix does not guarantee market quotes are fresh within the existing four-hour `cross_rate:v2` TTL if an exact-date upstream quote itself changes. That is a separate freshness policy and needs measured tests. It also does not reconcile historical transaction `refAmount`. A migrated disposable PostgreSQL E2E instance actually stores `ExchangeRates.rate` as `double precision` (not the previously assumed `REAL`); any future switch to `NUMERIC` must be evaluated independently on precision requirements, data compatibility and performance.
 
 Primary references:
 - https://redis.io/blog/cache-consistency-strategies/
