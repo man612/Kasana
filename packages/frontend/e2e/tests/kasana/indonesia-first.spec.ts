@@ -13,7 +13,7 @@ import { buildTestCredentials, signUpAndVerify } from '../../helpers/test-setup'
 test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('displays IDR spending on mobile, fits the viewport at 80% UI density and supports account deep-link return', async ({
+  test('displays IDR spending on full-size mobile UI, fits the viewport and supports account deep-link return', async ({
     page,
     playwright,
   }) => {
@@ -64,9 +64,8 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         const back = deepLink.getByRole('button', { name: /Kembali|Back/i });
         await expect(back).toBeVisible();
 
-        // 80% density uses rem typography instead of root CSS zoom.
-        // Unlike CSS zoom, viewport dimensions and teleported overlay anchors
-        // must remain in one coordinate space at the default density.
+        // Mobile 100% and desktop 80% use rem typography, never root zoom.
+        // Root zoom previously clipped fullscreen panels and displaced portals.
         const viewportGeometry = await deepLink.evaluate(() => {
           const shell = document.querySelector<HTMLElement>('.h-dvh');
           const shellRect = shell?.getBoundingClientRect();
@@ -82,6 +81,23 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         expect(viewportGeometry.shellRight, 'Dashboard shell must fill viewport width').toBeGreaterThanOrEqual(389);
         expect(viewportGeometry.shellBottom, 'Dashboard shell must fill viewport height').toBeGreaterThanOrEqual(843);
 
+        // Account detail is a genuinely populated screen, not just the empty
+        // sign-in shell. Check its header, total and horizontal reflow after
+        // increasing mobile typography to its native 100% size.
+        for (const width of [320, 375, 430, 767, 768, 1280]) {
+          await deepLink.setViewportSize({ width, height: 844 });
+          await expect(deepLink.getByText(accountName).first()).toBeVisible();
+          const metrics = await deepLink.evaluate(() => ({
+            scale: Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--kasana-ui-scale')),
+            overflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth,
+            documentZoom: getComputedStyle(document.documentElement).zoom,
+          }));
+          expect(metrics.scale, `account UI scale at ${width}px`).toBe(width <= 767 ? 1 : 0.8);
+          expect(Number(metrics.documentZoom)).toBe(1);
+          expect(metrics.overflow, `account detail horizontal overflow at ${width}px`).toBeLessThanOrEqual(2);
+        }
+        await deepLink.setViewportSize({ width: 390, height: 844 });
+
         await expect(deepLink.getByRole('button', { name: /Buka menu navigasi|Open navigation menu/i })).toBeVisible();
 
         await back.click();
@@ -89,6 +105,62 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       } finally {
         await deepLink.close();
       }
+
+      // Full-size mobile fonts must not push the transaction save control off
+      // the viewport when the bottom sheet is open on a short 320px phone.
+      await page.setViewportSize({ width: 320, height: 568 });
+      await page.goto('/dashboard');
+      const mobileNewTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();
+      await expect(mobileNewTransaction).toBeVisible();
+      await mobileNewTransaction.click();
+      const mobileForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
+      await expect(mobileForm).toBeVisible();
+      const primaryAmount = mobileForm.locator('input[inputmode="decimal"]').first();
+      await expect(primaryAmount).toBeVisible();
+      const mobileAmountMetrics = await primaryAmount.evaluate((element) => ({
+        fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
+        height: element.getBoundingClientRect().height,
+      }));
+      expect(mobileAmountMetrics.fontSize, '320px money input text should remain readable').toBeGreaterThanOrEqual(16);
+      expect(mobileAmountMetrics.height, '320px money input should have a full touch target').toBeGreaterThanOrEqual(43);
+      const mobileSave = mobileForm.getByRole('button', { name: /Buat transaksi|Create transaction/i });
+      await expect(mobileSave).toBeVisible();
+      // Vaul animates the bottom sheet into the viewport. A nonzero box and
+      // toBeVisible() do NOT imply the entrance animation has settled.
+      // Poll the actual bounding rectangle; keep this test red if the footer
+      // remains clipped after the transition has had time to complete.
+      await expect
+        .poll(
+          async () => {
+            const bounds = await mobileSave.boundingBox();
+            return bounds ? bounds.y + bounds.height : Number.POSITIVE_INFINITY;
+          },
+          { message: '320px mobile Save must fully enter the 568px viewport', timeout: 8_000 },
+        )
+        .toBeLessThanOrEqual(570);
+      const mobileSaveBox = await mobileSave.boundingBox();
+      expect(mobileSaveBox).not.toBeNull();
+      expect(mobileSaveBox!.x, '320px mobile save button left').toBeGreaterThanOrEqual(-2);
+      expect(mobileSaveBox!.x + mobileSaveBox!.width, '320px mobile save button right').toBeLessThanOrEqual(322);
+      await page.keyboard.press('Escape');
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto('/dashboard');
+      const mobileDateTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();
+      await mobileDateTransaction.click();
+      const mobileDateForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
+      await expect(mobileDateForm).toBeVisible();
+      await mobileDateForm.getByTestId('date-field-calendar-trigger').first().click();
+      const mobileDatePicker = page.getByTestId('transaction-date-dialog');
+      await expect(mobileDatePicker).toBeVisible();
+      const mobilePickerBox = await mobileDatePicker.boundingBox();
+      expect(mobilePickerBox).not.toBeNull();
+      expect(mobilePickerBox!.x).toBeGreaterThanOrEqual(-2);
+      expect(mobilePickerBox!.x + mobilePickerBox!.width).toBeLessThanOrEqual(392);
+      expect(mobilePickerBox!.y).toBeGreaterThanOrEqual(-2);
+      expect(mobilePickerBox!.y + mobilePickerBox!.height).toBeLessThanOrEqual(846);
+      const mobileUnusedScroll = await mobileDatePicker.evaluate((node) => node.scrollHeight - node.clientHeight);
+      expect(mobileUnusedScroll, '390px mobile date picker should not require needless scrolling').toBeLessThanOrEqual(2);
+      await page.keyboard.press('Escape');
 
       // The accent is independent of light/dark mode and survives navigation
       // and reload. Test the actual settings controls, not just stored tokens.

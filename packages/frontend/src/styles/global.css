@@ -246,10 +246,13 @@
   Prevent document-level scrolling. All scrolling should happen inside ScrollArea components.
   This fixes the "double scroll" issue where html/body can scroll independently.
 */
-/* Keep the 80% rem-based interface density, but never zoom the HTML root.
-   Root zoom shrank 100dvh panels, clipped scroll containers and offset portals. */
+/* Mobile uses the original 100% UI density so text, controls and spacing
+   remain legible/tappable. Preserve the denser 80% layout at desktop widths
+   only. Both breakpoints are CSS viewport widths, matching uiMobile (767px).
+   Scale rem values, never the root element via CSS zoom: root zoom previously
+   clipped 100dvh panels and displaced portalled popovers. */
 :root {
-  --kasana-ui-scale: 0.8;
+  --kasana-ui-scale: 1;
   --kasana-brand-light: rgb(115, 85, 190);
   --kasana-brand-dark: rgb(115, 85, 190);
   --kasana-brand-text-light: rgb(100, 67, 175);
@@ -258,6 +261,14 @@
 @layer base {
   html {
     font-size: calc(100% * var(--kasana-ui-scale));
+  }
+}
+
+/* Tablet/desktop retain the existing dense layout; narrower or zoomed
+   viewports automatically switch to full-size mobile-friendly controls. */
+@media (min-width: 768px) {
+  :root {
+    --kasana-ui-scale: 0.8;
   }
 }
 
