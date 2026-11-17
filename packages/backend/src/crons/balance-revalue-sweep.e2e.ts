@@ -1,4 +1,4 @@
-import { ACCOUNT_CATEGORIES, VEHICLE_CLASS, asDecimal } from '@bt/shared/types';
+import { ACCOUNT_CATEGORIES, TRANSACTION_TYPES, VEHICLE_CLASS, asDecimal } from '@bt/shared/types';
 import { describe, expect, it } from '@jest/globals';
 import Accounts from '@models/accounts.model';
 import { connection } from '@models/connection';
@@ -164,7 +164,7 @@ describe('Nightly balance revalue sweep', () => {
       const [expense] = await helpers.createTransaction({
         payload: helpers.buildTransactionPayload({
           accountId: account.id,
-          transactionType: 'expense',
+          transactionType: TRANSACTION_TYPES.expense,
           amount: 200_000,
           time: pastDay.toISOString(),
         }),
