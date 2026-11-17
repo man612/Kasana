@@ -44,11 +44,21 @@ bash scripts/check-instabox-preview.sh
 
 Before changes, save an InstaBox machine snapshot from the dashboard and verify that it completed. It is an emergency restore point for this disposable machine, not an offsite finance backup.
 
-## Phase 1 — isolated source and preview URL
+## Phase 1 — one published-port slot on InstaBox Free
 
-1. Leave the existing Absenin project, port 3000 and all its databases untouched.
-2. In InstaBox Ports, add port **8080** as **private/token-protected**, not public. Use the HTTPS hostname as the app origin. The full private link (for example with `_token`) is a credential: do not post it in GitHub, chat, screenshots, or repository files.
-3. Clone the integrated source branch with the InstaBox-specific safeguards to a *new* directory. This experimental branch is based on the CI-tested PR #10 head; it is not the public repository default branch:
+**The Free plan on this operator's machine only allows one published preview port at a time.** Absenin already owns the slot for port 3000; port 8080 cannot be published simultaneously. This is a published-URL limit, **not** a restriction on how many processes or containers may run on the machine.
+
+For now, use the slot **sequentially**. In the InstaBox dashboard **Ports** tab:
+
+1. Keep Absenin's Node process and all its files running on port 3000. Before changing anything, note its current preview settings (name, mode and port), then save a machine snapshot.
+2. When you are ready to test Lajur., **Unpublish** only Absenin's port 3000 preview. Do **not** stop the machine, kill the Node process, remove Absenin files or prune Docker.
+3. Publish only **8080** as **Private**. If the dashboard supports changing the existing published port from 3000 to 8080, that is also fine; check that the result is a new/updated private HTTPS origin. If the Free plan still refuses after unpublishing, stop and check the account limit/dashboard; do not attempt quota circumvention.
+4. Use the resulting HTTPS origin for Lajur.'s auth configuration, excluding the `_token` query and any path. The whole token-bearing preview URL is a secret. Do not paste it into a public chat, screenshot or repository.
+5. To return to Absenin: unpublish 8080, then republish port 3000 with the previous desired visibility. This changes browser preview access, not either application's files or process status.
+
+The published preview is a development-only access path and may rotate after republishing. If the origin changes, update both `AUTH_ORIGIN` and `BETTER_AUTH_URL` in Lajur.'s local `.env`, and recreate only its backend. Do not use a production custom domain.
+
+**Source directory:** Keep Lajur. separate from Absenin. If you have **already cloned** to `~/lajur-preview`, do not clone again; use `cd ~/lajur-preview`. Run `df -h .` to confirm which filesystem stores the checkout. Otherwise, start a fresh clone on `/data`:
 
 ~~~bash
 cd /data
@@ -56,7 +66,7 @@ git clone -b docs/lajur-instabox-trial-20261117 --single-branch https://github.c
 cd lajur-preview
 ~~~
 
-Keep all Lajur. source and configuration below `/data/lajur-preview/`; do not install Node packages into Absenin's folder. The source snapshot/version should be pinned when comparing screenshots.
+On an existing clean checkout, `git pull --ff-only` updates it to the latest reviewed trial scripts. Avoid copying source or secret files into the Absenin directory.
 
 ## Phase 2 — create demo-only secrets safely (mobile-friendly)
 
