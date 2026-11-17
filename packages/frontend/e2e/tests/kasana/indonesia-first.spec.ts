@@ -84,6 +84,22 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
 
         await expect(deepLink.getByRole('button', { name: /Buka menu navigasi|Open navigation menu/i })).toBeVisible();
 
+        // Account actions must expose their purpose to assistive technology and
+        // work with the keyboard, not only with pointer clicks on styled text.
+        const renameAction = deepLink.getByRole('button', { name: /Edit Nama Akun|Edit Account Name/i });
+        await expect(renameAction).toBeVisible();
+        await renameAction.focus();
+        await deepLink.keyboard.press('Enter');
+        await expect(deepLink.getByRole('textbox', { name: /Nama akun|Account name/i })).toBeVisible();
+        await deepLink.keyboard.press('Escape');
+
+        const adjustBalanceAction = deepLink.getByRole('button', { name: /Sesuaikan saldo|Adjust balance/i });
+        await expect(adjustBalanceAction).toBeVisible();
+        await adjustBalanceAction.focus();
+        await deepLink.keyboard.press('Enter');
+        await expect(deepLink.getByRole('dialog')).toBeVisible();
+        await deepLink.keyboard.press('Escape');
+
         await back.click();
         await expect(deepLink).toHaveURL(/\/accounts(?:\?.*)?$/);
       } finally {
