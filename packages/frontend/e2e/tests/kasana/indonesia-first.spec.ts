@@ -106,6 +106,25 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         await deepLink.close();
       }
 
+      // Full-size mobile fonts must not push the transaction save control off
+      // the viewport when the bottom sheet is open on a short 320px phone.
+      await page.setViewportSize({ width: 320, height: 568 });
+      await page.goto('/dashboard');
+      const mobileNewTransaction = page.getByRole('button', { name: /Transaksi Baru|New transaction/i }).first();
+      await expect(mobileNewTransaction).toBeVisible();
+      await mobileNewTransaction.click();
+      const mobileForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
+      await expect(mobileForm).toBeVisible();
+      const mobileSave = mobileForm.getByRole('button', { name: /Buat transaksi|Create transaction/i });
+      await expect(mobileSave).toBeVisible();
+      const mobileSaveBox = await mobileSave.boundingBox();
+      expect(mobileSaveBox).not.toBeNull();
+      expect(mobileSaveBox!.x, '320px mobile save button left').toBeGreaterThanOrEqual(-2);
+      expect(mobileSaveBox!.x + mobileSaveBox!.width, '320px mobile save button right').toBeLessThanOrEqual(322);
+      expect(mobileSaveBox!.y + mobileSaveBox!.height, '320px mobile save button bottom').toBeLessThanOrEqual(570);
+      await page.keyboard.press('Escape');
+      await page.setViewportSize({ width: 390, height: 844 });
+
       // The accent is independent of light/dark mode and survives navigation
       // and reload. Test the actual settings controls, not just stored tokens.
       await page.goto('/settings/appearance');
