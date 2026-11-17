@@ -18,8 +18,10 @@ After waiting for an earlier signup to commit, it checks the resulting row
 count using a VOLATILE SQL function under READ COMMITTED. Exceeding the cap
 raises SQLSTATE 23514, rolling back the insertion without a leaked
 reservation. This applies to both email and OAuth paths because they write to
-the same auth table. A database-side rejection can currently show as a
-generic auth error, not a polished 403.
+the same auth table. A transition relation skips empty INSERT statements,
+including no-op ON CONFLICT statements. Non-READ COMMITTED transactions
+fail closed rather than trusting a potentially stale snapshot. A database-
+side rejection may currently appear as a generic error, not a polished 403.
 
 On self-host, current live ba_user rows count. Deleting a user releases a
 slot. On hosted instances, the union of persistent SignupLedger normalized
@@ -58,7 +60,7 @@ plan. Do not add untrusted application roles that can mutate the policy table.
   backend instances, not merely a mocked endpoint
 - [ ] Define an operator-safe review/recovery procedure for orphan auth rows
   and acceptable public 403/signup feedback
-- [ ] Verify PostgreSQL READ COMMITTED; test on the actual staging DB setup
+- [ ] Verify PostgreSQL READ COMMITTED and rejection under other isolation levels on the actual staging DB setup
 - [ ] Operator approval before public self-registration
 
 Primary sources:
