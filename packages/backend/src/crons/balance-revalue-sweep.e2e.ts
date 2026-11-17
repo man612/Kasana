@@ -62,6 +62,40 @@ const setAccountCategory = async ({ accountId, category }: { accountId: string; 
 };
 
 describe('Nightly balance revalue sweep', () => {
+  it('reports actual numeric storage types from disposable PostgreSQL without changing schema', async () => {
+    // The model declares DataType.FLOAT/NUMBER; inspect what the tested
+    // migration actually created rather than assuming a PostgreSQL mapping.
+    const rows = (await connection.sequelize.query(
+      `SELECT table_name, column_name, data_type, numeric_precision, numeric_scale
+         FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND (
+               (table_name = 'ExchangeRates' AND column_name = 'rate')
+            OR (table_name = 'UserExchangeRates' AND column_name = 'rate')
+            OR (table_name = 'Transactions' AND column_name = 'refAmount')
+            OR (table_name = 'Balances' AND column_name = 'amount')
+          )
+        ORDER BY table_name, column_name`,
+      { type: QueryTypes.SELECT },
+    )) as {
+      table_name: string;
+      column_name: string;
+      data_type: string;
+      numeric_precision: number | null;
+      numeric_scale: number | null;
+    }[];
+
+    expect(rows).toHaveLength(4);
+    expect(rows.map((row) => `${row.table_name}.${row.column_name}`)).toEqual([
+      'Balances.amount',
+      'ExchangeRates.rate',
+      'Transactions.refAmount',
+      'UserExchangeRates.rate',
+    ]);
+    // Intentional harmless schema-only CI evidence. No financial values or IDs.
+    process.stdout.write(`FX_STORAGE_SCHEMA_DISPOSABLE ${JSON.stringify(rows)}\n`);
+  });
+
   it('rebuilds a foreign-currency account, dropping a value it did not compute', async () => {
     const { account } = await helpers.createAccountWithNewCurrency({ currency: 'UAH' });
 
