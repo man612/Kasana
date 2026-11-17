@@ -102,7 +102,8 @@
           "lockedShares": "Anda memiliki {count} pembagian akun aktif. Cabut dari akun terlebih dahulu. | Anda memiliki {count} pembagian akun aktif. Cabut dari masing-masing akun terlebih dahulu.",
           "lockedBudgetPlan": "An active budget plan is blocking the change. Delete it first. | {count} active budget plans are blocking the change. Delete them first."
         }
-      }
+      },
+      "idrBetaNotice": "Penambahan mata uang lain belum dibuka selama beta Indonesia. Akun dan transaksi lama tidak diubah."
     }
   }
 }
