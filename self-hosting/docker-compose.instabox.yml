@@ -1,0 +1,19 @@
+# Lajur. — disposable InstaBox trial overlay.
+#
+# Must be the LAST file after the base, build and private Compose files.
+# This overrides legacy globally named resources without touching another app
+# on the same machine. It does NOT change the host-wide Docker daemon.
+# Do not use this overlay for an existing Lajur. installation with real data;
+# its different Compose project name will create fresh, empty named volumes.
+name: lajur-instabox-trial
+
+services:
+  backend:
+    image: lajur-instabox-backend:local
+
+  frontend:
+    image: lajur-instabox-frontend:local
+
+networks:
+  budget-tracker:
+    name: lajur-instabox-trial-net
