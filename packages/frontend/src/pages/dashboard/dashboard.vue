@@ -8,12 +8,12 @@
       v-if="!hasNoAccounts"
       :class="
         cn([
-          'bg-background/95 supports-backdrop-filter:bg-background/80 order-last -mx-6 mt-auto border-t py-2 backdrop-blur',
+          'bg-background/95 supports-backdrop-filter:bg-background/80 order-first -mx-6 -mt-1 mb-3 border-b py-2 backdrop-blur',
           'z-(--z-navbar)',
           isEditMode && 'max-md:hidden',
-          'max-md:right-0 max-md:left-0',
-          'sticky max-md:-bottom-px max-md:-mb-8 md:top-(--header-height)',
-          'md:order-first md:-mx-6 md:-mt-1 md:mb-2 md:border-t-0 md:px-6 md:py-1',
+          'max-md:px-3',
+          'sticky top-(--header-height)',
+          'md:order-first md:-mx-6 md:-mt-1 md:mb-2 md:border-b-0 md:px-6 md:py-1',
           isScrolled &&
             'md:bg-card/95 md:supports-backdrop-filter:bg-card/95 dark:md:bg-background/95 dark:md:supports-backdrop-filter:bg-background/80 md:border-b dark:md:border-b-0',
         ])

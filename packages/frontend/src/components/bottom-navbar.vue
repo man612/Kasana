@@ -1,9 +1,9 @@
 <template>
   <div
     ref="navbarRef"
-    class="bg-background not-dark:border-border sticky right-0 bottom-0 left-0 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] not-dark:border-t max-sm:px-4"
+    class="bg-background/95 border-border/70 sticky right-0 bottom-0 left-0 z-(--z-navbar) border-t px-2 pt-1 pb-[max(0.35rem,env(safe-area-inset-bottom))] backdrop-blur-sm md:px-4"
   >
-    <nav class="grid grid-cols-4 gap-1">
+    <nav class="mx-auto grid max-w-150 grid-cols-4 gap-1" :aria-label="'Navigasi utama'">
       <NavigationLinks bottom-nav />
     </nav>
   </div>

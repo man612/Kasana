@@ -70,10 +70,10 @@
     </template>
 
     <!-- Stats row - two columns with space between -->
-    <div v-if="!showError" class="mb-4 flex items-start justify-between gap-4">
+    <div v-if="!showError" class="mb-3 flex flex-wrap items-start justify-between gap-2 sm:mb-4 sm:gap-4">
       <!-- Left: Primary value -->
       <div>
-        <div class="text-2xl font-bold tracking-tight">
+        <div class="text-xl font-bold tracking-tight tabular-nums sm:text-2xl">
           <template v-if="isWidgetDataFetching && !hasData">
             <div class="bg-muted h-8 w-32 animate-pulse rounded" />
           </template>

@@ -19,6 +19,8 @@ import { useSidebarNavRoutes } from './use-nav-routes';
 withDefaults(defineProps<{ bottomNav?: boolean }>(), { bottomNav: false });
 
 const navItemBase = 'w-full gap-2 px-3';
+const bottomNavItem =
+  'flex min-h-14 flex-col justify-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-medium leading-tight transition-[background-color,color,transform] duration-150 active:scale-[0.97] motion-reduce:transition-none';
 const navItemActive = 'bg-primary/10 text-foreground';
 const navIconBase = 'size-4 shrink-0';
 const navIconActive = 'text-primary-text';
@@ -57,19 +59,19 @@ watch(
     <ui-button
       variant="ghost"
       as="span"
-      :class="[navItemBase, !bottomNav && 'justify-start', isActive && navItemActive]"
+      :class="[bottomNav ? bottomNavItem : navItemBase + ' justify-start', isActive && navItemActive]"
       size="default"
     >
-      <LayoutDashboardIcon :class="[navIconBase, isActive && navIconActive]" />
-      <span :class="{ 'max-sm:hidden': bottomNav }"> {{ $t('navigation.dashboard') }} </span>
+      <LayoutDashboardIcon :class="[navIconBase, bottomNav && 'size-5', isActive && navIconActive]" />
+      <span :class="bottomNav && 'text-[11px] leading-tight'"> {{ $t('navigation.dashboard') }} </span>
     </ui-button>
   </router-link>
 
   <template v-if="bottomNav">
     <router-link v-slot="{ isActive }" :to="{ name: ROUTES_NAMES.accounts }">
-      <ui-button variant="ghost" as="span" :class="[navItemBase, isActive && navItemActive]" size="default">
-        <LayersIcon :class="[navIconBase, isActive && navIconActive]" />
-        <span class="max-sm:hidden"> {{ $t('navigation.accounts') }} </span>
+      <ui-button variant="ghost" as="span" :class="[bottomNavItem, (isActive || isAccountsRoute) && navItemActive]" size="default">
+        <LayersIcon :class="[navIconBase, bottomNav && 'size-5', (isActive || isAccountsRoute) && navIconActive]" />
+        <span class="text-[11px] leading-tight"> {{ $t('navigation.accounts') }} </span>
       </ui-button>
     </router-link>
   </template>
@@ -123,9 +125,9 @@ watch(
 
   <template v-if="bottomNav">
     <router-link v-slot="{ isActive }" :to="{ name: ROUTES_NAMES.transactions }">
-      <ui-button variant="ghost" as="span" :class="[navItemBase, isActive && navItemActive]" size="default">
-        <CreditCardIcon :class="[navIconBase, isActive && navIconActive]" />
-        <span class="max-sm:hidden"> {{ $t('navigation.transactions') }} </span>
+      <ui-button variant="ghost" as="span" :class="[bottomNavItem, (isActive || isTransactionsRoute) && navItemActive]" size="default">
+        <CreditCardIcon :class="[navIconBase, bottomNav && 'size-5', (isActive || isTransactionsRoute) && navIconActive]" />
+        <span class="text-[11px] leading-tight"> {{ $t('navigation.transactions') }} </span>
       </ui-button>
     </router-link>
   </template>
@@ -207,11 +209,11 @@ watch(
     <ui-button
       variant="ghost"
       as="span"
-      :class="[navItemBase, !bottomNav && 'justify-start', isActive && navItemActive]"
+      :class="[bottomNav ? bottomNavItem : navItemBase + ' justify-start', isActive && navItemActive]"
       size="default"
     >
-      <ChartColumnIcon :class="[navIconBase, isActive && navIconActive]" />
-      <span :class="{ 'max-sm:hidden': bottomNav }"> {{ $t('navigation.analytics') }} </span>
+      <ChartColumnIcon :class="[navIconBase, bottomNav && 'size-5', isActive && navIconActive]" />
+      <span :class="bottomNav && 'text-[11px] leading-tight'"> {{ $t('navigation.analytics') }} </span>
     </ui-button>
   </router-link>
 </template>

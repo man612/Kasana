@@ -32,6 +32,11 @@
         "purple": "Purple",
         "green": "Green",
         "blue": "Blue"
+      },
+      "interactionSound": {
+        "title": "Interaction sounds",
+        "description": "Gentle click feedback on mobile buttons and navigation. Off by default; saved only on this device and never plays while typing.",
+        "toggle": "Enable mobile tap sounds"
       }
     }
   }

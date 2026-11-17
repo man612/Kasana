@@ -53,6 +53,19 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await page.goto('/accounts');
       await expect(page.getByText(accountName).first()).toBeVisible({ timeout: 20_000 });
 
+      // The mobile create-account/vehicle menu must be a bounded dialog,
+      // not a fragile popover that vanishes when another field receives focus.
+      const accountMenuTrigger = page.getByRole('button', { name: /Tindakan akun|Account actions/i });
+      await accountMenuTrigger.click();
+      const accountMenu = page.getByRole('dialog', { name: /Tindakan akun|Account actions/i });
+      await expect(accountMenu).toBeVisible();
+      await expect(accountMenu.getByRole('button', { name: /Buat akun|Create account/i })).toBeVisible();
+      await expect(accountMenu.getByRole('button', { name: /Tambah kendaraan|Add vehicle/i })).toBeVisible();
+      await page.mouse.click(4, 4);
+      await expect(accountMenu).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(accountMenu).toBeHidden();
+
       // New tab has the authenticated cookie but no prior app navigation
       // history. It must still have an explicit, reliable Back destination.
       const deepLink = await page.context().newPage();
@@ -126,13 +139,42 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       // the viewport when the bottom sheet is open on a short 320px phone.
       await page.setViewportSize({ width: 320, height: 568 });
       await page.goto('/dashboard');
+      const mobileNav = page.getByRole('navigation', { name: 'Navigasi utama' });
+      await expect(mobileNav).toBeVisible();
+      for (const label of [/Dasbor|Dashboard/i, /Akun|Accounts/i, /Transaksi|Transactions/i, /Analitik|Analytics/i]) {
+        await expect(mobileNav.getByRole('link', { name: label })).toBeVisible();
+      }
       const mobileNewTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();
       await expect(mobileNewTransaction).toBeVisible();
       await mobileNewTransaction.click();
       const mobileForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
       await expect(mobileForm).toBeVisible();
-      const primaryAmount = mobileForm.locator('input[inputmode="decimal"]').first();
+      // At 320px, the transaction date is on a separate row and inline
+      // time controls are hidden (the calendar dialog still edits the time).
+      const amountDateStack = mobileForm.getByTestId('transaction-amount-date-stack');
+      const primaryAmount = amountDateStack.locator('input[inputmode="decimal"]').first();
+      const mobileDateInput = amountDateStack.getByTestId('date-field-numeric-input');
       await expect(primaryAmount).toBeVisible();
+      await expect(mobileDateInput).toBeVisible();
+      await expect(amountDateStack).toHaveCSS('flex-direction', 'column');
+      // The sheet animates into the viewport with a transform. Two awaited
+      // boundingBox() calls can sample *different animation frames*, making
+      // correctly stacked fields look as though they overlap. Read both DOM
+      // rectangles in one browser evaluation (the same rendering snapshot).
+      // Keep the real geometry requirement: no overlap, even at 320px.
+      await expect
+        .poll(
+          () =>
+            amountDateStack.evaluate((stack) => {
+              const amount = stack.querySelector<HTMLInputElement>('input[inputmode="decimal"]');
+              const date = stack.querySelector<HTMLInputElement>('[data-testid="date-field-numeric-input"]');
+              if (!amount || !date) return Number.NEGATIVE_INFINITY;
+              return date.getBoundingClientRect().top - amount.getBoundingClientRect().bottom;
+            }),
+          { message: '320px amount and date must be vertically separate', timeout: 8_000 },
+        )
+        .toBeGreaterThanOrEqual(4);
+      await expect(mobileForm.getByTestId('date-field-time-input')).toHaveCount(0);
       const mobileAmountMetrics = await primaryAmount.evaluate((element) => ({
         fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
         height: element.getBoundingClientRect().height,
@@ -158,6 +200,20 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(mobileSaveBox).not.toBeNull();
       expect(mobileSaveBox!.x, '320px mobile save button left').toBeGreaterThanOrEqual(-2);
       expect(mobileSaveBox!.x + mobileSaveBox!.width, '320px mobile save button right').toBeLessThanOrEqual(322);
+
+      // On a short mobile viewport, templates must use a centered dialog with
+      // reachable bottom actions, not a clipped nested bottom sheet.
+      await mobileForm.getByRole('button', { name: /^Templat|^Template/i }).first().click();
+      const templateDialog = page.getByRole('dialog', { name: /^Templat|^Template/i });
+      await expect(templateDialog).toBeVisible();
+      const templateBounds = await templateDialog.boundingBox();
+      expect(templateBounds).not.toBeNull();
+      expect(templateBounds!.y).toBeGreaterThanOrEqual(-2);
+      expect(templateBounds!.y + templateBounds!.height).toBeLessThanOrEqual(570);
+      await expect(templateDialog.getByRole('button', { name: /Templat baru|New template/i })).toBeVisible();
+      await page.keyboard.press('Escape');
+      await expect(templateDialog).toBeHidden();
+      await expect(mobileForm).toBeVisible();
       await page.keyboard.press('Escape');
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto('/dashboard');

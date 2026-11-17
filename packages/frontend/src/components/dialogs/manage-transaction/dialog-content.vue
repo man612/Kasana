@@ -2134,7 +2134,7 @@ onUnmounted(() => {
         <Button v-else variant="ghost"> {{ $t('dialogs.manageTransaction.form.closeButton') }} </Button>
       </DialogClose>
     </div>
-    <div class="min-h-0 flex-1 overflow-y-auto md:overflow-hidden">
+    <div data-vaul-no-drag class="lajur-transaction-scroll min-h-0 flex-1 overflow-y-auto md:overflow-hidden">
       <div class="relative grid grid-cols-1 md:h-full md:min-h-0 md:grid-cols-[450px_minmax(0,1fr)]">
         <div class="min-h-0 px-6 pb-6 md:overflow-y-auto md:overscroll-contain">
           <div class="bg-dialog sticky top-0 z-10 pt-1 pb-2">
@@ -2175,7 +2175,9 @@ onUnmounted(() => {
           </div>
 
           <div ref="transactionModeFieldsRef">
-            <div :class="isMobileView && 'grid grid-cols-2 gap-x-3'">
+            <!-- CSS breakpoint controls stacking immediately, without waiting for the
+                 debounced JS mobile flag after a viewport rotation/resize. -->
+            <div data-testid="transaction-amount-date-stack" class="max-md:flex max-md:flex-col max-md:gap-y-2">
               <form-row>
                 <DesktopOnlyTooltip
                   v-if="isMultiAccount"

@@ -92,7 +92,7 @@
               </Button>
             </Dialog.DialogTrigger>
           </div>
-          <div v-if="!isDateOnlyInput" class="flex shrink-0 items-center gap-1">
+          <div v-if="!isDateOnlyInput && !hideInputTime" class="flex shrink-0 items-center gap-1">
             <input
               :value="timeValue"
               type="text"

@@ -57,7 +57,7 @@ const describedByAttrs = useDescribedByAttrs();
       v-bind="{ ...forwarded, ...describedByAttrs, ...$attrs }"
       :class="
         cn(
-          'bg-dialog fixed top-1/2 left-1/2 z-(--z-dialog) flex max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col border p-6 shadow-lg duration-200 sm:rounded-lg',
+          'bg-dialog fixed top-1/2 left-1/2 z-(--z-dialog) flex max-h-[90vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col rounded-xl border p-6 shadow-lg duration-200 sm:rounded-lg',
           'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
           'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
           props.class,
@@ -68,7 +68,7 @@ const describedByAttrs = useDescribedByAttrs();
 
       <template v-if="!customClose">
         <DialogClose class="absolute top-3.5 right-3.5 z-20" as-child>
-          <Button variant="ghost" size="icon" class="size-8 shrink-0 rounded-md" :aria-label="t('common.ui.close')">
+          <Button variant="ghost" size="icon" class="size-10 shrink-0 rounded-md md:size-8" :aria-label="t('common.ui.close')">
             <X class="size-4" />
             <span class="sr-only">{{ t('common.ui.close') }}</span>
           </Button>
