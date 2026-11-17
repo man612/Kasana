@@ -71,6 +71,8 @@ export const installMobileInteractionSounds = (): void => {
         'button, a[href], [role="button"], [role="tab"], [role="menuitem"]',
       );
       if (!control || control.matches(':disabled, [disabled], [aria-disabled="true"]')) return;
+      // Preview plays its own sound; the document click must not replay it.
+      if (control.closest('[data-interaction-sound-preview]')) return;
       previewInteractionSound();
     },
     { passive: true },
