@@ -1,5 +1,79 @@
 <template>
-  <SelectField
+  <!-- Primary transaction account picker: a centered, touch-friendly dialog
+       on phones; retain the original Reka Select and keyboard behavior on desktop. -->
+  <div v-if="isMobile" class="w-full min-w-0" v-bind="$attrs">
+    <FieldLabel :label="label" only-template>
+      <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
+      <div class="flex min-w-0 items-stretch">
+        <Dialog.Dialog v-model:open="mobileOpen">
+          <Dialog.DialogTrigger as-child>
+            <button
+              type="button"
+              class="border-input bg-input-background focus-visible:ring-ring flex h-11 min-w-0 flex-1 items-center gap-2 rounded-md border px-3 text-left text-base focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
+              :class="[$slots['field-right'] && 'rounded-r-none border-r-0', embedded && EMBEDDED_TRIGGER_CLASS]"
+              :aria-label="label || placeholder"
+              :disabled="disabled"
+              :aria-required="required"
+            >
+              <template v-if="selected">
+                <AccountOptionRow :account="selected" :label="getLabel(selected)" variant="trigger" />
+              </template>
+              <span v-else class="text-muted-foreground min-w-0 flex-1 truncate">{{ placeholder || label }}</span>
+              <ChevronDownIcon class="text-muted-foreground size-4 shrink-0 transition-transform duration-200" :class="mobileOpen && 'rotate-180'" />
+            </button>
+          </Dialog.DialogTrigger>
+          <Dialog.DialogContent
+            blur-overlay
+            class="grid max-h-[min(86dvh,720px)] w-[calc(100vw-2rem)] max-w-md grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden rounded-2xl p-0"
+          >
+            <div class="border-border border-b px-4 py-4 pr-14">
+              <Dialog.DialogTitle class="text-base font-semibold">{{ label || placeholder }}</Dialog.DialogTitle>
+              <Dialog.DialogDescription class="sr-only">{{ placeholder || label }}</Dialog.DialogDescription>
+              <input
+                v-if="withSearch"
+                v-model="mobileSearch"
+                type="search"
+                class="border-input bg-input-background mt-3 h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
+                :placeholder="$t('fields.select.searchPlaceholder')"
+                :aria-label="$t('fields.select.searchPlaceholder')"
+              />
+            </div>
+            <div class="lajur-dialog-scroll min-h-0 overflow-y-auto overscroll-contain p-2">
+              <button
+                v-for="item in mobileAccounts"
+                :key="item.id"
+                type="button"
+                class="hover:bg-muted/60 flex min-h-12 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors disabled:opacity-50"
+                :class="selected?.id === item.id && 'bg-primary/10'"
+                :disabled="optionDisabled?.(item)"
+                :aria-pressed="selected?.id === item.id"
+                @click="selectMobile(item)"
+              >
+                <AccountOptionRow :account="item" :label="getLabel(item)" />
+                <StarIcon v-if="!item._isOutOfWallet && item.id === defaultAccountId" class="text-primary-text ml-auto size-3.5 shrink-0 fill-current" />
+                <CurrencyChip v-if="!item._isOutOfWallet && item.currencyCode !== 'IDR'" :code="item.currencyCode" class="ml-auto" />
+              </button>
+              <p v-if="!mobileAccounts.length" class="text-muted-foreground p-4 text-center text-sm">{{ $t('fields.select.selectOption') }}</p>
+            </div>
+            <div v-if="$slots['select-bottom-content']" class="border-border border-t p-2">
+              <slot name="select-bottom-content" />
+            </div>
+          </Dialog.DialogContent>
+        </Dialog.Dialog>
+        <button
+          v-if="clearable && selected && !disabled"
+          type="button"
+          class="text-muted-foreground ml-1 flex size-11 shrink-0 items-center justify-center rounded-md"
+          :aria-label="$t('common.actions.clear')"
+          @click="selectMobile(null)"
+        ><XIcon class="size-4" /></button>
+        <slot name="field-right" />
+      </div>
+    </FieldLabel>
+    <FieldError :error-message="errorMessage" />
+  </div>
+
+  <SelectField v-else
     ref="selectFieldRef"
     :model-value="selected"
     :values="visibleAccounts"
@@ -65,10 +139,14 @@
 import CurrencyChip from '@/components/common/currency-chip.vue';
 import AccountOptionRow from '@/components/dialogs/manage-transaction/components/account-option-row.vue';
 import SelectField from '@/components/fields/select-field.vue';
+import FieldLabel from '@/components/fields/components/field-label.vue';
+import FieldError from '@/components/fields/components/field-error.vue';
+import * as Dialog from '@/components/lib/ui/dialog';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { OUT_OF_WALLET_ACCOUNT_MOCK } from '@/common/const';
 import { getAccountDisplayLabel } from '@/common/utils/account-display';
 import { filterDropdownAccounts, useAccountDropdownPrefs } from '@/composable/use-account-dropdown-prefs';
-import { StarIcon } from '@lucide/vue';
+import { ChevronDownIcon, StarIcon, XIcon } from '@lucide/vue';
 import { AccountModel } from '@bt/shared/types';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -110,6 +188,20 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
+const mobileOpen = ref(false);
+const mobileSearch = ref('');
+const mobileAccounts = computed(() => {
+  const search = mobileSearch.value.trim().toLowerCase();
+  return search
+    ? visibleAccounts.value.filter((a) => getLabel(a).toLowerCase().includes(search) || a.currencyCode.toLowerCase().includes(search))
+    : visibleAccounts.value;
+});
+const selectMobile = (account: AccountOption | null) => {
+  emit('update:modelValue', account);
+  mobileOpen.value = false;
+  mobileSearch.value = '';
+};
 const { showArchivedInDropdowns, defaultAccountId } = useAccountDropdownPrefs();
 
 // The mock's `name` is an i18n key, real accounts keep their "(archived)"/"(shared by @owner)" suffixes.
@@ -117,7 +209,10 @@ const getLabel = (account: AccountOption) =>
   account._isOutOfWallet ? t(account.name) : getAccountDisplayLabel(account);
 
 const selectFieldRef = ref<{ open: () => void } | null>(null);
-defineExpose({ open: () => selectFieldRef.value?.open() });
+defineExpose({ open: () => {
+  if (isMobile.value) mobileOpen.value = true;
+  else selectFieldRef.value?.open();
+} });
 
 // Widen the selection to the option type so select-field's generic resolves to AccountOption.
 const selected = computed<AccountOption | null>(() => props.modelValue);
