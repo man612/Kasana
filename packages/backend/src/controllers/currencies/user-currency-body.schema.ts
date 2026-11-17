@@ -1,4 +1,5 @@
 import { currencyCode } from '@common/lib/zod/custom-types';
+import { isIdrOnlyBetaEnabled } from '@services/currencies/idr-beta-policy';
 import { z } from 'zod';
 
 /**
@@ -21,7 +22,19 @@ export const addUserCurrenciesBodySchema = z
       )
       .nonempty(),
   })
-  .strict();
+  .strict()
+  .superRefine(({ currencies }, ctx) => {
+    if (!isIdrOnlyBetaEnabled()) return;
+    currencies.forEach(({ currencyCode: code }, index) => {
+      if (code !== 'IDR') {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['currencies', index, 'currencyCode'],
+          message: 'The Lajur. private beta accepts only IDR for newly added currencies.',
+        });
+      }
+    });
+  });
 
 export const editUserCurrencyBodySchema = z.object({
   currencyCode: currencyCode(),
