@@ -59,7 +59,7 @@ const COL_SPAN_CLASSES: Record<number, string> = {
 
 const ROW_SPAN_CLASSES: Record<number, string> = {
   1: '',
-  2: 'row-span-2',
+  2: 'md:row-span-2',
 };
 
 const colSpanClass = computed(() => COL_SPAN_CLASSES[props.widgetConfig.colSpan] ?? COL_SPAN_CLASSES[1]);

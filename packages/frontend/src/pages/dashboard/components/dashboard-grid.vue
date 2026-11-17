@@ -89,7 +89,7 @@ defineExpose({
 });
 
 const GRID_CLASSES =
-  'grid grid-cols-1 gap-4 md:grid-cols-2 md:[grid-auto-rows:minmax(15rem,auto)] xl:grid-cols-3 [grid-auto-flow:dense]';
+  'grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4 md:[grid-auto-rows:minmax(15rem,auto)] xl:grid-cols-3 [grid-auto-flow:dense]';
 </script>
 
 <template>

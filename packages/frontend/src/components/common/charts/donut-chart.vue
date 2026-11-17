@@ -1,5 +1,5 @@
 <template>
-  <div ref="chartContainerRef" :class="cn('relative h-55 w-full', props.class)">
+  <div ref="chartContainerRef" :class="cn('relative h-44 w-full sm:h-55', props.class)">
     <svg ref="svgRef" class="h-full w-full"></svg>
 
     <!-- Center label: shows Total by default, category info on hover/selection -->
