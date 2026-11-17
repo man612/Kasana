@@ -10,6 +10,6 @@ export const getLogoImageController = createController(schema, async ({ params, 
 
   res.setHeader('Content-Type', contentType);
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Cache-Control', 'private, max-age=31536000, immutable');
+  res.setHeader('Cache-Control', 'private, no-store');
   res.status(200).send(body);
 });
