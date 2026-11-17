@@ -44,6 +44,38 @@ describe('Balance history for foreign-currency accounts', () => {
     await helpers.clearExchangeRatesForDates({ dates: SEEDED_DATES });
   });
 
+  it('retains synthetic low IDR->AED daily balance values instead of truncating the FX rate', async () => {
+    // Synthetic provider fixtures: 1 USD = 16,000 IDR and 3.6 AED.
+    // Correct IDR->AED = 0.000225; old five-decimal truncation gave
+    // 0.00022 and under-valued one million IDR by AED 5.
+    const expectedRate = 3.6 / 16_000;
+    for (const day of [DEPOSIT_DATE, TODAY]) {
+      await helpers.seedUsdExchangeRates({
+        date: day,
+        ratesPerUsd: { IDR: 16_000, AED: 3.6 },
+      });
+    }
+    await helpers.addUserCurrencies({ currencyCodes: ['IDR'] });
+    const account = await helpers.createAccount({
+      payload: helpers.buildAccountPayload({ currencyCode: 'IDR' }),
+      raw: true,
+    });
+    await helpers.createTransaction({
+      payload: helpers.buildTransactionPayload({
+        accountId: account.id,
+        amount: 1_000_000,
+        transactionType: TRANSACTION_TYPES.income,
+        time: DEPOSIT_DATE.toISOString(),
+      }),
+      raw: true,
+    });
+
+    const rows = await helpers.getBalanceHistory({ accountId: account.id, raw: true });
+    const expectedCents = 1_000_000 * 100 * expectedRate;
+    expect(helpers.balanceCentsOn({ rows, date: DEPOSIT_DATE })).toEqualRefValue(expectedCents);
+    expect(helpers.balanceCentsOn({ rows, date: TODAY })).toEqualRefValue(expectedCents);
+  }, 60_000);
+
   it('values each historical day at that day’s rate, with no cliff at today, and zeroes out once drained', async () => {
     await seedRates();
     const account = await createInrAccount();
