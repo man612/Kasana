@@ -20,8 +20,15 @@ const emit = defineEmits<{
   <div class="border-b p-4">
     <div class="mb-3 flex items-center justify-between">
       <h2 class="text-lg font-semibold">{{ t('dashboard.onboarding.quickStart.ui.title') }}</h2>
-      <Button variant="ghost" size="icon" class="size-8" @click="emit('close')">
-        <XIcon class="size-4" />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        class="size-11"
+        :aria-label="t('common.ui.close')"
+        @click="emit('close')"
+      >
+        <XIcon class="size-4" aria-hidden="true" />
       </Button>
     </div>
 
@@ -29,8 +36,18 @@ const emit = defineEmits<{
 
     <!-- Progress bar -->
     <div class="space-y-1.5">
-      <div class="bg-muted h-2 overflow-hidden rounded-full">
-        <div class="bg-primary h-full transition-all duration-500 ease-out" :style="{ width: `${progress}%` }" />
+      <div
+        role="progressbar"
+        :aria-label="t('dashboard.onboarding.quickStart.ui.title')"
+        :aria-valuenow="progress"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        class="bg-muted h-2 overflow-hidden rounded-full"
+      >
+        <div
+          class="bg-primary h-full transition-all duration-500 ease-out motion-reduce:transition-none"
+          :style="{ width: `${progress}%` }"
+        />
       </div>
       <div class="text-muted-foreground flex justify-between text-xs">
         <span>{{

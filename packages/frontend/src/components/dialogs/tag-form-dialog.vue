@@ -53,14 +53,15 @@
             {{ $t('settings.tags.reminders.empty') }}
           </div>
           <div v-else class="grid gap-2">
-            <div
+            <button
               v-for="reminder in reminders"
+              type="button"
               :key="reminder.id"
-              class="hover:bg-accent flex cursor-pointer items-center justify-between gap-3 rounded-md border px-3 py-2 transition-colors"
+              class="hover:bg-accent focus-visible:ring-ring flex min-h-11 w-full cursor-pointer items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               @click="openReminderDialog({ reminder })"
             >
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2">
+              <span class="min-w-0 flex-1">
+                <span class="flex items-center gap-2">
                   <span class="font-medium">{{ getReminderTypeLabel(reminder.type) }}</span>
                   <span
                     class="inline-flex items-center rounded-full px-2 py-0.5 text-xs"
@@ -76,16 +77,16 @@
                         : $t('settings.tags.reminders.disabled')
                     }}
                   </span>
-                </div>
-                <p class="text-muted-foreground text-xs">
+                </span>
+                <span class="text-muted-foreground block text-xs">
                   {{ getReminderScheduleLabel(reminder) }}
                   <template v-if="getAmountThreshold(reminder)">
                     &middot; {{ formatBaseCurrency(getAmountThreshold(reminder)!) }}
                   </template>
-                </p>
-              </div>
-              <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" />
-            </div>
+                </span>
+              </span>
+              <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
+            </button>
           </div>
         </TabsContent>
       </Tabs>
