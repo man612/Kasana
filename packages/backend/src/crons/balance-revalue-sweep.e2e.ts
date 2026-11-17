@@ -143,6 +143,68 @@ describe('Nightly balance revalue sweep', () => {
     }
   }, 60_000);
 
+  it('keeps legacy transaction refAmount unchanged when revaluing IDR history from native cents', async () => {
+    // Synthetic historical scenario: a pre-fix transaction stores AED 44.00
+    // for a 200,000 IDR expense (old rate 0.00022), while corrected market
+    // valuation is AED 45.00 (rate 0.000225). The nightly sweep must change
+    // derived Balances, NOT silently rewrite past transaction refAmount.
+    const pastDay = subDays(new Date(), 10);
+    const today = new Date();
+    const seededDates = [pastDay, today];
+
+    try {
+      for (const date of seededDates) {
+        await helpers.seedUsdExchangeRates({ date, ratesPerUsd: { IDR: 16_000, AED: 3.6 } });
+      }
+      await helpers.addUserCurrencies({ currencyCodes: ['IDR'] });
+      const account = await helpers.createAccount({
+        payload: helpers.buildAccountPayload({ currencyCode: 'IDR', initialBalance: 1_000_000 }),
+        raw: true,
+      });
+      const [expense] = await helpers.createTransaction({
+        payload: helpers.buildTransactionPayload({
+          accountId: account.id,
+          transactionType: 'expense',
+          amount: 200_000,
+          time: pastDay.toISOString(),
+        }),
+        raw: true,
+      });
+
+      // Replay a stored pre-fix ref amount without changing the authoritative
+      // native amount. Raw SQL is confined to this disposable E2E database.
+      await connection.sequelize.query(
+        `UPDATE "Transactions" SET "refAmount" = :oldRefCents WHERE "id" = :transactionId`,
+        { replacements: { oldRefCents: 4_400, transactionId: expense.id } },
+      );
+      await writeBalanceRow({ accountId: account.id, date: pastDay, cents: 17_600 });
+      expect(await readBalanceRow({ accountId: account.id, date: pastDay })).toBe(17_600);
+
+      const result = await runBalanceRevalueSweep();
+      expect(result.totalProcessed).toBe(1);
+      expect(result.successfulUpdates).toBe(1);
+      expect(result.failedUpdates).toBe(0);
+
+      // 1m - 200k = 800k native IDR; 800k * (3.6 / 16000) = AED 180.
+      expect(await readBalanceRow({ accountId: account.id, date: pastDay })).toBe(18_000);
+      expect(await readBalanceRow({ accountId: account.id, date: today })).toBe(18_000);
+
+      const [stored] = (await connection.sequelize.query(
+        `SELECT "amount"::bigint AS "nativeCents", "refAmount"::bigint AS "refCents"
+           FROM "Transactions" WHERE "id" = :transactionId`,
+        { type: QueryTypes.SELECT, replacements: { transactionId: expense.id } },
+      )) as { nativeCents: string; refCents: string }[];
+      expect(Number(stored!.nativeCents)).toBe(20_000_000);
+      expect(Number(stored!.refCents)).toBe(4_400); // old stored amount deliberately retained
+
+      const unchangedAccount = await Accounts.findByPk(account.id);
+      expect(unchangedAccount!.initialBalance.toCents()).toBe(100_000_000);
+      expect(unchangedAccount!.currentBalance.toCents()).toBe(80_000_000);
+    } finally {
+      await helpers.clearExchangeRatesForDates({ dates: seededDates });
+    }
+  }, 60_000);
+
   it('re-values today for a foreign-currency bank account the provider did not sync', async () => {
     const today = new Date();
     await helpers.seedUsdExchangeRates({ date: today, ratesPerUsd: { AED: helpers.AED_PER_USD } });
