@@ -2,6 +2,7 @@
 /**
  * Offline, read-only Option B public-hosting preflight.
  * It never starts containers, contacts providers or prints secret values.
+ * Review .env interpolation and the optional stack.env backend override.
  * Run against the operator's private self-hosting/.env, not the example.
  */
 import { readFileSync } from 'node:fs';
@@ -98,18 +99,17 @@ if (process.argv[1] && path.resolve(process.argv[1]) === ownPath) {
     ? path.resolve(process.argv[2])
     : path.resolve(path.dirname(ownPath), '..', 'self-hosting', '.env');
   try {
-    const env = parseEnv(readFileSync(file, 'utf8'));
-    const errors = checkPublicDeploymentEnv(env);
+    const errors = checkPublicDeploymentFiles(file);
     if (errors.length) {
       console.error('FAIL: Option B public configuration is not ready:');
       for (const error of errors) console.error('- ' + error);
       process.exitCode = 1;
     } else {
-      console.log('PASS: offline public-environment shape checks.');
-      console.log('NOT VERIFIED: DNS/TLS/Tunnel, sender domain, delivery, firewall, cache, backups, actual domain or legal readiness.');
+      console.log('PASS: offline .env + optional stack.env configuration shape checks.');
+      console.log('NOT VERIFIED: actual Compose/Portainer/shell overrides, live containers, DNS/TLS/Tunnel, delivery, cache, backups or legal readiness.');
     }
   } catch {
-    console.error('FAIL: cannot read/parse the specified private self-hosting/.env file; check its path.');
+    console.error('FAIL: cannot safely read/parse private .env or optional stack.env; check file access and syntax.');
     process.exitCode = 1;
   }
 }
