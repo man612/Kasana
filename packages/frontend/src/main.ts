@@ -4,6 +4,7 @@ import './registerServiceWorker';
 import { installChunkReloadHandler } from '@/common/utils/chunk-reload-handler';
 import { identifyCurrentTheme } from '@/common/utils/color-theme';
 import { identifyAccentTheme } from '@/common/utils/accent-theme';
+import { installMobileInteractionSounds } from '@/common/utils/mobile-interaction-sound';
 import { getDateFnsLocale } from '@/composable/use-date-locale';
 import { i18n, initializeLocale, loadChunks } from '@/i18n';
 import { initPostHog, trackPageviews } from '@/lib/posthog';
@@ -67,4 +68,5 @@ initI18n()
     app.use(VueQueryPlugin, { queryClient });
 
     app.mount('#app');
+    installMobileInteractionSounds();
   });

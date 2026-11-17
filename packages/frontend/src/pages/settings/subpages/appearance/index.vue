@@ -68,6 +68,22 @@
 
       <Separator />
 
+      <!-- Local, opt-in audio feedback (mobile only). Never played for keystrokes. -->
+      <div>
+        <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.interactionSound.title') }}</h3>
+        <p class="mb-4 text-sm leading-relaxed">{{ $t('settings.appearance.interactionSound.description') }}</p>
+        <div class="flex items-center justify-between gap-4">
+          <span class="text-sm">{{ $t('settings.appearance.interactionSound.toggle') }}</span>
+          <Switch
+            :model-value="mobileSoundEnabled"
+            :aria-label="$t('settings.appearance.interactionSound.toggle')"
+            @update:model-value="(v) => updateMobileSound(!!v)"
+          />
+        </div>
+      </div>
+
+      <Separator />
+
       <!-- Sidebar Sections -->
       <div>
         <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.sidebar.title') }}</h3>
@@ -186,6 +202,7 @@
 <script setup lang="ts">
 import HintIcon from '@/components/common/hint-icon.vue';
 import { ThemePreference, setThemePreference, themePreference } from '@/common/utils/color-theme';
+import { getMobileInteractionSoundEnabled, setMobileInteractionSoundEnabled } from '@/common/utils/mobile-interaction-sound';
 import { ACCENT_OPTIONS, accentTheme, setAccentTheme, type AccentTheme } from '@/common/utils/accent-theme';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import Button from '@/components/lib/ui/button/Button.vue';
@@ -197,7 +214,13 @@ import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { TOGGLEABLE_SIDEBAR_SECTIONS, useSidebarSections } from '@/composable/use-sidebar-sections';
 import { useSupportButton } from '@/composable/use-support-button';
 import { CheckIcon, CoinsIcon, HeartIcon, LayersIcon, MonitorIcon, MoonStarIcon, SunIcon } from '@lucide/vue';
-import { type Component } from 'vue';
+import { ref, type Component } from 'vue';
+
+const mobileSoundEnabled = ref(getMobileInteractionSoundEnabled());
+const updateMobileSound = (enabled: boolean) => {
+  mobileSoundEnabled.value = enabled;
+  setMobileInteractionSoundEnabled(enabled);
+};
 
 const { sidebarSections, toggleSection, isUpdating } = useSidebarSections();
 const {

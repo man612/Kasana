@@ -32,6 +32,11 @@
         "purple": "Ungu",
         "green": "Hijau",
         "blue": "Biru"
+      },
+      "interactionSound": {
+        "title": "Suara interaksi",
+        "description": "Suara klik lembut untuk tombol dan navigasi saat menggunakan HP. Mati secara bawaan; hanya disimpan di perangkat ini dan tidak berbunyi saat mengetik.",
+        "toggle": "Aktifkan suara klik di HP"
       }
     }
   }
