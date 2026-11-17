@@ -78,7 +78,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
 
   <template v-if="isMobile && props.mobilePresentation === 'drawer'">
     <Drawer.Drawer :open="isOpen" :dismissible="props.dismissible" @update:open="setOpen">
-      <Drawer.DrawerTrigger as-child>
+      <Drawer.DrawerTrigger v-if="$slots.trigger" as-child>
         <slot name="trigger" />
       </Drawer.DrawerTrigger>
 
@@ -136,7 +136,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
   </template>
   <template v-else>
     <Dialog.Dialog :open="isOpen" @update:open="setOpen">
-      <Dialog.DialogTrigger as-child>
+      <Dialog.DialogTrigger v-if="$slots.trigger" as-child>
         <slot name="trigger" />
       </Dialog.DialogTrigger>
 
