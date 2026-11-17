@@ -4,7 +4,6 @@ import './registerServiceWorker';
 import { installChunkReloadHandler } from '@/common/utils/chunk-reload-handler';
 import { identifyCurrentTheme } from '@/common/utils/color-theme';
 import { identifyAccentTheme } from '@/common/utils/accent-theme';
-import { patchMetaViewportMaxScaleForiOS } from '@/common/utils/meta-viewport-max-scale';
 import { getDateFnsLocale } from '@/composable/use-date-locale';
 import { i18n, initializeLocale, loadChunks } from '@/i18n';
 import { initPostHog, trackPageviews } from '@/lib/posthog';
@@ -24,7 +23,6 @@ import App from './app.vue';
 stashResetPasswordToken();
 identifyCurrentTheme();
 identifyAccentTheme();
-patchMetaViewportMaxScaleForiOS();
 if (!import.meta.env.DEV) {
   installChunkReloadHandler({ router });
 }
