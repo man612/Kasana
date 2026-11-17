@@ -40,18 +40,18 @@ Lajur. is an **independent adaptation** of [MoneyMatter](https://github.com/lete
 
 ## Getting started
 
-For this temporary candidate, see the [integration rehearsal record](docs/INTEGRATION-REHEARSAL-2026-11-15.md).
+For the current draft release candidate, see the [clean-install public launch gates](docs/security/2026-11-17-public-clean-bootstrap-gates.md). The [15 November rehearsal](docs/INTEGRATION-REHEARSAL-2026-11-15.md) is historical, not the current release target.
 
 Build Lajur. **from this repository's source**. The base Compose file uses intentionally non-pullable placeholder images for the finance frontend and backend; it is **not** a standalone deployment. Always combine the base, build, and private-instance overlays as shown below.
 
 **Prerequisites:** Git, a Linux container runtime (Podman preferred on Windows; Docker supported), Docker Compose v2, and sufficient memory and storage for a frontend source build.
 
-These commands explicitly check out the **temporary integration-rehearsal branch** to match this guide. This candidate combines PRs #24 and #26–#31 for synthetic verification; it is not release or deployment authorization. These are development setup instructions; `main` does not yet contain this work. Review the branch and CI before use.
+These commands check out the current **draft umbrella PR #10 branch** for development and isolated testing only. It includes the latest finance fixes but is NOT a published production release. Do not expose this draft to real user finance data or open public registration. The `main` branch does not yet contain this work; verify the exact commit and CI before every installation.
 
 ### Linux / VPS
 
 ```bash
-git clone --branch integration/lajur-release-candidate-20261115 --single-branch https://github.com/man612/Kasana.git
+git clone --branch feat/kasana-indonesia-ui-integrated --single-branch https://github.com/man612/Kasana.git
 cd Kasana/self-hosting
 cp .env.example .env
 # Edit .env: replace every __REPLACE_ME__ placeholder.
