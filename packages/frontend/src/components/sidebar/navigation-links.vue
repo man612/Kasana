@@ -69,8 +69,8 @@ watch(
 
   <template v-if="bottomNav">
     <router-link v-slot="{ isActive }" :to="{ name: ROUTES_NAMES.accounts }">
-      <ui-button variant="ghost" as="span" :class="[bottomNavItem, isActive && navItemActive]" size="default">
-        <LayersIcon :class="[navIconBase, bottomNav && 'size-5', isActive && navIconActive]" />
+      <ui-button variant="ghost" as="span" :class="[bottomNavItem, (isActive || isAccountsRoute) && navItemActive]" size="default">
+        <LayersIcon :class="[navIconBase, bottomNav && 'size-5', (isActive || isAccountsRoute) && navIconActive]" />
         <span class="text-[11px] leading-tight"> {{ $t('navigation.accounts') }} </span>
       </ui-button>
     </router-link>
@@ -125,8 +125,8 @@ watch(
 
   <template v-if="bottomNav">
     <router-link v-slot="{ isActive }" :to="{ name: ROUTES_NAMES.transactions }">
-      <ui-button variant="ghost" as="span" :class="[bottomNavItem, isActive && navItemActive]" size="default">
-        <CreditCardIcon :class="[navIconBase, bottomNav && 'size-5', isActive && navIconActive]" />
+      <ui-button variant="ghost" as="span" :class="[bottomNavItem, (isActive || isTransactionsRoute) && navItemActive]" size="default">
+        <CreditCardIcon :class="[navIconBase, bottomNav && 'size-5', (isActive || isTransactionsRoute) && navIconActive]" />
         <span class="text-[11px] leading-tight"> {{ $t('navigation.transactions') }} </span>
       </ui-button>
     </router-link>
