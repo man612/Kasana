@@ -51,7 +51,10 @@
           <Popover.Popover v-model:open="isAddMenuOpen">
             <Popover.PopoverTrigger as-child>
               <Button variant="default" size="sm" class="rounded-l-none px-2" :aria-label="$t('header.moreActions')">
-                <ChevronDownIcon class="size-4" />
+                <ChevronDownIcon
+                  class="size-4 transition-transform duration-200 motion-reduce:transition-none"
+                  :class="isAddMenuOpen && 'rotate-180'"
+                />
               </Button>
             </Popover.PopoverTrigger>
             <Popover.PopoverContent class="grid w-72 gap-0.5 p-1.5" align="start">
@@ -101,6 +104,7 @@
               </Button>
             </Popover.PopoverTrigger>
             <Popover.PopoverContent
+              dim-backdrop
               align="start"
               class="w-80 max-w-[calc(100vw-2rem)] space-y-3 p-4 text-sm leading-relaxed"
             >

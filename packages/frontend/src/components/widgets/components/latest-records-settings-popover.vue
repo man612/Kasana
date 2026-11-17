@@ -5,7 +5,7 @@
         <SettingsIcon class="text-muted-foreground size-4" />
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="w-72 overflow-hidden p-0" align="end">
+    <PopoverContent dim-backdrop class="w-72 overflow-hidden p-0" align="end">
       <SlidingPanels v-model="view" :panels="['main', 'exclusions']">
         <template #main>
           <div class="flex flex-col">
