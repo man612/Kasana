@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useAccountPayees, usePayeeLookup, usePayees } from '@/composable/data-queries/payees';
 import * as Popover from '@/components/lib/ui/popover';
+import * as Dialog from '@/components/lib/ui/dialog';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { Button } from '@/components/lib/ui/button';
 import { cn } from '@/lib/utils';
@@ -71,6 +73,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 
 const isOpen = ref(false);
 const inputValue = ref('');
@@ -184,8 +187,12 @@ function handlePayeeCreated(payee: PayeeModel) {
 
 <template>
   <FieldLabel :label="label" only-template>
-    <Popover.Popover :open="isOpen" @update:open="(open: boolean) => (isOpen = open)">
-      <Popover.PopoverTrigger as-child>
+    <component
+      :is="isMobile ? Dialog.Dialog : Popover.Popover"
+      :open="isOpen"
+      @update:open="(open: boolean) => (isOpen = open)"
+    >
+      <component :is="isMobile ? Dialog.DialogTrigger : Popover.PopoverTrigger" as-child>
         <button
           type="button"
           :disabled="disabled"
@@ -223,9 +230,25 @@ function handlePayeeCreated(payee: PayeeModel) {
             <XIcon class="size-4" />
           </span>
         </button>
-      </Popover.PopoverTrigger>
+      </component>
 
-      <Popover.PopoverContent class="w-(--reka-popover-trigger-width) p-0" align="start" :side-offset="4">
+      <component
+        :is="isMobile ? Dialog.DialogContent : Popover.PopoverContent"
+        v-bind="isMobile ? { blurOverlay: true } : { align: 'start', sideOffset: 4 }"
+        :class="
+          isMobile
+            ? 'max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-2xl p-0'
+            : 'w-(--reka-popover-trigger-width) p-0'
+        "
+      >
+        <template v-if="isMobile">
+          <Dialog.DialogTitle class="px-4 pt-4 pr-14 text-base font-semibold">
+            {{ label || placeholderResolved }}
+          </Dialog.DialogTitle>
+          <Dialog.DialogDescription class="sr-only">
+            {{ t('fields.payeeSelect.searchPlaceholder') }}
+          </Dialog.DialogDescription>
+        </template>
         <ListboxRoot ref="listboxRef" :model-value="modelValue ?? null" highlight-on-hover>
           <div class="border-input border-b p-2">
             <div class="relative">
@@ -239,7 +262,7 @@ function handlePayeeCreated(payee: PayeeModel) {
             </div>
           </div>
 
-          <ScrollArea :class="showCreateAffordance ? 'max-h-72' : 'max-h-64'">
+          <ScrollArea :class="isMobile ? 'min-h-0 max-h-[48dvh] flex-1' : showCreateAffordance ? 'max-h-72' : 'max-h-64'">
             <ListboxContent>
               <ListboxItem
                 v-for="item in displayPayees"
@@ -276,8 +299,8 @@ function handlePayeeCreated(payee: PayeeModel) {
           <PlusIcon class="size-4" />
           {{ createLabel }}
         </Button>
-      </Popover.PopoverContent>
-    </Popover.Popover>
+      </component>
+    </component>
 
     <PayeeFormDialog
       v-model:open="createDialogOpen"
