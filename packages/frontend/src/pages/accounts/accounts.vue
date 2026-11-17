@@ -21,27 +21,43 @@
         <div v-if="accounts?.length || vehicles?.length" class="flex items-center gap-2 @[35rem]/accounts-page:hidden">
           <AccountsSortMenu trigger-variant="icon" />
 
-          <Popover.Popover :open="isActionsMenuOpen" @update:open="isActionsMenuOpen = $event">
-            <Popover.PopoverTrigger as-child>
-              <UiButton variant="outline" size="icon" :aria-label="$t('accounts.actionsMenu')">
-                <EllipsisVerticalIcon class="size-4" />
-              </UiButton>
-            </Popover.PopoverTrigger>
-            <Popover.PopoverContent align="end" class="w-52 p-1">
-              <CreateVehicleDialog @created="isActionsMenuOpen = false">
-                <UiButton variant="ghost" class="w-full justify-start">
-                  <CarIcon class="size-4" />
-                  {{ $t('accounts.createVehicle') }}
-                </UiButton>
-              </CreateVehicleDialog>
-              <CreateAccountDialog @created="isActionsMenuOpen = false">
-                <UiButton variant="ghost" class="w-full justify-start">
-                  <PlusIcon class="size-4" />
-                  {{ $t('accounts.createAccount') }}
-                </UiButton>
-              </CreateAccountDialog>
-            </Popover.PopoverContent>
-          </Popover.Popover>
+          <!-- A controlled centered dialog avoids nested popover dismissal
+               when choosing an account or vehicle creation action. -->
+          <UiButton
+            variant="outline"
+            size="icon"
+            :aria-label="$t('accounts.actionsMenu')"
+            aria-haspopup="dialog"
+            :aria-expanded="isActionsMenuOpen"
+            @click="isActionsMenuOpen = true"
+          >
+            <EllipsisVerticalIcon class="size-4" />
+          </UiButton>
+          <Dialog.Dialog :open="isActionsMenuOpen" @update:open="isActionsMenuOpen = $event">
+            <Dialog.DialogContent
+              class="w-[calc(100vw-2rem)] max-w-sm gap-3 rounded-2xl p-5"
+              @interact-outside.prevent
+            >
+              <Dialog.DialogTitle class="pr-10 text-base font-semibold">{{ $t('accounts.actionsMenu') }}</Dialog.DialogTitle>
+              <Dialog.DialogDescription class="sr-only">
+                {{ $t('accounts.createAccount') }} / {{ $t('accounts.createVehicle') }}
+              </Dialog.DialogDescription>
+              <div class="grid gap-2">
+                <CreateVehicleDialog @created="isActionsMenuOpen = false">
+                  <UiButton variant="outline" class="min-h-12 w-full justify-start gap-3">
+                    <CarIcon class="size-5" />
+                    {{ $t('accounts.createVehicle') }}
+                  </UiButton>
+                </CreateVehicleDialog>
+                <CreateAccountDialog @created="isActionsMenuOpen = false">
+                  <UiButton variant="outline" class="min-h-12 w-full justify-start gap-3">
+                    <PlusIcon class="size-5" />
+                    {{ $t('accounts.createAccount') }}
+                  </UiButton>
+                </CreateAccountDialog>
+              </div>
+            </Dialog.DialogContent>
+          </Dialog.Dialog>
         </div>
       </div>
 
@@ -227,7 +243,7 @@ import CreateVehicleDialog from '@/components/dialogs/create-vehicle-dialog.vue'
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import { Card } from '@/components/lib/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/lib/ui/collapsible';
-import * as Popover from '@/components/lib/ui/popover';
+import * as Dialog from '@/components/lib/ui/dialog';
 import GroupTotal from '@/components/sidebar/accounts-view/group-total.vue';
 import { collectGroupAccounts, flattenAccounts } from '@/components/sidebar/accounts-view/helpers/account-totals';
 import { useAccountGroupsQuery } from '@/composable/data-queries/account-groups';
