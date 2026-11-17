@@ -128,9 +128,14 @@ The rebuilt history and the normal conversion path still apply the same precisio
 policy. A genuinely missing or zero-rate lookup is not treated as valid.
 
 **Compatibility notice:** this precision correction affects newly computed conversions
-and future balance-history revaluations. It does not silently backfill or rewrite
-existing transactions or stored historical balances. Any production-wide recomputation
-must be planned and verified against an independent database backup.
+and future balance-history revaluations. It does NOT backfill stored transaction
+`refAmount`, but the existing nightly `balanceRevalueSweepCron` at 18:45 UTC
+and account write paths WILL automatically recompute eligible manual foreign-currency
+accounts' old derived `Balances` rows once the new code is deployed. The revalue
+implementation deletes and replaces rows for the affected historical date range.
+Therefore the new build must not be deployed with real finance data until an operator
+has approved row-level old/new reconciliation and rehearsed full database backup/restore;
+rolling back the code alone cannot restore already-rewritten history.
 
 **Failure mode.** When the pair has no stored rate on either leg, or when some day inside
 the grid resolves to no rate, the rebuild logs a warning, returns `'skipped'`, and touches
