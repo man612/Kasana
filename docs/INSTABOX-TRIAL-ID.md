@@ -125,6 +125,47 @@ bash self-hosting/instabox-trial.sh logs
 
 The frontend serves the SPA and proxies `/api` to the internal backend. Only port 8080 should be published through InstaBox; PostgreSQL/Redis are private to the Docker network.
 
+## Optional — prebuilt frontend image when root disk is tight
+
+GitHub builds the mobile + keyboard-accessibility integration PR with Docker on a temporary runner. For same-repository integration branches beginning `integration/lajur-instabox-`, the **Build frontend Docker image** CI job also uploads a **short-lived, unconfigured frontend container image** after the existing smoke test succeeds.
+
+This is for a **manual, frontend-only** preview update. It does **not** deploy automatically, alter the backend, or permit public signups. Runtime credentials and `self-hosting/.env` are not inside this image. The archive contains only the nginx/frontend image and a checksum; the entire public repository source is already available on GitHub.
+
+1. Wait for the **entire PR CI** to pass, not only the frontend image job.
+2. Download `lajur-instabox-frontend-<full PR head SHA>` from that passing GitHub Actions run. Transfer and extract the ZIP into a directory **under `/data`** on the *existing* InstaBox instance. Do not extract large files onto the root filesystem.
+3. Run `bash scripts/check-instabox-preview.sh` from the existing Lajur. checkout. Inspect available space on the Docker storage filesystem as well as `/`. If it cannot hold the uncompressed image **alongside the old image for rollback**, stop; do not prune shared Docker resources.
+4. Verify the archive checksum, load the exact image, preserve the old frontend image tag, and recreate **only the frontend**. Run these commands from the existing Lajur. checkout, setting `ARTIFACT_DIR` to the actual extracted download location (no token/secret is required here):
+
+~~~bash
+ARTIFACT_DIR=/data/lajur-preview-image
+cd "$ARTIFACT_DIR"
+sha256sum -c lajur-instabox-frontend.tar.gz.sha256
+head_sha=$(sed -n 's/^PR_HEAD_SHA=//p' lajur-instabox-frontend-info.txt)
+case "$head_sha" in
+  *[!a-fA-F0-9]*|'') echo 'Invalid PR SHA'; exit 1 ;;
+esac
+[ "${#head_sha}" -eq 40 ] || { echo 'Expected full 40-character SHA'; exit 1; }
+image="lajur-instabox-frontend:preview-${head_sha:0:12}"
+gzip -dc lajur-instabox-frontend.tar.gz | docker load
+docker image inspect "$image" >/dev/null
+# Retagging the prior image is lightweight and enables a frontend-only rollback.
+if docker image inspect lajur-instabox-frontend:local >/dev/null 2>&1; then
+  docker tag lajur-instabox-frontend:local lajur-instabox-frontend:rollback-before-mobile
+fi
+docker tag "$image" lajur-instabox-frontend:local
+# Replace this path with your actual EXISTING checkout; never clone over it.
+cd /data/lajur-preview
+bash self-hosting/instabox-trial.sh check
+cd self-hosting
+docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml -f docker-compose.instabox.yml up -d --no-deps --no-build --force-recreate frontend
+docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml -f docker-compose.instabox.yml ps
+curl -fsSI http://127.0.0.1:8080/
+~~~
+
+If frontend fails, restore the previous tag `lajur-instabox-frontend:rollback-before-mobile` to `:local` and repeat only the last frontend Compose `up` command. Never run `down -v`, global prune, or `up --build`. Check real Android UX and keep registration capped/closed.
+
+**Important:** A passing GitHub artifact is not proof of InstaBox disk capacity or real-device quality. Do not run the import before reading the machine-specific preflight and checking which image/Compose project currently owns the live port.
+
 ## Phase 4 — user-journey QA
 
 - [ ] Open the private link on Android after the InstaBox token grants access; confirm no mixed-content/CORS errors and correct cookie/login origin.

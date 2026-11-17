@@ -122,6 +122,39 @@ jobs:
         run: echo ${{ steps.frontend-docker-build.outputs.docker-build-digest }}
       - name: Smoke test
         run: sh ./self-hosting/frontend/smoke-test.sh local/budget-tracker-fe:latest
+      # The trial image is built on GitHub so the shared 8 GiB InstaBox does
+      # not need to compile the 6 GiB-heap Vue frontend on its tight root disk.
+      # Only same-repo integration PRs, no fork-supplied workflow artifacts.
+      - name: Export disposable InstaBox frontend image
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'integration/lajur-instabox-') && github.event.pull_request.head.repo.full_name == github.repository }}
+        shell: bash
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          short="${PR_HEAD_SHA:0:12}"
+          preview_image="lajur-instabox-frontend:preview-${short}"
+          docker tag local/budget-tracker-fe:latest "${preview_image}"
+          docker save "${preview_image}" | gzip -1 > "${RUNNER_TEMP}/lajur-instabox-frontend.tar.gz"
+          (
+            cd "${RUNNER_TEMP}"
+            sha256sum lajur-instabox-frontend.tar.gz > lajur-instabox-frontend.tar.gz.sha256
+          )
+          printf 'PR_HEAD_SHA=%s\nCHECKOUT_SHA=%s\nIMAGE=%s\n' \
+            "${PR_HEAD_SHA}" "$(git rev-parse HEAD)" "${preview_image}" \
+            > "${RUNNER_TEMP}/lajur-instabox-frontend-info.txt"
+
+      - name: Upload short-lived disposable InstaBox image
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.head_ref, 'integration/lajur-instabox-') && github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lajur-instabox-frontend-${{ github.event.pull_request.head.sha }}
+          path: |
+            ${{ runner.temp }}/lajur-instabox-frontend.tar.gz
+            ${{ runner.temp }}/lajur-instabox-frontend.tar.gz.sha256
+            ${{ runner.temp }}/lajur-instabox-frontend-info.txt
+          if-no-files-found: error
+          retention-days: 3
 
   backup-restore-smoke:
     name: Synthetic PostgreSQL + attachments restore
