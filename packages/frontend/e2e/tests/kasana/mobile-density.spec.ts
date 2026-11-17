@@ -22,6 +22,14 @@ test.describe('Mobile-first UI density and readable auth forms', () => {
       expect(dimensions.fontSize, `root font size at width ${width}`).toBeCloseTo(16 * expectedScale, 1);
       expect(Number(dimensions.rootZoom), `root CSS zoom must remain disabled at ${width}px`).toBe(1);
       expect(dimensions.horizontalOverflow, `no page-wide horizontal scrolling at ${width}px`).toBeLessThanOrEqual(2);
+      if (width <= 767) {
+        const mobileEmailField = await page.locator('input[type="email"]').first().evaluate((node) => ({
+          fontSize: Number.parseFloat(getComputedStyle(node).fontSize),
+          height: node.getBoundingClientRect().height,
+        }));
+        expect(mobileEmailField.fontSize, `mobile text field at ${width}px should not trigger iOS focus zoom`).toBeGreaterThanOrEqual(16);
+        expect(mobileEmailField.height, `mobile touch field height at ${width}px`).toBeGreaterThanOrEqual(43);
+      }
     }
   });
 
