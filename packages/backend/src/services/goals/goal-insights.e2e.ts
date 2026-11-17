@@ -318,7 +318,8 @@ describe('Goal insights', () => {
 
     try {
       await connection.sequelize.query(`DELETE FROM "ExchangeRates" WHERE "quoteCode" = 'EUR' OR "baseCode" = 'EUR'`);
-      await redisClient.del(`cross_rate:${new Date().toISOString().slice(0, 10)}:EUR:${global.BASE_CURRENCY.code}`);
+      // Clear the active v2 cache too; otherwise the missing-rate check can reuse a previously computed EUR rate.
+      await redisClient.del(`cross_rate:v2:${new Date().toISOString().slice(0, 10)}:EUR:${global.BASE_CURRENCY.code}`);
 
       const byId = new Map((await helpers.listGoals({ raw: true })).map((goal) => [goal.id, goal]));
       expect(byId.get(euro.id)!.insights).toBeNull();
