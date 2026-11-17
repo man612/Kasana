@@ -26,7 +26,9 @@ These are deliberately constructed TEST FIXTURES, NOT current central-bank quote
 - Retain 12 significant digits rather than five fractional digits with Number(rate.toPrecision(12)). This preserves small reciprocal and cross rates without forcing a fixed number of decimals for every currency.
 - Both live API getExchangeRate and daily balance-history calculations already call the shared formatRate helper; no dual-formula drift is introduced.
 - Version the global Redis cross-rate cache key as cross_rate:v2 so an old cached value truncated for four hours cannot masquerade as a corrected result. This does not flush Redis or invalidate auth sessions.
-- Add pure unit tests for IDR/USD, tiny positive rates, an ordinary pair and invalid/zero handling, plus a real backend E2E test against the IDR→USD and IDR→AED pair endpoint using controlled historical USD-pivot rows.
+- Add pure unit tests for IDR/USD, tiny positive rates, an ordinary pair and invalid/zero handling, plus backend E2E tests for IDR→USD/IDR→AED rates and an IDR account's historical balance using controlled historical USD-pivot rows.
+- Fix the frontend manual inverse-rate calculator, which separately rounded to **six decimal places** and could change 0.0000625 into 0.000063 or turn smaller rates into zero. Preserve 12 significant digits while editing.
+- Fix the currency-list display that previously used six fractional digits and could conceal meaningful low-value FX precision. Use significant digits only for tiny rates, keeping ordinary rows compact. Add Vue/Vitest tests for reciprocal editing and Indonesian locale display.
 - Document the new accuracy contract in docs/specifications/foreign-currency-balance-history.md.
 
 ### What this does NOT solve automatically
