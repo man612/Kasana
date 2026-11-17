@@ -152,27 +152,8 @@ export function checkPublicDeploymentSources({ composeEnv, stackEnv = {} }) {
     'APPLICATION_DB_DATABASE', 'APPLICATION_PORT',
   ];
   for (const key of relevantKeys) {
-    if (typeof effective[key] === 'string' && effective[key].includes('
-if (process.argv[1] && path.resolve(process.argv[1]) === ownPath) {
-  const file = process.argv[2]
-    ? path.resolve(process.argv[2])
-    : path.resolve(path.dirname(ownPath), '..', 'self-hosting', '.env');
-  try {
-    const errors = checkPublicDeploymentFiles(file);
-    if (errors.length) {
-      console.error('FAIL: Option B public configuration is not ready:');
-      for (const error of errors) console.error('- ' + error);
-      process.exitCode = 1;
-    } else {
-      console.log('PASS: offline .env + optional stack.env configuration shape checks.');
-      console.log('NOT VERIFIED: actual Compose/Portainer/shell overrides, live containers, DNS/TLS/Tunnel, delivery, cache, backups or legal readiness.');
-    }
-  } catch {
-    console.error('FAIL: cannot safely read/parse private .env or optional stack.env; check file access and syntax.');
-    process.exitCode = 1;
-  }
-}
- + '{')) {
+    if (typeof effective[key] === 'string' &&
+        effective[key].includes(String.fromCharCode(36, 123))) {
       errors.push(key + ': unresolved Compose-style substitution; review effective Compose privately');
     }
   }
