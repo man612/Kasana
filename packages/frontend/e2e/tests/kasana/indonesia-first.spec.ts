@@ -13,7 +13,7 @@ import { buildTestCredentials, signUpAndVerify } from '../../helpers/test-setup'
 test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('displays IDR spending on mobile, fits the viewport at 80% UI density and supports account deep-link return', async ({
+  test('displays IDR spending on full-size mobile UI, fits the viewport and supports account deep-link return', async ({
     page,
     playwright,
   }) => {
@@ -64,9 +64,8 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         const back = deepLink.getByRole('button', { name: /Kembali|Back/i });
         await expect(back).toBeVisible();
 
-        // 80% density uses rem typography instead of root CSS zoom.
-        // Unlike CSS zoom, viewport dimensions and teleported overlay anchors
-        // must remain in one coordinate space at the default density.
+        // Mobile 100% and desktop 80% use rem typography, never root zoom.
+        // Root zoom previously clipped fullscreen panels and displaced portals.
         const viewportGeometry = await deepLink.evaluate(() => {
           const shell = document.querySelector<HTMLElement>('.h-dvh');
           const shellRect = shell?.getBoundingClientRect();
@@ -81,6 +80,23 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         expect(viewportGeometry.overflow, 'Account page must not overflow horizontally').toBeLessThanOrEqual(2);
         expect(viewportGeometry.shellRight, 'Dashboard shell must fill viewport width').toBeGreaterThanOrEqual(389);
         expect(viewportGeometry.shellBottom, 'Dashboard shell must fill viewport height').toBeGreaterThanOrEqual(843);
+
+        // Account detail is a genuinely populated screen, not just the empty
+        // sign-in shell. Check its header, total and horizontal reflow after
+        // increasing mobile typography to its native 100% size.
+        for (const width of [320, 375, 430, 767, 768, 1280]) {
+          await deepLink.setViewportSize({ width, height: 844 });
+          await expect(deepLink.getByText(accountName).first()).toBeVisible();
+          const metrics = await deepLink.evaluate(() => ({
+            scale: Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--kasana-ui-scale')),
+            overflow: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth) - window.innerWidth,
+            documentZoom: getComputedStyle(document.documentElement).zoom,
+          }));
+          expect(metrics.scale, `account UI scale at ${width}px`).toBe(width <= 767 ? 1 : 0.8);
+          expect(Number(metrics.documentZoom)).toBe(1);
+          expect(metrics.overflow, `account detail horizontal overflow at ${width}px`).toBeLessThanOrEqual(2);
+        }
+        await deepLink.setViewportSize({ width: 390, height: 844 });
 
         await expect(deepLink.getByRole('button', { name: /Buka menu navigasi|Open navigation menu/i })).toBeVisible();
 
