@@ -424,7 +424,8 @@ export const auth = betterAuth({
     user: {
       create: {
         // Guard user-create, not the email endpoint: OAuth signups must hit the
-        // cap too. Not race-safe under concurrent signups; fine at self-host scale.
+        // cap too. The database INSERT trigger enforces it under concurrency,
+        // including for trusted OAuth providers and separate backend workers.
         before: async (user) => {
           if (!(await areSignupsOpen())) {
             throw new APIError('FORBIDDEN', {
