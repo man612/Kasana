@@ -13,10 +13,40 @@ interface RateLimitResult {
   serviceUnavailable?: boolean;
 }
 
+/**
+ * Fixed-window budget is checked and incremented in one Redis operation.
+ * The previous GET -> INCR -> EXPIRE sequence could let multiple concurrent
+ * requests all pass and leave a permanent key if the process died before
+ * EXPIRE. The script repairs pre-existing counters with no TTL as well.
+ *
+ * One declared KEYS[1] lets ioredis apply its per-worker keyPrefix for tests.
+ * Numbers and other inputs are passed in ARGV, not interpolated into Lua.
+ */
+const ATOMIC_RATE_LIMIT_SCRIPT = [
+  "local limit = tonumber(ARGV[1])",
+  "local window = tonumber(ARGV[2])",
+  "local current = redis.call(\"GET\", KEYS[1])",
+  "if current and tonumber(current) >= limit then",
+  "  local ttl = redis.call(\"TTL\", KEYS[1])",
+  "  if ttl == -1 then",
+  "    redis.call(\"EXPIRE\", KEYS[1], window)",
+  "    ttl = window",
+  "  end",
+  "  return {0, ttl}",
+  "end",
+  "local new_count = redis.call(\"INCR\", KEYS[1])",
+  "local ttl = redis.call(\"TTL\", KEYS[1])",
+  "if ttl == -1 then",
+  "  redis.call(\"EXPIRE\", KEYS[1], window)",
+  "  ttl = window",
+  "end",
+  "return {1, ttl}",
+].join('\n');
+
 // oxlint-disable-next-line typescript/no-extraneous-class -- static utility class used as a namespace
 export class RateLimitService {
   /**
-   * Check if an action is allowed based on rate limiting rules. Never rejects:
+   * Atomically check and charge a fixed-window rate limit. Never rejects:
    * a Redis failure resolves as `{ allowed: true, serviceUnavailable: true }`,
    * so every caller keeps failing open by default.
    * @param key - Unique identifier for the rate limit (e.g., "user:123:price-sync")
@@ -28,34 +58,24 @@ export class RateLimitService {
     const redisKey = `rate_limit:${key}`;
 
     try {
-      // Get current count
-      const currentCount = await redisClient.get(redisKey);
-      const count = currentCount ? parseInt(currentCount, 10) : 0;
+      const [allowed, ttl] = (await redisClient.eval(
+        ATOMIC_RATE_LIMIT_SCRIPT,
+        1,
+        redisKey,
+        String(maxAttempts),
+        String(windowSeconds),
+      )) as [number, number];
 
-      if (count >= maxAttempts) {
-        // Rate limit exceeded, get TTL to determine remaining seconds
-        const ttl = await redisClient.ttl(redisKey);
-        const remainingSeconds = ttl > 0 ? ttl : 0;
-        const resetTime = new Date(Date.now() + remainingSeconds * 1000);
-
+      if (allowed === 0) {
+        const remainingSeconds = Math.max(0, ttl);
         return {
           allowed: false,
           remainingSeconds,
-          resetTime,
+          resetTime: new Date(Date.now() + remainingSeconds * 1000),
         };
       }
 
-      // Increment the counter
-      const newCount = await redisClient.incr(redisKey);
-
-      // Set expiration if this is the first attempt
-      if (newCount === 1) {
-        await redisClient.expire(redisKey, windowSeconds);
-      }
-
-      return {
-        allowed: true,
-      };
+      return { allowed: true };
     } catch (error) {
       logger.error({
         message: `Rate limit check failed for key ${redisKey}, allowing request by default`,
