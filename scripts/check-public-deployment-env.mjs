@@ -137,8 +137,11 @@ export function checkPublicDeploymentSources({ composeEnv, stackEnv = {} }) {
   }
 
   // Public-readiness should not opt back into self-hosted demo accounts.
-  if (composeEnv.SYSTEM_DEMO_DISABLED !== undefined &&
-      composeEnv.SYSTEM_DEMO_DISABLED.toLowerCase() !== 'true') {
+  // This is read by the backend process, so stack.env has precedence just
+  // like AUTH_ORIGIN and SYSTEM_MAX_SIGNUPS_ALLOWED. Checking composeEnv here
+  // would approve a public stack with an unreviewed demo-account override.
+  if (backendEnv.SYSTEM_DEMO_DISABLED !== undefined &&
+      backendEnv.SYSTEM_DEMO_DISABLED.toLowerCase() !== 'true') {
     errors.push('SYSTEM_DEMO_DISABLED: must be true or omitted for public launch');
   }
 

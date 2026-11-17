@@ -61,11 +61,37 @@ test('last-file backend overrides are validated, not ignored', () => {
     { AUTH_RP_ID: 'attacker.example.org' },
     { RESEND_API_KEY: '' },
     { RESEND_FROM_EMAIL: 'onboarding@resend.dev' },
+    { SYSTEM_DEMO_DISABLED: 'false' },
     { BETTER_AUTH_SECRET: '__REPLACE_ME__' },
   ]) {
     assert.notEqual(checkPublicDeploymentSources({ composeEnv: validCompose(), stackEnv }).length, 0,
       'Override must not silently pass ' + Object.keys(stackEnv).join(','));
   }
+});
+
+test('effective backend demo setting cannot be re-enabled from stack.env', () => {
+  const compose = validCompose();
+  for (const stackValue of ['false', '0', '', 'FALSE']) {
+    const errors = checkPublicDeploymentSources({
+      composeEnv: compose,
+      stackEnv: { SYSTEM_DEMO_DISABLED: stackValue },
+    });
+    assert.ok(errors.some((e) => e.startsWith('SYSTEM_DEMO_DISABLED:')), stackValue);
+  }
+
+  // A trusted deliberate backend override can safely disable demo mode.
+  assert.deepEqual(checkPublicDeploymentSources({
+    composeEnv: { ...compose, SYSTEM_DEMO_DISABLED: 'false' },
+    stackEnv: { SYSTEM_DEMO_DISABLED: 'true' },
+  }), []);
+
+  // Missing .env setting cannot hide a later explicit enable in stack.env.
+  const missing = validCompose();
+  delete missing.SYSTEM_DEMO_DISABLED;
+  assert.ok(checkPublicDeploymentSources({
+    composeEnv: missing,
+    stackEnv: { SYSTEM_DEMO_DISABLED: 'false' },
+  }).some((e) => e.startsWith('SYSTEM_DEMO_DISABLED:')));
 });
 
 test('database and backend listener mismatches across Compose and Portainer fail closed', () => {
@@ -107,6 +133,10 @@ test('reads optional stack.env next to .env without calling Docker or printing s
     writeFileSync(path.join(directory, 'stack.env'), 'SYSTEM_MAX_SIGNUPS_ALLOWED=\n', { mode: 0o600 });
     const errors = checkPublicDeploymentFiles(file);
     assert.ok(errors.some((e) => e.startsWith('SYSTEM_MAX_SIGNUPS_ALLOWED:')));
+
+    writeFileSync(path.join(directory, 'stack.env'), 'SYSTEM_DEMO_DISABLED=false\n', { mode: 0o600 });
+    const demoErrors = checkPublicDeploymentFiles(file);
+    assert.ok(demoErrors.some((e) => e.startsWith('SYSTEM_DEMO_DISABLED:')));
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }
