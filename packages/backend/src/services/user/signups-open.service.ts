@@ -3,6 +3,7 @@ import { logger } from '@js/utils/logger';
 import { connection } from '@models/index';
 import SignupLedger from '@models/signup-ledger.model';
 import { createHash } from 'crypto';
+import { QueryTypes } from 'sequelize';
 
 import { parseSignupLimit } from './signup-limit';
 
@@ -47,19 +48,51 @@ export const forgetSignup = async ({ email }: { email: string }): Promise<void> 
  */
 export async function areSignupsOpen(): Promise<boolean> {
   const limit = parseSignupLimit(process.env.SYSTEM_MAX_SIGNUPS_ALLOWED);
-  if (limit.kind === 'unlimited') return true;
   if (limit.kind === 'invalid') {
     logger.error('SYSTEM_MAX_SIGNUPS_ALLOWED must be a non-negative safe integer; new signups are blocked.');
     return false;
   }
-  const { max } = limit;
-  if (max === 0) return false;
+  // The AFTER INSERT trigger is the authoritative concurrency-safe guard.
+  // A stored cap never increases automatically: a stale worker may not open
+  // registration beyond the operator-approved database policy.
+  const scope = isSelfHost() ? 'self-host' : 'hosted';
+  const requested = limit.kind === 'capped' ? limit.max : null;
 
-  if (!isSelfHost()) return (await SignupLedger.count()) < max;
+  try {
+    const [stored] = await connection.sequelize.query<{
+      maxSignups: number | string | null;
+      scope: string;
+    }>(
+      `UPDATE "SignupCapacity"
+       SET "maxSignups" =
+         CASE WHEN CAST(:max AS BIGINT) IS NULL THEN "maxSignups"
+              WHEN "maxSignups" IS NULL THEN CAST(:max AS BIGINT)
+              ELSE LEAST("maxSignups", CAST(:max AS BIGINT)) END,
+           "scope" = CASE WHEN "maxSignups" IS NULL THEN :scope ELSE "scope" END
+       WHERE id = 1 RETURNING "maxSignups", "scope"`,
+      { type: QueryTypes.SELECT, replacements: { max: requested, scope } },
+    );
 
-  const [[row]] = (await connection.sequelize.query('SELECT COUNT(*)::int AS count FROM ba_user')) as [
-    [{ count: number }],
-    unknown,
-  ];
-  return row.count < max;
+    if (!stored || stored.scope !== scope) {
+      logger.error('Signup capacity mode mismatch or missing database policy; signups blocked.');
+      return false;
+    }
+    const enforced = stored.maxSignups === null ? null : Number(stored.maxSignups);
+    if ((requested === null && enforced !== null) ||
+        (requested !== null && requested !== enforced)) {
+      logger.error('Signup capacity differs from PostgreSQL policy; operator review required.');
+      return false;
+    }
+    if (enforced === null) return true;
+    if (enforced === 0) return false;
+
+    const [row] = await connection.sequelize.query<{ count: number | string }>(
+      'SELECT lajur_signup_capacity_count(:scope) AS count',
+      { type: QueryTypes.SELECT, replacements: { scope } },
+    );
+    return Boolean(row && Number(row.count) < enforced);
+  } catch (error) {
+    logger.error({ message: 'Signup capacity database guard unavailable; signups blocked.', error });
+    return false;
+  }
 }
