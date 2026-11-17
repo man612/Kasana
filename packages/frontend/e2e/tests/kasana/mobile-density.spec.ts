@@ -36,20 +36,16 @@ test.describe('Mobile-first UI density and readable auth forms', () => {
   test('hides mobile scrollbars without disabling selection in text inputs', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/sign-in');
-    const metrics = await page.evaluate(() => {
-      const input = document.querySelector('input[type="email"]');
-      const button = document.querySelector('form button');
-      return {
-        scrollIndicator: getComputedStyle(document.documentElement).scrollbarWidth,
-        inputSelection: input ? getComputedStyle(input).userSelect : null,
-        buttonSelection: button ? getComputedStyle(button).userSelect : null,
-      };
-    });
-    expect(metrics.scrollIndicator).toBe('none');
-    expect(metrics.inputSelection).not.toBeNull();
-    expect(metrics.inputSelection).not.toBe('none');
-    expect(metrics.buttonSelection).not.toBeNull();
-    expect(metrics.buttonSelection).toBe('none');
+    // Lajur mounts Vue only after async locale initialization. page.goto()
+    // alone does not guarantee the email field or buttons are in the DOM.
+    // Auto-retrying locator assertions wait for the actual hydrated controls.
+    const emailField = page.locator('form input[type="email"]').first();
+    const formButton = page.locator('form button').first();
+    await expect(emailField).toBeVisible();
+    await expect(formButton).toBeVisible();
+    await expect(page.locator('html')).toHaveCSS('scrollbar-width', 'none');
+    await expect(emailField).not.toHaveCSS('user-select', 'none');
+    await expect(formButton).toHaveCSS('user-select', 'none');
   });
 
   for (const path of ['/sign-in', '/sign-up']) {

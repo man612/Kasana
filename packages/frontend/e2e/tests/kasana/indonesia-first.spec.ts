@@ -151,15 +151,30 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await expect(mobileForm).toBeVisible();
       // At 320px, the transaction date is on a separate row and inline
       // time controls are hidden (the calendar dialog still edits the time).
-      const amountBox = await mobileForm.locator('input[inputmode="decimal"]').first().boundingBox();
-      const dateBox = await mobileForm.getByTestId('date-field-numeric-input').boundingBox();
-      expect(amountBox).not.toBeNull();
-      expect(dateBox).not.toBeNull();
-      expect(dateBox!.y, 'mobile date input must follow amount rather than share its row')
-        .toBeGreaterThanOrEqual(amountBox!.y + amountBox!.height + 4);
-      await expect(mobileForm.getByTestId('date-field-time-input')).toHaveCount(0);
-      const primaryAmount = mobileForm.locator('input[inputmode="decimal"]').first();
+      const amountDateStack = mobileForm.getByTestId('transaction-amount-date-stack');
+      const primaryAmount = amountDateStack.locator('input[inputmode="decimal"]').first();
+      const mobileDateInput = amountDateStack.getByTestId('date-field-numeric-input');
       await expect(primaryAmount).toBeVisible();
+      await expect(mobileDateInput).toBeVisible();
+      await expect(amountDateStack).toHaveCSS('flex-direction', 'column');
+      // The sheet animates into the viewport with a transform. Two awaited
+      // boundingBox() calls can sample *different animation frames*, making
+      // correctly stacked fields look as though they overlap. Read both DOM
+      // rectangles in one browser evaluation (the same rendering snapshot).
+      // Keep the real geometry requirement: no overlap, even at 320px.
+      await expect
+        .poll(
+          () =>
+            amountDateStack.evaluate((stack) => {
+              const amount = stack.querySelector<HTMLInputElement>('input[inputmode="decimal"]');
+              const date = stack.querySelector<HTMLInputElement>('[data-testid="date-field-numeric-input"]');
+              if (!amount || !date) return Number.NEGATIVE_INFINITY;
+              return date.getBoundingClientRect().top - amount.getBoundingClientRect().bottom;
+            }),
+          { message: '320px amount and date must be vertically separate', timeout: 8_000 },
+        )
+        .toBeGreaterThanOrEqual(4);
+      await expect(mobileForm.getByTestId('date-field-time-input')).toHaveCount(0);
       const mobileAmountMetrics = await primaryAmount.evaluate((element) => ({
         fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
         height: element.getBoundingClientRect().height,

@@ -2177,7 +2177,7 @@ onUnmounted(() => {
           <div ref="transactionModeFieldsRef">
             <!-- CSS breakpoint controls stacking immediately, without waiting for the
                  debounced JS mobile flag after a viewport rotation/resize. -->
-            <div class="max-md:flex max-md:flex-col max-md:gap-y-2">
+            <div data-testid="transaction-amount-date-stack" class="max-md:flex max-md:flex-col max-md:gap-y-2">
               <form-row>
                 <DesktopOnlyTooltip
                   v-if="isMultiAccount"
