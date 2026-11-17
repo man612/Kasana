@@ -74,7 +74,7 @@ case "${1:-}" in
     fi
     sed -i -E "s/^SYSTEM_MAX_SIGNUPS_ALLOWED=(0|1|2)$/SYSTEM_MAX_SIGNUPS_ALLOWED=$2/" .env
     if [ -n "$(compose ps -q backend)" ]; then
-      compose up -d --no-build backend
+      compose up -d --no-build --no-deps --force-recreate backend
     fi
     echo "Trial signup cap set to $2. No other app was changed."
     ;;
