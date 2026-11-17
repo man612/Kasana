@@ -132,7 +132,11 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
           <!-- Account name — click to open rename popover (owner only) -->
           <Popover.Popover v-if="isOwner" :open="formEditingPopoverOpen" @update:open="onPopoverOpenChange">
             <Popover.PopoverTrigger as-child>
-              <button class="flex min-w-0 cursor-pointer text-xl transition-opacity hover:opacity-80">
+              <button
+                type="button"
+                :aria-label="`${t('pages.account.header.editAccountName')}: ${account.name}`"
+                class="focus-visible:ring-ring -mx-1 flex min-h-10 min-w-0 cursor-pointer items-center rounded-md px-1 text-xl transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none"
+              >
                 <span class="truncate">{{ account.name }}</span>
               </button>
             </Popover.PopoverTrigger>
@@ -159,7 +163,13 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
 
         <div class="flex gap-2">
           <PortfolioTransferDialog v-if="isOwner" :account="account" context="account">
-            <Button variant="ghost" size="icon" :title="t('pages.account.header.transferToPortfolio')">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              :title="t('pages.account.header.transferToPortfolio')"
+              :aria-label="t('pages.account.header.transferToPortfolio')"
+            >
               <ArrowRightLeftIcon :size="20" />
             </Button>
           </PortfolioTransferDialog>
@@ -167,7 +177,13 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
           <!-- Kebab dropdown — recipients have no actions here (rename/adjust/share are owner-only) -->
           <DropdownMenu v-if="isOwner">
             <DropdownMenuTrigger as-child>
-              <Button variant="ghost" size="icon" :title="t('pages.account.header.accountActions')">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                :title="t('pages.account.header.accountActions')"
+                :aria-label="t('pages.account.header.accountActions')"
+              >
                 <MoreVerticalIcon :size="20" />
               </Button>
             </DropdownMenuTrigger>
@@ -225,7 +241,9 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
       <div class="flex items-center">
         <button
           v-if="isSystemAccount && isOwner"
-          class="flex cursor-pointer flex-wrap items-end justify-start gap-x-2 transition-opacity hover:opacity-75"
+          type="button"
+          :aria-label="`${t('pages.account.header.adjustBalance')}: ${formatUIAmount(displayBalance, { currency: account.currencyCode })}`"
+          class="focus-visible:ring-ring flex min-h-11 cursor-pointer flex-wrap items-end justify-start gap-x-2 rounded-md transition-opacity hover:opacity-75 focus-visible:ring-2 focus-visible:outline-none"
           @click="adjustmentDialogOpen = true"
         >
           <span class="text-amount text-3xl">
