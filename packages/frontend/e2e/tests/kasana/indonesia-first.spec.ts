@@ -53,8 +53,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await page.goto('/accounts');
       await expect(page.getByText(accountName).first()).toBeVisible({ timeout: 20_000 });
 
-      // The mobile create-account/vehicle menu must be a bounded dialog,
-      // not a fragile popover that vanishes when another field receives focus.
+      // The mobile account menu is deliberately an anchored popover, not a
+      // centered confirmation. Outside taps dismiss it, and launching the
+      // vehicle form must close the menu first to avoid competing focus layers.
       const accountMenuTrigger = page.getByRole('button', { name: /Tindakan akun|Account actions/i });
       await accountMenuTrigger.click();
       const accountMenu = page.getByRole('dialog', { name: /Tindakan akun|Account actions/i });
@@ -62,9 +63,12 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await expect(accountMenu.getByRole('button', { name: /Buat akun|Create account/i })).toBeVisible();
       await expect(accountMenu.getByRole('button', { name: /Tambah kendaraan|Add vehicle/i })).toBeVisible();
       await page.mouse.click(4, 4);
-      await expect(accountMenu).toBeVisible();
-      await page.keyboard.press('Escape');
       await expect(accountMenu).toBeHidden();
+      await accountMenuTrigger.click();
+      await accountMenu.getByRole('button', { name: /Tambah kendaraan|Add vehicle/i }).click();
+      await expect(accountMenu).toBeHidden();
+      await expect(page.getByRole('dialog', { name: /Tambah kendaraan|Add vehicle/i })).toBeVisible();
+      await page.keyboard.press('Escape');
 
       // New tab has the authenticated cookie but no prior app navigation
       // history. It must still have an explicit, reliable Back destination.

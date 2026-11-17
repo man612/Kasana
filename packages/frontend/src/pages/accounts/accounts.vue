@@ -32,7 +32,12 @@
                 <EllipsisVerticalIcon class="size-4" />
               </UiButton>
             </Popover.PopoverTrigger>
-            <Popover.PopoverContent dim-backdrop align="end" class="w-60 space-y-1 rounded-xl p-2">
+            <Popover.PopoverContent
+              dim-backdrop
+              align="end"
+              :aria-label="$t('accounts.actionsMenu')"
+              class="w-60 space-y-1 rounded-xl p-2"
+            >
               <p class="text-muted-foreground px-3 py-1 text-xs font-medium">{{ $t('accounts.actionsMenu') }}</p>
               <UiButton variant="ghost" class="min-h-11 w-full justify-start gap-3" @click="openMobileCreateAction('vehicle')">
                 <CarIcon class="size-5" />
