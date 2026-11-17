@@ -8,15 +8,14 @@ import {
 
 const startTone = vi.fn();
 const resumeAudio = vi.fn(async () => {});
-let lastAudioContext: FakeAudioContext | null = null;
-
 class FakeAudioContext {
+  static lastCreated: FakeAudioContext | null = null;
   state: AudioContextState = 'running';
   currentTime = 0;
   destination = {} as AudioNode;
 
   constructor() {
-    lastAudioContext = this;
+    FakeAudioContext.lastCreated = this;
   }
 
   createOscillator() {
@@ -53,7 +52,7 @@ describe('Optional desktop and Android click feedback', () => {
     document.body.innerHTML = '';
     startTone.mockClear();
     resumeAudio.mockClear();
-    if (lastAudioContext) lastAudioContext.state = 'running';
+    if (FakeAudioContext.lastCreated) FakeAudioContext.lastCreated.state = 'running';
   });
 
   afterAll(() => {
@@ -101,8 +100,8 @@ describe('Optional desktop and Android click feedback', () => {
     // A prior context may be suspended when the browser returns from background.
     previewInteractionSound();
     startTone.mockClear();
-    if (!lastAudioContext) throw new Error('AudioContext was not created');
-    lastAudioContext.state = 'suspended';
+    if (!FakeAudioContext.lastCreated) throw new Error('AudioContext was not created');
+    FakeAudioContext.lastCreated.state = 'suspended';
 
     const button = document.createElement('button');
     document.body.append(button);
