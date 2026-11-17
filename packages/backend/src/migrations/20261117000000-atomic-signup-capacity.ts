@@ -72,12 +72,6 @@ module.exports = {
             RETURN NULL;
           END IF;
 
-          -- The fresh post-lock count is proven for READ COMMITTED; do not
-          -- silently weaken admission on a pre-existing repeatable snapshot.
-          IF current_setting('transaction_isolation') <> 'read committed' THEN
-            RAISE EXCEPTION 'SIGNUP_CAPACITY_REQUIRES_READ_COMMITTED' USING ERRCODE = '23514';
-          END IF;
-
           -- All competing INSERT transactions serialize on this one row.
           SELECT "maxSignups", "scope" INTO cap, admission_scope
           FROM "SignupCapacity" WHERE id = 1 FOR UPDATE;
@@ -85,6 +79,12 @@ module.exports = {
             RAISE EXCEPTION 'SIGNUP_CAPACITY_POLICY_MISSING' USING ERRCODE = '23514';
           END IF;
           IF cap IS NULL THEN RETURN NULL; END IF;
+
+          -- A fixed quota requires a fresh post-lock view of other commits.
+          -- Under unlimited mode, preserve existing isolation flexibility.
+          IF current_setting('transaction_isolation') <> 'read committed' THEN
+            RAISE EXCEPTION 'SIGNUP_CAPACITY_REQUIRES_READ_COMMITTED' USING ERRCODE = '23514';
+          END IF;
 
           -- A VOLATILE query after waiting for the row lock reads completed
           -- prior insert transactions under PostgreSQL READ COMMITTED.

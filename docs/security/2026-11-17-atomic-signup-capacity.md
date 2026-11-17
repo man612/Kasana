@@ -20,7 +20,8 @@ raises SQLSTATE 23514, rolling back the insertion without a leaked
 reservation. This applies to both email and OAuth paths because they write to
 the same auth table. A transition relation skips empty INSERT statements,
 including no-op ON CONFLICT statements. Non-READ COMMITTED transactions
-fail closed rather than trusting a potentially stale snapshot. A database-
+fail closed *when a cap is active*, rather than trusting a potentially stale
+snapshot. Unlimited self-host mode retains legacy isolation flexibility. A database-
 side rejection may currently appear as a generic error, not a polished 403.
 
 On self-host, current live ba_user rows count. Deleting a user releases a

@@ -206,4 +206,21 @@ describe('Atomic PostgreSQL signup admission on real migrated database', () => {
       await pool.end();
     }
   });
+
+  it('preserves unlimited self-host inserts under REPEATABLE READ', async () => {
+    const pool = separatePool();
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ');
+      await expect(client.query(
+        `INSERT INTO ba_user (id, name, email, "emailVerified", image, "createdAt", "updatedAt")
+         VALUES ($1, 'Unlimited', $2, false, NULL, NOW(), NOW())`,
+        [randomUUID(), 'unlimited-' + randomUUID() + '@test.local'],
+      )).resolves.toBeDefined();
+      await client.query('ROLLBACK');
+    } finally {
+      client.release();
+      await pool.end();
+    }
+  });
 });
