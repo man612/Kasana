@@ -117,10 +117,11 @@ const isConfigChoiceActive = ({ option, value }: { option: WidgetConfigOption; v
             <!-- Size buttons -->
             <div v-if="def.allowedSizes.length > 1" class="flex items-center gap-0.5 rounded-md border p-0.5">
               <button
+                type="button"
                 v-for="size in def.allowedSizes"
                 :key="`${size.colSpan}x${size.rowSpan}`"
                 :class="[
-                  'rounded px-2 py-0.5 text-xs transition-[color,background-color,transform] duration-200 ease-out active:scale-95 motion-reduce:transition-none',
+                  'focus-visible:ring-ring min-h-7 min-w-7 rounded px-2 py-1 text-xs transition-[color,background-color,transform] duration-200 ease-out active:scale-95 focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none',
                   isSizeActive(size) ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground',
                 ]"
                 :aria-pressed="isSizeActive(size)"
@@ -139,10 +140,11 @@ const isConfigChoiceActive = ({ option, value }: { option: WidgetConfigOption; v
               class="flex items-center gap-0.5 rounded-md border p-0.5"
             >
               <button
+                type="button"
                 v-for="choice in option.choices"
                 :key="choice.value"
                 :class="[
-                  'rounded px-2 py-0.5 text-xs transition-[color,background-color,transform] duration-200 ease-out active:scale-95 motion-reduce:transition-none',
+                  'focus-visible:ring-ring min-h-7 min-w-7 rounded px-2 py-1 text-xs transition-[color,background-color,transform] duration-200 ease-out active:scale-95 focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none',
                   isConfigChoiceActive({ option, value: choice.value })
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-muted text-muted-foreground',
