@@ -2086,7 +2086,7 @@ onUnmounted(() => {
   <VehicleLinkedView v-else-if="isVehicleLinkedView" :transaction="$props.transaction!" @close-modal="closeModal" />
   <div
     v-else
-    class="grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_auto_auto] overflow-hidden rounded-t-xl"
+    class="grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden rounded-t-xl max-md:h-[calc(95dvh-env(safe-area-inset-bottom))]"
     @keydown="onKeydown"
   >
     <p role="status" class="sr-only">{{ templating.announcement.value }}</p>
