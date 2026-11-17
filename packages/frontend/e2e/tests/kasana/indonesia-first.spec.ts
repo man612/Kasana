@@ -214,7 +214,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(templateBounds).not.toBeNull();
       expect(templateBounds!.y).toBeGreaterThanOrEqual(-2);
       expect(templateBounds!.y + templateBounds!.height).toBeLessThanOrEqual(570);
-      await expect(templateDialog.getByRole('button', { name: /Templat baru|New template/i })).toBeVisible();
+      await expect(templateDialog.getByRole('button', { name: /Simpan templat|Save .*template/i })).toBeVisible();
       await page.keyboard.press('Escape');
       await expect(templateDialog).toBeHidden();
       await expect(mobileForm).toBeVisible();
