@@ -62,3 +62,21 @@ test.describe('Mobile-first UI density and readable auth forms', () => {
     });
   }
 });
+
+test.describe('iPhone viewport accessibility', () => {
+  test.use({
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1',
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  });
+
+  test('does not limit user pinch zoom to 100% after app initialization', async ({ page }) => {
+    await page.goto('/sign-in');
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+    const viewport = await page.locator('meta[name="viewport"]').getAttribute('content');
+    expect(viewport).toContain('width=device-width');
+    expect(viewport).not.toMatch(/maximum-scale\s*=\s*1(?:\.0)?(?:,|\s|$)/);
+    expect(viewport).not.toMatch(/user-scalable\s*=\s*no/);
+  });
+});
