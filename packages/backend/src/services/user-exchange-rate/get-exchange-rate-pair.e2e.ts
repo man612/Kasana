@@ -259,6 +259,35 @@ describe('GET /currencies/rates/pair', () => {
     }
   });
 
+  it('uses the latest PRIOR historical FX publication instead of a later rate', async () => {
+    // Date pair is synthetic and deliberately brackets the requested day.
+    // Old unbounded DESC selected the newer 1000 XOF/USD quote for 2020-03-15.
+    await insertRate({ quoteCode: FALLBACK_ONLY, rate: 500, date: EARLIER_RATE_DATE });
+    await insertRate({ quoteCode: FALLBACK_ONLY, rate: 1000, date: '2020-03-20' });
+    const result = await helpers.getExchangeRatePair({
+      from: FALLBACK_ONLY,
+      to: 'USD',
+      date: RATE_DATE,
+      raw: true,
+    });
+    expect(result.rate).toBeCloseTo(1 / 500, 10);
+    expect(result.date.slice(0, 10)).toBe(EARLIER_RATE_DATE);
+  });
+
+  it('uses the earliest available quote if the requested date predates all stored history', async () => {
+    // Avoid treating the LATEST future price as if it were the oldest known one.
+    await insertRate({ quoteCode: UNPRICED, rate: 600, date: '2020-03-20' });
+    await insertRate({ quoteCode: UNPRICED, rate: 900, date: '2020-04-20' });
+    const result = await helpers.getExchangeRatePair({
+      from: UNPRICED,
+      to: 'USD',
+      date: RATE_DATE,
+      raw: true,
+    });
+    expect(result.rate).toBeCloseTo(1 / 600, 10);
+    expect(result.date.slice(0, 10)).toBe('2020-03-20');
+  });
+
   it('returns the rate for a currency the user has NOT connected', async () => {
     const userCurrencies = await helpers.getUserCurrencies();
     expect(userCurrencies.some((item) => item.currencyCode === 'JPY')).toBe(false);

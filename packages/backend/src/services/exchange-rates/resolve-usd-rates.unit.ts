@@ -39,7 +39,8 @@ type FindOneArgs = {
 /**
  * Drive `loadRate`'s two queries per code:
  *  - the EXACT query has no `order`,
- *  - the FALLBACK query has `order: [['date', 'DESC']]`.
+ *  - the prior-date query sorts `date DESC`, followed by an earliest-future
+ *    `date ASC` query only if no past rate exists.
  * `exactByCode` / `fallbackByCode` map a quote code to the row each query returns
  * (or `null` for no row).
  */
@@ -72,6 +73,49 @@ describe('resolveUsdRates future-date guard', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('tries the previous publication before the newer one, even with later quotes in storage', async () => {
+    const requestedDate = subDays(startOfDay(new Date()), 45);
+    const previousDate = subDays(requestedDate, 5);
+    const newerDate = addDays(requestedDate, 10);
+    findOne.mockImplementation(async (rawArgs: unknown) => {
+      const args = rawArgs as { order?: [string, string][] };
+      if (!args.order) return null; // no exact-date row
+      if (args.order[0]?.[1] === 'DESC') return { rate: 0.8, date: previousDate };
+      return { rate: 0.95, date: newerDate };
+    });
+    isDateComprehensivelyFetched.mockResolvedValue(true);
+
+    const result = await resolveUsdRates({ codes: ['EUR'], date: requestedDate });
+    expect(result.get('EUR')).toEqual({
+      kind: 'fallback',
+      rate: 0.8,
+      rateDate: previousDate,
+      requestedDate,
+    });
+    expect(findOne).toHaveBeenCalledTimes(2); // exact + earlier; never read newer
+    expect(fetchAndStoreRatesForDate).not.toHaveBeenCalled();
+  });
+
+  it('chooses the EARLIEST future quote only when no earlier quote exists', async () => {
+    const requestedDate = subDays(startOfDay(new Date()), 90);
+    const earliestFuture = addDays(requestedDate, 10);
+    findOne.mockImplementation(async (rawArgs: unknown) => {
+      const args = rawArgs as { order?: [string, string][] };
+      if (!args.order || args.order[0]?.[1] === 'DESC') return null;
+      return { rate: 0.81, date: earliestFuture };
+    });
+    isDateComprehensivelyFetched.mockResolvedValue(true);
+
+    const result = await resolveUsdRates({ codes: ['EUR'], date: requestedDate });
+    expect(result.get('EUR')).toEqual({
+      kind: 'fallback',
+      rate: 0.81,
+      rateDate: earliestFuture,
+      requestedDate,
+    });
+    expect(findOne).toHaveBeenCalledTimes(3); // exact, prior, earliest future
   });
 
   it('does NOT fetch for a future date and resolves a currency-with-history via fallback', async () => {
