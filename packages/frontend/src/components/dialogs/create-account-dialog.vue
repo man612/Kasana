@@ -35,7 +35,10 @@ const onAccountCreation = () => {
 
     <CreateAccountForm ref="formRef" :form-id="formId" :show-submit-button="false" @created="onAccountCreation" />
 
-    <template #footer>
+    <template #footer="{ close }">
+      <UiButton type="button" variant="outline" class="min-h-11" @click="close()">
+        {{ $t('common.actions.cancel') }}
+      </UiButton>
       <UiButton type="submit" :form="formId" class="ml-auto min-w-30" :disabled="formRef?.isSubmitting">
         {{
           formRef?.isSubmitting ? $t('forms.createAccount.submitButtonLoading') : $t('forms.createAccount.submitButton')

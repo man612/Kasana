@@ -27,7 +27,10 @@ const onCreated = () => {
     <template #title>{{ $t('common.dialogs.createVehicle') }}</template>
 
     <CreateVehicleForm ref="formRef" :form-id="formId" :show-submit-button="false" @created="onCreated" />
-    <template #footer>
+    <template #footer="{ close }">
+      <UiButton type="button" variant="outline" class="min-h-11" @click="close()">
+        {{ $t('common.actions.cancel') }}
+      </UiButton>
       <UiButton
         type="submit"
         :form="formId"
