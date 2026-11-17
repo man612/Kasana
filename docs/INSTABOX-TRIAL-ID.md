@@ -58,31 +58,36 @@ cd lajur-preview
 
 Keep all Lajur. source and configuration below `/data/lajur-preview/`; do not install Node packages into Absenin's folder. The source snapshot/version should be pinned when comparing screenshots.
 
-## Phase 2 — configure demo-only secrets
+## Phase 2 — create demo-only secrets safely (mobile-friendly)
 
-Copy `self-hosting/.env.example` to `self-hosting/.env` and edit only the latter. This file must NEVER be committed or pasted into chat. Generate FOUR independent secret values on the sandbox itself, including the PostgreSQL password (for example with `openssl rand -hex 32`).
+Use this short command **after** obtaining the private HTTPS link for port 8080:
 
-Required settings are:
+~~~bash
+bash self-hosting/instabox-trial.sh init
+~~~
+
+The local initializer asks for the InstaBox HTTPS link (paste it in your terminal, but **never include it in a screenshot**). It keeps only the origin, strips the `_token` query, copies the example configuration, generates FOUR independent random secrets (JWT, session, Better Auth and PostgreSQL), sets permissions to 0600, configures port 8080 and disables demo/public signup by default. It will **refuse to overwrite** an existing `.env`.
+
+Do not print or send `self-hosting/.env` or any access tokens. The important resulting variables are:
 
 ~~~dotenv
 NODE_ENV=production
 HTTP_PORT=8080
 BETTER_AUTH_URL=https://YOUR-PRIVATE-PREVIEW-HOST.instabox.tech
 AUTH_ORIGIN=https://YOUR-PRIVATE-PREVIEW-HOST.instabox.tech
-APPLICATION_JWT_SECRET=<unique locally generated value>
-APP_SESSION_ID_SECRET=<another unique locally generated value>
-BETTER_AUTH_SECRET=<another unique locally generated value>
-APPLICATION_DB_PASSWORD=<another unique locally generated value>
+APPLICATION_JWT_SECRET=<locally generated>
+APP_SESSION_ID_SECRET=<locally generated>
+BETTER_AUTH_SECRET=<locally generated>
+APPLICATION_DB_PASSWORD=<locally generated>
 SYSTEM_MAX_SIGNUPS_ALLOWED=0
 SYSTEM_DEMO_DISABLED=true
 ~~~
 
-The preview origin must be the exact public-facing HTTPS *origin*, **without** the private `_token` query parameter or trailing application path. Keep `BETTER_AUTH_URL` and `AUTH_ORIGIN` identical. Existing DB/Redis hostnames (`db` and `redis`) and port (`8081`) remain as in the example.
+The HTTPS preview origin is **not** the private link query token. `BETTER_AUTH_URL` and `AUTH_ORIGIN` must match, otherwise secure cookies, login or trusted-origin checks can fail. Internal DB/Redis hostnames (`db`, `redis`) and backend port 8081 stay as provided by the example.
 
-Start with signup cap **0** while installing; set to **1** for your first disposable test user or **2** only when testing cross-user data isolation. Without a configured transactional email provider, password signup does **not** verify email ownership and password reset will not work. Never enable unlimited public signup on this private demo.
+When you are ready to register a disposable user, change signup cap from **0** to **1** in the local `.env` and recreate the backend service; use **2** only to test two-user isolation. Without a transactional email provider, password signup does **not** verify email ownership and password reset will not work. Never remove the cap for this trial.
 
-Do not configure OAuth/passkeys, Cloudflare R2, real banking providers, or external AI API keys for the first dry run. A simple demo with fake entries is enough.
-
+Do not configure OAuth/passkeys, Cloudflare R2, live bank providers or external AI API keys yet. Use synthetic data only.
 ## Phase 3 — verify Compose and start, only AFTER disk preflight
 
 The final `docker-compose.instabox.yml` overlay changes the Compose project name, Docker network and locally built app image names to avoid accidental reuse of Absenin or older MoneyMatter resources. The original three-file source+private stack remains intact. Database, cache and rate-service volumes use a unique `lajur-instabox-trial_*` prefix, provided the isolation overlay is last.
