@@ -3,6 +3,9 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { ERROR_CODES } from '@js/errors';
 import { connection } from '@models/index';
 import * as helpers from '@tests/helpers';
+import { Money } from '@common/types/money';
+import { redisClient } from '@root/redis-client';
+import { calculateRefAmount } from '@services/calculate-ref-amount.service';
 import { endOfDay, startOfDay } from 'date-fns';
 
 /**
@@ -168,6 +171,37 @@ describe('GET /currencies/rates/pair', () => {
       raw: true,
     });
     expect(toBase.rate).toBeCloseTo(USD_TO_AED / 16_000, 10);
+  });
+
+  it('does not reuse an old cached 60 USD refAmount after the IDR rate precision fix', async () => {
+    // A legacy v1 cached conversion could survive an application update for one hour.
+    // Use synthetic rows and Redis only; never touch operator or financial records.
+    await insertRate({ quoteCode: 'IDR', rate: 16_000 });
+    const currencies = await helpers.getUserCurrencies();
+    if (!currencies.some((item) => item.currencyCode === 'IDR')) {
+      await helpers.addUserCurrencies({ currencyCodes: ['IDR'] });
+    }
+    const owner = await helpers.getUserInfo({ raw: true });
+    const legacyKey = `ref_amount:${owner.id}:100000000:IDR:USD:${RATE_DATE}`;
+    const activeKey = `ref_amount:v2:${owner.id}:100000000:IDR:USD:${RATE_DATE}`;
+
+    await redisClient.del(activeKey);
+    await redisClient.set(legacyKey, '6000'); // old 60.00 USD = 6,000 cents
+
+    try {
+      const converted = await calculateRefAmount({
+        userId: owner.id,
+        amount: Money.fromDecimal(1_000_000),
+        date: new Date(RATE_DATE),
+        baseCode: 'IDR',
+        quoteCode: 'USD',
+      });
+      // Exact synthetic reciprocal: 1,000,000 IDR / 16,000 = 62.50 USD.
+      // This would fail if the legacy ref_amount: key were still read.
+      expect(converted.toCents()).toBe(6250);
+    } finally {
+      await redisClient.del(legacyKey, activeKey);
+    }
   });
 
   it('returns the rate for a currency the user has NOT connected', async () => {
