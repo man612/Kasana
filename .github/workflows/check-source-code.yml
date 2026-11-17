@@ -43,7 +43,7 @@ jobs:
       - name: Check selected dependency security floors and guard regressions
         run: |
           node scripts/security-lockfile-check.mjs
-          node --test scripts/security-lockfile-check.test.mjs scripts/setup-e2e-tests.test.mjs scripts/security-log-format.test.mjs scripts/check-public-deployment-env.test.mjs
+          node --test scripts/security-lockfile-check.test.mjs scripts/setup-e2e-tests.test.mjs scripts/security-log-format.test.mjs scripts/check-public-deployment-env.test.mjs scripts/security-private-api-cache.test.mjs
       - id: prepare-env
         uses: ./.github/actions/prepare-local-env
       - name: Install dependencies
