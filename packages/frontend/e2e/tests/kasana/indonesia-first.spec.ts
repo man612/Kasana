@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 
 import {
   completeOnboarding,
@@ -9,6 +9,37 @@ import {
 } from '../../helpers/api-client';
 import { loginViaUI } from '../../helpers/auth';
 import { buildTestCredentials, signUpAndVerify } from '../../helpers/test-setup';
+
+// Playwright supports synthetic TouchEvents for legacy touch gesture handlers.
+// Use the real target geometry, so the same sequence works at 320 and 390px.
+async function swipeElement(element: Locator, from: number, to: number) {
+  await element.evaluate((node, { from, to }) => {
+    const rect = node.getBoundingClientRect();
+    const y = rect.top + rect.height / 2;
+    const touch = (x: number) => new Touch({
+      identifier: 1,
+      target: node,
+      clientX: rect.left + rect.width * x,
+      clientY: y,
+    });
+    const initial = touch(from);
+    node.dispatchEvent(new TouchEvent('touchstart', {
+      touches: [initial],
+      targetTouches: [initial],
+      changedTouches: [initial],
+      bubbles: true,
+      cancelable: true,
+    }));
+    const finalTouch = touch(to);
+    node.dispatchEvent(new TouchEvent('touchend', {
+      touches: [],
+      targetTouches: [],
+      changedTouches: [finalTouch],
+      bubbles: true,
+      cancelable: true,
+    }));
+  }, { from, to });
+}
 
 test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', () => {
   test.use({ viewport: { width: 390, height: 844 } });
@@ -64,7 +95,18 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await expect(quickStart).toBeHidden();
       await expect(quickStart).toBeVisible({ timeout: 8_000 });
 
-      await page.goto('/accounts');
+      // Swipe from just inside the system-back edge to open the app sidebar.
+      const shell = page.locator('.h-dvh').first();
+      await swipeElement(shell, 0.14, 0.74);
+      const sidebarSheet = page.locator('[role="dialog"][data-state="open"]').first();
+      await expect(sidebarSheet).toBeVisible();
+      await swipeElement(sidebarSheet.locator(':scope > div.h-full').first(), 0.80, 0.18);
+      await expect(sidebarSheet).toBeHidden();
+
+      // Swiping the four-item bottom navbar moves one destination at a time.
+      const navGestureTarget = page.getByRole('navigation', { name: 'Navigasi utama' });
+      await swipeElement(navGestureTarget, 0.85, 0.15);
+      await expect(page).toHaveURL(/\\/accounts(?:\\?.*)?$/);
       await expect(page.getByText(accountName).first()).toBeVisible({ timeout: 20_000 });
 
       // The mobile account menu is deliberately an anchored popover, not a
