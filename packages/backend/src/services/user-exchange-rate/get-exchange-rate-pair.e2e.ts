@@ -146,6 +146,30 @@ describe('GET /currencies/rates/pair', () => {
     expect(result.rate).toBeCloseTo(1 / USD_TO_AED, 4);
   });
 
+  it('preserves synthetic IDR->USD and IDR->AED precision without truncating valid reciprocal rates', async () => {
+    // Synthetic fixed-rate fixture; this is NOT a live USD/IDR quote.
+    // In the old 5-decimal formatter: 1/16,000 became 0.00006 (-4%).
+    await insertRate({ quoteCode: 'IDR', rate: 16_000 });
+
+    const toUsd = await helpers.getExchangeRatePair({
+      from: 'IDR',
+      to: 'USD',
+      date: RATE_DATE,
+      raw: true,
+    });
+    expect(toUsd.baseCode).toBe('IDR');
+    expect(toUsd.quoteCode).toBe('USD');
+    expect(toUsd.rate).toBeCloseTo(1 / 16_000, 10);
+
+    const toBase = await helpers.getExchangeRatePair({
+      from: 'IDR',
+      to: global.BASE_CURRENCY_CODE,
+      date: RATE_DATE,
+      raw: true,
+    });
+    expect(toBase.rate).toBeCloseTo(USD_TO_AED / 16_000, 10);
+  });
+
   it('returns the rate for a currency the user has NOT connected', async () => {
     const userCurrencies = await helpers.getUserCurrencies();
     expect(userCurrencies.some((item) => item.currencyCode === 'JPY')).toBe(false);
