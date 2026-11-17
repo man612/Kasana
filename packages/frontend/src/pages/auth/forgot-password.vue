@@ -1,6 +1,8 @@
 <template>
-  <div class="flex h-dvh items-center justify-center px-6">
-    <Card class="w-full max-w-112.5" as="form" @submit.prevent="submit()">
+  <!-- Scroll inside the viewport when a full-size mobile form is taller than the screen.
+       Auto margins center shorter forms without unsafe vertical centering/clipping. -->
+  <div class="flex h-dvh flex-col items-center overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
+    <Card class="my-auto w-full max-w-112.5 shrink-0" as="form" @submit.prevent="submit()">
       <CardHeader class="text-center">
         <div class="bg-primary/10 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
           <MailIcon v-if="isSent" class="text-primary-text h-8 w-8" />
