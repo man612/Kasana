@@ -6,12 +6,12 @@ import { useOnboardingStore, type QuickStartPosition } from '@/stores/onboarding
 import { resolveQuickStartDrop } from './quick-start-drop';
 import { RocketIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 const onboardingStore = useOnboardingStore();
-const { progressPercentage, remainingCount, shouldShowTrigger, triggerPosition, hiddenUntil } =
+const { progressPercentage, remainingCount, shouldShowTrigger, triggerPosition } =
   storeToRefs(onboardingStore);
 
 const buttonRef = ref<HTMLButtonElement | null>(null);
@@ -170,29 +170,14 @@ function onKeydown(event: KeyboardEvent) {
   });
 }
 
-let wakeTimer: ReturnType<typeof setTimeout> | null = null;
-function scheduleReappearance() {
-  if (wakeTimer) clearTimeout(wakeTimer);
-  const remaining = hiddenUntil.value - Date.now();
-  if (remaining > 0) {
-    wakeTimer = setTimeout(() => onboardingStore.showTriggerNow(), remaining);
-  } else if (hiddenUntil.value > 0) {
-    // Android may suspend timers when the tab is backgrounded: restore an
-    // expired shortcut immediately on remount instead of leaving it hidden.
-    onboardingStore.showTriggerNow();
-  }
-}
-watch(hiddenUntil, scheduleReappearance);
-
+// The store owns the expiration timer and wake-up behavior.
 onMounted(() => {
   updateViewport();
   window.addEventListener('resize', updateViewport);
   window.visualViewport?.addEventListener('resize', updateViewport);
-  scheduleReappearance();
 });
 onUnmounted(() => {
   clearLongPressTimer();
-  if (wakeTimer) clearTimeout(wakeTimer);
   window.removeEventListener('resize', updateViewport);
   window.visualViewport?.removeEventListener('resize', updateViewport);
 });
