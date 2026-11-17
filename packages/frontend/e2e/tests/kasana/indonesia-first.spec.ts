@@ -124,6 +124,23 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(mobileSaveBox!.y + mobileSaveBox!.height, '320px mobile save button bottom').toBeLessThanOrEqual(570);
       await page.keyboard.press('Escape');
       await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto('/dashboard');
+      const mobileDateTransaction = page.getByRole('button', { name: /Transaksi Baru|New transaction/i }).first();
+      await mobileDateTransaction.click();
+      const mobileDateForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
+      await expect(mobileDateForm).toBeVisible();
+      await mobileDateForm.getByTestId('date-field-calendar-trigger').first().click();
+      const mobileDatePicker = page.getByTestId('transaction-date-dialog');
+      await expect(mobileDatePicker).toBeVisible();
+      const mobilePickerBox = await mobileDatePicker.boundingBox();
+      expect(mobilePickerBox).not.toBeNull();
+      expect(mobilePickerBox!.x).toBeGreaterThanOrEqual(-2);
+      expect(mobilePickerBox!.x + mobilePickerBox!.width).toBeLessThanOrEqual(392);
+      expect(mobilePickerBox!.y).toBeGreaterThanOrEqual(-2);
+      expect(mobilePickerBox!.y + mobilePickerBox!.height).toBeLessThanOrEqual(846);
+      const mobileUnusedScroll = await mobileDatePicker.evaluate((node) => node.scrollHeight - node.clientHeight);
+      expect(mobileUnusedScroll, '390px mobile date picker should not require needless scrolling').toBeLessThanOrEqual(2);
+      await page.keyboard.press('Escape');
 
       // The accent is independent of light/dark mode and survives navigation
       // and reload. Test the actual settings controls, not just stored tokens.
