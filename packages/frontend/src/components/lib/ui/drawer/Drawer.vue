@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useForwardPropsEmits } from 'reka-ui';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import type { DrawerRootEmits, DrawerRootProps } from 'vaul-vue';
 import { DrawerRoot, DrawerRootNested } from 'vaul-vue';
 import { computed, inject, provide } from 'vue';
@@ -7,12 +8,12 @@ import { computed, inject, provide } from 'vue';
 import { IS_INSIDE_DRAWER } from './context';
 
 const props = withDefaults(defineProps<DrawerRootProps>(), {
-  shouldScaleBackground: false,
-  // Scroll gestures inside a sheet must not drag the sheet itself.
-  handleOnly: true,
+  shouldScaleBackground: true,
+  handleOnly: false,
 });
 
 const emits = defineEmits<DrawerRootEmits>();
+const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 
 const forwarded = useForwardPropsEmits(props, emits);
 
@@ -28,7 +29,12 @@ provide(IS_INSIDE_DRAWER, true);
 </script>
 
 <template>
-  <component :is="isNested ? DrawerRootNested : DrawerRoot" v-bind="forwarded">
+  <component
+    :is="isNested ? DrawerRootNested : DrawerRoot"
+    v-bind="forwarded"
+    :handle-only="isMobile ? true : props.handleOnly"
+    :should-scale-background="isMobile ? false : props.shouldScaleBackground"
+  >
     <slot />
   </component>
 </template>
