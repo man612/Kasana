@@ -103,7 +103,7 @@ const onDashboardTouchStart = (event: TouchEvent) => {
   if (touch.clientX < 24 || touch.clientX > window.innerWidth - 24) return;
   if (touch.clientX > 84 && !mobilePageSwipeEnabled.value) return;
   const target = event.target;
-  if (target instanceof Element && target.closest('button, input, select, textarea, a, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe]')) return;
+  if (target instanceof Element && target.closest('button, input, select, textarea, a, nav, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe]')) return;
   if (document.querySelector('[role="dialog"][data-state="open"], [aria-modal="true"]')) return;
   dashboardTouch = { x: touch.clientX, y: touch.clientY };
 };
