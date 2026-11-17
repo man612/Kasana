@@ -70,7 +70,8 @@ async function calculateRefAmountImpl(params: Params): Promise<Money> {
       });
     }
 
-    const cacheKey = `ref_amount:${userId}:${amountCents}:${baseCode}:${resolvedQuoteCode}:${dateStr}`;
+    // v2 never reuses monetary conversions computed from the legacy truncated FX rate.
+    const cacheKey = `ref_amount:v2:${userId}:${amountCents}:${baseCode}:${resolvedQuoteCode}:${dateStr}`;
 
     if (!bypassCache) {
       const cachedAmount = await refAmountCache.read(cacheKey);

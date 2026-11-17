@@ -1,6 +1,6 @@
 # Lajur. finance audit — reciprocal FX precision for IDR and other small currencies
 
-**Status:** Isolated draft candidate; no automatic data rewrite, backfill, migration or deployment. Reviewed source: PR #10 SHA ffc793a6b74d2da9f4887317533c4b03face5c90, 17 November 2026.
+**Status:** Isolated draft candidate. No deployment or migration has been performed, but deploying the changed formatter later can automatically rewrite historic `Balances` via existing scheduled jobs. Reviewed source: PR #10 SHA ffc793a6b74d2da9f4887317533c4b03face5c90, 17 November 2026.
 
 ## Reproduced source flaw
 
@@ -25,7 +25,7 @@ These are deliberately constructed TEST FIXTURES, NOT current central-bank quote
 
 - Retain 12 significant digits rather than five fractional digits with Number(rate.toPrecision(12)). This preserves small reciprocal and cross rates without forcing a fixed number of decimals for every currency.
 - Both live API getExchangeRate and daily balance-history calculations already call the shared formatRate helper; no dual-formula drift is introduced.
-- Version the global Redis cross-rate cache key as cross_rate:v2 so an old cached value truncated for four hours cannot masquerade as a corrected result. This does not flush Redis or invalidate auth sessions.
+- Version both Redis cache layers: `cross_rate:v2` for rates (four-hour TTL), **and** `ref_amount:v2` for converted monetary amounts (one-hour TTL). Otherwise existing converted amounts could still contain the old five-decimal error after rate-cache versioning. Old keys expire without a flush or forced logout.
 - Add pure unit tests for IDR/USD, tiny positive rates, an ordinary pair and invalid/zero handling, plus backend E2E tests for IDR→USD/IDR→AED rates and an IDR account's historical balance using controlled historical USD-pivot rows.
 - Fix the frontend manual inverse-rate calculator, which separately rounded to **six decimal places** and could change 0.0000625 into 0.000063 or turn smaller rates into zero. Preserve 12 significant digits while editing.
 - Fix the currency-list display that previously used six fractional digits and could conceal meaningful low-value FX precision. Use significant digits only for tiny rates, keeping ordinary rows compact. Add Vue/Vitest tests for reciprocal editing and Indonesian locale display.
@@ -33,16 +33,17 @@ These are deliberately constructed TEST FIXTURES, NOT current central-bank quote
 
 ### What this does NOT solve automatically
 
-The application stores rates as floating-point values, and transaction amounts/balances are rounded in other services. The underlying data model, minor units and historic stored refAmount/balance rows are not migrated. A change in precision changes newly computed conversions, and any scheduled/nightly revaluation of existing holdings may produce different accurate balance values. An operator needs a data-backed comparison and rollback plan before applying it to an installation with real finances.
+Both the `ExchangeRates.rate` model and the 2025-09-18 migration declare Sequelize `FLOAT` (normally PostgreSQL `REAL`, single precision). Twelve significant output digits cannot restore source precision already lost at storage. The schema, minor units and historical transaction `refAmount` are not migrated. **The existing nightly `balanceRevalueSweepCron` at 18:45 UTC and account write paths can automatically delete/rewrite qualifying old `Balances` rows after a future deployment.** A finance-data comparison and rehearsed rollback must precede any such deployment.
 
-This candidate does not create or amend existing transactions, mass reprice a live database, force re-compute balances, change users' base currencies, import historical rates, touch external providers, or run Windows Podman. An explicit separate migration/reconciliation proposal is required if previously truncated historical transactions must be corrected. Any strategy must preserve already-entered/manual amounts and auditability.
+Merely creating this PR changes no production database, VPS, provider, workstation or personal finance data. **A future code-only rollback will not undo historical `Balances` changes already written by the sweep.** A separate, explicit, auditable reconciliation plan is needed for old transaction `refAmount` rows, including manual-rate provenance and a rehearsed independent backup restore. See [FX reconciliation release gates](./2026-11-17-fx-reconciliation-release-gates.md).
 
 ### Test acceptance
 
 1. At final SHA: 20/20 app CI including Node unit tests, transaction and currency backend E2E, browser and production image builds.
 2. Verify synthetic 1 IDR → USD reciprocal 0.0000625, and AED/IDR cross-rate; older five-decimal truncation must demonstrably fail regression checks.
 3. Verify owner/viewer authorization, custom/manual FX precedence, missing-rate fallback, currency migration service and foreign balance history, not only a pure format function.
-4. Keep this PR draft and independent of public-security PR #39. Do not promote into PR #10 without review of changed numeric outputs and stored-data compatibility.
+4. Verify both versioned cache namespaces and the existing goal-missing-rate E2E test.
+5. Keep this PR draft and independent of public-security PR #39. Do not promote into PR #10 without review of history rewrite triggers, changed numeric outputs and stored-data compatibility.
 
 Authoritative behavior references:
 - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/trunc
