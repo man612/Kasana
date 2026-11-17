@@ -19,7 +19,7 @@ require_env() {
     echo 'ERROR: self-hosting/.env missing; copy .env.example and configure locally.' >&2
     exit 1
   fi
-  if grep -q '__REPLACE_ME__' .env; then
+  if grep -Eq '^[A-Z_][A-Z0-9_]*=__REPLACE_ME__' .env; then
     echo 'ERROR: .env contains placeholder secrets. Generate unique local secrets first.' >&2
     exit 1
   fi
@@ -48,8 +48,32 @@ case "${1:-}" in
       echo 'ERROR: set AUTH_ORIGIN and BETTER_AUTH_URL to your InstaBox private HTTPS preview origin.' >&2
       exit 1
     fi
-    if ! grep -Eq '^SYSTEM_MAX_SIGNUPS_ALLOWED=(0|1)$' .env; then
-      echo 'ERROR: private trial must explicitly cap signups at 0 or 1.' >&2
+    if ! grep -Eq '^SYSTEM_MAX_SIGNUPS_ALLOWED=(0|1|2)
+    compose up -d --no-build
+    ;;
+  status)
+    compose ps
+    ;;
+  logs)
+    compose logs --tail=80 backend frontend db redis currency-rates-api
+    ;;
+  stop)
+    compose stop
+    ;;
+  *)
+    echo 'Usage: bash self-hosting/instabox-trial.sh {check|build-backend|build-frontend|up|status|logs|stop}' >&2
+    echo 'First check available root disk, Docker daemon and free space with scripts/check-instabox-preview.sh.' >&2
+    exit 2
+    ;;
+esac
+ .env; then
+      echo 'ERROR: private trial must explicitly cap signups at 0, 1 or 2.' >&2
+      exit 1
+    fi
+    preview_origin=$(sed -n 's/^AUTH_ORIGIN=//p' .env | tail -1)
+    auth_url=$(sed -n 's/^BETTER_AUTH_URL=//p' .env | tail -1)
+    if [ "$preview_origin" != "$auth_url" ]; then
+      echo 'ERROR: AUTH_ORIGIN and BETTER_AUTH_URL must match exactly.' >&2
       exit 1
     fi
     compose up -d --no-build
