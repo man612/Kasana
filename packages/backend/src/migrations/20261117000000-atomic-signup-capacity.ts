@@ -66,6 +66,18 @@ module.exports = {
         DECLARE admission_scope TEXT;
         DECLARE counted BIGINT;
         BEGIN
+          -- Empty INSERT ... SELECT / ON CONFLICT DO NOTHING must not turn
+          -- an existing login/upsert into a quota failure.
+          IF NOT EXISTS (SELECT 1 FROM lajur_inserted_users) THEN
+            RETURN NULL;
+          END IF;
+
+          -- The fresh post-lock count is proven for READ COMMITTED; do not
+          -- silently weaken admission on a pre-existing repeatable snapshot.
+          IF current_setting('transaction_isolation') <> 'read committed' THEN
+            RAISE EXCEPTION 'SIGNUP_CAPACITY_REQUIRES_READ_COMMITTED' USING ERRCODE = '23514';
+          END IF;
+
           -- All competing INSERT transactions serialize on this one row.
           SELECT "maxSignups", "scope" INTO cap, admission_scope
           FROM "SignupCapacity" WHERE id = 1 FOR UPDATE;
@@ -85,6 +97,7 @@ module.exports = {
         $$;
         CREATE TRIGGER lajur_auth_signup_capacity_guard
         AFTER INSERT ON ba_user
+        REFERENCING NEW TABLE AS lajur_inserted_users
         FOR EACH STATEMENT EXECUTE FUNCTION lajur_enforce_signup_capacity();`,
         { transaction: t },
       );
