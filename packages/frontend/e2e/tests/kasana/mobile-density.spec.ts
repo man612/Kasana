@@ -38,7 +38,7 @@ test.describe('Mobile-first UI density and readable auth forms', () => {
     await page.goto('/sign-in');
     const metrics = await page.evaluate(() => {
       const input = document.querySelector('input[type="email"]');
-      const button = document.querySelector('button[type="submit"]');
+      const button = document.querySelector('form button');
       return {
         scrollIndicator: getComputedStyle(document.documentElement).scrollbarWidth,
         inputSelection: input ? getComputedStyle(input).userSelect : null,
@@ -46,7 +46,9 @@ test.describe('Mobile-first UI density and readable auth forms', () => {
       };
     });
     expect(metrics.scrollIndicator).toBe('none');
+    expect(metrics.inputSelection).not.toBeNull();
     expect(metrics.inputSelection).not.toBe('none');
+    expect(metrics.buttonSelection).not.toBeNull();
     expect(metrics.buttonSelection).toBe('none');
   });
 

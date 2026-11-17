@@ -155,7 +155,8 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       const dateBox = await mobileForm.getByTestId('date-field-numeric-input').boundingBox();
       expect(amountBox).not.toBeNull();
       expect(dateBox).not.toBeNull();
-      expect(dateBox!.y).toBeGreaterThan(amountBox!.y + 30);
+      expect(dateBox!.y, 'mobile date input must follow amount rather than share its row')
+        .toBeGreaterThanOrEqual(amountBox!.y + amountBox!.height + 4);
       await expect(mobileForm.getByTestId('date-field-time-input')).toHaveCount(0);
       const primaryAmount = mobileForm.locator('input[inputmode="decimal"]').first();
       await expect(primaryAmount).toBeVisible();

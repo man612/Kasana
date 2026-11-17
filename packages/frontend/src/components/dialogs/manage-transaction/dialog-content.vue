@@ -2175,7 +2175,9 @@ onUnmounted(() => {
           </div>
 
           <div ref="transactionModeFieldsRef">
-            <div :class="isMobileView && 'grid grid-cols-1 gap-x-3'">
+            <!-- CSS breakpoint controls stacking immediately, without waiting for the
+                 debounced JS mobile flag after a viewport rotation/resize. -->
+            <div class="max-md:flex max-md:flex-col max-md:gap-y-2">
               <form-row>
                 <DesktopOnlyTooltip
                   v-if="isMultiAccount"
