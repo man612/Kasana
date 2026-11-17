@@ -50,6 +50,20 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         password: credentials.password,
       });
 
+      // A short, cross-tab Quick Start hide must expire without reloading.
+      // The timer is owned by the Pinia store even when the floating button is hidden.
+      await page.goto('/dashboard');
+      const quickStart = page.locator('button.fixed:has(svg.lucide-rocket)');
+      await expect(quickStart).toBeVisible({ timeout: 20_000 });
+      await page.evaluate(() => {
+        const key = 'kasana.quick-start-hidden-until-v1';
+        const hiddenUntil = String(Date.now() + 2_500);
+        localStorage.setItem(key, hiddenUntil);
+        window.dispatchEvent(new StorageEvent('storage', { key, newValue: hiddenUntil }));
+      });
+      await expect(quickStart).toBeHidden();
+      await expect(quickStart).toBeVisible({ timeout: 8_000 });
+
       await page.goto('/accounts');
       await expect(page.getByText(accountName).first()).toBeVisible({ timeout: 20_000 });
 
@@ -179,6 +193,20 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         )
         .toBeGreaterThanOrEqual(4);
       await expect(mobileForm.getByTestId('date-field-time-input')).toHaveCount(0);
+
+      // Closing account selection without picking must clear its search filter.
+      const accountPickerTrigger = mobileForm.locator('[data-test="account-select-field"] button').first();
+      await expect(accountPickerTrigger).toBeVisible();
+      await accountPickerTrigger.click();
+      const accountPicker = page.getByRole('dialog').filter({ has: page.locator('input[type="search"]') }).last();
+      await expect(accountPicker).toBeVisible();
+      await accountPicker.getByRole('searchbox').fill('this-account-does-not-exist');
+      await page.keyboard.press('Escape');
+      await expect(accountPicker).toBeHidden();
+      await accountPickerTrigger.click();
+      await expect(accountPicker.getByText(accountName).first()).toBeVisible();
+      await page.keyboard.press('Escape');
+
       const mobileAmountMetrics = await primaryAmount.evaluate((element) => ({
         fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
         height: element.getBoundingClientRect().height,
