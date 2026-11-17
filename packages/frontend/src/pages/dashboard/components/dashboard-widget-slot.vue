@@ -115,7 +115,7 @@ const isConfigChoiceActive = ({ option, value }: { option: WidgetConfigOption; v
 
           <div class="flex items-center gap-2">
             <!-- Size buttons -->
-            <div v-if="def.allowedSizes.length > 1" class="flex items-center gap-0.5 rounded-md border p-0.5">
+            <div v-if="def.allowedSizes.length > 1" class="hidden items-center gap-0.5 rounded-md border p-0.5 md:flex">
               <button
                 type="button"
                 v-for="size in def.allowedSizes"

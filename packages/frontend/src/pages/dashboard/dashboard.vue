@@ -23,7 +23,8 @@
         <div />
         <PeriodSelector v-model="currentPeriod" :payday="payday" />
         <DashboardEditToolbar
-          class="hidden justify-self-end md:flex"
+          class="justify-self-end"
+          compact-mobile
           :is-edit-mode="isEditMode"
           @enter="gridRef?.enterEditMode()"
           @save="gridRef?.saveLayout()"
@@ -36,14 +37,6 @@
       <DashboardOnboarding />
     </template>
     <template v-else>
-      <!-- Mobile: "Customize" button above grid (hidden during edit mode) -->
-      <DashboardEditToolbar
-        v-if="!isEditMode"
-        class="mb-4 justify-center md:hidden"
-        :is-edit-mode="false"
-        @enter="gridRef?.enterEditMode()"
-      />
-
       <DashboardGrid ref="gridRef" class="max-md:mb-4" :current-period="currentPeriod" />
 
       <!-- Mobile: sticky "Done/Cancel" bar at bottom during edit mode -->
