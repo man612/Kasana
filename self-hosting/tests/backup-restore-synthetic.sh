@@ -109,8 +109,7 @@ SQL
 probe_fresh_install() {
   docker exec -i "$restored_container" psql -X -U "$user" -d "$database" \
     -tA -v ON_ERROR_STOP=1 < scripts/finance-fresh-install-readonly.sql \
-    | grep -E '^(EMPTY_APP_DATA_CANDIDATE_ONLY|NOT_EMPTY_STOP_AND_REVIEW)
-
+    | grep -E 'EMPTY_APP_DATA_CANDIDATE_ONLY|NOT_EMPTY_STOP_AND_REVIEW'
 }
 
 empty_probe="$(probe_fresh_install)"
