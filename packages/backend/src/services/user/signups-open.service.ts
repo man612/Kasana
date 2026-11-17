@@ -59,10 +59,7 @@ export async function areSignupsOpen(): Promise<boolean> {
   const requested = limit.kind === 'capped' ? limit.max : null;
 
   try {
-    const [stored] = await connection.sequelize.query<{
-      maxSignups: number | string | null;
-      scope: string;
-    }>(
+    const [stored] = (await connection.sequelize.query(
       `UPDATE "SignupCapacity"
        SET "maxSignups" =
          CASE WHEN CAST(:max AS BIGINT) IS NULL THEN "maxSignups"
@@ -71,7 +68,7 @@ export async function areSignupsOpen(): Promise<boolean> {
            "scope" = CASE WHEN "maxSignups" IS NULL THEN :scope ELSE "scope" END
        WHERE id = 1 RETURNING "maxSignups", "scope"`,
       { type: QueryTypes.SELECT, replacements: { max: requested, scope } },
-    );
+    )) as Array<{ maxSignups: number | string | null; scope: string }>;
 
     if (!stored || stored.scope !== scope) {
       logger.error('Signup capacity mode mismatch or missing database policy; signups blocked.');
@@ -86,13 +83,13 @@ export async function areSignupsOpen(): Promise<boolean> {
     if (enforced === null) return true;
     if (enforced === 0) return false;
 
-    const [row] = await connection.sequelize.query<{ count: number | string }>(
+    const [row] = (await connection.sequelize.query(
       'SELECT lajur_signup_capacity_count(:scope) AS count',
       { type: QueryTypes.SELECT, replacements: { scope } },
-    );
+    )) as Array<{ count: number | string }>;
     return Boolean(row && Number(row.count) < enforced);
   } catch (error) {
-    logger.error({ message: 'Signup capacity database guard unavailable; signups blocked.', error });
+    logger.error({ message: 'Signup capacity database guard unavailable; signups blocked.', error: error as Error });
     return false;
   }
 }
