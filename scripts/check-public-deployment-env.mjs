@@ -93,6 +93,108 @@ export function checkPublicDeploymentEnv(env) {
   return errors;
 }
 
+
+/**
+ * Docker Compose processes backend env_file entries top-to-bottom: stack.env
+ * wins over .env. Host ports, frontend and db service values are interpolated
+ * separately from .env and operator shell settings.
+ *
+ * This offline validator cannot observe shell overrides, additional Compose
+ * overlays, Portainer-only settings or actual running containers.
+ */
+export function checkPublicDeploymentSources({ composeEnv, stackEnv = {} }) {
+  const backendEnv = { ...composeEnv, ...stackEnv };
+  const effective = {
+    ...backendEnv,
+    HTTP_PORT: composeEnv.HTTP_PORT,
+    API_HTTP: composeEnv.API_HTTP,
+  };
+  const errors = checkPublicDeploymentEnv(effective);
+
+  // Backend env_file values must match the DB service / frontend connection
+  // details resolved from Compose interpolation (not the backend env_file).
+  for (const key of [
+    'APPLICATION_DB_HOST',
+    'APPLICATION_DB_PORT',
+    'APPLICATION_DB_USERNAME',
+    'APPLICATION_DB_PASSWORD',
+    'APPLICATION_DB_DATABASE',
+    'APPLICATION_PORT',
+  ]) {
+    if (!composeEnv[key]) {
+      errors.push(key + ': required in .env for the selected Compose architecture');
+    }
+    if (Object.hasOwn(stackEnv, key) && stackEnv[key] !== composeEnv[key]) {
+      errors.push(key + ': stack.env conflicts with .env/Compose interpolation; fix without exposing secret values');
+    }
+  }
+
+  // stack.env is NOT a substitute for Compose interpolation of these values.
+  for (const key of ['HTTP_PORT', 'API_HTTP', 'LISTEN_PORT']) {
+    if (Object.hasOwn(stackEnv, key) && stackEnv[key] !== composeEnv[key]) {
+      errors.push(key + ': stack.env differs from Compose interpolation; set in .env and verify the effective service');
+    }
+  }
+
+  // Public-readiness should not opt back into self-hosted demo accounts.
+  if (composeEnv.SYSTEM_DEMO_DISABLED !== undefined &&
+      composeEnv.SYSTEM_DEMO_DISABLED.toLowerCase() !== 'true') {
+    errors.push('SYSTEM_DEMO_DISABLED: must be true or omitted for public launch');
+  }
+
+  // Node parseEnv never expands Compose template expressions.
+  const relevantKeys = [
+    'NODE_ENV', 'AUTH_ORIGIN', 'BETTER_AUTH_URL', 'HTTP_PORT', 'API_HTTP',
+    'SYSTEM_MAX_SIGNUPS_ALLOWED', 'AUTH_RP_ID', 'RESEND_API_KEY',
+    'RESEND_FROM_EMAIL', 'APPLICATION_JWT_SECRET', 'APP_SESSION_ID_SECRET',
+    'BETTER_AUTH_SECRET', 'APPLICATION_DB_HOST', 'APPLICATION_DB_PORT',
+    'APPLICATION_DB_USERNAME', 'APPLICATION_DB_PASSWORD',
+    'APPLICATION_DB_DATABASE', 'APPLICATION_PORT',
+  ];
+  for (const key of relevantKeys) {
+    if (typeof effective[key] === 'string' && effective[key].includes('
+if (process.argv[1] && path.resolve(process.argv[1]) === ownPath) {
+  const file = process.argv[2]
+    ? path.resolve(process.argv[2])
+    : path.resolve(path.dirname(ownPath), '..', 'self-hosting', '.env');
+  try {
+    const errors = checkPublicDeploymentFiles(file);
+    if (errors.length) {
+      console.error('FAIL: Option B public configuration is not ready:');
+      for (const error of errors) console.error('- ' + error);
+      process.exitCode = 1;
+    } else {
+      console.log('PASS: offline .env + optional stack.env configuration shape checks.');
+      console.log('NOT VERIFIED: actual Compose/Portainer/shell overrides, live containers, DNS/TLS/Tunnel, delivery, cache, backups or legal readiness.');
+    }
+  } catch {
+    console.error('FAIL: cannot safely read/parse private .env or optional stack.env; check file access and syntax.');
+    process.exitCode = 1;
+  }
+}
+ + '{')) {
+      errors.push(key + ': unresolved Compose-style substitution; review effective Compose privately');
+    }
+  }
+  return [...new Set(errors)];
+}
+
+function readOptionalEnvFile(file) {
+  try {
+    return parseEnv(readFileSync(file, 'utf8'));
+  } catch (error) {
+    if (error?.code === 'ENOENT') return {};
+    throw error;
+  }
+}
+
+/** Reads private files only, without network connections or secret logging. */
+export function checkPublicDeploymentFiles(envPath) {
+  const composeEnv = parseEnv(readFileSync(envPath, 'utf8'));
+  const stackEnv = readOptionalEnvFile(path.join(path.dirname(envPath), 'stack.env'));
+  return checkPublicDeploymentSources({ composeEnv, stackEnv });
+}
+
 const ownPath = fileURLToPath(import.meta.url);
 if (process.argv[1] && path.resolve(process.argv[1]) === ownPath) {
   const file = process.argv[2]
