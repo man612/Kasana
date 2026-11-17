@@ -25,7 +25,9 @@ On self-host, current live ba_user rows count. Deleting a user releases a
 slot. On hosted instances, the union of persistent SignupLedger normalized
 email hashes and live ba_user normalized email hashes counts both historic
 trial identities and auth users whose after-hook has not yet recorded them in
-the ledger. Removing a user does not remove its historical ledger identity.
+the ledger. Extra live accounts sharing a normalized identity (e.g. Gmail dot
+or plus aliases) also consume individual slots, preventing physical-account
+cap bypass. Removing a user does not remove its historical ledger identity.
 The SQL normalization mirrors the existing ledger backfill.
 
 ## Operational policy
@@ -51,7 +53,7 @@ plan. Do not add untrusted application roles that can mutate the policy table.
   5 remaining slots: exactly 5 admitted, 35 rejected
 - [ ] Hosted 24 simultaneous inserts with 3 remaining ledger/union slots
 - [ ] Reject cap=0, verify aborted transactions leave no reservations
-- [ ] Test account deletion and hosted historical ledger persistence
+- [ ] Test account deletion, Gmail alias cap bypass, and hosted historical ledger persistence
 - [ ] Staging email registration and trusted OAuth callbacks on two running
   backend instances, not merely a mocked endpoint
 - [ ] Define an operator-safe review/recovery procedure for orphan auth rows
