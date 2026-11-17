@@ -102,7 +102,7 @@
       </i18n-t>
 
       <Transition name="chart-fade" mode="out-in">
-        <div :key="chartKey" ref="containerRef" class="max-xs:px-2 relative min-h-44 w-full flex-1">
+        <div :key="chartKey" ref="containerRef" data-no-nav-swipe class="max-xs:px-2 relative min-h-44 w-full flex-1">
           <svg
             ref="svgRef"
             class="h-full w-full"

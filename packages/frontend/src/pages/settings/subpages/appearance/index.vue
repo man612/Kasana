@@ -89,6 +89,24 @@
 
       <Separator />
 
+      <!-- Opt-in full-page swipe. Navbar and sidebar still have direct touch gestures. -->
+      <div>
+        <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.pageSwipe.title') }}</h3>
+        <p class="text-muted-foreground mb-3 text-sm leading-relaxed">
+          {{ $t('settings.appearance.pageSwipe.description') }}
+        </p>
+        <div class="flex items-center justify-between gap-4">
+          <span class="text-sm">{{ $t('settings.appearance.pageSwipe.toggle') }}</span>
+          <Switch
+            :model-value="mobilePageSwipeEnabled"
+            :aria-label="$t('settings.appearance.pageSwipe.toggle')"
+            @update:model-value="(value) => setMobilePageSwipeEnabled(!!value)"
+          />
+        </div>
+      </div>
+
+      <Separator />
+
       <!-- Sidebar Sections -->
       <div>
         <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.sidebar.title') }}</h3>
@@ -207,6 +225,7 @@
 <script setup lang="ts">
 import HintIcon from '@/components/common/hint-icon.vue';
 import { ThemePreference, setThemePreference, themePreference } from '@/common/utils/color-theme';
+import { mobilePageSwipeEnabled, setMobilePageSwipeEnabled } from '@/common/utils/mobile-navigation-gesture';
 import {
   getMobileInteractionSoundEnabled,
   previewInteractionSound,

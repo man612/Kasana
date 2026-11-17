@@ -62,6 +62,7 @@ import Sidebar from '@/components/sidebar/index.vue';
 import SidebarRail from '@/components/sidebar/sidebar-rail.vue';
 import { useSidebarCollapsed } from '@/components/sidebar/use-sidebar-collapsed';
 import { isMobileSheetOpen } from '@/composable/global-state/mobile-sheet';
+import { mobilePageSwipeEnabled } from '@/common/utils/mobile-navigation-gesture';
 import UiHeader from '@/components/ui-header.vue';
 import { useIdleEnabled } from '@/composable/use-idle-enabled';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
@@ -88,18 +89,22 @@ const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile, {
   wait: 50,
 });
 
+const primarySwipeRoutes = [ROUTES_NAMES.home, ROUTES_NAMES.accounts, ROUTES_NAMES.transactions, ROUTES_NAMES.analytics];
 const scrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
 let dashboardTouch: { x: number; y: number } | null = null;
 const clearDashboardTouch = () => { dashboardTouch = null; };
 const onDashboardTouchStart = (event: TouchEvent) => {
-  if (!isMobileView.value || String(route.name ?? '') !== ROUTES_NAMES.home
+  const isHome = String(route.name ?? '') === ROUTES_NAMES.home;
+  if (!isMobileView.value || (!isHome && !mobilePageSwipeEnabled.value)
     || isMobileSheetOpen.value || event.touches.length !== 1) return;
   const touch = event.touches[0]!;
   // Avoid the OS back-gesture edge and don't intercept buttons, fields, charts,
   // interactive widgets, or horizontal carousels.
-  if (touch.clientX < 24 || touch.clientX > 84) return;
+  if (touch.clientX < 24 || touch.clientX > window.innerWidth - 24) return;
+  if (touch.clientX > 84 && !mobilePageSwipeEnabled.value) return;
   const target = event.target;
-  if (target instanceof Element && target.closest('button, input, select, textarea, a, [role="slider"], [role="dialog"], svg, [data-no-nav-swipe]')) return;
+  if (target instanceof Element && target.closest('button, input, select, textarea, a, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe]')) return;
+  if (document.querySelector('[role="dialog"][data-state="open"], [aria-modal="true"]')) return;
   dashboardTouch = { x: touch.clientX, y: touch.clientY };
 };
 const onDashboardTouchEnd = (event: TouchEvent) => {
@@ -109,7 +114,16 @@ const onDashboardTouchEnd = (event: TouchEvent) => {
   const touch = event.changedTouches[0]!;
   const dx = touch.clientX - start.x;
   const dy = touch.clientY - start.y;
-  if (dx > 100 && Math.abs(dx) > Math.abs(dy) * 1.8) isMobileSheetOpen.value = true;
+  if (Math.abs(dx) <= 100 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
+  if (start.x <= 84 && dx > 0 && String(route.name ?? '') === ROUTES_NAMES.home) {
+    isMobileSheetOpen.value = true;
+    return;
+  }
+  if (!mobilePageSwipeEnabled.value || start.x <= 84) return;
+  const current = primarySwipeRoutes.indexOf(String(route.name) as typeof ROUTES_NAMES.home);
+  if (current < 0) return;
+  const next = current + (dx < 0 ? 1 : -1);
+  if (next >= 0 && next < primarySwipeRoutes.length) void router.push({ name: primarySwipeRoutes[next]! });
 };
 
 watch(

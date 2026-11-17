@@ -38,6 +38,11 @@
         "description": "Suara klik ringan untuk tombol dan navigasi di HP maupun komputer. Nonaktif secara bawaan dan tidak berbunyi saat mengetik.",
         "toggle": "Aktifkan suara interaksi",
         "preview": "Tes suara"
+      },
+      "pageSwipe": {
+        "title": "Geser untuk pindah halaman",
+        "description": "Opsional di HP: geser horizontal dari area kosong untuk pindah antara Dasbor, Akun, Transaksi, dan Analitik. Tidak berlaku pada grafik, kolom input, atau popup. Mati secara bawaan agar tidak mengganggu scroll.",
+        "toggle": "Aktifkan gestur pindah halaman"
       }
     }
   }

@@ -1,5 +1,6 @@
 <template>
   <div
+    data-no-nav-swipe
     class="flex min-w-0 items-center justify-center gap-0.5 max-md:touch-pan-y"
     @touchstart.passive="onPeriodTouchStart"
     @touchend="onPeriodTouchEnd"

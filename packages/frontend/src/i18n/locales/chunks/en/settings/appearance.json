@@ -38,6 +38,11 @@
         "description": "Light tap sounds for buttons and navigation on phones and desktops. Off by default and never plays while typing.",
         "toggle": "Enable interaction sounds",
         "preview": "Test sound"
+      },
+      "pageSwipe": {
+        "title": "Swipe between pages",
+        "description": "Optional on phones: swipe horizontally across empty page space to switch Dashboard, Accounts, Transactions and Analytics. Does not affect charts, inputs or dialogs. Off by default to avoid accidental navigation.",
+        "toggle": "Enable full-page navigation swipe"
       }
     }
   }
