@@ -2,7 +2,10 @@
   <Popover v-model:open="isOpen">
     <PopoverTrigger as-child>
       <Button size="icon-sm" variant="ghost">
-        <SettingsIcon class="text-muted-foreground size-4" />
+        <SettingsIcon
+          class="text-muted-foreground size-4 transition-transform duration-250 ease-out motion-reduce:transition-none"
+          :class="isOpen && 'rotate-90'"
+        />
       </Button>
     </PopoverTrigger>
     <PopoverContent dim-backdrop class="w-72 overflow-hidden p-0" align="end">

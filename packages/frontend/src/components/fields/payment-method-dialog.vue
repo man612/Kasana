@@ -137,7 +137,7 @@ const pick = (value: VerbosePaymentType | null) => {
         </Dialog.DialogTrigger>
         <Dialog.DialogContent
           blur-overlay
-          class="max-h-[88dvh] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden rounded-2xl p-0"
+          class="max-h-[88dvh] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden rounded-2xl p-0 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 data-[state=open]:duration-250 motion-reduce:animate-none"
           data-testid="payment-method-dialog"
         >
           <div class="border-border relative border-b px-4 py-4 pr-23">

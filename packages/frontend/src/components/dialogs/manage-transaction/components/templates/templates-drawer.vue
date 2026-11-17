@@ -27,6 +27,9 @@ const expandedId = ref<string | null>(null);
 let appliedFromDialog = false;
 
 const isFilterVisible = computed(() => props.templates.length > FILTER_VISIBLE_FROM);
+// Mobile: one clear primary action. Blank-template authoring still exists on
+// desktop; phones save the current transaction fields instead.
+const mobileFooterActions = computed(() => footerActions.value.filter((action) => action.key !== 'new'));
 
 watch(
   () => props.open,
@@ -186,9 +189,9 @@ const onCloseAutoFocus = (event: Event) => {
         />
       </div>
 
-      <div class="border-border mt-3 grid grid-cols-1 gap-2 border-t pt-3 min-[390px]:grid-cols-2">
+      <div class="border-border mt-3 grid grid-cols-1 gap-2 border-t pt-3">
         <Button
-          v-for="action in footerActions"
+          v-for="action in mobileFooterActions"
           :key="action.key"
           :variant="action.variant"
           class="h-auto min-h-11 min-w-0 w-full justify-start gap-2 px-3 text-left text-sm font-normal whitespace-normal"

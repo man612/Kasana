@@ -74,7 +74,7 @@ const pick = (value: string) => {
       </Dialog.DialogTrigger>
       <Dialog.DialogContent
         blur-overlay
-        class="grid max-h-[min(85dvh,700px)] w-[calc(100vw-2rem)] max-w-lg grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0"
+        class="grid max-h-[min(85dvh,700px)] w-[calc(100vw-2rem)] max-w-lg grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-2xl p-0 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 motion-reduce:animate-none"
       >
         <div class="border-border border-b px-4 py-4 pr-14">
           <Dialog.DialogTitle class="text-base font-semibold">{{ label }}</Dialog.DialogTitle>
