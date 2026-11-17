@@ -9,7 +9,7 @@ import { Separator } from '@/components/lib/ui/separator';
 import * as Tabs from '@/components/lib/ui/tabs';
 import { useAccountAccess } from '@/composable/use-account-access';
 import { useAccountCurrencyCode } from '@/composable/use-account-currency-code';
-import { toLocalCurrencyNumber } from '@/js/helpers';
+import { formatUIAmount } from '@/js/helpers';
 import { useCurrenciesStore } from '@/stores';
 import { ACCOUNT_TYPES, AccountModel, isDedicatedFlowAccountCategory } from '@bt/shared/types';
 import { ChevronDownIcon, ChevronUpIcon } from '@lucide/vue';
@@ -59,7 +59,7 @@ const isInitialBalanceEditable = computed(
         <span>{{ t('pages.account.details.creditLimit') }}</span>
 
         <div class="flex items-center gap-1.5">
-          <span>{{ toLocalCurrencyNumber(account.creditLimit, { currency: currencyCode }) }} {{ currencyCode }}</span>
+          <span>{{ formatUIAmount(account.creditLimit, { currency: currencyCode }) }}</span>
 
           <CreditLimitEditPopover v-if="isOwner" :account="account" :currency-code="currencyCode" />
         </div>
@@ -70,9 +70,7 @@ const isInitialBalanceEditable = computed(
         <span>{{ t('pages.account.details.initialBalance') }}</span>
 
         <div class="flex items-center gap-1.5">
-          <span
-            >{{ toLocalCurrencyNumber(account.initialBalance, { currency: currencyCode }) }} {{ currencyCode }}</span
-          >
+          <span>{{ formatUIAmount(account.initialBalance, { currency: currencyCode }) }}</span>
 
           <InitialBalanceEditPopover v-if="isInitialBalanceEditable" :account="account" :currency-code="currencyCode" />
         </div>

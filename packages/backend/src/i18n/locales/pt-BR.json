@@ -280,7 +280,7 @@
     }
   },
   "landingFaq": {
-    "unavailable": "O assistente está indisponível no momento. Tente de novo mais tarde ou mande um e-mail para support@moneymatter.app."
+    "unavailable": "O assistente não está disponível no momento. Tente novamente mais tarde."
   },
   "loans": {
     "loanNotFound": "Empréstimo não encontrado.",
@@ -628,7 +628,7 @@
     "connectionModelNotAvailable": "Esta chave de API não pode usar o modelo “{{model}}”. Confira o nome do modelo.",
     "connectionProviderUnreachable": "Não foi possível acessar o provedor. Tente de novo em instantes.",
     "connectionValidationFailed": "O provedor recusou a solicitação de teste: {{reason}}",
-    "serverModelUnavailable": "O modelo de IA incluído no MoneyMatter não está disponível no seu plano.",
+    "serverModelUnavailable": "O modelo de IA fornecido pelo servidor não está disponível para esta conta.",
     "connectionKeyNotInBackup": "A chave de API não é incluída nos backups. Edite este modelo e digite a chave de novo.",
     "customEndpointUnreachable": "Não foi possível acessar o endpoint. Confira a URL base e verifique se o servidor está rodando e acessível pela internet.",
     "customEndpointAuthFailed": "O endpoint recusou a chave de API. Confira se a chave está correta e tem as permissões necessárias.",

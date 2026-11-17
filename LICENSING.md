@@ -1,20 +1,25 @@
-# Licensing
+# Licensing and provenance
 
-Copyright (C) 2025 Dmytro Svyrydenko and MoneyMatter contributors.
+Lajur. is an independent, modified adaptation of [MoneyMatter](https://github.com/letehaha/moneymatter). The GitHub repository retains the historical `man612/Kasana` path for link compatibility; the product name is **Lajur.**.
 
-MoneyMatter is licensed under the GNU Affero General Public License v3.0
-(AGPL-3.0-only). The full license text is in [LICENSE](./LICENSE).
+## Copyright and license
 
-## Relicensing history
+- Original project: Copyright (C) 2025 Dmytro Svyrydenko and MoneyMatter contributors, together with other respective rights holders.
+- Later modifications: Copyright (C) 2026 their respective contributors. The product rename does **not** transfer copyright in upstream code.
+- The derived project is distributed under **GNU Affero General Public License version 3.0 only** (`AGPL-3.0-only`); see the unmodified full [LICENSE](LICENSE). No trademark or affiliation rights are implied by this license.
 
-AGPL-3.0 applies to MoneyMatter from commit
-[`1befaf9a3`](https://github.com/letehaha/moneymatter/commit/1befaf9a3)
-(April 2026), which relicensed the project from CC BY-NC-SA 4.0, and to every
-commit after it. Earlier versions of this software, including all commits in
-this repository's history before that commit, remain governed by the license
-terms in effect at the time of those commits.
+Do not remove notices belonging to the original project or its contributors. Changes must carry appropriate modification notices. Anyone operating a modified copy as a network service must meet the AGPL's corresponding-source obligations, including section 13. Source access must match the **actual deployed version**, not merely whatever happens to be on the default branch. Refer to the [official AGPL text](https://www.gnu.org/licenses/agpl-3.0.html).
 
-## Contributions
+## Upstream relicensing history
 
-Contributions are accepted under AGPL-3.0 plus the grant in
-[CLA.md](./CLA.md). See [CONTRIBUTING.md](./CONTRIBUTING.md).
+The upstream project was relicensed from CC BY-NC-SA 4.0 to AGPL-3.0 with [MoneyMatter commit `1befaf9a3`](https://github.com/letehaha/moneymatter/commit/1befaf9a3) (April 2026). The AGPL applies to code distributed under that relicensing and later upstream revisions. Earlier revisions remain subject to the terms that applied to them at the time. This repository must preserve existing copyright, licensing, and provenance records; the current repository license is not a retroactive change to historical grants.
+
+## Contributions and archived CLA
+
+New contributions to Lajur. follow [CONTRIBUTING.md](CONTRIBUTING.md) and must be compatible with AGPL-3.0-only. **No upstream MoneyMatter contributor agreement is required to contribute here.**
+
+The former root `CLA.md` is preserved as [docs/upstream/CLA.md](docs/upstream/CLA.md) for historical reference only. Its text records the upstream contributor agreement. It does not apply to new Lajur. contributions, and this project claims no additional rights from contributors through that archived document.
+
+The current icon has incomplete provenance evidence; see [the branding record](docs/BRANDING.md#icon-provenance-and-permissions). Preserving an asset in Git is not proof of its creator or permission terms.
+
+Source repository: https://github.com/man612/Kasana

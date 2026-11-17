@@ -180,18 +180,18 @@ const sectionItems = computed<RailSectionItem[]>(() => {
 </script>
 
 <template>
-  <Card class="flex h-full w-16 flex-col rounded-none">
+  <Card class="flex h-full w-full flex-col rounded-none">
     <div class="flex h-14 shrink-0 items-center justify-center">
       <div
         class="bg-primary/10 text-primary-text flex size-8 items-center justify-center rounded-md text-sm font-semibold"
         aria-hidden="true"
       >
-        M
+        <img src="/favicon.svg" alt="" class="size-7 object-contain" />
       </div>
     </div>
 
     <div class="flex min-h-0 grow flex-col gap-3 px-3 pt-0 pb-3">
-      <nav class="grid gap-0.5">
+      <nav class="grid justify-items-center gap-0.5">
         <template v-for="item in navItems" :key="item.routeName">
           <ResponsiveHoverCard
             v-if="item.children"
@@ -257,7 +257,7 @@ const sectionItems = computed<RailSectionItem[]>(() => {
 
       <div class="bg-border/50 h-px" />
 
-      <div class="grid gap-0.5">
+      <div class="grid justify-items-center gap-0.5">
         <ResponsiveHoverCard
           v-for="section in sectionItems"
           :key="section.key"
@@ -309,7 +309,7 @@ const sectionItems = computed<RailSectionItem[]>(() => {
         </ResponsiveHoverCard>
       </div>
 
-      <div class="mt-auto grid gap-1">
+      <div class="mt-auto grid justify-items-center gap-1">
         <DesktopOnlyTooltip :content="$t('sidebar.expand')" side="right">
           <ui-button variant="ghost" size="icon" :aria-label="$t('sidebar.expand')" @click="isCollapsed = false">
             <PanelLeftIcon class="size-4" />

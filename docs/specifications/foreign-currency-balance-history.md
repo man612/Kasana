@@ -121,11 +121,21 @@ Otherwise `buildDailyPairRateResolver` builds a per-day lookup from the `Exchang
 table, which stores USD-pivot rows. The daily rate for a pair is derived by pivoting both
 currencies through USD: the exact day's row, else the most recent earlier row, else the
 earliest row known for that currency. That last fallback is what covers days older than
-the app's rate coverage – any rate beats no rate there. Rates are truncated to 5 decimals
-by `formatRate`, the same truncation `getExchangeRate` applies, so a rebuilt row matches
-what every other conversion in the app produces for that day. A rate that truncates to 0
-counts as missing, because multiplying by it would write a perfectly valid-looking history
-of zero balances.
+the app's rate coverage – any rate beats no rate there. Rates are rounded to 12 **significant digits** by `formatRate`, which is also used by
+`getExchangeRate`. Unlike fixed five-decimal truncation, this preserves valid small
+reciprocal rates such as IDR to USD without silently losing 4% or collapsing to zero.
+The rebuilt history and the normal conversion path still apply the same precision
+policy. A genuinely missing or zero-rate lookup is not treated as valid.
+
+**Compatibility notice:** this precision correction affects newly computed conversions
+and future balance-history revaluations. It does NOT backfill stored transaction
+`refAmount`, but the existing nightly `balanceRevalueSweepCron` at 18:45 UTC
+and account write paths WILL automatically recompute eligible manual foreign-currency
+accounts' old derived `Balances` rows once the new code is deployed. The revalue
+implementation deletes and replaces rows for the affected historical date range.
+Therefore the new build must not be deployed with real finance data until an operator
+has approved row-level old/new reconciliation and rehearsed full database backup/restore;
+rolling back the code alone cannot restore already-rewritten history.
 
 **Failure mode.** When the pair has no stored rate on either leg, or when some day inside
 the grid resolves to no rate, the rebuild logs a warning, returns `'skipped'`, and touches

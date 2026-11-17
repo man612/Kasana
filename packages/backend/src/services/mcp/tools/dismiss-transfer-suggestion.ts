@@ -9,7 +9,7 @@ export const dismissTransferSuggestionTool = defineTool({
   toolset: 'review',
   access: 'write',
   description:
-    "Tell MoneyMatter that a suggested expense/income pair is not a transfer, so list_transfer_suggestions stops offering that pair. Both transactions must be the caller's. Nothing is linked or deleted, and dismissing the same pair twice is harmless.",
+    "Tell Kasana that a suggested expense/income pair is not a transfer, so list_transfer_suggestions stops offering that pair. Both transactions must be the caller's. Nothing is linked or deleted, and dismissing the same pair twice is harmless.",
   input: {
     expenseTransactionId: recordId().describe('The expense of the suggested pair'),
     incomeTransactionId: recordId().describe('The income of the suggested pair'),

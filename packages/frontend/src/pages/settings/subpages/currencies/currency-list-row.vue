@@ -135,7 +135,7 @@
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import { useCurrencyName } from '@/composable';
 import { getCurrencyIcon } from '@/js/helpers/currencyImage';
-import { toLocalNumber } from '@/js/helpers/formatters';
+import { formatExchangeRateDisplay } from './currency-row/format-exchange-rate-display';
 import { Collapsible, CollapsibleContent } from '@/components/lib/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { useCurrenciesStore } from '@/stores';
@@ -180,10 +180,8 @@ const currencyName = computed(() =>
 
 const flagUrl = computed(() => (code.value ? getCurrencyIcon(code.value) : ''));
 
-const formatRate = (value: number) =>
-  Number.isFinite(value) ? toLocalNumber(value, { minimumFractionDigits: 0, maximumFractionDigits: 6 }) : '—';
-const rateDisplay = computed(() => formatRate(props.currency.rate));
-const quoteRateDisplay = computed(() => formatRate(props.currency.quoteRate));
+const rateDisplay = computed(() => formatExchangeRateDisplay(props.currency.rate));
+const quoteRateDisplay = computed(() => formatExchangeRateDisplay(props.currency.quoteRate));
 
 const onTriggerClick = () => {
   if (isBase.value) return;

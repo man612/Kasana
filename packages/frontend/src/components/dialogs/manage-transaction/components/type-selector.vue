@@ -1,65 +1,88 @@
 <template>
-  <div class="bg-muted grid grid-cols-3 rounded-xl p-1">
-    <button
-      type="button"
-      :class="
-        cn(
-          'text-muted-foreground cursor-pointer rounded-[10px] p-1.5 text-center text-base transition-all duration-100 ease-out disabled:cursor-not-allowed disabled:opacity-50',
-          selectedTransactionType === FORM_TYPES.expense &&
-            'dark:bg-foreground dark:text-background text-foreground bg-white shadow-sm',
-        )
-      "
-      :disabled="disabled || isExpenseDisabled || isLockedOut({ type: FORM_TYPES.expense })"
-      :aria-label="t('dialogs.manageTransaction.typeSelector.selectExpense')"
-      :aria-pressed="selectedTransactionType === FORM_TYPES.expense"
-      @click="selectTransactionType(FORM_TYPES.expense)"
+  <div
+    role="group"
+    :aria-label="t('dialogs.manageTransaction.title')"
+    class="bg-muted relative grid grid-cols-3 rounded-xl p-1"
+    data-testid="transaction-type-switcher"
+  >
+    <span
+      aria-hidden="true"
+      data-testid="transaction-type-indicator"
+      class="dark:bg-foreground pointer-events-none absolute inset-y-1 left-1 rounded-[10px] bg-white shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none"
+      :style="{
+        width: 'calc(33.33333% - 0.166667rem)',
+        transform: 'translateX(' + selectedIndex * 100 + '%)',
+      }"
+    />
+    <DesktopOnlyTooltip
+      v-for="option in txOptions"
+      :key="option.type"
+      :content="transferDisabledReason"
+      :disabled="option.type !== FORM_TYPES.transfer || !isTransferDisabled || disabled"
+      :delay-duration="550"
+      side="top"
     >
-      {{ t('dialogs.manageTransaction.typeSelector.expense') }}
-    </button>
-    <button
-      type="button"
-      :class="
-        cn(
-          'text-muted-foreground cursor-pointer rounded-[10px] p-1.5 text-center text-base transition-all duration-100 ease-out disabled:cursor-not-allowed disabled:opacity-50',
-          selectedTransactionType === FORM_TYPES.income &&
-            'dark:bg-foreground dark:text-background text-foreground bg-white shadow-sm',
-        )
-      "
-      :disabled="disabled || isIncomeDisabled || isLockedOut({ type: FORM_TYPES.income })"
-      :aria-label="t('dialogs.manageTransaction.typeSelector.selectIncome')"
-      :aria-pressed="selectedTransactionType === FORM_TYPES.income"
-      @click="selectTransactionType(FORM_TYPES.income)"
-    >
-      {{ t('dialogs.manageTransaction.typeSelector.income') }}
-    </button>
-    <button
-      type="button"
-      :class="
-        cn(
-          'text-muted-foreground cursor-pointer rounded-[10px] p-1.5 text-center text-base transition-all duration-100 ease-out disabled:cursor-not-allowed disabled:opacity-50',
-          selectedTransactionType === FORM_TYPES.transfer &&
-            'dark:bg-foreground dark:text-background text-foreground bg-white shadow-sm',
-        )
-      "
-      :disabled="disabled || isTransferDisabled || isLockedOut({ type: FORM_TYPES.transfer })"
-      :aria-label="t('dialogs.manageTransaction.typeSelector.selectTransfer')"
-      :aria-pressed="selectedTransactionType === FORM_TYPES.transfer"
-      @click="selectTransactionType(FORM_TYPES.transfer)"
-    >
-      {{ t('dialogs.manageTransaction.typeSelector.transfer') }}
-    </button>
+      <span class="relative z-10 flex min-w-0">
+        <button
+          type="button"
+          :class="
+            cn(
+              'relative z-10 inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-[10px] p-1.5 text-center text-sm font-medium transition-colors duration-200 ease-out disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none',
+              selectedTransactionType === option.type
+                ? 'text-foreground dark:text-background'
+                : 'text-muted-foreground hover:text-foreground',
+            )
+          "
+          :disabled="
+            disabled ||
+            (option.type === FORM_TYPES.expense && isExpenseDisabled) ||
+            (option.type === FORM_TYPES.income && isIncomeDisabled) ||
+            (option.type === FORM_TYPES.transfer && isTransferDisabled) ||
+            isLockedOut({ type: option.type })
+          "
+          :aria-label="t(option.aria)"
+          :aria-pressed="selectedTransactionType === option.type"
+          @click="selectTransactionType(option.type)"
+        >
+          <component :is="option.icon" class="hidden size-3.5 shrink-0 sm:block" aria-hidden="true" />
+          {{ t(option.label) }}
+        </button>
+      </span>
+    </DesktopOnlyTooltip>
   </div>
 </template>
 
 <script setup lang="ts">
 import { cn } from '@/lib/utils';
+import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { ACCOUNT_TYPES, type AccountModel, TRANSACTION_TYPES, type TransactionModel } from '@bt/shared/types';
 import { computed } from 'vue';
+import { ArrowDownLeftIcon, ArrowLeftRightIcon, ArrowUpRightIcon } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 
 import { FORM_TYPES } from '../types';
 
 const { t } = useI18n();
+const txOptions = [
+  {
+    type: FORM_TYPES.expense,
+    icon: ArrowUpRightIcon,
+    label: 'dialogs.manageTransaction.typeSelector.expense',
+    aria: 'dialogs.manageTransaction.typeSelector.selectExpense',
+  },
+  {
+    type: FORM_TYPES.income,
+    icon: ArrowDownLeftIcon,
+    label: 'dialogs.manageTransaction.typeSelector.income',
+    aria: 'dialogs.manageTransaction.typeSelector.selectIncome',
+  },
+  {
+    type: FORM_TYPES.transfer,
+    icon: ArrowLeftRightIcon,
+    label: 'dialogs.manageTransaction.typeSelector.transfer',
+    aria: 'dialogs.manageTransaction.typeSelector.selectTransfer',
+  },
+] as const;
 
 const props = defineProps<{
   selectedTransactionType: FORM_TYPES;
@@ -68,10 +91,17 @@ const props = defineProps<{
   disabled?: boolean;
   /** Planned rows must stay standalone, so transfer is off the table while the mode is on. */
   isTransferDisabled?: boolean;
+  transferDisabledReason?: string;
   /** Only the selected type stays enabled. */
   isTypeLocked?: boolean;
 }>();
 
+const selectedIndex = computed(() =>
+  Math.max(
+    0,
+    txOptions.findIndex((option) => option.type === props.selectedTransactionType),
+  ),
+);
 const isLockedOut = ({ type }: { type: FORM_TYPES }) =>
   Boolean(props.isTypeLocked) && props.selectedTransactionType !== type;
 

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import HintIcon from '@/components/common/hint-icon.vue';
 import { ChartTooltipHeader, ChartTooltipRow } from '@/components/common/charts/chart-tooltip';
 import FitAmount from '@/components/common/fit-amount.vue';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
@@ -8,7 +9,7 @@ import { useFormatCurrency } from '@/composable/formatters';
 import { useAnimatedNumber } from '@/composable/use-animated-number';
 import { calculatePercentageDifference } from '@/js/helpers/math/calculate-percentage-difference';
 import { ROUTES_NAMES } from '@/routes/constants';
-import { ArrowDownRightIcon, ArrowUpRightIcon, CircleOffIcon, InfoIcon, TrendingUpIcon } from '@lucide/vue';
+import { ArrowDownRightIcon, ArrowUpRightIcon, CircleOffIcon, TrendingUpIcon } from '@lucide/vue';
 import { format, isSameMonth } from 'date-fns';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -125,13 +126,7 @@ const trendBars = computed(() => {
       <span class="inline-flex items-center gap-1">
         {{ $t('dashboard.widgets.netWorth.title') }}
 
-        <ResponsiveTooltip
-          :content="$t('dashboard.widgets.netWorth.description')"
-          content-class-name="max-w-56"
-          :delay-duration="100"
-        >
-          <InfoIcon class="text-muted-foreground ml-1 size-4 cursor-help" />
-        </ResponsiveTooltip>
+        <HintIcon :content="$t('dashboard.widgets.netWorth.description')" />
 
         <ResponsiveTooltip
           v-if="excludedNames.length"

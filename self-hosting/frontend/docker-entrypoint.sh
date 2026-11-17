@@ -58,6 +58,19 @@ if [ -n "${BACKEND_URL-}" ]; then
   BACKEND_URL="${BACKEND_URL%/}"
 fi
 
+# Validate discovery origins BEFORE they are interpolated into sed and JSON.
+# Empty is valid and means no public Kasana MCP discovery is advertised.
+if [ -n "$MCP_BASE_URL" ]; then
+  case "$MCP_BASE_URL" in
+    http://* | https://* ) : ;;
+    * ) echo "ERROR: MCP_BASE_URL must start with http:// or https://" >&2; exit 1 ;;
+  esac
+  case "$MCP_BASE_URL" in
+    *'&'* | *'|'* | *'\\'* | *'"'* | *'?'* | *'#'* )
+      echo "ERROR: Unsafe characters in MCP_BASE_URL" >&2; exit 1 ;;
+  esac
+fi
+
 # --- Runtime config shim ----------------------------------------------------
 
 # Escape a value for embedding inside a JS double-quoted string literal.
@@ -91,10 +104,10 @@ EOF
 [ -n "$CSP_EXTRA_FORM_ACTION" ] || CSP_EXTRA_FORM_ACTION="$API_HTTP"
 [ -n "$CSP_EXTRA_ANALYTICS" ] || CSP_EXTRA_ANALYTICS="$POSTHOG_HOST"
 
-# 302, not 301: browsers cache a 301 indefinitely, which would keep redirecting
-# after the operator turns SKIP_LANDING back off.
-LANDING_REDIRECT=""
-[ "${SKIP_LANDING:-}" != "true" ] || LANDING_REDIRECT="return 302 /dashboard;"
+# The inherited Astro marketing pages are not part of Kasana. Always route
+# the root and legacy marketing paths to the SPA; SKIP_LANDING is obsolete.
+# A temporary redirect avoids pinning old landing destinations in browsers.
+LANDING_REDIRECT="return 302 /dashboard;"
 
 # envsubst only touches the named placeholders; every other `$var` in the
 # template is an nginx runtime variable and must be left intact.
@@ -215,14 +228,14 @@ location = /.well-known/oauth-protected-resource/mcp {
 }
 EOF
 else
-  # The mirror files (packages/frontend/public/.well-known/) name the hosted
-  # backend under two hosts: api. for the authorization server, mcp. for the
-  # resource. A self-host has one backend origin, so both collapse to MCP_BASE_URL.
-  if [ -n "$MCP_BASE_URL" ] && [ "${MCP_BASE_URL%/}" != "https://mcp.moneymatter.app" ]; then
+  # Split-domain OAuth metadata needs a configured, validated endpoint.
+  if [ -n "$MCP_BASE_URL" ]; then
     for doc in /app/.well-known/oauth-authorization-server /app/.well-known/oauth-protected-resource; do
-      sed -e "s|https://mcp\.moneymatter\.app|${MCP_BASE_URL%/}|g" -e "s|https://api\.moneymatter\.app|${MCP_BASE_URL%/}|g" "$doc" > "$doc.tmp"
+      sed "s|https://kasana.invalid|${MCP_BASE_URL%/}|g" "$doc" > "$doc.tmp"
       mv "$doc.tmp" "$doc"
     done
+  else
+    rm -f /app/.well-known/oauth-authorization-server /app/.well-known/oauth-protected-resource
   fi
 
   cat > "$OAUTH_MCP_INCLUDE" <<'EOF'
@@ -260,19 +273,10 @@ EOF
 fi
 
 
-# Rewrite bundled AI/MCP discovery URLs for the current independent deployment.
-# The original hosted URL must never leak into client connection metadata.
-if [ "$IS_SELF_HOST" = "true" ]; then
-  KASANA_ORIGIN="${MCP_BASE_URL:-}"
-  case "$KASANA_ORIGIN" in
-    http://* | https://* ) : ;;
-    * ) echo "ERROR: MCP_BASE_URL must be an HTTP(S) origin" >&2; exit 1 ;;
-  esac
-  KASANA_ORIGIN="${KASANA_ORIGIN%/}"
-  case "$KASANA_ORIGIN" in
-    *'&'* | *'|'* | *'\'* | *'"'* | *'?'* | *'#'* )
-      echo "ERROR: Unsafe characters in MCP_BASE_URL" >&2; exit 1 ;;
-  esac
+# Publish correct metadata only after the operator configures an endpoint.
+# If it is blank, remove all static advertised service cards (no false claims).
+if [ -n "$MCP_BASE_URL" ]; then
+  KASANA_ORIGIN="${MCP_BASE_URL%/}"
   for doc in /app/.well-known/mcp/server-card.json \
              /app/.well-known/ai-catalog.json \
              /app/.well-known/api-catalog; do
@@ -290,6 +294,10 @@ if [ "$IS_SELF_HOST" = "true" ]; then
   sed "s|did:web:kasana.invalid|${KASANA_DID}|g" \
     /app/.well-known/ai-catalog.json > /app/.well-known/ai-catalog.json.tmp
   mv /app/.well-known/ai-catalog.json.tmp /app/.well-known/ai-catalog.json
+else
+  rm -f /app/.well-known/mcp/server-card.json \
+        /app/.well-known/ai-catalog.json \
+        /app/.well-known/api-catalog
 fi
 
 exec "$@"

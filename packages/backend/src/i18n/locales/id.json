@@ -280,7 +280,7 @@
     }
   },
   "landingFaq": {
-    "unavailable": "The assistant is unavailable right now. Please try again later or email support@moneymatter.app."
+    "unavailable": "Asisten sedang tidak tersedia. Silakan coba lagi nanti."
   },
   "loans": {
     "loanNotFound": "Pinjaman tidak ditemukan.",
@@ -628,7 +628,7 @@
     "connectionModelNotAvailable": "This API key can't use the model \"{{model}}\". Check the model name.",
     "connectionProviderUnreachable": "Couldn't reach the provider. Try again in a moment.",
     "connectionValidationFailed": "The provider refused the test request: {{reason}}",
-    "serverModelUnavailable": "The included MoneyMatter AI model isn't available on your plan.",
+    "serverModelUnavailable": "Model AI yang disediakan server tidak tersedia untuk akun ini.",
     "connectionKeyNotInBackup": "API key isn't included in backups. Edit this model and enter the key again.",
     "customEndpointUnreachable": "Tidak dapat menjangkau endpoint. Periksa URL dasar dan pastikan server berjalan serta dapat diakses dari internet.",
     "customEndpointAuthFailed": "Endpoint menolak kunci API. Pastikan kunci sudah benar dan memiliki izin yang diperlukan.",

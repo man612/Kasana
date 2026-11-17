@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import DateField from '@/components/fields/date-field.vue';
-import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
@@ -56,6 +56,20 @@ const form = reactive<{
   description: '',
 });
 
+const fromAmountValue = computed({
+  get: () => (form.fromAmount === '' ? null : Number(form.fromAmount)),
+  set: (value: number | null) => {
+    form.fromAmount = value == null ? '' : String(value);
+  },
+});
+
+const toAmountValue = computed({
+  get: () => (form.toAmount === '' ? null : Number(form.toAmount)),
+  set: (value: number | null) => {
+    form.toAmount = value == null ? '' : String(value);
+  },
+});
+
 const balancesByCurrency = computed(() => {
   const map = new Map<string, number>();
   if (balances.value) {
@@ -102,6 +116,12 @@ const fromAvailableCash = computed(() => {
   if (!form.fromCurrency) return null;
   return balancesByCurrency.value.get(form.fromCurrency.currencyCode) ?? null;
 });
+
+const formattedMaxAmount = computed(() =>
+  fromAvailableCash.value === null || !form.fromCurrency
+    ? ''
+    : formatAmountByCurrencyCode(fromAvailableCash.value, form.fromCurrency.currencyCode),
+);
 
 const handleMaxAmount = () => {
   if (fromAvailableCash.value !== null && fromAvailableCash.value > 0) {
@@ -209,15 +229,13 @@ const onSubmit = async () => {
     />
 
     <div>
-      <InputField
-        v-model="form.fromAmount"
+      <FormattedAmountField
+        v-model="fromAmountValue"
+        :currency-code="form.fromCurrency?.currencyCode"
         :label="$t('forms.exchangeCurrency.fromAmountLabel')"
-        type="number"
-        step="any"
-        min="0.01"
         :placeholder="$t('forms.exchangeCurrency.amountPlaceholder')"
-        :disabled="exchangeMutation.isPending.value || disabled"
-        :error="getFieldErrorMessage('form.fromAmount')"
+        :disabled="exchangeMutation.isPending.value || disabled || !form.fromCurrency"
+        :error-message="getFieldErrorMessage('form.fromAmount')"
         @blur="touchField('form.fromAmount')"
       />
 
@@ -229,7 +247,7 @@ const onSubmit = async () => {
         class="mt-1 h-auto p-0"
         @click="handleMaxAmount"
       >
-        {{ $t('forms.exchangeCurrency.maxButton', { amount: fromAvailableCash }) }}
+        {{ $t('forms.exchangeCurrency.maxButton', { amount: formattedMaxAmount }) }}
       </UiButton>
     </div>
 
@@ -247,15 +265,13 @@ const onSubmit = async () => {
       :error-message="getFieldErrorMessage('form.toCurrency') || sameCurrencyError"
     />
 
-    <InputField
-      v-model="form.toAmount"
+    <FormattedAmountField
+      v-model="toAmountValue"
+      :currency-code="form.toCurrency?.currencyCode"
       :label="$t('forms.exchangeCurrency.toAmountLabel')"
-      type="number"
-      step="any"
-      min="0.01"
       :placeholder="$t('forms.exchangeCurrency.amountPlaceholder')"
-      :disabled="exchangeMutation.isPending.value || disabled"
-      :error="getFieldErrorMessage('form.toAmount')"
+      :disabled="exchangeMutation.isPending.value || disabled || !form.toCurrency"
+      :error-message="getFieldErrorMessage('form.toAmount')"
       @blur="touchField('form.toAmount')"
     />
 

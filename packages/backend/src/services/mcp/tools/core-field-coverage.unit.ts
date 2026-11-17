@@ -1,3 +1,4 @@
+import { createCategoryBodySchema } from '@controllers/categories.controller/shared-schemas';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { adjustAccountBalance } from '@services/accounts/balance-adjustment';
 import { createCategory } from '@services/categories/create-category';
@@ -221,6 +222,15 @@ describe('create_category', () => {
     addCategory.mockResolvedValue({} as never);
     await tool.handler({ name: 'Food', parentId: ID }, WRITE);
     expect(addCategory).toHaveBeenCalledWith(expect.objectContaining({ name: 'Food', parentId: ID }));
+  });
+
+  it('allows top-level categories without parentId but still requires a color', () => {
+    expect(createCategoryBodySchema.safeParse({ name: 'Food', color: '#FF0000' }).success).toBe(true);
+    expect(createCategoryBodySchema.safeParse({ name: 'Food', color: '#FF0000', parentId: undefined }).success).toBe(
+      true,
+    );
+    expect(createCategoryBodySchema.safeParse({ name: 'Food', parentId: ID }).success).toBe(true);
+    expect(createCategoryBodySchema.safeParse({ name: 'Food' }).success).toBe(false);
   });
 
   it('passes the default tag fields to the service', async () => {

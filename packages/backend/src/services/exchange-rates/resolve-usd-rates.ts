@@ -9,8 +9,9 @@ import { fetchAndStoreRatesForDate, isDateComprehensivelyFetched } from './ensur
 /**
  * Result of resolving a single USD-base rate for a date.
  *  - `exact`:    an exact-date row exists.
- *  - `fallback`: no exact-date row, but the most-recent row from another date is
- *                returned as an approximation – the caller decides if that's OK.
+ *  - `fallback`: no exact-date row; use the latest rate strictly BEFORE the
+ *                requested date, else the earliest rate AFTER that date.
+ *                The chosen date is preserved to signal an approximation.
  *  - `missing`:  no rate at all, on any date.
  *
  * The fallback case is a distinct `kind` (rather than a row silently returned as
@@ -99,9 +100,11 @@ export async function resolveUsdRates({
 }
 
 /**
- * Read the USD-base rate for one currency on one date: the exact-date row if
- * present, else the most-recent row from another date as a `fallback`, else
- * `missing`.
+ * Read the USD-base rate for one currency on one date: prefer exact,
+ * then the latest rate BEFORE the requested day, then (only when history
+ * starts later) the earliest rate AFTER that day. Never use the newest
+ * future rate to price an old transaction. Dates on fallback are explicit.
+ * Missing means the currency has no stored rate on any date.
  */
 async function loadRate(code: string, rateDate: Date): Promise<RateLookup> {
   if (code === API_LAYER_BASE_CURRENCY_CODE) {
@@ -122,16 +125,33 @@ async function loadRate(code: string, rateDate: Date): Promise<RateLookup> {
     return { kind: 'exact', rate: exact.rate, date: exact.date };
   }
 
-  // Fallback: the most recent rate regardless of date. Surfaced as its own
-  // `kind` so the caller treats it as an approximation, not an exact-date hit.
-  const fallback = await ExchangeRates.findOne({
+  // Prefer an as-of quote: last available publication strictly before
+  // this calendar day. The previous unbounded DESC query could select a much
+  // newer market rate when valuing historical transactions or balances.
+  const prior = await ExchangeRates.findOne({
     where: {
       baseCode: API_LAYER_BASE_CURRENCY_CODE,
       quoteCode: code,
+      date: { [Op.lt]: startOfDay(rateDate) },
     },
     order: [['date', 'DESC']],
     raw: true,
   });
+
+  // Historical bootstrap fallback: if a requested day predates ALL stored
+  // quotes, use the earliest published quote (not the newest). This mirrors
+  // the daily balance resolver's existing pre-coverage behavior.
+  const fallback =
+    prior ??
+    (await ExchangeRates.findOne({
+      where: {
+        baseCode: API_LAYER_BASE_CURRENCY_CODE,
+        quoteCode: code,
+        date: { [Op.gt]: endOfDay(rateDate) },
+      },
+      order: [['date', 'ASC']],
+      raw: true,
+    }));
 
   if (fallback) {
     logger.info(

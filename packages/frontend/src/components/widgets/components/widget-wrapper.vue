@@ -15,7 +15,7 @@
             <Loader2Icon v-if="isFetching" class="text-muted-foreground size-4 shrink-0 animate-spin" />
           </div>
 
-          <div class="flex items-center gap-1">
+          <div class="flex min-h-7 items-center justify-end gap-1 self-start [&_button]:shrink-0">
             <slot name="action" />
           </div>
         </div>

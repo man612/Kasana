@@ -37,7 +37,12 @@ const delegatedProps = reactiveOmit(props, 'class');
 <template>
   <ComboboxContent
     v-bind="delegatedProps"
-    :class="cn('bg-background border-input mt-2 w-full rounded-md border shadow-lg', props.class)"
+    :class="cn(
+        'bg-background border-input mt-2 w-full rounded-md border shadow-lg',
+        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95',
+        'data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2',
+        props.class,
+      )"
     @escape-key-down="emits('escapeKeyDown', $event)"
     @interact-outside="emits('interactOutside', $event)"
   >

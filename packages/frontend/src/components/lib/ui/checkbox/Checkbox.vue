@@ -29,7 +29,7 @@ const model = computed({
       )
     "
   >
-    <CheckboxIndicator class="flex h-full w-full items-center justify-center text-current">
+    <CheckboxIndicator class="kasana-selection-indicator flex h-full w-full items-center justify-center text-current">
       <slot>
         <MinusIcon v-if="model === 'indeterminate'" class="size-4" />
         <CheckIcon v-else class="size-4" />

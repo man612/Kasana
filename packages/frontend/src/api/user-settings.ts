@@ -11,6 +11,7 @@ import type {
   SavedPivotView,
   SavedTransactionView,
   CurrencyDisplayPreference,
+  AccentThemePreference,
   UnrealizedLossAlertsSettings,
 } from '@bt/shared/types';
 
@@ -156,6 +157,8 @@ export interface UserSettingsSchema {
   /** Custom category order: parent id (or `CATEGORY_ORDER_ROOT_KEY`) → child ids in display order. */
   categoryOrder?: CategoryOrder;
   currencyDisplay?: CurrencyDisplayPreference;
+  /** Stored per authenticated account, not shared between browser users. */
+  accentTheme?: AccentThemePreference;
   fire?: FireSettings;
   /** Server-written monthly FIRE settings snapshots, read by the pace comparison. */
   fireHistory?: FireSettingsSnapshot[];

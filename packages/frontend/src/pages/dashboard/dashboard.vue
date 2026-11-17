@@ -1,5 +1,5 @@
 <template>
-  <PageWrapper class="flex min-h-full flex-col">
+  <PageWrapper :class="hasNoAccounts ? 'flex flex-col' : 'flex min-h-full flex-col'">
     <!-- Recovery method suggestion banner -->
     <RecoveryMethodBanner />
 

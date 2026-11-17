@@ -2,6 +2,7 @@ import { ACCOUNT_CATEGORIES, TRANSACTION_TRANSFER_NATURE, TRANSACTION_TYPES } fr
 import type { BudgetPlanCarryPolicy, BudgetPlanPool, RecordId } from '@bt/shared/types';
 import { afterEach, describe, expect, it } from '@jest/globals';
 import { ERROR_CODES } from '@js/errors';
+import type { TransactionApiResponse } from '@root/serializers/transactions.serializer';
 import * as helpers from '@tests/helpers';
 import { startOfDay, subDays } from 'date-fns';
 
@@ -331,7 +332,9 @@ describe('Budget plan pool: flow', () => {
       raw: true,
     });
 
-    await helpers.createTransaction({
+    const response = await helpers.makeRequest<[TransactionApiResponse, TransactionApiResponse?]>({
+      method: 'post',
+      url: '/transactions',
       payload: {
         ...helpers.buildTransactionPayload({
           accountId: account.id,
@@ -343,8 +346,22 @@ describe('Budget plan pool: flow', () => {
         }),
         time: at({ period: periods[0]! }),
       },
-      raw: true,
     });
+    expect({ status: response.statusCode, body: response.body }).toMatchObject({
+      status: 200,
+      body: {
+        status: 'success',
+        response: [
+          expect.objectContaining({ id: expect.any(String) }),
+          expect.objectContaining({ id: expect.any(String) }),
+        ],
+      },
+    });
+    const [cashLeg, loanLeg] = helpers.extractResponse(response);
+    expect(cashLeg.categoryId).toBeNull();
+    expect(loanLeg!.categoryId).toBeNull();
+    expect(cashLeg.accountId).toBe(account.id);
+    expect(loanLeg!.accountId).toBe(loan.id);
 
     const result = await pool({ planId, period: periods[0]! });
     expect(result.flow.outsideSpending).toBe(-300);

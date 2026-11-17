@@ -3,6 +3,9 @@ import { logger } from '@js/utils/logger';
 import { connection } from '@models/index';
 import SignupLedger from '@models/signup-ledger.model';
 import { createHash } from 'crypto';
+import { QueryTypes } from 'sequelize';
+
+import { parseSignupLimit } from './signup-limit';
 
 /** Lowercase, drop `+alias`, and for gmail drop dots – all of those deliver to one inbox. */
 const normalizeEmail = ({ email }: { email: string }): string => {
@@ -39,24 +42,54 @@ export const forgetSignup = async ({ email }: { email: string }): Promise<void> 
 /**
  * SYSTEM_MAX_SIGNUPS_ALLOWED: on cloud it caps signups ever seen (the ledger), so
  * deleting a user does not free a trial slot. Self-host counts live users, so a
- * "just me" instance can delete and re-create its account. Unset or non-numeric
- * means unlimited; 0 blocks all signups. Read per call so tests can toggle it.
+ * "just me" instance can delete and re-create its account. Missing/empty
+ * remains unlimited for backward compatibility; malformed configured values
+ * fail closed. 0 blocks all new signups. Read per call for test/operator changes.
  */
 export async function areSignupsOpen(): Promise<boolean> {
-  const raw = process.env.SYSTEM_MAX_SIGNUPS_ALLOWED;
-  if (raw === undefined || raw === '') return true;
-
-  const max = Number(raw);
-  if (!Number.isFinite(max)) {
-    logger.error(`SYSTEM_MAX_SIGNUPS_ALLOWED is not a number ("${raw}"); signups stay unlimited.`);
-    return true;
+  const limit = parseSignupLimit(process.env.SYSTEM_MAX_SIGNUPS_ALLOWED);
+  if (limit.kind === 'invalid') {
+    logger.error('SYSTEM_MAX_SIGNUPS_ALLOWED must be a non-negative safe integer; new signups are blocked.');
+    return false;
   }
+  // The AFTER INSERT trigger is the authoritative concurrency-safe guard.
+  // A stored cap never increases automatically: a stale worker may not open
+  // registration beyond the operator-approved database policy.
+  const scope = isSelfHost() ? 'self-host' : 'hosted';
+  const requested = limit.kind === 'capped' ? limit.max : null;
 
-  if (!isSelfHost()) return (await SignupLedger.count()) < max;
+  try {
+    const [stored] = (await connection.sequelize.query(
+      `UPDATE "SignupCapacity"
+       SET "maxSignups" =
+         CASE WHEN CAST(:max AS BIGINT) IS NULL THEN "maxSignups"
+              WHEN "maxSignups" IS NULL THEN CAST(:max AS BIGINT)
+              ELSE LEAST("maxSignups", CAST(:max AS BIGINT)) END,
+           "scope" = CASE WHEN "maxSignups" IS NULL THEN :scope ELSE "scope" END
+       WHERE id = 1 RETURNING "maxSignups", "scope"`,
+      { type: QueryTypes.SELECT, replacements: { max: requested, scope } },
+    )) as Array<{ maxSignups: number | string | null; scope: string }>;
 
-  const [[row]] = (await connection.sequelize.query('SELECT COUNT(*)::int AS count FROM ba_user')) as [
-    [{ count: number }],
-    unknown,
-  ];
-  return row.count < max;
+    if (!stored || stored.scope !== scope) {
+      logger.error('Signup capacity mode mismatch or missing database policy; signups blocked.');
+      return false;
+    }
+    const enforced = stored.maxSignups === null ? null : Number(stored.maxSignups);
+    if ((requested === null && enforced !== null) ||
+        (requested !== null && requested !== enforced)) {
+      logger.error('Signup capacity differs from PostgreSQL policy; operator review required.');
+      return false;
+    }
+    if (enforced === null) return true;
+    if (enforced === 0) return false;
+
+    const [row] = (await connection.sequelize.query(
+      'SELECT lajur_signup_capacity_count(:scope) AS count',
+      { type: QueryTypes.SELECT, replacements: { scope } },
+    )) as Array<{ count: number | string }>;
+    return Boolean(row && Number(row.count) < enforced);
+  } catch (error) {
+    logger.error({ message: 'Signup capacity database guard unavailable; signups blocked.', error: error as Error });
+    return false;
+  }
 }

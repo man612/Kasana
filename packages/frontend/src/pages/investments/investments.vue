@@ -4,13 +4,13 @@
       <h1 class="text-2xl tracking-wider">{{ $t('investments.title') }}</h1>
 
       <DemoRestricted feature="create_portfolio_header" :message="$t('demo.featureNotAvailable')">
-        <CreatePortfolioDialog v-if="!isDemo">
+        <CreatePortfolioDialog v-if="!isDemo && portfolios.length > 0">
           <UiButton>
             <PlusIcon class="size-4" />
             {{ $t('investments.createButton') }}
           </UiButton>
         </CreatePortfolioDialog>
-        <UiButton v-else disabled>
+        <UiButton v-else-if="portfolios.length > 0" disabled>
           <PlusIcon class="size-4" />
           {{ $t('investments.createButton') }}
         </UiButton>

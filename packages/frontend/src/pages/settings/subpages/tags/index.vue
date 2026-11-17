@@ -10,7 +10,12 @@
         </Button>
       </div>
 
-      <div class="mt-4 grid px-4 sm:gap-2">
+      <TransitionGroup
+        tag="div"
+        :name="tags.length <= 40 ? 'kasana-list' : undefined"
+        class="relative mt-4 grid px-4 sm:gap-2"
+        data-kasana-motion-list="tags"
+      >
         <template v-if="isLoading">
           <div class="text-muted-foreground py-8 text-center">
             {{ $t('common.actions.loading') }}
@@ -50,7 +55,7 @@
             {{ $t('settings.tags.empty') }}
           </div>
         </template>
-      </div>
+      </TransitionGroup>
     </Card>
 
     <TagFormDialog

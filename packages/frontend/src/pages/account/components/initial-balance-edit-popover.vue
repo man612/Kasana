@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import DocsLink from '@/components/common/docs-link.vue';
 import { Button } from '@/components/lib/ui/button';
 import * as Popover from '@/components/lib/ui/popover';
@@ -89,18 +89,15 @@ watch([isOpen, () => props.account.id], () => {
       </Popover.PopoverTrigger>
       <Popover.PopoverContent>
         <form class="grid gap-4" @submit.prevent="updateInitialBalance">
-          <InputField
+          <FormattedAmountField
             v-model="form.initialBalance"
-            type="number"
+            :currency-code="currencyCode"
             :label="$t('pages.account.details.initialBalance')"
             :placeholder="$t('pages.account.details.initialBalancePlaceholder')"
             :error-message="getFieldErrorMessage('form.initialBalance')"
             @blur="touchField('form.initialBalance')"
           >
-            <template #iconTrailing>
-              <span class="text-muted-foreground text-sm">{{ currencyCode }}</span>
-            </template>
-          </InputField>
+          </FormattedAmountField>
           <p class="text-muted-foreground text-xs">
             {{ $t('pages.account.details.initialBalanceHint') }}
             <DocsLink path="/accounts/manage-accounts/#change-the-initial-balance" class="text-xs" />

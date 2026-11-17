@@ -63,8 +63,12 @@ const iconConfig = computed(() => {
         "
       >
         <!-- Icon -->
-        <CheckCircle2Icon v-if="isComplete" class="text-primary-text size-5 shrink-0" />
-        <component :is="iconConfig.icon" v-else :class="cn('size-5 shrink-0', iconConfig.color)" />
+        <span class="grid size-5 shrink-0 place-items-center">
+          <Transition name="kasana-icon" mode="out-in">
+            <CheckCircle2Icon v-if="isComplete" key="completed" class="text-primary-text size-5" />
+            <component :is="iconConfig.icon" v-else key="pending" :class="cn('size-5', iconConfig.color)" />
+          </Transition>
+        </span>
 
         <!-- Title -->
         <span :class="cn('flex-1 text-sm font-medium', isComplete && 'text-muted-foreground')">

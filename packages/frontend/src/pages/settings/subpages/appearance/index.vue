@@ -1,5 +1,5 @@
 <template>
-  <Card class="max-w-4xl">
+  <Card class="w-full max-w-none">
     <CardHeader class="border-b">
       <h2 class="mb-2 text-2xl font-semibold">{{ $t('settings.appearance.title') }}</h2>
       <p class="text-sm opacity-80">{{ $t('settings.appearance.description') }}</p>
@@ -18,12 +18,51 @@
             v-for="option in themeOptions"
             :key="option.value"
             :variant="themePreference === option.value ? 'default' : 'outline'"
+            class="relative overflow-hidden transition-[background-color,border-color,color,box-shadow,transform] duration-300 ease-out active:scale-[0.97] motion-reduce:transition-none"
             size="sm"
             @click="setThemePreference(option.value)"
           >
-            <component :is="option.icon" class="size-4" />
+            <component
+              :is="option.icon"
+              class="size-4 transition-transform duration-200"
+              :class="themePreference === option.value && 'scale-110'"
+            />
             <span>{{ $t(option.labelKey) }}</span>
+            <Transition name="lajur-form-copy">
+              <CheckIcon v-if="themePreference === option.value" class="size-3.5 shrink-0" aria-hidden="true" />
+            </Transition>
           </Button>
+        </div>
+      </div>
+
+      <Separator />
+
+      <!-- Accent color is separate from light/dark theme. -->
+      <div>
+        <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.accent.title') }}</h3>
+        <p class="mb-4 text-sm leading-relaxed">{{ $t('settings.appearance.accent.description') }}</p>
+        <div class="flex flex-wrap gap-2" role="group" :aria-label="$t('settings.appearance.accent.title')">
+          <button
+            v-for="option in ACCENT_OPTIONS"
+            :key="option.value"
+            type="button"
+            :aria-pressed="accentTheme === option.value"
+            class="border-input hover:bg-accent focus-visible:ring-ring inline-flex min-h-10 items-center gap-2 rounded-md border px-3 py-2 text-sm transition-[background-color,border-color,color,box-shadow,transform] duration-250 ease-out focus-visible:ring-2 focus-visible:outline-none active:scale-[0.97] motion-reduce:transition-none"
+            :class="accentTheme === option.value && 'border-primary bg-primary/10 text-primary-text'"
+            @click="updateAccentTheme(option.value)"
+          >
+            <span
+              class="size-4 shrink-0 rounded-full ring-1 ring-black/10"
+              :style="{ backgroundColor: option.swatch }"
+              aria-hidden="true"
+            />
+            {{ $t('settings.appearance.accent.' + option.value) }}
+            <span class="relative inline-flex size-4 shrink-0 items-center justify-center">
+              <Transition name="lajur-form-copy">
+                <CheckIcon v-if="accentTheme === option.value" class="absolute size-4" aria-hidden="true" />
+              </Transition>
+            </span>
+          </button>
         </div>
       </div>
 
@@ -42,12 +81,7 @@
               <LayersIcon class="text-muted-foreground size-4 shrink-0" />
               {{ $t('sidebar.accountsView.bankAccounts') }}
             </span>
-            <ResponsiveTooltip :content="$t('settings.appearance.sidebar.alwaysVisibleTooltip')">
-              <span class="text-muted-foreground flex cursor-help items-center gap-2">
-                <InfoIcon class="size-4" />
-                <Switch :model-value="true" disabled />
-              </span>
-            </ResponsiveTooltip>
+            <HintIcon :content="$t('settings.appearance.sidebar.alwaysVisibleTooltip')" />
           </div>
 
           <div
@@ -88,7 +122,11 @@
               {{ $t(item.labelKey) }}
             </span>
             <Switch
-              :model-value="item.settingKey === 'venture' ? userSettings?.sidebarNav?.venture === true : userSettings?.sidebarNav?.[item.settingKey] !== false"
+              :model-value="
+                item.settingKey === 'venture'
+                  ? userSettings?.sidebarNav?.venture === true
+                  : userSettings?.sidebarNav?.[item.settingKey] !== false
+              "
               :disabled="isPatching"
               @update:model-value="(v) => patch({ sidebarNav: { [item.settingKey]: !!v } })"
             />
@@ -146,7 +184,9 @@
 </template>
 
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { ThemePreference, setThemePreference, themePreference } from '@/common/utils/color-theme';
+import { ACCENT_OPTIONS, accentTheme, setAccentTheme, type AccentTheme } from '@/common/utils/accent-theme';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import Button from '@/components/lib/ui/button/Button.vue';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
@@ -156,7 +196,7 @@ import { Switch } from '@/components/lib/ui/switch';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { TOGGLEABLE_SIDEBAR_SECTIONS, useSidebarSections } from '@/composable/use-sidebar-sections';
 import { useSupportButton } from '@/composable/use-support-button';
-import { CoinsIcon, HeartIcon, InfoIcon, LayersIcon, MonitorIcon, MoonStarIcon, SunIcon } from '@lucide/vue';
+import { CheckIcon, CoinsIcon, HeartIcon, LayersIcon, MonitorIcon, MoonStarIcon, SunIcon } from '@lucide/vue';
 import { type Component } from 'vue';
 
 const { sidebarSections, toggleSection, isUpdating } = useSidebarSections();
@@ -167,6 +207,12 @@ const {
   isUpdating: isSupportButtonUpdating,
 } = useSupportButton();
 const { data: userSettings, patch, isPatching } = useUserSettings();
+
+function updateAccentTheme(value: AccentTheme): void {
+  setAccentTheme(value);
+  // The shared settings endpoint persists this per user for reloads and other devices.
+  patch({ accentTheme: value });
+}
 
 interface ThemeOption {
   value: ThemePreference;

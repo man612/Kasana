@@ -280,7 +280,7 @@
     }
   },
   "landingFaq": {
-    "unavailable": "Der Assistent ist derzeit nicht verfügbar. Bitte versuche es später erneut oder schreibe eine E-Mail an support@moneymatter.app."
+    "unavailable": "Der Assistent ist derzeit nicht verfügbar. Bitte versuche es später erneut."
   },
   "loans": {
     "loanNotFound": "Kredit nicht gefunden.",
@@ -628,7 +628,7 @@
     "connectionModelNotAvailable": "Dieser API-Schlüssel kann das Modell \"{{model}}\" nicht verwenden. Überprüfe den Modellnamen.",
     "connectionProviderUnreachable": "Anbieter konnte nicht erreicht werden. Versuche es in Kürze erneut.",
     "connectionValidationFailed": "Der Anbieter hat die Testanfrage abgelehnt: {{reason}}",
-    "serverModelUnavailable": "Das enthaltene MoneyMatter KI-Modell ist in deinem Tarif nicht verfügbar.",
+    "serverModelUnavailable": "Das vom Server bereitgestellte KI-Modell ist für dieses Konto nicht verfügbar.",
     "connectionKeyNotInBackup": "Der API-Schlüssel ist nicht in Backups enthalten. Bearbeite dieses Modell und gib den Schlüssel erneut ein.",
     "customEndpointUnreachable": "Endpunkt konnte nicht erreicht werden. Überprüfe die Basis-URL und stelle sicher, dass der Server läuft und aus dem Internet erreichbar ist.",
     "customEndpointAuthFailed": "Der Endpunkt hat den API-Schlüssel abgelehnt. Überprüfe, ob der Schlüssel korrekt ist und die erforderlichen Berechtigungen hat.",

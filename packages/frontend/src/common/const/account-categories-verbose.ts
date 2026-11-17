@@ -7,6 +7,7 @@ import { ACCOUNT_CATEGORIES } from '@bt/shared/types';
 export const ACCOUNT_CATEGORIES_TRANSLATION_KEYS = Object.freeze<Record<ACCOUNT_CATEGORIES, string>>({
   [ACCOUNT_CATEGORIES.general]: 'common.accountCategories.general',
   [ACCOUNT_CATEGORIES.cash]: 'common.accountCategories.cash',
+  [ACCOUNT_CATEGORIES.digitalWallet]: 'common.accountCategories.digitalWallet',
   [ACCOUNT_CATEGORIES.currentAccount]: 'common.accountCategories.currentAccount',
   [ACCOUNT_CATEGORIES.creditCard]: 'common.accountCategories.creditCard',
   [ACCOUNT_CATEGORIES.saving]: 'common.accountCategories.saving',

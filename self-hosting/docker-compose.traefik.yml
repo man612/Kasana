@@ -1,8 +1,8 @@
 # Optional overlay: bundle Traefik as the reverse proxy with automatic
 # Let's Encrypt TLS. Use this only if you do NOT already run a reverse proxy.
 #
-# Usage (merge on top of the base file, from this folder):
-#   docker compose -f docker-compose.yml -f docker-compose.traefik.yml up -d
+# Usage (always include the Kasana build and private overlays):
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml -f docker-compose.traefik.yml up -d --build
 #
 # Single-domain by default: the whole app is served on SELFHOST_FRONTEND_DOMAIN
 # and the API is reached same-origin through the frontend container's internal
@@ -29,7 +29,9 @@ services:
     command:
       - --providers.docker=true
       - --providers.docker.exposedByDefault=false
-      - --providers.docker.network=budget-tracker
+      # Must match docker-compose.private.yml's actual named Docker network.
+      # The Compose logical key is "budget-tracker" but Docker's real name is historical.
+      - --providers.docker.network=moneymatter-private-net
       - --entrypoints.web.address=:80
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
@@ -52,7 +54,7 @@ services:
     ports: !reset []
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.frontend.rule=Host(`${SELFHOST_FRONTEND_DOMAIN}`)'
+      - 'traefik.http.routers.frontend.rule=Host(`${SELFHOST_FRONTEND_DOMAIN:?SELFHOST_FRONTEND_DOMAIN is required for TLS}`)'
       - 'traefik.http.routers.frontend.entrypoints=websecure'
       - 'traefik.http.routers.frontend.tls=true'
       - 'traefik.http.routers.frontend.tls.certresolver=letsencrypt'

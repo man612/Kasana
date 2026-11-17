@@ -1,10 +1,11 @@
 /**
- * Product-facing identity for this independent Indonesian deployment.
- * Internal upstream package names and original legal attributions stay intact.
- * This is a working brand; change it here if the final name changes.
+ * Display branding is configured in frontend/branding.json.
+ * Change the name there and run npm run branding:sync; internal IDs are stable.
  */
+import branding from '../../branding.json';
+
 export const APP_BRAND = {
-  name: 'Kasana',
-  tagline: 'Keuangan lebih tertata',
-  description: 'Catat uangmu, pahami pengeluaran, dan rencanakan langkah berikutnya.',
+  name: branding.name,
+  tagline: '',
+  description: branding.description,
 } as const;

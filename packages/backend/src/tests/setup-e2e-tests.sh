@@ -31,7 +31,7 @@ else
 fi
 export TEST_RUNNER_IMAGE="${TEST_RUNNER_IMAGE:-${COMPOSE_PROJECT_NAME}-test-runner}"
 
-compose up ${BUILD_FLAG} -d
+compose up ${BUILD_FLAG} -d || { echo "ERROR: Cannot start isolated test services." >&2; exit 1; }
 
 wait_for() {
   for _ in $(seq 1 120); do
@@ -166,11 +166,11 @@ if [ -z "${CI:-}" ]; then
   compose down -v --remove-orphans --volumes --rmi local
 fi
 
-# Check the exit code and display an error message if it's 1
-if [ $TEST_EXIT_CODE -eq 1 ]; then
-    echo -e "\n\n$(tput setaf 1)ERROR: Tests failed!$(tput sgr0)"
+# Report every nonzero runner exit as a failure, including crashes and signals.
+if [ "$TEST_EXIT_CODE" -ne 0 ]; then
+    printf '\nERROR: Tests failed (exit %s).\n' "$TEST_EXIT_CODE" >&2
 else
-    echo -e "\n\n$(tput setaf 2)Tests passed successfully.$(tput sgr0)"
+    printf '\nTests passed successfully.\n'
 fi
 
 # Exit with the test exit code

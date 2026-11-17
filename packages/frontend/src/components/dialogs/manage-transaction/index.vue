@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import * as Dialog from '@/components/lib/ui/dialog';
+import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import * as Drawer from '@/components/lib/ui/drawer';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { trackAnalyticsEvent } from '@/lib/posthog';
@@ -29,6 +30,22 @@ const nextEntryPrefill = shallowRef<TransactionPrefill>();
 const contentKey = ref(0);
 const contentRef = ref<InstanceType<typeof ManageTransactionDialogContent> | null>(null);
 const contentPrefill = computed(() => nextEntryPrefill.value ?? props.prefill);
+const isDiscardConfirmationOpen = ref(false);
+const requestOpen = (open: boolean) => {
+  if (open) {
+    isOpen.value = true;
+    return;
+  }
+  if (contentRef.value?.hasUnsavedChanges()) {
+    isDiscardConfirmationOpen.value = true;
+    return;
+  }
+  isOpen.value = false;
+};
+const confirmDiscard = () => {
+  isDiscardConfirmationOpen.value = false;
+  isOpen.value = false;
+};
 const [DefineContent, ReuseContent] = createReusableTemplate();
 
 watch(isOpen, (open) => {
@@ -61,7 +78,7 @@ const startNextEntry = async ({ prefill }: { prefill: TransactionPrefill }) => {
   </DefineContent>
 
   <!-- Desktop: Dialog -->
-  <Dialog.Dialog v-if="!isMobile" v-model:open="isOpen">
+  <Dialog.Dialog v-if="!isMobile" :open="isOpen" @update:open="requestOpen">
     <Dialog.DialogTrigger as-child>
       <slot />
     </Dialog.DialogTrigger>
@@ -76,7 +93,7 @@ const startNextEntry = async ({ prefill }: { prefill: TransactionPrefill }) => {
   </Dialog.Dialog>
 
   <!-- Mobile: Drawer -->
-  <Drawer.Drawer v-else v-model:open="isOpen">
+  <Drawer.Drawer v-else :open="isOpen" @update:open="requestOpen">
     <Drawer.DrawerTrigger class="w-full" as-child>
       <slot />
     </Drawer.DrawerTrigger>
@@ -84,4 +101,13 @@ const startNextEntry = async ({ prefill }: { prefill: TransactionPrefill }) => {
       <ReuseContent />
     </Drawer.DrawerContent>
   </Drawer.Drawer>
+  <ResponsiveAlertDialog
+    v-model:open="isDiscardConfirmationOpen"
+    :confirm-label="t('dialogs.manageTransaction.form.discardAction')"
+    confirm-variant="destructive"
+    @confirm="confirmDiscard"
+  >
+    <template #title>{{ t('dialogs.manageTransaction.form.discardTitle') }}</template>
+    <template #description>{{ t('dialogs.manageTransaction.form.discardDetails') }}</template>
+  </ResponsiveAlertDialog>
 </template>

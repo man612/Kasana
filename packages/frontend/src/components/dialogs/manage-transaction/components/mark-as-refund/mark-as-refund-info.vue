@@ -1,9 +1,7 @@
 <script lang="ts" setup>
 import DocsLink from '@/components/common/docs-link.vue';
 import * as Drawer from '@/components/lib/ui/drawer';
-import * as Popover from '@/components/lib/ui/popover';
-import * as ScrollArea from '@/components/lib/ui/scroll-area';
-import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
+import * as Dialog from '@/components/lib/ui/dialog';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { InfoIcon } from '@lucide/vue';
 import { createReusableTemplate } from '@vueuse/core';
@@ -71,21 +69,18 @@ const [UseBodyTemplate, BodyContent] = createReusableTemplate();
     </Drawer.DrawerContent>
   </Drawer.Drawer>
 
-  <Popover.Popover v-else>
-    <Popover.PopoverTrigger as-child>
-      <TriggerContent />
-    </Popover.PopoverTrigger>
-    <Popover.PopoverContent class="w-125 overflow-y-auto" side="right">
-      <ScrollArea.ScrollArea
-        class="*:data-reka-scroll-area-viewport:max-h-[90dvh]"
-        :scroll-area-id="SCROLL_AREA_IDS.txRefundInfo"
-      >
-        <h3 class="mb-2 text-lg font-bold">{{ t('dialogs.manageTransaction.refundInfo.title') }}</h3>
-        <p class="text-muted-foreground text-sm">
-          {{ t('dialogs.manageTransaction.refundInfo.description') }}
-        </p>
+  <Dialog.Dialog v-else>
+    <Dialog.DialogTrigger as-child><TriggerContent /></Dialog.DialogTrigger>
+    <Dialog.DialogContent blur-overlay class="w-[calc(100vw-2rem)] max-w-lg gap-2 overflow-hidden p-5">
+      <Dialog.DialogTitle class="pr-12 text-base font-semibold">
+        {{ t('dialogs.manageTransaction.refundInfo.title') }}
+      </Dialog.DialogTitle>
+      <Dialog.DialogDescription class="text-muted-foreground pr-10 text-xs leading-relaxed">
+        {{ t('dialogs.manageTransaction.refundInfo.description') }}
+      </Dialog.DialogDescription>
+      <div class="mt-2 max-h-[min(66dvh,480px)] overflow-y-auto overscroll-contain pr-3">
         <BodyContent />
-      </ScrollArea.ScrollArea>
-    </Popover.PopoverContent>
-  </Popover.Popover>
+      </div>
+    </Dialog.DialogContent>
+  </Dialog.Dialog>
 </template>

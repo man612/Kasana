@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import { extractInvestmentTransactions } from '@/api/investment-transactions-import';
 import SelectField from '@/components/fields/select-field.vue';
 import { Button } from '@/components/lib/ui/button';
@@ -21,7 +22,7 @@ import {
   type InvestmentImportWarning,
 } from '@bt/shared/types/investments';
 import { useMutation } from '@tanstack/vue-query';
-import { ArrowLeftIcon, InfoIcon, Loader2Icon, SparklesIcon } from '@lucide/vue';
+import { ArrowLeftIcon, Loader2Icon, SparklesIcon } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -447,12 +448,7 @@ const extract = useMutation({
             <div>
               <div class="mb-1.25 flex items-center gap-1.5 text-base leading-none font-normal tracking-wide">
                 <span>{{ $t('investmentsImport.columnMapping.fields.fees') }}</span>
-                <DesktopOnlyTooltip
-                  content-class-name="max-w-[300px]"
-                  :content="$t('investmentsImport.columnMapping.tooltips.fees')"
-                >
-                  <InfoIcon class="text-muted-foreground size-3.5 cursor-help" />
-                </DesktopOnlyTooltip>
+                <HintIcon :content="$t('investmentsImport.columnMapping.tooltips.fees')" />
               </div>
               <SelectField
                 :model-value="optionFor(feesColumn, columnOptions)"
@@ -464,12 +460,7 @@ const extract = useMutation({
             <div>
               <div class="mb-1.25 flex items-center gap-1.5 text-base leading-none font-normal tracking-wide">
                 <span>{{ $t('investmentsImport.columnMapping.fields.currency') }}</span>
-                <DesktopOnlyTooltip
-                  content-class-name="max-w-[300px]"
-                  :content="$t('investmentsImport.columnMapping.tooltips.currency')"
-                >
-                  <InfoIcon class="text-muted-foreground size-3.5 cursor-help" />
-                </DesktopOnlyTooltip>
+                <HintIcon :content="$t('investmentsImport.columnMapping.tooltips.currency')" />
               </div>
               <SelectField
                 :model-value="optionFor(currencyColumn, columnOptions)"
@@ -481,12 +472,7 @@ const extract = useMutation({
             <div>
               <div class="mb-1.25 flex items-center gap-1.5 text-base leading-none font-normal tracking-wide">
                 <span>{{ $t('investmentsImport.columnMapping.fields.name') }}</span>
-                <DesktopOnlyTooltip
-                  content-class-name="max-w-[300px]"
-                  :content="$t('investmentsImport.columnMapping.tooltips.name')"
-                >
-                  <InfoIcon class="text-muted-foreground size-3.5 cursor-help" />
-                </DesktopOnlyTooltip>
+                <HintIcon :content="$t('investmentsImport.columnMapping.tooltips.name')" />
               </div>
               <SelectField
                 :model-value="optionFor(nameColumn, columnOptions)"
@@ -507,12 +493,7 @@ const extract = useMutation({
             <div>
               <div class="mb-1.25 flex items-center gap-1.5 text-base leading-none font-normal tracking-wide">
                 <span>{{ $t('investmentsImport.columnMapping.fields.defaultCurrency') }}</span>
-                <DesktopOnlyTooltip
-                  content-class-name="max-w-[300px]"
-                  :content="$t('investmentsImport.columnMapping.tooltips.defaultCurrency')"
-                >
-                  <InfoIcon class="text-muted-foreground size-3.5 cursor-help" />
-                </DesktopOnlyTooltip>
+                <HintIcon :content="$t('investmentsImport.columnMapping.tooltips.defaultCurrency')" />
               </div>
               <SelectField
                 :model-value="optionFor(defaultCurrency, currencyOptions)"
@@ -525,12 +506,7 @@ const extract = useMutation({
             <div>
               <div class="mb-1.25 flex items-center gap-1.5 text-base leading-none font-normal tracking-wide">
                 <span>{{ $t('investmentsImport.columnMapping.fields.defaultAssetClass') }}</span>
-                <DesktopOnlyTooltip
-                  content-class-name="max-w-[300px]"
-                  :content="$t('investmentsImport.columnMapping.tooltips.defaultAssetClass')"
-                >
-                  <InfoIcon class="text-muted-foreground size-3.5 cursor-help" />
-                </DesktopOnlyTooltip>
+                <HintIcon :content="$t('investmentsImport.columnMapping.tooltips.defaultAssetClass')" />
               </div>
               <SelectField
                 :model-value="optionFor(defaultAssetClassHint, assetClassOptions)"

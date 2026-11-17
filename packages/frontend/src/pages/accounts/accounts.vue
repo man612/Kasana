@@ -6,7 +6,7 @@
 
         <!-- Wide: both buttons inline. Narrow: collapse into a kebab menu so the actions
              never wrap onto their own row. Popover-with-dialog-trigger mirrors the sidebar. -->
-        <div class="hidden flex-wrap gap-2 @[35rem]/accounts-page:flex">
+        <div v-if="accounts?.length || vehicles?.length" class="hidden flex-wrap gap-2 @[35rem]/accounts-page:flex">
           <AccountsSortMenu trigger-variant="labeled" />
 
           <CreateVehicleDialog>
@@ -18,7 +18,7 @@
           </CreateAccountDialog>
         </div>
 
-        <div class="flex items-center gap-2 @[35rem]/accounts-page:hidden">
+        <div v-if="accounts?.length || vehicles?.length" class="flex items-center gap-2 @[35rem]/accounts-page:hidden">
           <AccountsSortMenu trigger-variant="icon" />
 
           <Popover.Popover :open="isActionsMenuOpen" @update:open="isActionsMenuOpen = $event">
@@ -118,15 +118,6 @@
             </div>
             <p v-else class="text-muted-foreground px-1 py-2 text-sm">{{ $t('accounts.noBanksConnected') }}</p>
           </AccountsSection>
-
-          <!-- International integrations are optional for Indonesian-first usage. -->
-          <div v-if="!connectionRows.length" class="border-border/60 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3">
-            <div>
-              <p class="text-sm font-medium">Koneksi bank internasional</p>
-              <p class="text-muted-foreground text-xs">Opsional. Belum ada sinkronisasi langsung bawaan untuk bank Indonesia.</p>
-            </div>
-            <UiButton variant="outline" size="sm" @click="openAddIntegrationDialog">Lihat integrasi</UiButton>
-          </div>
 
           <AccountsSection
             v-if="sharedAccounts.length"

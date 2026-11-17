@@ -261,15 +261,24 @@ const chipClass = ({ active }: { active: boolean }) =>
             <span class="font-medium tracking-normal normal-case">· {{ group.items.length }}</span>
           </div>
 
-          <TrackerRow
-            v-for="tracker in group.visible"
+          <!-- Animate only short keyed tracker groups. Large lists keep immediate
+               updates to avoid expensive layout work on low-end devices. -->
+          <TransitionGroup
+            tag="div"
+            :name="group.visible.length <= 40 ? 'kasana-list' : undefined"
+            class="relative divide-border divide-y"
+            data-kasana-motion-list="trackers"
+          >
+            <TrackerRow
+              v-for="tracker in group.visible"
             :key="tracker.id"
             :tracker="tracker"
             :stats="statsById.get(tracker.id)?.data?.summary ?? null"
             :is-stats-loading="statsById.get(tracker.id)?.isPending ?? true"
             :is-stats-error="statsById.get(tracker.id)?.isError ?? false"
-            @suggest-archive="openArchivePrompt({ tracker })"
-          />
+              @suggest-archive="openArchivePrompt({ tracker })"
+            />
+          </TransitionGroup>
 
           <div v-if="group.hiddenCount > 0" class="flex justify-center px-4 py-1.5">
             <Button variant="ghost" size="sm" class="text-muted-foreground" @click="showAllEnded = true">

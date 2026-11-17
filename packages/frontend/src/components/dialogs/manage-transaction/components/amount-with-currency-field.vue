@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
+import HintIcon from '@/components/common/hint-icon.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import { buildSelectSections } from '@/components/fields/utils/select-sections';
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { type CurrencyModel } from '@bt/shared/types';
 import { format } from 'date-fns';
 import { debounce } from 'lodash-es';
-import { InfoIcon, SparklesIcon, XIcon } from '@lucide/vue';
+import { SparklesIcon, XIcon } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 
 const NONE_KEY = '__none__';
@@ -115,12 +115,7 @@ watch(
 <template>
   <FieldLabel :label="label" only-template>
     <template #label-after>
-      <ResponsiveTooltip
-        :content="$t('dialogs.manageTransaction.form.originalAmountTooltip')"
-        content-class-name="max-w-64"
-      >
-        <InfoIcon class="text-muted-foreground size-3.5 shrink-0 cursor-help" />
-      </ResponsiveTooltip>
+      <HintIcon :content="$t('dialogs.manageTransaction.form.originalAmountTooltip')" />
     </template>
 
     <template v-if="$slots['label-right']" #label-right>

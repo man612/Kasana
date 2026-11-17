@@ -581,7 +581,7 @@ describe('Tracker CRUD', () => {
       const image = await helpers.getLogoImage({ id: tracker.logoImageId! });
       expect(image.statusCode).toBe(200);
       expect(image.contentType).toBe('image/png');
-      expect(image.cacheControl).toBe('private, max-age=31536000, immutable');
+      expect(image.cacheControl).toBe('private, no-store');
       expect(image.body.equals(PNG_1X1_BYTES)).toBe(true);
     });
 

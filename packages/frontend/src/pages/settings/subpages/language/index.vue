@@ -41,8 +41,8 @@
       </div>
 
       <p class="text-muted-foreground rounded-lg border px-4 py-3 text-sm leading-relaxed">
-        Bahasa Indonesia adalah pilihan utama Kasana. Bahasa lain tetap tersedia,
-        dan sebagian terjemahan komunitas mungkin belum lengkap.
+        Bahasa Indonesia menjadi bahasa utama di {{ APP_BRAND.name }} Bahasa lain tetap tersedia, dan sebagian
+        terjemahan komunitas mungkin belum lengkap.
       </p>
     </CardContent>
   </Card>
@@ -50,6 +50,7 @@
 
 <script setup lang="ts">
 import Button from '@/components/lib/ui/button/Button.vue';
+import { APP_BRAND } from '@/common/brand';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { FLAG_SRCS, getCurrentLocale, setLocale } from '@/i18n';

@@ -41,13 +41,14 @@ export const parseAmountInput = ({
 }): { fragment: string; numeric: number | null } => {
   const withoutGroups = groupSeparator ? raw.split(groupSeparator).join('') : raw;
   const canonical = decimalSeparator === '.' ? withoutGroups : withoutGroups.split(decimalSeparator).join('.');
+  const negative = /^[-−]/.test(canonical.trimStart());
   const stripped = canonical.replace(/[^\d.]/g, '');
   const firstDot = stripped.indexOf('.');
   // Collapse any extra decimal points after the first — pasting "1.2.3" lands on "1.23".
   const collapsed =
     firstDot === -1 ? stripped : stripped.slice(0, firstDot + 1) + stripped.slice(firstDot + 1).replace(/\./g, '');
 
-  if (collapsed === '' || collapsed === '.') return { fragment: '', numeric: null };
+  if (collapsed === '' || collapsed === '.') return { fragment: collapsed === '' && negative ? '-' : '', numeric: null };
 
   const hasDot = collapsed.includes('.');
   const [intPart = '', decRaw = ''] = collapsed.split('.');
@@ -69,7 +70,7 @@ export const parseAmountInput = ({
     }
   }
 
-  const numeric = Number(normalized);
+  const numeric = Number(negative ? `-${normalized}` : normalized);
   return { fragment, numeric: Number.isNaN(numeric) ? null : numeric };
 };
 
@@ -106,7 +107,8 @@ export const caretOffsetAfterDigits = ({
   digitCount: number;
   decimalSeparator: string;
 }): number => {
-  if (digitCount <= 0) return 0;
+  // A sign-only intermediate value must keep the caret after the minus.
+  if (digitCount <= 0) return text.startsWith('-') ? 1 : 0;
   let seen = 0;
   for (let i = 0; i < text.length; i += 1) {
     if (isCaretAnchorChar({ char: text[i]!, decimalSeparator })) {

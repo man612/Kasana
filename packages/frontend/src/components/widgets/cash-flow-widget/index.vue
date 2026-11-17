@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import HintIcon from '@/components/common/hint-icon.vue';
 import { useFormatCurrency } from '@/composable/formatters';
 import { useAnimatedNumber } from '@/composable/use-animated-number';
 import { calculatePercentageDifference } from '@/js/helpers/math/calculate-percentage-difference';
@@ -21,7 +22,7 @@ import { ROUTES_NAMES } from '@/routes/constants';
 import IncludePlannedMenuItem from '@/components/widgets/components/include-planned-menu-item.vue';
 import { useIncludePlannedConfig, useWidgetConfigFlag } from '@/components/widgets/use-include-planned-config';
 import { format, isFuture, isSameMonth, parseISO } from 'date-fns';
-import { ArrowDownRightIcon, ArrowUpRightIcon, InfoIcon, WalletIcon } from '@lucide/vue';
+import { ArrowDownRightIcon, ArrowUpRightIcon, WalletIcon } from '@lucide/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -171,13 +172,7 @@ const savingsLineLabel = computed(() => {
       <span class="inline-flex items-center gap-1">
         {{ $t('dashboard.widgets.cashFlow.title') }}
 
-        <ResponsiveTooltip
-          :content="$t('dashboard.widgets.cashFlow.description')"
-          content-class-name="max-w-56"
-          :delay-duration="100"
-        >
-          <InfoIcon class="text-muted-foreground ml-1 size-4 cursor-help" />
-        </ResponsiveTooltip>
+        <HintIcon :content="$t('dashboard.widgets.cashFlow.description')" />
 
         <ExcludedCountBadge
           v-if="excludedCategoryIds.length"

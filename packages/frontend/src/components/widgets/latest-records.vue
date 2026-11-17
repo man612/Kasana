@@ -21,7 +21,7 @@ import { differenceInCalendarDays, format, isAfter, parseISO } from 'date-fns';
 import { SUBSCRIPTION_PERIOD_STATUSES } from '@bt/shared/types';
 import { storeToRefs } from 'pinia';
 import type { Ref } from 'vue';
-import { computed, inject, ref } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 
 import EmptyState from './components/empty-state.vue';
 import LatestRecordsSettingsPopover from './components/latest-records-settings-popover.vue';
@@ -34,6 +34,7 @@ import {
   readLatestRecordsTagsVariant,
 } from './latest-records-config';
 import { useIncludePlannedConfig, useWidgetConfigFlag } from './use-include-planned-config';
+import { getLatestRecordsState } from './latest-records-state';
 
 // Days ahead threshold for "upcoming" payments shown in the widget.
 const UPCOMING_DAYS_WINDOW = 3;
@@ -139,12 +140,24 @@ function formatDueDate({ dueDate }: { dueDate: string }): string {
 }
 
 const isFetching = computed(() => isTxFetching.value || (includeScheduled.value && isScheduledFetching.value));
-const isInitialLoading = computed(() => isTxFetching.value && (transactions.value?.length ?? 0) === 0);
-const isDataEmpty = computed(() => !isTxFetching.value && pastTransactions.value.length === 0);
+// Upcoming/overdue scheduled payments count as content even if there are no
+// recorded transactions. Wait until both requests settle before showing empty.
+const presentationState = computed(() =>
+  getLatestRecordsState({
+    isFetching: isFetching.value,
+    transactionCount: pastTransactions.value.length,
+    scheduledCount: scheduledRows.value.length,
+  }),
+);
+const isInitialLoading = computed(() => presentationState.value.isInitialLoading);
+const isDataEmpty = computed(() => presentationState.value.isDataEmpty);
+
+const reportDashboardEmpty = inject<((isEmpty: boolean) => void) | null>('dashboard-widget-empty-change', null);
+watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: true });
 </script>
 
 <template>
-  <WidgetWrapper class="max-md:max-h-96" :is-fetching="isFetching">
+  <WidgetWrapper class="max-h-[min(65dvh,26rem)]" :is-fetching="isFetching">
     <template #title>
       {{ $t('dashboard.widgets.latestTransactions.title') }}
     </template>
@@ -178,10 +191,14 @@ const isDataEmpty = computed(() => !isTxFetching.value && pastTransactions.value
     </template>
     <template v-else-if="isDataEmpty">
       <EmptyState>
-        <ListIcon class="size-32" />
+        <ListIcon class="size-12" />
       </EmptyState>
     </template>
-    <ScrollArea v-else class="-mx-2 min-h-0 flex-1" viewport-class="px-2 md:overscroll-contain-if-scrollable">
+    <ScrollArea
+      v-else
+      class="-mx-2 max-h-[min(55dvh,22rem)] min-h-0 flex-1"
+      viewport-class="px-2 md:overscroll-contain-if-scrollable"
+    >
       <!-- Scheduled payment rows: one row per item, overdue first, sorted by dueDate -->
       <template v-if="includeScheduled && scheduledRows.length > 0">
         <div

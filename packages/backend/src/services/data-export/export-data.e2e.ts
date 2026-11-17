@@ -46,7 +46,7 @@ describe('Data export (POST /user/data-export)', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.contentType).toBe('application/zip');
-      expect(response.filename).toMatch(/^moneymatter-export-\d{4}-\d{2}-\d{2}\.zip$/);
+      expect(response.filename).toMatch(/^kasana-export-\d{4}-\d{2}-\d{2}\.zip$/);
       expect(response.body.length).toBeGreaterThan(0);
 
       const archive = helpers.parseExportArchive({ buffer: response.body });
@@ -538,7 +538,7 @@ describe('Data export (POST /user/data-export)', () => {
       // in archive-writer or manifest-builder edge cases would surface here.
       const response = await helpers.exportData({ format: 'json' });
       expect(response.statusCode).toBe(200);
-      expect(response.filename).toMatch(/^moneymatter-export-\d{4}-\d{2}-\d{2}\.zip$/);
+      expect(response.filename).toMatch(/^kasana-export-\d{4}-\d{2}-\d{2}\.zip$/);
       expect(response.totalRows).toBeGreaterThanOrEqual(0);
       expect(Number.isFinite(response.totalRows)).toBe(true);
 

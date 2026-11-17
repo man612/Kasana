@@ -49,7 +49,7 @@
         "connectingButton": "Conectando...",
         "connectButton": "Conectar",
         "loadingAccounts": "Cargando cuentas...",
-        "selectAccountsHint": "Seleccione las cuentas que desea sincronizar con Kasana",
+        "selectAccountsHint": "Seleccione las cuentas que desea sincronizar con Lajur.",
         "syncingButton": "Sincronizando...",
         "syncButton": "Sincronizar {count} cuenta(s)",
         "syncSuccess": "{count} cuenta(s) sincronizada(s) correctamente",
@@ -82,7 +82,7 @@
           "authWarning": "Será redirigido al sitio web de {bank} para iniciar sesión y aprobar la conexión.",
           "authorizeButton": "Autorizar con {bank}",
           "loadingAccounts": "Cargando cuentas...",
-          "selectAccountsHint": "Seleccione las cuentas que desea sincronizar con Kasana"
+          "selectAccountsHint": "Seleccione las cuentas que desea sincronizar con Lajur."
         },
         "buttons": {
           "back": "Atrás",
@@ -132,7 +132,7 @@
         },
         "step2": {
           "title": "Vincular sus cuentas bancarias",
-          "intro": "Antes de usar la aplicación con Kasana, debe vincular primero sus cuentas bancarias a través del portal de Enable Banking. Busque el botón \"Vincular cuentas\" dentro del mosaico de la aplicación creada y siga todos los pasos requeridos.",
+          "intro": "Antes de usar la aplicación con Lajur., debe vincular primero sus cuentas bancarias a través del portal de Enable Banking. Busque el botón \"Vincular cuentas\" dentro del mosaico de la aplicación creada y siga todos los pasos requeridos.",
           "breakdown": "Aquí el detalle:",
           "steps": {
             "clickLink": "Haga clic en \"Vincular cuentas\" y espere a que el indicador de carga termine",

@@ -1,13 +1,15 @@
-# Optional overlay: build the backend and frontend images from source instead
-# of pulling the published ones. For contributors and forks.
+# Required Kasana build overlay: compile both finance applications from source.
+# Pair with the separate private overlay so the local historical image names and
+# volume namespaces remain stable.
 #
-# Usage (merge on top of the base file, add --build, from this folder):
-#   docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+# Usage (from the self-hosting directory):
+#   docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml up -d --build
 #
 # Runtime configuration is unchanged: the frontend is still configured via the
 # `environment:` block in the base file, and the backend via `env_file:`. The
 # build args below only feed build-time concerns (e.g. Sentry source-map upload)
-# and are all optional.
+# and are all optional. To upload Sentry source maps from an independent
+# build, pass a BuildKit secret explicitly. Never use a token as a build arg.
 
 services:
   backend:
@@ -22,7 +24,6 @@ services:
       context: ..
       dockerfile: self-hosting/frontend/Dockerfile
       args:
-        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
         SENTRY_ORG: ${SENTRY_ORG:-}
         SENTRY_PROJECT: ${SENTRY_PROJECT:-}
         VITE_SENTRY_RELEASE: ${VITE_SENTRY_RELEASE:-}

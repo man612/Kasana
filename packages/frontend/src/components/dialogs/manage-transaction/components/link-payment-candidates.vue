@@ -218,9 +218,9 @@ defineExpose({ selected });
   <!-- The row tracks need a definite height to scroll each column on its own: under a bare
        max-height an auto track grows to its content and the whole dialog scrolls instead. -->
   <div
-    class="grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-4 lg:grid-cols-[max-content_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]"
+    class="grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(265px,320px)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]"
   >
-    <ScrollArea class="relative min-h-0 px-1">
+    <ScrollArea class="relative min-h-0 pr-3 pl-1" viewport-class="pr-2">
       <RecordsFiltersDialog
         v-if="isMobileView"
         v-model:open="isFiltersDialogOpen"

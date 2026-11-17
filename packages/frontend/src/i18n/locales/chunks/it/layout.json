@@ -203,7 +203,7 @@
   },
   "dashboard": {
     "onboarding": {
-      "title": "Benvenuto in Kasana",
+      "title": "Benvenuto in Lajur.",
       "subtitle": "Per iniziare, configurare il primo conto",
       "createManualAccount": {
         "title": "Crea un conto manuale",
@@ -330,7 +330,7 @@
         },
         "ui": {
           "title": "Guida rapida",
-          "subtitle": "La Guida rapida mostra tutto ciò che Kasana può fare.",
+          "subtitle": "La Guida rapida mostra tutto ciò che Lajur. può fare.",
           "dismissButton": "Non mostrare più",
           "dismissConfirmTitle": "Nascondere la guida rapida?",
           "dismissConfirmDescription": "La guida rapida può essere riaperta in qualsiasi momento dalle impostazioni.",

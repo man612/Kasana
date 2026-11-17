@@ -1,4 +1,4 @@
-const LATEST_RELEASE_URL = 'https://api.github.com/repos/letehaha/moneymatter/releases/latest';
+const LATEST_RELEASE_URL = 'https://api.github.com/repos/man612/Kasana/releases/latest';
 
 export interface LatestRelease {
   version: string;

@@ -88,6 +88,8 @@ runs:
 
     - name: Build
       id: docker-build
+      env:
+        SENTRY_AUTH_TOKEN: ${{ inputs.sentry-auth-token }}
       uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
       with:
         context: ./
@@ -99,6 +101,11 @@ runs:
         build-args: |
           VITE_SENTRY_RELEASE=${{ inputs.sentry-release }}
           VITE_APP_COMMIT_HASH=${{ inputs.app-commit-hash }}
-          SENTRY_AUTH_TOKEN=${{ inputs.sentry-auth-token }}
           SENTRY_ORG=${{ inputs.sentry-org }}
           SENTRY_PROJECT=${{ inputs.sentry-project }}
+        # BuildKit mounts Sentry's token only while Vite runs. Never use a
+        # build-arg for a credential: it can be exposed in build provenance.
+        # An omitted token must not become an invalid 'sentry_auth_token=' secret.
+        # Docker BuildKit loads the temporary runner environment variable only
+        # when a real token was supplied by the trusted caller.
+        secret-envs: ${{ inputs.sentry-auth-token != '' && 'sentry_auth_token=SENTRY_AUTH_TOKEN' || '' }}

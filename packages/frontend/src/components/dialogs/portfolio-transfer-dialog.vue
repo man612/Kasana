@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import UiButton from '@/components/lib/ui/button/Button.vue';
 import PortfolioTransferForm from '@/components/forms/portfolio-transfer-form.vue';
 import type { TransferContext } from '@/composable/data-queries/portfolio-transfers';
 import type { AccountModel, PortfolioModel } from '@bt/shared/types';
 import { useVModel } from '@vueuse/core';
-import { computed } from 'vue';
+import { computed, ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -25,6 +26,8 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = useVModel(props, 'open', emit, { passive: true });
+const formId = useId();
+const formRef = ref<InstanceType<typeof PortfolioTransferForm> | null>(null);
 
 const handleSuccess = () => {
   isOpen.value = false;
@@ -58,11 +61,24 @@ const dialogDescription = computed(() =>
     <template #description>{{ dialogDescription }}</template>
 
     <PortfolioTransferForm
+      ref="formRef"
+      :form-id="formId"
+      :show-submit-button="false"
       :context="context"
       :initial-portfolio="portfolio"
       :initial-account="account"
       @success="handleSuccess"
       @cancel="handleCancel"
     />
+
+    <template #footer>
+      <UiButton type="submit" :form="formId" class="ml-auto min-w-30" :disabled="formRef?.isSubmitDisabled ?? true">
+        {{
+          formRef?.isSubmitting
+            ? $t('forms.portfolioTransfer.submitButtonLoading')
+            : $t('forms.portfolioTransfer.submitButton')
+        }}
+      </UiButton>
+    </template>
   </ResponsiveDialog>
 </template>

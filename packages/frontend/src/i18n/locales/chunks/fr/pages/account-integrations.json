@@ -49,7 +49,7 @@
         "connectingButton": "Connexion en cours…",
         "connectButton": "Connecter",
         "loadingAccounts": "Chargement des comptes…",
-        "selectAccountsHint": "Sélectionnez les comptes à synchroniser avec Kasana",
+        "selectAccountsHint": "Sélectionnez les comptes à synchroniser avec Lajur.",
         "syncingButton": "Synchronisation en cours…",
         "syncButton": "Synchroniser {count} compte(s)",
         "syncSuccess": "{count} compte(s) connecté(s). Les opérations se synchronisent en arrière-plan.",
@@ -82,7 +82,7 @@
           "authWarning": "Vous allez être redirigé vers le site de {bank} pour vous connecter et valider la connexion.",
           "authorizeButton": "Autoriser avec {bank}",
           "loadingAccounts": "Chargement des comptes…",
-          "selectAccountsHint": "Sélectionnez les comptes à synchroniser avec Kasana"
+          "selectAccountsHint": "Sélectionnez les comptes à synchroniser avec Lajur."
         },
         "buttons": {
           "back": "Retour",
@@ -132,7 +132,7 @@
         },
         "step2": {
           "title": "Liez vos comptes bancaires",
-          "intro": "Avant d'utiliser l'application avec Kasana, vous devez d'abord lier vos comptes bancaires via le portail Enable Banking. Cliquez sur le bouton « Lier les comptes » dans l'encart de l'application créée et suivez toutes les étapes requises.",
+          "intro": "Avant d'utiliser l'application avec Lajur., vous devez d'abord lier vos comptes bancaires via le portail Enable Banking. Cliquez sur le bouton « Lier les comptes » dans l'encart de l'application créée et suivez toutes les étapes requises.",
           "breakdown": "Voici le détail des étapes :",
           "steps": {
             "clickLink": "Cliquez sur « Lier les comptes » et attendez la fin du chargement",

@@ -24,6 +24,8 @@ export default defineConfig({
       ],
       editLink: { baseUrl: 'https://github.com/letehaha/moneymatter/edit/main/packages/docs/' },
       head: [
+        // Historical upstream documentation, not a published Lajur. documentation site.
+        { tag: 'meta', attrs: { name: 'robots', content: 'noindex, nofollow' } },
         { tag: 'meta', attrs: { property: 'og:image', content: OG_IMAGE } },
         { tag: 'meta', attrs: { name: 'twitter:image', content: OG_IMAGE } },
       ],

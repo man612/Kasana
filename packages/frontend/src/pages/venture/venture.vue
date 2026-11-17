@@ -38,7 +38,7 @@ const onDealCreated = () => {
             <span>{{ $t('venture.managePlatforms') }}</span>
           </UiButton>
         </router-link>
-        <UiButton @click="createDialogOpen = true">
+        <UiButton v-if="!isPending && deals.length > 0" @click="createDialogOpen = true">
           <PlusIcon class="size-4" />
           <span>{{ $t('venture.deals.createButton') }}</span>
         </UiButton>

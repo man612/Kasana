@@ -1,41 +1,26 @@
-# Build and start Kasana (independent MoneyMatter-based code) using Docker Compose.
-$ErrorActionPreference = 'Stop'
-$root = Split-Path -Parent $PSScriptRoot
-$selfHost = Join-Path $root 'self-hosting'
-
-$dockerCommand = (Get-Command docker -ErrorAction SilentlyContinue).Source
-if (-not $dockerCommand -and (Test-Path 'F:\Applications\DockerDesktop\resources\bin\docker.exe')) {
-  $dockerCommand = 'F:\Applications\DockerDesktop\resources\bin\docker.exe'
-}
-if (-not $dockerCommand) {
-  throw 'Docker CLI not found. Install or start Docker Desktop with the WSL 2 backend.'
-}
-# Custom Docker Desktop installation on F: is not added to this PowerShell session's PATH.
-# Compose needs docker-credential-desktop and the CLI plugins from the same directory.
-$dockerBin = Split-Path -Parent $dockerCommand
-if (($env:PATH -split ';') -notcontains $dockerBin) {
-  $env:PATH = $dockerBin + ';' + $env:PATH
-}
-if (-not (Test-Path -LiteralPath (Join-Path $selfHost '.env'))) {
-  throw 'Missing self-hosting/.env. Run .\scripts\setup-local-private.ps1 first.'
-}
-
-$files = @(
-  '-f', 'docker-compose.yml',
-  '-f', 'docker-compose.build.yml',
-  '-f', 'docker-compose.private.yml'
+#Requires -Version 7.2
+# Build and start Lajur. from source. -ValidateOnly performs read-only checks.
+[CmdletBinding()]
+param(
+  [ValidateSet('Auto', 'Podman', 'Docker')][string]$Engine = 'Auto',
+  [switch]$ValidateOnly
 )
-
+$ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'local-container-engine.ps1')
+$selfHost = Join-Path (Split-Path -Parent $PSScriptRoot) 'self-hosting'
+if (-not (Test-Path -LiteralPath (Join-Path $selfHost '.env'))) {
+  throw 'Missing self-hosting/.env. For a fresh installation, run .\scripts\setup-local-private.ps1.'
+}
+$runtime = Get-LocalContainerRuntime -Engine $Engine
 Push-Location $selfHost
 try {
-  & $dockerCommand compose @files config --quiet
-  if ($LASTEXITCODE -ne 0) { throw 'Compose configuration validation failed.' }
-  & $dockerCommand compose @files up -d --build
-  if ($LASTEXITCODE -ne 0) { throw 'Docker Compose build/start failed. Inspect docker compose logs.' }
-  & $dockerCommand compose @files ps
-  if ($LASTEXITCODE -ne 0) { throw 'Cannot read Docker Compose service status.' }
-  Write-Host 'Open http://localhost:8080 after the frontend and backend are healthy.'
+  Invoke-LocalCompose -Runtime $runtime -Arguments @('config', '--quiet')
+  if ($ValidateOnly) {
+    Write-Host 'PASS: runtime, Compose provider and configuration validated. No containers changed.'
+    return
+  }
+  Invoke-LocalCompose -Runtime $runtime -Arguments @('up', '-d', '--build')
+  Invoke-LocalCompose -Runtime $runtime -Arguments @('ps')
+  Write-Host "Run .\scripts\verify-local-private.ps1 -Engine $($runtime.Name) after startup completes."
 }
-finally {
-  Pop-Location
-}
+finally { Pop-Location }

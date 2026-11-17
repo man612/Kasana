@@ -67,12 +67,18 @@
             <div>
               6.
               {{ t('pages.integrations.instructionsDialog.step1.steps.fillForm') }}
+              <Callout variant="warning" class="my-2">
+                {{ t('pages.integrations.instructionsDialog.step1.steps.ownLegalDetails') }}
+              </Callout>
               <div class="mt-2 flex flex-col gap-1 pl-4">
                 <div class="flex flex-wrap gap-1">
                   <span class="font-semibold">{{
                     t('pages.integrations.instructionsDialog.step1.steps.appName')
                   }}</span>
-                  <ClickToCopy class="w-auto max-w-68.75 min-w-auto sm:max-w-125" value="Own testing" />
+                  <ClickToCopy
+                    class="w-auto max-w-68.75 min-w-auto sm:max-w-125"
+                    :value="APP_BRAND.name + ' self-hosted instance'"
+                  />
                 </div>
                 <div class="flex flex-wrap gap-1">
                   <span class="font-semibold">{{
@@ -106,31 +112,33 @@
                   <span class="font-semibold">{{
                     t('pages.integrations.instructionsDialog.step1.steps.appDescription')
                   }}</span>
-                  <ClickToCopy class="w-auto max-w-68.75 min-w-auto sm:max-w-125" value="testing" />
+                  <span class="text-muted-foreground text-xs">{{
+                    t('pages.integrations.instructionsDialog.step1.steps.providedByOperator')
+                  }}</span>
                 </div>
                 <div class="flex flex-wrap gap-1">
                   <span class="font-semibold">{{
                     t('pages.integrations.instructionsDialog.step1.steps.emailProtection')
                   }}</span>
-                  <ClickToCopy class="w-auto max-w-68.75 min-w-auto sm:max-w-125" value="test@gmail.com" />
+                  <span class="text-muted-foreground text-xs">{{
+                    t('pages.integrations.instructionsDialog.step1.steps.providedByOperator')
+                  }}</span>
                 </div>
                 <div class="flex flex-wrap gap-1">
                   <span class="font-semibold">{{
                     t('pages.integrations.instructionsDialog.step1.steps.privacyUrl')
                   }}</span>
-                  <ClickToCopy
-                    class="w-auto max-w-68.75 min-w-auto sm:max-w-125"
-                    value="https://moneymatter.app/privacy-policy"
-                  />
+                  <span class="text-muted-foreground text-xs">{{
+                    t('pages.integrations.instructionsDialog.step1.steps.providedByOperator')
+                  }}</span>
                 </div>
                 <div class="flex flex-wrap gap-1">
                   <span class="font-semibold">{{
                     t('pages.integrations.instructionsDialog.step1.steps.termsUrl')
                   }}</span>
-                  <ClickToCopy
-                    class="w-auto max-w-68.75 min-w-auto sm:max-w-125"
-                    value="https://moneymatter.app/terms-of-use"
-                  />
+                  <span class="text-muted-foreground text-xs">{{
+                    t('pages.integrations.instructionsDialog.step1.steps.providedByOperator')
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -278,6 +286,7 @@
 </template>
 
 <script lang="ts" setup>
+import { APP_BRAND } from '@/common/brand';
 import { type BankProvider, listProviders } from '@/api/bank-data-providers';
 import { config } from '@/common/config';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';

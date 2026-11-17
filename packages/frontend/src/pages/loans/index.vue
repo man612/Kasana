@@ -3,7 +3,7 @@
     <div class="@container/loans-page mb-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
       <h1 class="text-3xl font-semibold tracking-tight">{{ $t('loans.title') }}</h1>
 
-      <CreateLoanDialog>
+      <CreateLoanDialog v-if="loansQuery.isSuccess.value && loans.length > 0">
         <UiButton>
           <PlusIcon class="size-4" />
           {{ $t('loans.addButton.label') }}

@@ -1,7 +1,7 @@
 {
   "oauth": {
     "authorize": {
-      "title": "{name} richiede l'accesso ai dati Kasana",
+      "title": "{name} richiede l'accesso ai dati Lajur.",
       "redirect_notice": "Dopo l'approvazione si verrà reindirizzati a {host}. Continuare solo se si riconosce questo indirizzo.",
       "description": "Questa app sta richiedendo i seguenti permessi:",
       "approve": "Approva",
@@ -56,7 +56,7 @@
       },
       "unknown": {
         "label": "Permessi aggiuntivi",
-        "desc": "L'app ha richiesto un'autorizzazione sconosciuta a Kasana."
+        "desc": "L'app ha richiesto un'autorizzazione sconosciuta a Lajur.."
       }
     }
   }

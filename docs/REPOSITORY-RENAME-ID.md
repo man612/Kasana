@@ -1,30 +1,31 @@
 # Repository Rename and Public Identity Audit
 
-> **Historical filename:** This document retains its `-ID.md` path so existing GitHub links do not break. Its content is now written in English, in keeping with Kasana's public documentation policy.
+> **Historical filename:** This document retains its `-ID.md` path so existing GitHub links do not break. Its content is now written in English, in keeping with the Lajur. project’s public documentation policy.
 
-As of **November 11, 2026**, the repository is [`man612/Kasana`](https://github.com/man612/Kasana), **Public**, with `main` as its default branch. **Kasana** is a working product name and can be renamed again later.
+As verified on **November 14, 2026**, the repository is [`man612/Kasana`](https://github.com/man612/Kasana), **Public**, with `main` as its default branch. The current display name is **Lajur.**, including the final period. **Kasana** remains the historical repository slug; existing internal compatibility identifiers are retained for link and installation stability.
 
 ## Verified changes after the rename
 
 - The clone URL, README, CI badge, issue templates, security policy, and contributor guidance refer to `man612/Kasana`.
-- Docker instructions build **Kasana source** using the base, build, and independent-instance Compose files. Running the base Compose file alone still pulls upstream MoneyMatter images.
-- Inherited upstream CLA enforcement and deployment/backup paths are not enabled for Kasana.
-- The original `server.json` registry was removed because it advertised an unrelated live MoneyMatter MCP service. A Kasana registry descriptor must only be published when a real Kasana-owned endpoint is available.
+- Docker instructions build **source from this repository** using the base, build, and independent-instance Compose files. Running the base Compose file alone now **fails safely** because its frontend/backend images are intentionally unavailable and use `pull_policy: never`. Always include both the build and private overlays; the inherited rates helper image remains a disclosed third-party dependency.
+- Inherited upstream CLA enforcement and deployment/backup paths are not enabled for Lajur.
+- The original `server.json` registry was removed because it advertised an unrelated live MoneyMatter MCP service. A Lajur. registry descriptor must only be published when a real operator-controlled endpoint is available.
+- Both production images now declare the Lajur. project’s own `org.opencontainers.image.source` label. The inherited marketing site is excluded from the frontend production image. An unconfigured MCP endpoint is not advertised.
 - [LICENSE](../LICENSE), [LICENSING.md](../LICENSING.md), original copyrights, and historical [MoneyMatter](https://github.com/letehaha/moneymatter) attribution must be retained.
 
-## GitHub About: recommended public metadata
+## GitHub About: verified public metadata
 
-The connected repository tools can edit code and pull requests but cannot update the **About description, homepage, topics, or social preview**. These fields require a repository administrator to use GitHub's web settings.
+On **November 11, 2026**, the repository administrator applied and verified the About description and topics. The website remains empty until an independent Lajur. site is deployed. A social-preview asset has not been verified.
 
 **Description:**
 
-> Open-source, self-hosted personal finance with an Indonesia-first experience. Based on MoneyMatter (AGPL-3.0).
+> Open-source, self-hosted personal finance with an Indonesia-first experience.
 
-**Website:** leave empty until Kasana has its own working, verified official website. Do not use `moneymatter.app`.
+**Website:** leave empty until Lajur. has its own working, verified official website. Do not use `moneymatter.app`.
 
 **Topics:** `personal-finance`, `budgeting`, `expense-tracker`, `self-hosted`, `indonesia`, `rupiah`, `vue`, `typescript`, `agpl-3`.
 
-**Social preview:** optionally upload a branded 1280×640 PNG/JPEG under 1 MB in Settings → Social preview. Do not present inherited MoneyMatter screenshots as verified Kasana screenshots.
+**Social preview:** optionally upload a branded 1280×640 PNG/JPEG under 1 MB in Settings → Social preview. Do not present inherited MoneyMatter screenshots as verified Lajur. screenshots.
 
 ## Repository language policy
 
@@ -48,10 +49,10 @@ Check Git remotes on Windows, VPS, Dokploy/Portainer integrations, Cloudflare, w
 
 ## Outstanding release and security requirements
 
-- [PR #10](https://github.com/man612/Kasana/pull/10) remains a separate UI integration under QA. Repository rename work must not be used as a reason to merge it early.
-- GitHub Actions began acquiring runners and executing tests after public visibility was enabled. Some real frontend/backend tests still failed; see [Issue #11](https://github.com/man612/Kasana/issues/11).
-- Legacy upstream backup and deployment jobs are blocked for Kasana. No Kasana production auto-deploy has been verified.
-- The inherited `packages/docs` and `packages/landing` content is not an official Kasana site.
+- [PR #10](https://github.com/man612/Kasana/pull/10) remains the umbrella integration against `main`, two commits behind the feature baseline at the 15 November recheck. Follow-ups **#24 and #26–#31** target `feat/lajur-finance-ux-dashboard-accounts-loans-20261114`; they are not automatically included in PR #10.
+- Individual CI for all seven follow-up heads passed at the recheck. Their combination is being verified separately on `integration/lajur-release-candidate-20261115`; individual green runs do not certify this combined candidate. See the [release QA checklist](QA-KASANA-RELEASE.md).
+- Legacy upstream backup and deployment jobs are blocked for Lajur. No Lajur. production auto-deploy has been verified.
+- The inherited `packages/docs` and `packages/landing` content is not an official Lajur. site.
 - Public Git history and old Actions logs/artifacts still need comprehensive secret auditing. Revoke and rotate exposed credentials at the provider.
 
 For any later product rename, re-check the README, GitHub About, remote URLs, badges, links, workflows, source metadata, webhooks, and deployment configuration. Database migrations must be evaluated separately from branding changes.

@@ -25,4 +25,4 @@ export const snapshotShareUser = (user: Users | null | undefined, fallbackId: nu
 });
 
 /** Fallback display name used in user-facing email copy when the owner's row is unreadable. */
-export const FALLBACK_OWNER_DISPLAY_NAME = 'A MoneyMatter user';
+export const FALLBACK_OWNER_DISPLAY_NAME = 'A Kasana user';

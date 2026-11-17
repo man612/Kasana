@@ -1,16 +1,19 @@
 <script lang="ts" setup>
 import { CHART_TOOLTIP_SIZING_CLASS, CHART_TOOLTIP_SURFACE_CLASS } from '@/components/common/charts/chart-tooltip';
+import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import * as Popover from '@/components/lib/ui/popover';
 import * as Tooltip from '@/components/lib/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { createReusableTemplate, useMediaQuery } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 defineOptions({ inheritAttrs: false });
 
 const [UseTemplate, SlotContent] = createReusableTemplate();
 // Detect touch-primary devices (coarse pointer = finger/stylus)
 const isTouch = useMediaQuery('(pointer: coarse)');
+const { locale } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -20,8 +23,10 @@ const props = withDefaults(
     disabled?: boolean;
     /** `chart` swaps the popover surface for the shared chart-tooltip one, for data readouts. */
     variant?: 'default' | 'chart';
+    /** Explanatory question-mark triggers open on click; decorative hover tooltips remain hover-only. */
+    interaction?: 'hover' | 'click';
   }>(),
-  { delayDuration: 300, variant: 'default' },
+  { delayDuration: 850, variant: 'default' },
 );
 
 const contentClass = computed(() =>
@@ -45,8 +50,24 @@ watch(
     </slot>
   </UseTemplate>
 
+  <!-- Explicit help action: a click dialog, shared with HintIcon. -->
+  <template v-if="interaction === 'click'">
+    <ResponsiveDialog v-model:open="open" :dismissible="!disabled">
+      <template #trigger>
+        <slot />
+      </template>
+      <template #title>{{ locale.startsWith('id') ? 'Penjelasan' : 'More information' }}</template>
+      <template #description>{{
+        locale.startsWith('id') ? 'Informasi tambahan tentang fitur ini.' : 'Additional information about this feature.'
+      }}</template>
+      <div class="border-border bg-muted/30 text-foreground rounded-xl border p-4 text-sm leading-relaxed">
+        <SlotContent />
+      </div>
+    </ResponsiveDialog>
+  </template>
+
   <!-- Touch devices: Popover (tap to open) -->
-  <template v-if="isTouch">
+  <template v-else-if="isTouch">
     <Popover.Popover :open="open" @update:open="(value) => (open = value && !disabled)">
       <Popover.PopoverTrigger as-child :class="$attrs.class">
         <slot />

@@ -6,16 +6,16 @@
     "actionsMenu": "Tindakan akun",
     "sections": {
       "archived": "Diarsipkan",
-      "manual": "Akun manual",
+      "manual": "Dicatat sendiri",
       "sharedWithMe": "Dibagikan dengan saya",
       "vehicles": "Kendaraan",
       "bankConnections": "Koneksi Bank"
     },
     "empty": {
       "title": "Belum Ada Akun",
-      "description": "Hubungkan bank Anda atau buat akun manual untuk mulai melacak keuangan, saldo, dan transaksi Anda.",
+      "description": "Buat akun yang dicatat sendiri untuk mulai mengelola saldo dan transaksi. Akun terhubung dapat digunakan apabila integrasinya tersedia.",
       "connectBank": "Hubungkan Akun Bank",
-      "createManual": "Buat Akun Manual"
+      "createManual": "Buat akun"
     },
     "overview": {
       "totalBalance": "Total saldo",

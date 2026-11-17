@@ -40,6 +40,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
         :class="
           cn(
             'border-border bg-dialog relative z-(--z-dialog) my-8 flex w-full max-w-lg flex-col gap-4 border p-6 shadow-lg duration-200 sm:rounded-lg md:w-full',
+            'data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+            'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95',
             props.class,
           )
         "
@@ -56,7 +58,9 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
       >
         <slot />
 
-        <DialogClose class="hover:bg-secondary absolute top-3 right-3 rounded-md p-0.5 transition-colors">
+        <DialogClose
+          class="hover:bg-secondary focus-visible:ring-ring absolute top-3 right-3 z-20 flex size-8 items-center justify-center rounded-md transition-colors focus-visible:ring-2"
+        >
           <X class="size-4" />
           <span class="sr-only">{{ t('common.ui.close') }}</span>
         </DialogClose>

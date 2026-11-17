@@ -1,16 +1,33 @@
 <script setup lang="ts">
-import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
-import { InfoIcon } from '@lucide/vue';
+import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import { CircleHelpIcon } from '@lucide/vue';
+import { computed, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-defineProps<{
-  content: string;
-}>();
-
-const HINT_CONTENT_CLASS = 'w-fit max-w-[min(450px,calc(100vw-2rem))] text-pretty';
+defineProps<{ content: string }>();
+const { locale } = useI18n();
+const heading = computed(() => (locale.value.startsWith('id') ? 'Penjelasan' : 'More information'));
+const isOpen = ref(false);
 </script>
 
 <template>
-  <ResponsiveTooltip :delay-duration="100" :content="content" :content-class-name="HINT_CONTENT_CLASS">
-    <InfoIcon class="text-muted-foreground size-5 cursor-help" @click.prevent.stop />
-  </ResponsiveTooltip>
+  <ResponsiveDialog v-model:open="isOpen">
+    <template #trigger>
+      <button
+        type="button"
+        class="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring inline-flex size-7 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none"
+        :aria-label="heading"
+        :title="heading"
+      >
+        <CircleHelpIcon class="size-4" aria-hidden="true" />
+      </button>
+    </template>
+    <template #title>{{ heading }}</template>
+    <template #description>{{
+      locale.startsWith('id') ? 'Bantuan mengenai fungsi dan penggunaannya.' : 'Details about this feature.'
+    }}</template>
+    <div class="border-border bg-muted/30 text-foreground rounded-xl border p-4 text-sm leading-relaxed">
+      {{ content }}
+    </div>
+  </ResponsiveDialog>
 </template>

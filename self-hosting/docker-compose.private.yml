@@ -20,7 +20,9 @@ services:
     image: moneymatter-private-frontend:local
     environment:
       # Frontend AI/MCP descriptor URLs must match this deployment, not upstream.
-      MCP_BASE_URL: ${MCP_BASE_URL:-${BETTER_AUTH_URL:-http://localhost:8080}}
+      # No MCP endpoint is advertised unless the operator explicitly sets it.
+      # An auth origin alone is not proof that OAuth/MCP is configured.
+      MCP_BASE_URL: ${MCP_BASE_URL:-}
 
 networks:
   budget-tracker:

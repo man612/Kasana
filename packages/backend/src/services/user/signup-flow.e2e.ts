@@ -668,19 +668,36 @@ describe('Signup cap (SYSTEM_MAX_SIGNUPS_ALLOWED)', () => {
     expect(status).toEqual({ signupsOpen: false });
   });
 
-  it('self-host counts live users, so raising the cap reopens signups', async () => {
+  it('self-host requires an explicit operator policy change before raising the cap', async () => {
     await withSelfHost(async () => {
       // One `ba_user` exists: the seeded test account.
       process.env.SYSTEM_MAX_SIGNUPS_ALLOWED = '1';
       const closed = await makeRequest({ method: 'get', url: '/auth/signups-open', raw: true });
       expect(closed).toEqual({ signupsOpen: false });
 
+      // Changing only a worker's environment must NOT widen PostgreSQL's cap:
+      // another worker can still be running with the old configuration.
       process.env.SYSTEM_MAX_SIGNUPS_ALLOWED = '2';
+      const stillClosed = await makeRequest({ method: 'get', url: '/auth/signups-open', raw: true });
+      expect(stillClosed).toEqual({ signupsOpen: false });
+      expect((await trySignup()).statusCode).toBe(403);
+
+      // Simulate the operator's explicit, compare-and-set database approval
+      // after all backend workers have agreed on the new environment limit.
+      const [updated] = await connection.sequelize.query(
+        `UPDATE "SignupCapacity" SET "maxSignups" = 2
+         WHERE id = 1 AND "scope" = 'self-host' AND "maxSignups" = 1
+         RETURNING "maxSignups"`,
+      );
+      expect(updated).toHaveLength(1);
+
       const open = await makeRequest({ method: 'get', url: '/auth/signups-open', raw: true });
       expect(open).toEqual({ signupsOpen: true });
 
       const res = await trySignup();
       expect(res.statusCode).toBe(200);
+      const filled = await makeRequest({ method: 'get', url: '/auth/signups-open', raw: true });
+      expect(filled).toEqual({ signupsOpen: false });
     });
   });
 

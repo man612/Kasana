@@ -5,6 +5,7 @@ import {
   AI_FEATURE,
   AI_PROVIDER,
   CATEGORY_ORDER_ROOT_KEY,
+  ACCENT_THEME_PREFERENCES,
   CURRENCY_DISPLAY_PREFERENCES,
   type CategoryMappingPreset,
   type Equals,
@@ -398,6 +399,7 @@ export const ZodSettingsSchema = z.object({
   // Stored only: the frontend sorts by it, falling back to alphabetical for unlisted categories.
   categoryOrder: z.record(ZodCategoryOrderKeySchema, z.array(z.uuid())).optional(),
   currencyDisplay: z.enum(CURRENCY_DISPLAY_PREFERENCES).optional(),
+  accentTheme: z.enum(ACCENT_THEME_PREFERENCES).optional(),
   fire: ZodFireSettingsSchema.optional(),
   // Server-owned, oldest first: written by the PATCH that changes `fire`.
   fireHistory: z.array(ZodFireSettingsSnapshotSchema).max(FIRE_HISTORY_MAX_ENTRIES).optional(),
@@ -506,6 +508,7 @@ export const ZodSettingsPatchSchema = z.object({
   incomeCategoryIds: z.array(z.uuid()).optional(),
   categoryOrder: z.record(ZodCategoryOrderKeySchema, z.array(z.uuid()).optional()).optional(),
   currencyDisplay: z.enum(CURRENCY_DISPLAY_PREFERENCES).optional(),
+  accentTheme: z.enum(ACCENT_THEME_PREFERENCES).optional(),
   fire: ZodFireSettingsSchema.optional(),
   payday: ZodPaydaySchema.optional(),
   unrealizedLossAlerts: ZodUnrealizedLossAlertsSchema.optional(),

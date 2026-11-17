@@ -19,6 +19,10 @@ import { type RateLookup, resolveUsdRates } from '@services/exchange-rates/resol
  * user would store N identical copies and miss N times before populating. The
  * per-user custom-rate override (liveRateUpdate=false) deliberately bypasses
  * this cache and is resolved from the DB on every call instead.
+ *
+ * Version v2 invalidates previously persisted five-decimal-truncated values
+ * after the switch to 12 significant digits. Old Redis entries expire by TTL
+ * without deleting any shared Redis data or forcing logout.
  */
 type CachedCrossRate = { rate: number; dateISO: string };
 const crossRateCache = new CacheClient<CachedCrossRate>({
@@ -34,7 +38,7 @@ const crossRateCache = new CacheClient<CachedCrossRate>({
  */
 function buildCacheKey({ date, baseCode, quoteCode }: { date: Date; baseCode: string; quoteCode: string }): string {
   const dateISO = date.toISOString().slice(0, 10);
-  return `cross_rate:${dateISO}:${baseCode.toUpperCase()}:${quoteCode.toUpperCase()}`;
+  return `cross_rate:v2:${dateISO}:${baseCode.toUpperCase()}:${quoteCode.toUpperCase()}`;
 }
 
 export async function getExchangeRate({

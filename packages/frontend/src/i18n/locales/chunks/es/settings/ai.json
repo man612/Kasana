@@ -43,7 +43,7 @@
         "placeholder": "Escoge un modelo",
         "automaticOption": "Automático",
         "automaticOptionWithTarget": "Automático · {target}",
-        "serverOption": "Kasana IA · incluido",
+        "serverOption": "Lajur. IA · incluido",
         "connectionOption": "{name} · {model}",
         "connectionOptionNeedsAttention": "{name} · {model} (requiere atención)",
         "badges": {
@@ -229,7 +229,7 @@
           "modelListNoMatch": "No hay modelos listados. Todavía puedes usar el nombre que has escrito.",
           "testButton": "Probar conexión",
           "saveButton": "Guardar cambios",
-          "localNetworkOnly": "Kasana no puede acceder a un servidor en tu propio ordenador, como {hostname} o {ip}. Expóngalo a través de un túnel como el ngrok o Cloudflare Tunnel, luego pegue la URL del túnel aquí.",
+          "localNetworkOnly": "Lajur. no puede acceder a un servidor en tu propio ordenador, como {hostname} o {ip}. Expóngalo a través de un túnel como el ngrok o Cloudflare Tunnel, luego pegue la URL del túnel aquí.",
           "dockerHost": "Si ejecuta esta aplicación en Docker en la misma máquina que el servidor del modelo, use {dockerHost} en lugar de {ip}."
         },
         "presets": {

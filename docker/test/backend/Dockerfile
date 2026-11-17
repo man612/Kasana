@@ -6,6 +6,8 @@ WORKDIR /app
 # npm dependencies as long as these files don't change.
 COPY package*.json ./
 COPY post-install.sh ./
+COPY scripts/check-provider-runtime.cjs ./scripts/
+COPY patches/query-string+7.1.3.patch ./patches/
 COPY packages/backend/package*.json ./packages/backend/
 COPY packages/shared/package*.json ./packages/shared/
 
@@ -18,7 +20,7 @@ COPY packages/shared/tsconfig*.json ./packages/shared/
 COPY post-install.sh ./
 COPY docker ./docker
 RUN chmod +x ./post-install.sh
-RUN npm ci --include=dev
+RUN npm ci --include=dev && node scripts/check-provider-runtime.cjs
 
 # Copy source codes
 COPY packages/backend ./packages/backend

@@ -4,7 +4,7 @@
     :description="$t('settings.general.quickStart.description')"
   >
     <Switch
-      :model-value="!isDismissed"
+      :model-value="!isDismissed && !isTemporarilyHidden"
       :disabled="!isInitialized"
       @update:model-value="(value) => (value ? onboardingStore.reopen() : onboardingStore.dismissPermanently())"
     />
@@ -19,5 +19,5 @@ import { storeToRefs } from 'pinia';
 import SettingRow from './setting-row.vue';
 
 const onboardingStore = useOnboardingStore();
-const { isDismissed, isInitialized } = storeToRefs(onboardingStore);
+const { isDismissed, isTemporarilyHidden, isInitialized } = storeToRefs(onboardingStore);
 </script>

@@ -8,6 +8,8 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 COPY post-install.sh ./
+COPY scripts/check-provider-runtime.cjs ./scripts/
+COPY patches/query-string+7.1.3.patch ./patches/
 COPY packages/backend/package*.json ./packages/backend/
 COPY packages/shared/package*.json ./packages/shared/
 
@@ -23,7 +25,7 @@ RUN if [ "$OFFLINE_MODE" = "false" ]; then \
       npm ci; \
     else \
       echo "Offline mode: skipping npm ci, using cached dependencies"; \
-    fi
+    fi && node scripts/check-provider-runtime.cjs
 
 # Copy source code
 COPY packages/backend ./packages/backend

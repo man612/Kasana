@@ -3,7 +3,7 @@ import HintIcon from '@/components/common/hint-icon.vue';
 import PickTransactionDialog from '@/components/dialogs/pick-transaction-dialog.vue';
 import AccountSelectField from '@/components/fields/account-select-field.vue';
 import DateField from '@/components/fields/date-field.vue';
-import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
 import * as AlertDialog from '@/components/lib/ui/alert-dialog';
@@ -111,6 +111,13 @@ const directForm = reactive<{
   isAdjustment: false,
 });
 
+const directAmountValue = computed({
+  get: () => (directForm.amount === '' ? null : Number(directForm.amount)),
+  set: (value: number | null) => {
+    directForm.amount = value == null ? '' : String(value);
+  },
+});
+
 // Transfer mode form
 const transferForm = reactive<{
   selectedAccount: AccountModel | null;
@@ -124,6 +131,13 @@ const transferForm = reactive<{
   selectedCurrency: null,
   date: new Date(),
   description: '',
+});
+
+const transferAmountValue = computed({
+  get: () => (transferForm.amount === '' ? null : Number(transferForm.amount)),
+  set: (value: number | null) => {
+    transferForm.amount = value == null ? '' : String(value);
+  },
 });
 
 // Link existing transaction state
@@ -434,18 +448,6 @@ const accountLabel = computed(() =>
     <form class="grid gap-6" @submit.prevent="onSubmit">
       <!-- ─── Direct mode ─── -->
       <template v-if="methodType === 'direct'">
-        <InputField
-          v-model="directForm.amount"
-          :label="$t('forms.directCashTransaction.amountLabel')"
-          type="number"
-          step="0.01"
-          min="0.01"
-          :placeholder="$t('forms.directCashTransaction.amountPlaceholder')"
-          :disabled="isAnyMutationPending || disabled"
-          :error="getDirectFieldError('directForm.amount')"
-          @blur="touchDirectField('directForm.amount')"
-        />
-
         <SelectField
           v-model="directForm.selectedCurrency"
           :label="$t('forms.directCashTransaction.currencyLabel')"
@@ -455,6 +457,16 @@ const accountLabel = computed(() =>
           :placeholder="$t('forms.directCashTransaction.currencyPlaceholder')"
           :disabled="isAnyMutationPending || disabled"
           :error-message="getDirectFieldError('directForm.selectedCurrency')"
+        />
+
+        <FormattedAmountField
+          v-model="directAmountValue"
+          :currency-code="directForm.selectedCurrency?.currencyCode"
+          :label="$t('forms.directCashTransaction.amountLabel')"
+          :placeholder="$t('forms.directCashTransaction.amountPlaceholder')"
+          :disabled="isAnyMutationPending || disabled || !directForm.selectedCurrency"
+          :error-message="getDirectFieldError('directForm.amount')"
+          @blur="touchDirectField('directForm.amount')"
         />
 
         <DateField
@@ -530,18 +542,6 @@ const accountLabel = computed(() =>
             :error-message="getTransferFieldError('transferForm.selectedAccount')"
           />
 
-          <InputField
-            v-model="transferForm.amount"
-            :label="$t('forms.directCashTransaction.amountLabel')"
-            type="number"
-            step="0.01"
-            min="0.01"
-            :placeholder="$t('forms.directCashTransaction.amountPlaceholder')"
-            :disabled="isAnyMutationPending || disabled"
-            :error="getTransferFieldError('transferForm.amount')"
-            @blur="touchTransferField('transferForm.amount')"
-          />
-
           <SelectField
             v-if="showTransferCurrency"
             v-model="transferForm.selectedCurrency"
@@ -552,6 +552,21 @@ const accountLabel = computed(() =>
             :placeholder="$t('forms.directCashTransaction.currencyPlaceholder')"
             :disabled="isAnyMutationPending || disabled"
             :error-message="getTransferFieldError('transferForm.selectedCurrency')"
+          />
+
+          <FormattedAmountField
+            v-model="transferAmountValue"
+            :currency-code="transferForm.selectedCurrency?.currencyCode ?? transferForm.selectedAccount?.currencyCode"
+            :label="$t('forms.directCashTransaction.amountLabel')"
+            :placeholder="$t('forms.directCashTransaction.amountPlaceholder')"
+            :disabled="
+              isAnyMutationPending ||
+              disabled ||
+              !transferForm.selectedAccount ||
+              (showTransferCurrency && !transferForm.selectedCurrency)
+            "
+            :error-message="getTransferFieldError('transferForm.amount')"
+            @blur="touchTransferField('transferForm.amount')"
           />
 
           <DateField

@@ -15,12 +15,14 @@ defineProps<{ disabled?: boolean }>();
       :income-label="$t('dialogs.attachInvoice.direction.gotPaid')"
       :disabled="disabled"
     />
-    <p class="text-muted-foreground text-xs">
-      {{
-        model === TRANSACTION_TYPES.income
-          ? $t('dialogs.attachInvoice.direction.gotPaidHint')
-          : $t('dialogs.attachInvoice.direction.paidHint')
-      }}
-    </p>
+    <Transition name="lajur-info-reveal" mode="out-in">
+      <p :key="model" class="text-muted-foreground text-xs">
+        {{
+          model === TRANSACTION_TYPES.income
+            ? $t('dialogs.attachInvoice.direction.gotPaidHint')
+            : $t('dialogs.attachInvoice.direction.paidHint')
+        }}
+      </p>
+    </Transition>
   </div>
 </template>

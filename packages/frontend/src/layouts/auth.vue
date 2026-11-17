@@ -5,7 +5,11 @@
       <LanguageSelector variant="outline" show-label />
     </div>
 
-    <router-view />
+    <router-view v-slot="{ Component, route }">
+      <Transition name="kasana-section" mode="out-in">
+        <component :is="Component" :key="route.path" />
+      </Transition>
+    </router-view>
   </div>
 </template>
 

@@ -90,7 +90,8 @@
           "deleteSuccess": "Pengingat dihapus",
           "deleteFailed": "Gagal menghapus pengingat"
         }
-      }
+      },
+      "defaultTagHint": "Keinginan, Kebutuhan, dan Prioritas adalah tag dasar Lajur. yang selalu tersedia. Tag tambahan bisa dihapus melalui Pengaturan → Tag."
     }
   }
 }

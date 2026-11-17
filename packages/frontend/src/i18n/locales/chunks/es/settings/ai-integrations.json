@@ -3,7 +3,7 @@
     "aiIntegrations": {
       "mcpServer": {
         "title": "Servidor MCP",
-        "description": "Utiliza esta URL para conectar asistentes de IA a tu cuenta de Kasana. Tus datos se comparten en modo de solo lectura.",
+        "description": "Utiliza esta URL para conectar asistentes de IA a tu cuenta de Lajur.. Tus datos se comparten en modo de solo lectura.",
         "copyTooltip": "Copiar URL",
         "copiedNotification": "URL del servidor MCP copiada al portapapeles"
       },
@@ -18,7 +18,7 @@
             "enterName": "En \"Name\" introduce {value}",
             "pasteUrl": "En \"Remote MCP server URL\" pega {value}",
             "finish": "Deja la sección \"Advanced settings\" vacía y haz clic en {action}",
-            "authorize": "Serás redirigido a Kasana para autorizar el acceso"
+            "authorize": "Serás redirigido a Lajur. para autorizar el acceso"
           }
         },
         "chatgpt": {
@@ -26,7 +26,7 @@
             "addConnector": "Haz clic en {action}",
             "pasteUrl": "En \"URL\" pega {value}",
             "clickAdd": "Haz clic en {action}",
-            "authorize": "Serás redirigido a Kasana para autorizar el acceso"
+            "authorize": "Serás redirigido a Lajur. para autorizar el acceso"
           }
         }
       },

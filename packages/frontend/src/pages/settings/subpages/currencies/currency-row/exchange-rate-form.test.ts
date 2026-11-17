@@ -20,7 +20,7 @@ vi.mock('@/components/notification-center', () => ({
 
 const i18n = createI18n({ legacy: false, locale: 'en', missingWarn: false, fallbackWarn: false, messages: { en: {} } });
 
-const mountForm = () => {
+const mountForm = (overrides: Partial<CurrencyWithExchangeRate> = {}) => {
   const wrapper = mount(ExchangeRateForm, {
     props: {
       currency: {
@@ -29,6 +29,7 @@ const mountForm = () => {
         rate: 0.9,
         quoteRate: 1.111111,
         custom: true,
+        ...overrides,
       } as unknown as CurrencyWithExchangeRate,
       isFormDisabled: false,
     },
@@ -47,6 +48,35 @@ describe('ExchangeRateForm', () => {
 
     expect((quoteInput.element as HTMLInputElement).value).toBe('2');
     expect(wrapper.find('button').attributes('disabled')).toBeUndefined();
+  });
+
+  it('keeps a reciprocal IDR->USD rate precise when users edit the inverse 16,000 USD->IDR value', async () => {
+    // Synthetic rate, not an external/live currency quote.
+    const { baseInput, quoteInput } = mountForm({
+      currency: { code: 'IDR' } as CurrencyWithExchangeRate['currency'],
+      quoteCode: 'USD',
+      rate: 1 / 15_000,
+      quoteRate: 15_000,
+    });
+
+    await quoteInput.trigger('focus');
+    await quoteInput.setValue('16000');
+    expect(Number((baseInput.element as HTMLInputElement).value)).toBeCloseTo(1 / 16_000, 12);
+    expect((baseInput.element as HTMLInputElement).value).toBe('0.0000625');
+  });
+
+  it('does not turn tiny but valid inverse rates into zero', async () => {
+    const { baseInput, quoteInput } = mountForm({
+      currency: { code: 'IDR' } as CurrencyWithExchangeRate['currency'],
+      quoteCode: 'USD',
+      rate: 1 / 2_000_000,
+      quoteRate: 2_000_000,
+    });
+
+    await quoteInput.trigger('focus');
+    await quoteInput.setValue('2500000');
+    expect(Number((baseInput.element as HTMLInputElement).value)).toBeCloseTo(1 / 2_500_000, 15);
+    expect(Number((baseInput.element as HTMLInputElement).value)).toBeGreaterThan(0);
   });
 
   it('disables Save when a rate is empty', async () => {

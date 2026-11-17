@@ -118,7 +118,7 @@
     </template>
     <template v-else-if="isDataEmpty">
       <EmptyState>
-        <ChartPieIcon class="size-32" />
+        <ChartPieIcon class="size-14" />
       </EmptyState>
     </template>
     <template v-else>

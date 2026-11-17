@@ -26,6 +26,8 @@ export function toLocalNumber(
 
 // Fraction digits a fiat currency renders per ISO-4217/CLDR (KRW→0, USD→2, BHD→3),
 // clamped to 2 because Money stores cents (×100) so only 2 decimals are ever real.
+// Pin IDR to CLDR's zero-digit convention instead of trusting the browser's ICU version;
+// some installed runtimes still ship older CLDR data that formats IDR with ",00".
 // Codes Intl rejects (malformed, e.g. a stray ticker from DB data) resolve to null so
 // callers can skip currency-styled formatting instead of crashing the render. Cached —
 // building an Intl formatter per render is costly.
@@ -36,14 +38,18 @@ function resolveCurrencyDigits(currency: string): number | null {
   if (cached !== undefined) return cached;
 
   let digits: number | null;
-  try {
-    const cldrDigits = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-    }).resolvedOptions().maximumFractionDigits;
-    digits = Math.min(cldrDigits ?? 2, 2);
-  } catch {
-    digits = null;
+  if (currency.toUpperCase() === 'IDR') {
+    digits = 0;
+  } else {
+    try {
+      const cldrDigits = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency,
+      }).resolvedOptions().maximumFractionDigits;
+      digits = Math.min(cldrDigits ?? 2, 2);
+    } catch {
+      digits = null;
+    }
   }
 
   currencyFractionDigitsCache.set(currency, digits);
@@ -69,7 +75,9 @@ function toLocalFiatCurrency(
     return toLocalNumber(value, {
       ...options,
       minimumFractionDigits: options.minimumFractionDigits ?? currencyDigits,
-      maximumFractionDigits: options.maximumFractionDigits ?? currencyDigits,
+      // Keep the normal IDR display whole-rupiah, but don't hide a real fractional
+      // value if one exists in imported or historical data (Money stores 2 decimals).
+      maximumFractionDigits: options.maximumFractionDigits ?? (currency.toUpperCase() === 'IDR' ? 2 : currencyDigits),
       currency,
       currencyDisplay: options.currencyDisplay ?? currencyDisplayPreference.value,
       useGrouping: options.useGrouping ?? true,
@@ -97,7 +105,8 @@ export function toLocalCurrencyNumber(
   return toLocalNumber(value, {
     ...numberOptions,
     minimumFractionDigits: numberOptions.minimumFractionDigits ?? digits,
-    maximumFractionDigits: numberOptions.maximumFractionDigits ?? digits,
+    // IDR has no forced trailing decimals, while non-zero stored fractions remain visible.
+    maximumFractionDigits: numberOptions.maximumFractionDigits ?? (currency?.toUpperCase() === 'IDR' ? 2 : digits),
   });
 }
 
@@ -180,15 +189,46 @@ export function formatLargeNumber(
   return `${formatted}${suffix}`;
 }
 
+/** Readable one-decimal Indonesian amount labels for compact sidebar and dashboard use.
+ * Full amounts should continue to use formatUIAmount (Rp1.999.999).
+ */
+export const formatCompactIdr = (amount: number): string => {
+  if (!Number.isFinite(amount)) return String(amount);
+  const abs = Math.abs(amount);
+  const units = [
+    { scale: 1e12, suffix: ' triliun' },
+    { scale: 1e9, suffix: ' miliar' },
+    { scale: 1e6, suffix: ' jt' },
+    { scale: 1e3, suffix: ' rb' },
+  ];
+  let unitIndex = units.findIndex(({ scale }) => abs >= scale);
+  if (unitIndex === -1) return formatUIAmount(amount, { currency: 'IDR' });
+
+  let unit = units[unitIndex]!;
+  // Round to the same one-decimal precision used for display before choosing a
+  // suffix. Otherwise 999,999 would become the misleading "1.000 rb".
+  const roundedMagnitude = Math.round((abs / unit.scale) * 10) / 10;
+  if (roundedMagnitude >= 1_000 && unitIndex > 0) {
+    unitIndex -= 1;
+    unit = units[unitIndex]!;
+  }
+
+  const sign = amount < 0 ? '-' : '';
+  const formatted = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 }).format(abs / unit.scale);
+  return sign + 'Rp' + formatted + unit.suffix;
+};
+
 const COMPACT_SIGNIFICANT_DIGITS = 3;
 
 // Rounds before the suffix is picked, so 999,600 reads "$1M" rather than "$1,000K".
 export const formatCompactFiat = ({ amount, currency }: { amount: number; currency?: string }) =>
-  formatLargeNumber(Number(amount.toPrecision(COMPACT_SIGNIFICANT_DIGITS)), {
-    isFiat: true,
-    currency,
-    thousandSuffix: 'K',
-  });
+  currency === 'IDR'
+    ? formatCompactIdr(amount)
+    : formatLargeNumber(Number(amount.toPrecision(COMPACT_SIGNIFICANT_DIGITS)), {
+        isFiat: true,
+        currency,
+        thousandSuffix: 'K',
+      });
 
 /** Full amount under 1,000, K/M/B suffix from there up. */
 export const formatShortFiat = ({ amount, currency }: { amount: number; currency?: string }) =>
@@ -210,6 +250,7 @@ export const formatCompactUIAmount = ({
   from?: number;
 }) => {
   if (!(Math.abs(amount) >= from)) return formatUIAmount(amount, { currency });
+  if (currency === 'IDR') return formatCompactIdr(amount);
 
   // Rounds before the suffix is picked, so 999,600 reads "₴1M" rather than "₴1000k".
   const step = compactRoundingStep(Math.abs(amount));

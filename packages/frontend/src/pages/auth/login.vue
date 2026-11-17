@@ -3,8 +3,8 @@
     <Card class="w-full max-w-112.5" as="form" @submit.prevent="submit()">
       <card-header>
         <div class="mb-3 flex items-center justify-center gap-2">
-          <span class="flex size-8 items-center justify-center rounded-lg bg-[#17443d] text-sm font-bold text-white">K</span>
-          <span class="text-base font-semibold tracking-tight">Kasana</span>
+          <img src="/favicon-96x96.png" alt="" class="size-8 object-contain" />
+          <span class="text-base font-semibold tracking-tight">{{ APP_BRAND.name }}</span>
         </div>
         <h1 class="text-center text-2xl font-semibold tracking-tight">{{ $t('auth.login.title') }}</h1>
       </card-header>
@@ -154,6 +154,7 @@ import { useNotificationCenter } from '@/components/notification-center';
 import { useAuthFeatures, useFormValidation } from '@/composable';
 import { OAuthProviderNotConfiguredError, getAuthErrorMessage } from '@/js/errors';
 import { email, required } from '@/js/helpers/validators';
+import { APP_BRAND } from '@/common/brand';
 import { getLastLoginMethod } from '@/lib/last-login-method';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useAuthStore } from '@/stores';

@@ -49,7 +49,7 @@
         "connectingButton": "Pripájanie...",
         "connectButton": "Pripojiť",
         "loadingAccounts": "Načítavanie účtov...",
-        "selectAccountsHint": "Vyberte účty, ktoré chcete synchronizovať s Kasana",
+        "selectAccountsHint": "Vyberte účty, ktoré chcete synchronizovať s Lajur.",
         "syncingButton": "Synchronizácia...",
         "syncButton": "Synchronizovať účty (počet: {count})",
         "syncSuccess": "Pripojené účty (počet: {count}). Transakcie sa synchronizujú na pozadí.",
@@ -82,7 +82,7 @@
           "authWarning": "Budete presmerovaní na webovú stránku banky {bank}, kde sa prihlásite a schválite pripojenie.",
           "authorizeButton": "Povoliť prístup banke {bank}",
           "loadingAccounts": "Načítavanie účtov...",
-          "selectAccountsHint": "Vyberte účty, ktoré chcete synchronizovať s Kasana"
+          "selectAccountsHint": "Vyberte účty, ktoré chcete synchronizovať s Lajur."
         },
         "buttons": {
           "back": "Späť",
@@ -132,7 +132,7 @@
         },
         "step2": {
           "title": "Pripojte svoje bankové účty",
-          "intro": "Pred použitím aplikácie s Kasana musíte najprv prepojiť svoje bankové účty cez portál Enable Banking. Vyhľadajte tlačidlo „Link accounts\" v dlaždici vytvorenej aplikácie a postupujte podľa všetkých krokov, ktoré sa tam vyžadujú.",
+          "intro": "Pred použitím aplikácie s Lajur. musíte najprv prepojiť svoje bankové účty cez portál Enable Banking. Vyhľadajte tlačidlo „Link accounts\" v dlaždici vytvorenej aplikácie a postupujte podľa všetkých krokov, ktoré sa tam vyžadujú.",
           "breakdown": "Tu je rozpis jednotlivých polí:",
           "steps": {
             "clickLink": "Kliknite na „Link accounts\" a počkajte, kým sa dokončí načítanie",

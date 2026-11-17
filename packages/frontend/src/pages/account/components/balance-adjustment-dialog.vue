@@ -2,13 +2,14 @@
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import { Button } from '@/components/lib/ui/button';
 import { useNotificationCenter } from '@/components/notification-center';
 import { useFormValidation } from '@/composable';
 import { useAdjustAccountBalance } from '@/composable/data-queries/accounts';
 import { useAccountCurrencyCode } from '@/composable/use-account-currency-code';
 import { useAccountDisplayBalance } from '@/composable/use-account-display-balance';
-import { toLocalCurrencyNumber } from '@/js/helpers';
+import { formatUIAmount } from '@/js/helpers';
 import * as validators from '@/js/helpers/validators';
 import { captureException } from '@/lib/sentry';
 import { cn } from '@/lib/utils';
@@ -169,32 +170,28 @@ watch(mode, () => {
       </div>
 
       <!-- Amount input -->
-      <InputField
+      <FormattedAmountField
         v-model="form.amount"
-        type="number"
+        :currency-code="currencyCode"
         :label="mode === 'set-to' ? label('newBalance') : label('amount')"
         :placeholder="mode === 'set-to' ? label('enterTargetBalance') : label('enterAmount')"
-        :only-positive="mode === 'adjust-by'"
         :error-message="getFieldErrorMessage('form.amount')"
         @blur="touchField('form.amount')"
-      >
-        <template #iconTrailing>
-          <span class="text-muted-foreground text-sm">{{ currencyCode }}</span>
-        </template>
-      </InputField>
+      />
 
       <!-- Direction toggle — Income/Expense with color coding -->
-      <div v-if="mode === 'adjust-by'" class="flex gap-1.5">
+      <div v-if="mode === 'adjust-by'" class="flex gap-1.5" role="group" :aria-label="label('adjustByAmount')">
         <button
           type="button"
           :class="
             cn(
-              'h-9 flex-1 cursor-pointer rounded-md px-3 text-sm font-medium transition-all',
+              'h-9 flex-1 cursor-pointer rounded-md px-3 text-sm font-medium transition-[background-color,color,box-shadow,transform] duration-200 ease-out motion-reduce:transition-none',
               direction === 'income'
                 ? 'bg-green-500/15 text-green-600 ring-1 ring-green-500/30 dark:text-green-400'
                 : 'text-muted-foreground hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400',
             )
           "
+          :aria-pressed="direction === 'income'"
           @click="direction = 'income'"
         >
           {{ label('income') }}
@@ -203,12 +200,13 @@ watch(mode, () => {
           type="button"
           :class="
             cn(
-              'h-9 flex-1 cursor-pointer rounded-md px-3 text-sm font-medium transition-all',
+              'h-9 flex-1 cursor-pointer rounded-md px-3 text-sm font-medium transition-[background-color,color,box-shadow,transform] duration-200 ease-out motion-reduce:transition-none',
               direction === 'expense'
                 ? 'bg-red-500/15 text-red-600 ring-1 ring-red-500/30 dark:text-red-400'
                 : 'text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400',
             )
           "
+          :aria-pressed="direction === 'expense'"
           @click="direction = 'expense'"
         >
           {{ label('expense') }}
@@ -227,11 +225,11 @@ watch(mode, () => {
         </template>
         <template v-else>
           <p class="text-muted-foreground mb-1 text-sm">
-            {{ toLocalCurrencyNumber(displayBalance, { currency: currencyCode }) }} {{ currencyCode }}
+            {{ formatUIAmount(displayBalance, { currency: currencyCode }) }}
             →
-            <span class="text-foreground font-medium"
-              >{{ toLocalCurrencyNumber(displayTarget!, { currency: currencyCode }) }} {{ currencyCode }}</span
-            >
+            <span class="text-foreground font-medium">{{
+              formatUIAmount(displayTarget!, { currency: currencyCode })
+            }}</span>
           </p>
           <p
             class="text-sm font-medium"
@@ -240,12 +238,12 @@ watch(mode, () => {
             {{
               previewType === 'income'
                 ? label('incomeWillBeCreated', {
-                    amount: toLocalCurrencyNumber(Math.abs(diff), { currency: currencyCode }),
-                    currency: currencyCode,
+                    amount: formatUIAmount(Math.abs(diff), { currency: currencyCode }),
+                    currency: currencyCode === 'IDR' ? '' : currencyCode,
                   })
                 : label('expenseWillBeCreated', {
-                    amount: toLocalCurrencyNumber(Math.abs(diff), { currency: currencyCode }),
-                    currency: currencyCode,
+                    amount: formatUIAmount(Math.abs(diff), { currency: currencyCode }),
+                    currency: currencyCode === 'IDR' ? '' : currencyCode,
                   })
             }}
           </p>
@@ -257,8 +255,7 @@ watch(mode, () => {
       <InputField v-model="form.note" :label="label('transactionNote')" :placeholder="label('optionalNote')" />
     </div>
 
-    <template #footer="{ close }">
-      <Button variant="outline" @click="close">{{ label('cancel') }}</Button>
+    <template #footer>
       <Button :disabled="!isValid || isPending" @click="submit">
         {{ isPending ? label('saving') : label('confirm') }}
       </Button>

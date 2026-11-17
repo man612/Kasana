@@ -43,14 +43,14 @@
         "placeholder": "Scegliere un modello",
         "automaticOption": "Automatico",
         "automaticOptionWithTarget": "Automatico · {target}",
-        "serverOption": "Kasana AI · incluso",
+        "serverOption": "Lajur. AI · incluso",
         "connectionOption": "{name} · {model}",
         "connectionOptionNeedsAttention": "{name} · {model} (richiede attenzione)",
         "badges": {
           "yourKey": "Chiave personale",
-          "yourKeyTooltip": "Funziona con uno dei modelli di intelligenza artificiale configurati, che si occupa anche della fatturazione. Kasana non limita l'utilizzo.",
+          "yourKeyTooltip": "Funziona con uno dei modelli di intelligenza artificiale configurati, che si occupa anche della fatturazione. Lajur. non limita l'utilizzo.",
           "server": "Server",
-          "serverTooltip": "Funziona con Kasana AI, incluso nel piano. Si applicano limiti di utilizzo."
+          "serverTooltip": "Funziona con Lajur. AI, incluso nel piano. Si applicano limiti di utilizzo."
         },
         "modelLabel": "Modello",
         "modelInfo": {
@@ -229,7 +229,7 @@
           "modelListNoMatch": "Nessun modello in elenco corrisponde. È comunque possibile usare il nome digitato.",
           "testButton": "Prova connessione",
           "saveButton": "Salva modifiche",
-          "localNetworkOnly": "Kasana non può raggiungere un server sul computer locale, come {hostname} o {ip}. Esporlo tramite un tunnel come ngrok o Cloudflare Tunnel, quindi incollare qui l'URL del tunnel.",
+          "localNetworkOnly": "Lajur. non può raggiungere un server sul computer locale, come {hostname} o {ip}. Esporlo tramite un tunnel come ngrok o Cloudflare Tunnel, quindi incollare qui l'URL del tunnel.",
           "dockerHost": "Se l'app viene eseguita in Docker sulla stessa macchina del server del modello, usare {dockerHost} invece di {ip}."
         },
         "presets": {

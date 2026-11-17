@@ -280,7 +280,7 @@
     }
   },
   "landingFaq": {
-    "unavailable": "The assistant is unavailable right now. Please try again later or email support@moneymatter.app."
+    "unavailable": "Помощник сейчас недоступен. Попробуйте ещё раз позже."
   },
   "loans": {
     "loanNotFound": "Кредит не найден.",
@@ -628,7 +628,7 @@
     "connectionModelNotAvailable": "This API key can't use the model \"{{model}}\". Check the model name.",
     "connectionProviderUnreachable": "Couldn't reach the provider. Try again in a moment.",
     "connectionValidationFailed": "The provider refused the test request: {{reason}}",
-    "serverModelUnavailable": "The included MoneyMatter AI model isn't available on your plan.",
+    "serverModelUnavailable": "Модель ИИ сервера недоступна для этой учётной записи.",
     "connectionKeyNotInBackup": "API key isn't included in backups. Edit this model and enter the key again.",
     "customEndpointUnreachable": "Не удалось подключиться к эндпоинту. Проверьте базовый URL и убедитесь, что сервер запущен и доступен из интернета.",
     "customEndpointAuthFailed": "Эндпоинт отклонил API-ключ. Проверьте правильность ключа и наличие необходимых разрешений.",

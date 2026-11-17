@@ -5,6 +5,12 @@ import { RecordId } from '../record-id';
 import type { TagModel } from '../tags';
 
 export enum PAYMENT_TYPES {
+  qris = 'qris',
+  eWallet = 'eWallet',
+  virtualAccount = 'virtualAccount',
+  emoneyCard = 'emoneyCard',
+  autoDebit = 'autoDebit',
+  payLater = 'payLater',
   bankTransfer = 'bankTransfer',
   voucher = 'voucher',
   webPayment = 'webPayment',

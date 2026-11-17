@@ -54,7 +54,7 @@ export const prepareTxCreationParams = ({
     location: resolveFormLocation(form),
     time: time.toUTCString(),
     transactionType: getTxTypeFromFormType(formTxType),
-    paymentType: paymentType!.value,
+    paymentType: paymentType?.value,
     accountId,
     // Always send the array, even empty: payee tags are applied client-side
     // here, and sending the set stops the backend re-adding tags the user

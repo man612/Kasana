@@ -2,6 +2,8 @@ import { isPerfDebugEnabled, perfDebugMiddleware } from '@common/lib/perf/perf-d
 import { resolveTrustedProxies, TRUSTED_PROXIES_ENV } from '@config/trusted-proxies';
 import { logger } from '@js/utils/logger';
 import { setClientIpHeaderMiddleware } from '@middlewares/client-ip-header';
+import { privateApiCacheMiddleware } from '@middlewares/private-api-cache';
+import { safeRequestLogUrl } from '@middlewares/safe-request-log-url';
 import { requestIdMiddleware } from '@middlewares/request-id';
 import { sessionMiddleware } from '@middlewares/session-id';
 import { stripCloudflareAccessCookiesMiddleware } from '@middlewares/strip-cloudflare-access-cookies';
@@ -17,6 +19,10 @@ import { addI18nextToRequest, detectLanguage } from './i18n/middleware';
 export function setupMiddleware(app: Express) {
   // Drop the default `X-Powered-By: Express` info-disclosure header.
   app.disable('x-powered-by');
+
+  // Prevent browser/shared caches from persisting financial and auth responses.
+  // Register before all routes; public /.well-known/ and SPA assets remain unaffected.
+  app.use(privateApiCacheMiddleware);
 
   // `req.ip` keys the per-IP rate limits and the address stored on auth sessions. Trusting private ranges
   // only (the default) means the first public address from the right wins, which a client cannot forge.
@@ -218,7 +224,7 @@ export function setupMiddleware(app: Express) {
     express.urlencoded({ extended: false })(req, res, next);
   });
   if (process.env.NODE_ENV !== 'test') {
-    morgan.token<Request>('url', (req) => req.originalUrl.replace(/(\/reset-password\/)[^/?]+/, '$1[redacted]'));
+    morgan.token<Request>('url', (req) => safeRequestLogUrl({ originalUrl: req.originalUrl }));
     app.use(morgan('dev'));
   }
   app.use(sessionMiddleware);

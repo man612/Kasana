@@ -1,7 +1,7 @@
 {
   "oauth": {
     "authorize": {
-      "title": "{name} souhaite accéder à vos données Kasana",
+      "title": "{name} souhaite accéder à vos données Lajur.",
       "redirect_notice": "Après approbation, vous serez redirigé vers {host}. Ne continuez que si vous reconnaissez cette adresse.",
       "description": "Cette application demande les autorisations suivantes :",
       "approve": "Autoriser",
@@ -56,7 +56,7 @@
       },
       "unknown": {
         "label": "Autorisation supplémentaire",
-        "desc": "L'application a demandé une autorisation non reconnue par Kasana."
+        "desc": "L'application a demandé une autorisation non reconnue par Lajur.."
       }
     }
   }

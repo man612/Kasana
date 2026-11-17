@@ -24,7 +24,11 @@
           v-if="!item._isOutOfWallet && item.id === defaultAccountId"
           class="text-primary-text size-3.5 shrink-0 fill-current"
         />
-        <CurrencyChip v-if="!item._isOutOfWallet && !embedded" class="ml-auto" :code="item.currencyCode" />
+        <CurrencyChip
+          v-if="!item._isOutOfWallet && !embedded && item.currencyCode !== 'IDR'"
+          class="ml-auto"
+          :code="item.currencyCode"
+        />
       </span>
     </template>
 
@@ -35,7 +39,11 @@
           v-if="!item._isOutOfWallet && item.id === defaultAccountId"
           class="text-primary-text size-3.5 shrink-0 fill-current"
         />
-        <CurrencyChip v-if="!item._isOutOfWallet" class="ml-auto" :code="item.currencyCode" />
+        <CurrencyChip
+          v-if="!item._isOutOfWallet && item.currencyCode !== 'IDR'"
+          class="ml-auto"
+          :code="item.currencyCode"
+        />
       </span>
     </template>
 

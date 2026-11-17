@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center justify-center gap-0.5">
+  <div class="flex min-w-0 items-center justify-center gap-0.5">
     <Button size="icon-sm" variant="ghost" @click="selectPrevPeriod">
       <ChevronLeft :size="16" />
     </Button>
@@ -8,12 +8,15 @@
       v-model="period"
       :presets="quickPresets"
       :earliest-date="earliestDate"
+      dialog-on-desktop
       popover-class-name="md:min-w-[600px]"
     >
       <template #trigger="{ triggerText }">
-        <Button variant="ghost" size="sm" class="min-w-48 font-medium">
-          <CalendarIcon class="mr-1.5 size-3.5" />
-          {{ triggerText }}
+        <Button variant="ghost" size="sm" class="min-w-0 px-2 font-medium sm:min-w-40">
+          <CalendarIcon class="mr-1.5 size-3.5 shrink-0" />
+          <Transition name="kasana-period" mode="out-in">
+            <span :key="triggerText" class="inline-block min-w-0 truncate whitespace-nowrap">{{ triggerText }}</span>
+          </Transition>
         </Button>
       </template>
     </DateSelector>
@@ -21,6 +24,24 @@
     <Button size="icon-sm" variant="ghost" :disabled="isNextDisabled" @click="selectNextPeriod">
       <ChevronRight :size="16" />
     </Button>
+    <Transition
+      enter-active-class="transition-all duration-200 ease-out"
+      enter-from-class="opacity-0 -translate-x-2 scale-95"
+      enter-to-class="opacity-100 translate-x-0 scale-100"
+      leave-active-class="transition-all duration-150 ease-in"
+      leave-from-class="opacity-100 translate-x-0 scale-100"
+      leave-to-class="opacity-0 -translate-x-2 scale-95"
+    >
+      <Button
+        v-if="!isCurrentPayPeriod(period)"
+        size="sm"
+        variant="ghost"
+        class="ml-1 shrink-0 px-2 text-xs"
+        @click="period = getCurrentPayPeriod()"
+      >
+        {{ t('dashboard.periodSelector.backToCurrent') }}
+      </Button>
+    </Transition>
   </div>
 </template>
 
@@ -36,7 +57,11 @@ import { useI18n } from 'vue-i18n';
 
 import { type Period } from '../types';
 
-const { t } = useI18n();
+const { t, te } = useI18n();
+const presetShort = (key: string) =>
+  te(`dashboard.periodSelector.presetsShort.${key}`)
+    ? t(`dashboard.periodSelector.presetsShort.${key}`)
+    : t(`dashboard.periodSelector.presets.${key}`);
 
 const props = defineProps<{
   modelValue: Period;
@@ -102,22 +127,27 @@ watch(
 const quickPresets = computed<DateSelectorPreset[]>(() => [
   {
     label: t('dashboard.periodSelector.presets.currentMonth'),
+    shortLabel: presetShort('currentMonth'),
     getValue: getCurrentPayPeriod,
   },
   {
     label: t('dashboard.periodSelector.presets.last3Months'),
+    shortLabel: presetShort('last3Months'),
     getValue: lastPayPeriods(3),
   },
   {
     label: t('dashboard.periodSelector.presets.last6Months'),
+    shortLabel: presetShort('last6Months'),
     getValue: lastPayPeriods(6),
   },
   {
     label: t('dashboard.periodSelector.presets.lastYear'),
+    shortLabel: presetShort('lastYear'),
     getValue: lastPayPeriods(12),
   },
   {
     label: t('dashboard.periodSelector.presets.thisYear'),
+    shortLabel: presetShort('thisYear'),
     getValue: () => ({
       from: startOfYear(new Date()),
       to: new Date(),
@@ -125,6 +155,7 @@ const quickPresets = computed<DateSelectorPreset[]>(() => [
   },
   {
     label: t('dashboard.periodSelector.presets.previousYear'),
+    shortLabel: presetShort('previousYear'),
     getValue: () => {
       const prevYear = subYears(new Date(), 1);
       return {

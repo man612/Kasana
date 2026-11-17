@@ -1,3 +1,5 @@
+import { afterAll, beforeEach } from 'vitest';
+import { numberFormatLocale } from '@/js/helpers/formatters';
 import {
   type AutomationAction,
   type AutomationCondition,
@@ -7,6 +9,11 @@ import {
 } from '@bt/shared/types';
 
 import { buildAutomationChips } from './automation-chips';
+
+// Legacy assertions in this suite explicitly use English number formatting.
+// Keep production Indonesia-first defaults unchanged and isolate the fixture locale.
+beforeEach(() => { numberFormatLocale.value = 'en-US'; });
+afterAll(() => { numberFormatLocale.value = 'id-ID'; });
 
 const id = (value: string) => value as RecordId;
 

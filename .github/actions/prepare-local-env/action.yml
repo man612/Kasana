@@ -26,6 +26,12 @@ runs:
         path: |
           **/node_modules
           ${{ steps.npm-cache-dir.outputs.dir }}
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', 'patches/**', 'post-install.sh', 'scripts/check-provider-runtime.cjs') }}
         restore-keys: |
           ${{ runner.os }}-node-
+    - name: Reapply and verify dependency patches on exact cache hits
+      if: steps.npm-cache.outputs.cache-hit == 'true'
+      shell: bash
+      run: |
+        sh ./post-install.sh
+        node scripts/check-provider-runtime.cjs

@@ -233,14 +233,13 @@ export function setupRoutes(app: Express) {
     res.type('text/plain').send('User-agent: *\nDisallow: /');
   });
 
-  // RFC 9116 – security disclosure contact. Served on api.moneymatter.app and
-  // mcp.moneymatter.app; the SPA host has a static mirror in nginx.
+  // RFC 9116 – security contact for any independently hosted Kasana instance.
+  // A static mirror is served from the SPA; do not point reports to upstream.
   // Refresh `Expires` before it lapses, otherwise scanners flag it as expired.
   const securityTxt = [
-    'Contact: https://github.com/letehaha/moneymatter/security/advisories/new',
-    'Expires: 2027-04-25T00:00:00.000Z',
-    'Preferred-Languages: en',
-    'Canonical: https://api.moneymatter.app/.well-known/security.txt',
+    'Contact: https://github.com/man612/Kasana/security/advisories/new',
+    'Expires: 2027-05-01T00:00:00.000Z',
+    'Preferred-Languages: id, en',
     '',
   ].join('\n');
   const serveSecurityTxt = (_req: Request, res: Response) => {

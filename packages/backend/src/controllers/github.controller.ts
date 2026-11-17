@@ -2,7 +2,7 @@ import { createController } from '@controllers/helpers/controller-factory';
 import { CacheClient } from '@js/utils/cache';
 import { z } from 'zod';
 
-const GITHUB_REPO = 'letehaha/moneymatter';
+const GITHUB_REPO = 'man612/Kasana';
 const CACHE_TTL_SECONDS = 12 * 60 * 60; // 12 hours
 
 interface GitHubActivityData {
@@ -21,7 +21,7 @@ const CACHE_KEY = 'github:activity';
 async function fetchGitHubActivity(): Promise<GitHubActivityData | null> {
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github.v3+json',
-    'User-Agent': 'MoneyMatter-App',
+    'User-Agent': 'Kasana-App',
   };
 
   // Add GitHub token if available (increases rate limit from 60 to 5000 req/hour)

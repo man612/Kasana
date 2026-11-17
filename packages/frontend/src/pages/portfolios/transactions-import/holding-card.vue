@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Card } from '@/components/lib/ui/card';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import SecuritySearchCell from '@/pages/portfolios/components/transactions-import/security-search-cell.vue';
 import type { InvestmentImportHolding, InvestmentImportTransaction } from '@bt/shared/types/investments';
-import { CircleDollarSignIcon, CoinsIcon, InfoIcon, Trash2Icon, TriangleAlertIcon } from '@lucide/vue';
+import { CircleDollarSignIcon, CoinsIcon, Trash2Icon, TriangleAlertIcon } from '@lucide/vue';
 
 import HoldingTransactionsTable from './holding-transactions-table.vue';
 
@@ -50,12 +51,7 @@ const emit = defineEmits<{
         <label class="text-muted-foreground mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase">
           <CoinsIcon class="size-3.5" />
           {{ $t('investmentsImport.review.cols.security') }}
-          <DesktopOnlyTooltip
-            :content="$t('investmentsImport.review.tooltips.security')"
-            :content-class-name="TOOLTIP_CLASS"
-          >
-            <InfoIcon class="size-3.5" />
-          </DesktopOnlyTooltip>
+          <HintIcon :content="$t('investmentsImport.review.tooltips.security')" />
         </label>
         <SecuritySearchCell
           :model-value="holding.resolvedSecurity"
@@ -78,12 +74,7 @@ const emit = defineEmits<{
         <label class="text-muted-foreground mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase">
           <CircleDollarSignIcon class="size-3.5" />
           {{ $t('investmentsImport.review.cols.currency') }}
-          <DesktopOnlyTooltip
-            :content="$t('investmentsImport.review.tooltips.currency')"
-            :content-class-name="TOOLTIP_CLASS"
-          >
-            <InfoIcon class="size-3.5" />
-          </DesktopOnlyTooltip>
+          <HintIcon :content="$t('investmentsImport.review.tooltips.currency')" />
         </label>
         <SelectField
           :model-value="(holding.currencyCode && currencyOptions.find((o) => o.value === holding.currencyCode)) || null"

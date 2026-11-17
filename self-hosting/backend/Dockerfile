@@ -9,13 +9,15 @@ RUN apk add --no-cache python3 make g++
 # Copy root-level package files
 COPY package*.json ./
 COPY post-install.sh ./
+COPY scripts/check-provider-runtime.cjs ./scripts/
+COPY patches/query-string+7.1.3.patch ./patches/
 RUN chmod +x ./post-install.sh
 
 # Copy backend package files
 COPY packages/backend/package*.json ./packages/backend/
 
 # Install all dependencies (including dev dependencies for build)
-RUN npm ci
+RUN npm ci && node scripts/check-provider-runtime.cjs
 
 # Copy the rest of the code needed for build
 COPY tsconfig.json ./
@@ -30,7 +32,7 @@ RUN npm run build
 # 🚀 Stage 2️⃣: Production
 FROM node:24.22.1-alpine AS production
 
-LABEL org.opencontainers.image.source="https://github.com/letehaha/moneymatter"
+LABEL org.opencontainers.image.source="https://github.com/man612/Kasana"
 
 WORKDIR /app
 
@@ -46,10 +48,12 @@ RUN addgroup -g 1001 nodejs && adduser -u 1001 -G nodejs -s /bin/sh -D nodejs
 # which is all the nodejs runtime needs.
 COPY --chown=nodejs:nodejs package*.json ./
 COPY --chown=nodejs:nodejs post-install.sh ./
+COPY --chown=nodejs:nodejs scripts/check-provider-runtime.cjs ./scripts/
+COPY --chown=nodejs:nodejs patches/query-string+7.1.3.patch ./patches/
 RUN chmod +x ./post-install.sh
 
 COPY --chown=nodejs:nodejs packages/backend/package*.json ./packages/backend/
-RUN npm ci
+RUN npm ci && node scripts/check-provider-runtime.cjs
 
 # Remove build dependencies to reduce image size
 RUN apk del python3 make g++

@@ -60,7 +60,9 @@
         "off": {
           "label": "Off",
           "hint": "Payee's default category is ignored. Categorization is handled by AI or your other rules."
-        }
+        },
+        "fullExplanation": "AI categorization suggests a category based on payee details and past transactions. For example, a supermarket may be assigned Groceries. “Always use payee category” enforces the chosen category without AI replacing it. “Use as hint” provides guidance while AI may choose differently. “Disable” ignores this payee rule. AI can make mistakes; review the result.",
+        "fullExplanationLabel": "What is AI categorization?"
       }
     },
     "detail": {

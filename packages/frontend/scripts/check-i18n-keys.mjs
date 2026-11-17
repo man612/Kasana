@@ -36,7 +36,12 @@ const namespaces = new Set([...parents].filter((p) => !p.includes('.')));
 
 const KEY_LIKE = /^[a-zA-Z][\w-]*(\.[\w-]+)+$/;
 // Dotted strings that share a namespace with i18n keys but aren't keys.
-const NOT_KEYS = new Set(['planned.subscriptions.sortBy']);
+const NOT_KEYS = new Set([
+  'planned.subscriptions.sortBy',
+  // Local-storage keys are identifiers, not user-facing translation keys.
+  'kasana.quick-start-position-v1',
+  'kasana.quick-start-hidden-until-v1',
+]);
 const MESSAGE_FNS = new Set(['t', '$t', 'te', '$te', 'tc', '$tc', 'i18n.global.t']);
 
 const lineOf = (text, index) => text.slice(0, index).split('\n').length;
@@ -71,10 +76,23 @@ for (const file of files) {
   }
 }
 
+// Protect the English and Indonesian customer-facing translations from
+// accidentally reverting to the upstream project's public identity.
+// This does not change license notices, attribution or internal compatibility IDs.
+for (const locale of ['en', 'id']) {
+  const dir = path.join(SRC, 'i18n/locales/chunks', locale);
+  for (const file of walk(dir).filter((f) => f.endsWith('.json'))) {
+    const data = fs.readFileSync(file, 'utf8');
+    for (const match of data.matchAll(/MoneyMatter|moneymatter\.app|letehaha/gi)) {
+      errors.push(`${path.relative(ROOT, file)}:${lineOf(data, match.index)} legacy public brand "${match[0]}"`);
+    }
+  }
+}
+
 const unique = [...new Set(errors)];
 if (unique.length) {
   console.error(unique.join('\n'));
-  console.error(`\n${unique.length} i18n key problem(s). Add the key to the en locale chunks or fix the reference.`);
+  console.error(`\n${unique.length} i18n key / public-brand problem(s). Fix missing keys or inherited product names in application translations.`);
   process.exit(1);
 }
 console.log('i18n keys OK');

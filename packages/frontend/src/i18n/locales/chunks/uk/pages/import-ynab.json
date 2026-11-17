@@ -3,7 +3,7 @@
     "importExport": {
       "ynabImport": {
         "pageTitle": "Імпортувати з YNAB",
-        "pageDescription": "Завантажте експорт YNAB Register.csv, щоб перенести рахунки, транзакції, категорії, отримувачів та теги в Kasana.",
+        "pageDescription": "Завантажте експорт YNAB Register.csv, щоб перенести рахунки, транзакції, категорії, отримувачів та теги в Lajur..",
         "stepper": {
           "steps": {
             "upload": "Завантажити",
@@ -57,7 +57,7 @@
         },
         "done": {
           "successTitle": "Імпортування завершено",
-          "successDescription": "Ваші дані YNAB тепер у Kasana.",
+          "successDescription": "Ваші дані YNAB тепер у Lajur..",
           "accountsCreated": "Рахунки створено",
           "accountsSkipped": "Рахунки пропущено",
           "categoriesCreated": "Категорії створено",

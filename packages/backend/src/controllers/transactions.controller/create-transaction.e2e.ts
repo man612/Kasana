@@ -122,6 +122,64 @@ describe('Create transaction controller', () => {
     // default account starts at 0 balance; expense subtracts LARGE_AMOUNT
     expect(accountAfter.currentBalance).toBe(-LARGE_AMOUNT);
   });
+  it('preserves decimal IDR balances across real account and transaction API requests', async () => {
+    // Indonesia-first regression: API accepts numeric amounts, while the
+    // frontend renders localized strings such as Rp1.000.000,50. Do not send
+    // punctuation-formatted strings to the backend or round away sen.
+    await helpers.addUserCurrencies({ currencyCodes: ['IDR'] });
+    const account = await helpers.createAccount({
+      payload: {
+        ...helpers.buildAccountPayload({ initialBalance: 1_000_000.5 }),
+        currencyCode: 'IDR',
+      },
+      raw: true,
+    });
+
+    expect(account.currencyCode).toBe('IDR');
+    expect(account.currentBalance).toBe(1_000_000.5);
+
+    const [expense] = await helpers.createTransaction({
+      payload: helpers.buildTransactionPayload({
+        accountId: account.id,
+        amount: 125_000.25,
+        transactionType: TRANSACTION_TYPES.expense,
+      }),
+      raw: true,
+    });
+
+    expect(expense.currencyCode).toBe('IDR');
+    expect(expense.amount).toBe(125_000.25);
+    expect((await helpers.getAccount({ id: account.id, raw: true })).currentBalance).toBe(875_000.25);
+
+    const [income] = await helpers.createTransaction({
+      payload: helpers.buildTransactionPayload({
+        accountId: account.id,
+        amount: 75_000.55,
+        transactionType: TRANSACTION_TYPES.income,
+      }),
+      raw: true,
+    });
+
+    expect(income.currencyCode).toBe('IDR');
+    expect(income.amount).toBe(75_000.55);
+    expect((await helpers.getAccount({ id: account.id, raw: true })).currentBalance).toBe(950_000.8);
+  });
+
+  it('preserves a negative opening balance on a manual IDR account', async () => {
+    await helpers.addUserCurrencies({ currencyCodes: ['IDR'] });
+    const account = await helpers.createAccount({
+      payload: {
+        ...helpers.buildAccountPayload({ initialBalance: -425_000.75 }),
+        currencyCode: 'IDR',
+      },
+      raw: true,
+    });
+
+    expect(account.initialBalance).toBe(-425_000.75);
+    expect(account.currentBalance).toBe(-425_000.75);
+    expect((await helpers.getAccount({ id: account.id, raw: true })).currentBalance).toBe(-425_000.75);
+  });
+
   it('should successfully create a transaction for account with currency different from base one', async () => {
     // Create account with non-default currency
     const currency = global.MODELS_CURRENCIES!.find((item) => item.code === 'UAH');

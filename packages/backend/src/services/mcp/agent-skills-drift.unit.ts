@@ -5,7 +5,8 @@ import path from 'path';
 
 const PUBLIC_DIR = path.resolve(__dirname, '../../../../frontend/public');
 const INDEX_PATH = path.join(PUBLIC_DIR, '.well-known/agent-skills/index.json');
-const SITE_ORIGIN = 'https://moneymatter.app';
+// No official Kasana MCP/skills hostname is published yet.
+const SITE_ORIGIN = 'https://kasana.invalid';
 
 interface SkillsIndex {
   skills: Array<{

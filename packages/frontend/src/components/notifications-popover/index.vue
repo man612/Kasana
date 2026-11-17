@@ -62,9 +62,14 @@ const handleDismiss = (id: string) => {
       <!-- Sidebar mode: full-width button with label -->
       <template v-if="sidebar">
         <button
-          class="hover:bg-accent hover:text-accent-foreground text-muted-foreground relative inline-flex h-10 w-full items-center gap-2 rounded-md px-3 text-sm font-medium whitespace-nowrap transition-colors"
+          class="hover:bg-accent hover:text-accent-foreground text-muted-foreground relative inline-flex h-10 w-full items-center gap-2 rounded-md px-3 text-sm font-medium whitespace-nowrap transition-[background-color,color] duration-200"
+          :aria-expanded="isOpen"
+          :aria-label="t('notifications.title')"
         >
-          <BellIcon class="size-4 shrink-0" />
+          <BellIcon
+            class="size-4 shrink-0 transition-transform duration-250 ease-out motion-reduce:transition-none"
+            :class="isOpen && 'scale-110 -rotate-16'"
+          />
           <span>{{ t('notifications.title') }}</span>
           <span
             v-if="unreadCount && unreadCount > 0"
@@ -76,8 +81,18 @@ const handleDismiss = (id: string) => {
       </template>
       <!-- Header mode: icon-only button -->
       <template v-else>
-        <Button variant="secondary" size="icon" class="relative">
-          <BellIcon class="size-5" />
+        <Button
+          variant="secondary"
+          size="icon"
+          class="relative transition-[background-color,box-shadow] duration-200"
+          :class="isOpen && 'bg-primary/10 ring-primary/30 ring-1'"
+          :aria-expanded="isOpen"
+          :aria-label="t('notifications.title')"
+        >
+          <BellIcon
+            class="size-5 transition-transform duration-250 ease-out motion-reduce:transition-none"
+            :class="isOpen && 'scale-110 -rotate-16'"
+          />
           <span
             v-if="unreadCount && unreadCount > 0"
             class="bg-primary absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full text-xs text-white"
@@ -87,7 +102,11 @@ const handleDismiss = (id: string) => {
         </Button>
       </template>
     </Popover.PopoverTrigger>
-    <Popover.PopoverContent class="w-90 p-0" :align="sidebar ? 'start' : 'end'" :side="sidebar ? 'top' : 'bottom'">
+    <Popover.PopoverContent
+      class="w-[min(22.5rem,calc(100vw-1rem))] overflow-hidden p-0"
+      :align="sidebar ? 'start' : 'end'"
+      :side="sidebar ? 'top' : 'bottom'"
+    >
       <div class="border-border flex items-center justify-between border-b px-4 py-3">
         <h3 class="text-sm font-semibold">{{ $t('notifications.title') }}</h3>
         <Button
@@ -111,7 +130,7 @@ const handleDismiss = (id: string) => {
         <p class="text-muted-foreground text-sm">{{ $t('notifications.empty') }}</p>
       </div>
 
-      <div v-else class="max-h-87.5 overflow-auto">
+      <div v-else class="lajur-dialog-scroll max-h-[min(22rem,65dvh)] overflow-y-auto overscroll-contain">
         <div class="divide-border divide-y">
           <NotificationItem
             v-for="notification in notifications"
