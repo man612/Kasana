@@ -180,8 +180,17 @@ const currencyName = computed(() =>
 
 const flagUrl = computed(() => (code.value ? getCurrencyIcon(code.value) : ''));
 
-const formatRate = (value: number) =>
-  Number.isFinite(value) ? toLocalNumber(value, { minimumFractionDigits: 0, maximumFractionDigits: 6 }) : '—';
+const formatRate = (value: number) => {
+  if (!Number.isFinite(value)) return '—';
+  // Fixed six-decimal display hid meaningful IDR->USD / tiny FX rates,
+  // making a valid reciprocal look rounded up or even like zero.
+  // Significant digits preserve tiny FX values without cluttering ordinary
+  // currency rows with 12 fractional places.
+  if (value !== 0 && Math.abs(value) < 0.001) {
+    return toLocalNumber(value, { minimumFractionDigits: 0, maximumSignificantDigits: 12 });
+  }
+  return toLocalNumber(value, { minimumFractionDigits: 0, maximumFractionDigits: 6 });
+};
 const rateDisplay = computed(() => formatRate(props.currency.rate));
 const quoteRateDisplay = computed(() => formatRate(props.currency.quoteRate));
 
