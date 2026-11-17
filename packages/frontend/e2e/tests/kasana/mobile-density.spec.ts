@@ -33,6 +33,23 @@ test.describe('Mobile-first UI density and readable auth forms', () => {
     }
   });
 
+  test('hides mobile scrollbars without disabling selection in text inputs', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/sign-in');
+    const metrics = await page.evaluate(() => {
+      const input = document.querySelector('input[type="email"]');
+      const button = document.querySelector('button[type="submit"]');
+      return {
+        scrollIndicator: getComputedStyle(document.documentElement).scrollbarWidth,
+        inputSelection: input ? getComputedStyle(input).userSelect : null,
+        buttonSelection: button ? getComputedStyle(button).userSelect : null,
+      };
+    });
+    expect(metrics.scrollIndicator).toBe('none');
+    expect(metrics.inputSelection).not.toBe('none');
+    expect(metrics.buttonSelection).toBe('none');
+  });
+
   for (const path of ['/sign-in', '/sign-up']) {
     test(`${path} remains readable and scrollable on a short 320px phone`, async ({ page }) => {
       await page.setViewportSize({ width: 320, height: 568 });

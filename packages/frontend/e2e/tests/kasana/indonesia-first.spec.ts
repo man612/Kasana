@@ -126,6 +126,11 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       // the viewport when the bottom sheet is open on a short 320px phone.
       await page.setViewportSize({ width: 320, height: 568 });
       await page.goto('/dashboard');
+      const mobileNav = page.getByRole('navigation', { name: 'Navigasi utama' });
+      await expect(mobileNav).toBeVisible();
+      for (const label of [/Dasbor|Dashboard/i, /Akun|Accounts/i, /Transaksi|Transactions/i, /Analitik|Analytics/i]) {
+        await expect(mobileNav.getByRole('link', { name: label })).toBeVisible();
+      }
       const mobileNewTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();
       await expect(mobileNewTransaction).toBeVisible();
       await mobileNewTransaction.click();
