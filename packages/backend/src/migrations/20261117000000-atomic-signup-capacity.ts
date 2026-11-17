@@ -31,150 +31,15 @@ module.exports = {
           IF target_scope = 'self-host' THEN
             SELECT COUNT(*) INTO result_count FROM ba_user;
           ELSIF target_scope = 'hosted' THEN
-            -- Historic normalized identities are retained after deletion.
-            -- Count any *additional live accounts* sharing one normalized
-            -- identity too: Gmail dot/+ aliases must not create limitless
-            -- physical accounts under a cap of N.
+            -- Historic normalized identities remain counted after deletion.
+            -- Multiple live accounts with one normalized hash still consume
+            -- multiple physical slots, preventing Gmail alias cap bypass.
             WITH live_hashes AS (
               SELECT encode(sha256(convert_to(
                 CASE
                   WHEN split_part(lower(btrim(email)), '@', 2) IN ('gmail.com', 'googlemail.com')
-                  THEN replace(regexp_replace(split_part(lower(btrim(email)), '@', 1), '\\+.*
-          ELSE
-            RAISE EXCEPTION 'Invalid signup capacity scope' USING ERRCODE = '23514';
-          END IF;
-          RETURN result_count;
-        END;
-        $$;`,
-        { transaction: t },
-      );
-
-      await queryInterface.sequelize.query(
-        `CREATE FUNCTION lajur_enforce_signup_capacity()
-        RETURNS trigger LANGUAGE plpgsql VOLATILE AS $$
-        DECLARE cap BIGINT;
-        DECLARE admission_scope TEXT;
-        DECLARE counted BIGINT;
-        BEGIN
-          -- All competing INSERT transactions serialize on this one row.
-          SELECT "maxSignups", "scope" INTO cap, admission_scope
-          FROM "SignupCapacity" WHERE id = 1 FOR UPDATE;
-          IF NOT FOUND THEN
-            RAISE EXCEPTION 'SIGNUP_CAPACITY_POLICY_MISSING' USING ERRCODE = '23514';
-          END IF;
-          IF cap IS NULL THEN RETURN NULL; END IF;
-
-          -- A VOLATILE query after waiting for the row lock reads completed
-          -- prior insert transactions under PostgreSQL READ COMMITTED.
-          SELECT lajur_signup_capacity_count(admission_scope) INTO counted;
-          IF counted > cap THEN
-            RAISE EXCEPTION 'SIGNUP_CAPACITY_EXCEEDED' USING ERRCODE = '23514';
-          END IF;
-          RETURN NULL;
-        END;
-        $$;
-        CREATE TRIGGER lajur_auth_signup_capacity_guard
-        AFTER INSERT ON ba_user
-        FOR EACH STATEMENT EXECUTE FUNCTION lajur_enforce_signup_capacity();`,
-        { transaction: t },
-      );
-      await t.commit();
-    } catch (error) {
-      await t.rollback();
-      throw error;
-    }
-  },
-
-  down: async (queryInterface: QueryInterface): Promise<void> => {
-    const t: Transaction = await queryInterface.sequelize.transaction();
-    try {
-      await queryInterface.sequelize.query(
-        'DROP TRIGGER IF EXISTS lajur_auth_signup_capacity_guard ON ba_user',
-        { transaction: t },
-      );
-      await queryInterface.sequelize.query('DROP FUNCTION IF EXISTS lajur_enforce_signup_capacity()', {
-        transaction: t,
-      });
-      await queryInterface.sequelize.query('DROP FUNCTION IF EXISTS lajur_signup_capacity_count(TEXT)', {
-        transaction: t,
-      });
-      await queryInterface.sequelize.query('DROP TABLE IF EXISTS "SignupCapacity"', { transaction: t });
-      await t.commit();
-    } catch (error) {
-      await t.rollback();
-      throw error;
-    }
-  },
-};
-, ''), '.', '') || '@gmail.com'
-                  ELSE regexp_replace(split_part(lower(btrim(email)), '@', 1), '\\+.*
-          ELSE
-            RAISE EXCEPTION 'Invalid signup capacity scope' USING ERRCODE = '23514';
-          END IF;
-          RETURN result_count;
-        END;
-        $$;`,
-        { transaction: t },
-      );
-
-      await queryInterface.sequelize.query(
-        `CREATE FUNCTION lajur_enforce_signup_capacity()
-        RETURNS trigger LANGUAGE plpgsql VOLATILE AS $$
-        DECLARE cap BIGINT;
-        DECLARE admission_scope TEXT;
-        DECLARE counted BIGINT;
-        BEGIN
-          -- All competing INSERT transactions serialize on this one row.
-          SELECT "maxSignups", "scope" INTO cap, admission_scope
-          FROM "SignupCapacity" WHERE id = 1 FOR UPDATE;
-          IF NOT FOUND THEN
-            RAISE EXCEPTION 'SIGNUP_CAPACITY_POLICY_MISSING' USING ERRCODE = '23514';
-          END IF;
-          IF cap IS NULL THEN RETURN NULL; END IF;
-
-          -- A VOLATILE query after waiting for the row lock reads completed
-          -- prior insert transactions under PostgreSQL READ COMMITTED.
-          SELECT lajur_signup_capacity_count(admission_scope) INTO counted;
-          IF counted > cap THEN
-            RAISE EXCEPTION 'SIGNUP_CAPACITY_EXCEEDED' USING ERRCODE = '23514';
-          END IF;
-          RETURN NULL;
-        END;
-        $$;
-        CREATE TRIGGER lajur_auth_signup_capacity_guard
-        AFTER INSERT ON ba_user
-        FOR EACH STATEMENT EXECUTE FUNCTION lajur_enforce_signup_capacity();`,
-        { transaction: t },
-      );
-      await t.commit();
-    } catch (error) {
-      await t.rollback();
-      throw error;
-    }
-  },
-
-  down: async (queryInterface: QueryInterface): Promise<void> => {
-    const t: Transaction = await queryInterface.sequelize.transaction();
-    try {
-      await queryInterface.sequelize.query(
-        'DROP TRIGGER IF EXISTS lajur_auth_signup_capacity_guard ON ba_user',
-        { transaction: t },
-      );
-      await queryInterface.sequelize.query('DROP FUNCTION IF EXISTS lajur_enforce_signup_capacity()', {
-        transaction: t,
-      });
-      await queryInterface.sequelize.query('DROP FUNCTION IF EXISTS lajur_signup_capacity_count(TEXT)', {
-        transaction: t,
-      });
-      await queryInterface.sequelize.query('DROP TABLE IF EXISTS "SignupCapacity"', { transaction: t });
-      await t.commit();
-    } catch (error) {
-      await t.rollback();
-      throw error;
-    }
-  },
-};
-, '') || '@' || split_part(lower(btrim(email)), '@', 2)
+                  THEN replace(regexp_replace(split_part(lower(btrim(email)), '@', 1), '\\+.*$', ''), '.', '') || '@gmail.com'
+                  ELSE regexp_replace(split_part(lower(btrim(email)), '@', 1), '\\+.*$', '') || '@' || split_part(lower(btrim(email)), '@', 2)
                 END, 'UTF8')), 'hex') AS email_hash
               FROM ba_user WHERE email IS NOT NULL
             ), identities AS (
@@ -182,8 +47,7 @@ module.exports = {
               UNION
               SELECT email_hash FROM live_hashes
             )
-            SELECT
-              (SELECT COUNT(*) FROM identities)
+            SELECT (SELECT COUNT(*) FROM identities)
               + (SELECT COUNT(*) - COUNT(DISTINCT email_hash) FROM live_hashes)
             INTO result_count;
           ELSE
