@@ -75,7 +75,7 @@
         <div class="flex items-center justify-between gap-4">
           <span class="text-sm">{{ $t('settings.appearance.interactionSound.toggle') }}</span>
           <div class="flex shrink-0 items-center gap-2">
-            <Button variant="outline" size="sm" @click="previewInteractionSound">
+            <Button data-interaction-sound-preview variant="outline" size="sm" @click="previewInteractionSound">
               {{ $t('settings.appearance.interactionSound.preview') }}
             </Button>
             <Switch
