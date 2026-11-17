@@ -54,7 +54,7 @@ export const getAttachmentFileController = createController(attachmentParams, as
   res.setHeader('Content-Length', String(attachment.size));
   res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(attachment.filename)}`);
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('Cache-Control', 'private, max-age=3600');
+  res.setHeader('Cache-Control', 'private, no-store');
   // Commits the headers, so the controller factory sees `res.headersSent` and leaves
   // the streamed body alone even if the source stream dies mid-transfer.
   res.flushHeaders();
