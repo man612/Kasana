@@ -182,7 +182,8 @@ describe('Nightly balance revalue sweep', () => {
     // for a 200,000 IDR expense (old rate 0.00022), while corrected market
     // valuation is AED 45.00 (rate 0.000225). The nightly sweep must change
     // derived Balances, NOT silently rewrite past transaction refAmount.
-    const pastDay = subDays(new Date(), 10);
+    // Avoid the immutable 10-days-ago FX seed retained between Jest suites.
+    const pastDay = subDays(new Date(), 37);
     const today = new Date();
     const seededDates = [pastDay, today];
 
