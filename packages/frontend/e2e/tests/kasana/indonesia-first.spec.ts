@@ -125,11 +125,23 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(mobileAmountMetrics.height, '320px money input should have a full touch target').toBeGreaterThanOrEqual(43);
       const mobileSave = mobileForm.getByRole('button', { name: /Buat transaksi|Create transaction/i });
       await expect(mobileSave).toBeVisible();
+      // Vaul animates the bottom sheet into the viewport. A nonzero box and
+      // toBeVisible() do NOT imply the entrance animation has settled.
+      // Poll the actual bounding rectangle; keep this test red if the footer
+      // remains clipped after the transition has had time to complete.
+      await expect
+        .poll(
+          async () => {
+            const bounds = await mobileSave.boundingBox();
+            return bounds ? bounds.y + bounds.height : Number.POSITIVE_INFINITY;
+          },
+          { message: '320px mobile Save must fully enter the 568px viewport', timeout: 8_000 },
+        )
+        .toBeLessThanOrEqual(570);
       const mobileSaveBox = await mobileSave.boundingBox();
       expect(mobileSaveBox).not.toBeNull();
       expect(mobileSaveBox!.x, '320px mobile save button left').toBeGreaterThanOrEqual(-2);
       expect(mobileSaveBox!.x + mobileSaveBox!.width, '320px mobile save button right').toBeLessThanOrEqual(322);
-      expect(mobileSaveBox!.y + mobileSaveBox!.height, '320px mobile save button bottom').toBeLessThanOrEqual(570);
       await page.keyboard.press('Escape');
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto('/dashboard');
