@@ -190,6 +190,9 @@
         "createButton": "Buat",
         "editButton": "Sunting",
         "duplicateButton": "Duplikat",
+        "duplicateConfirmAction": "Duplikat",
+        "duplicateConfirmTitle": "Buat salinan transaksi?",
+        "duplicateConfirmDescription": "Form transaksi baru akan terisi dari transaksi ini. Tidak ada transaksi yang dibuat sampai Anda menekan Buat.",
         "createMore": {
           "label": "Buat lagi",
           "createdToast": "Transaksi berhasil dibuat"
@@ -316,9 +319,9 @@
         "externalUrlCopied": "Tautan disalin.",
         "externalUrlClipboardFailed": "Clipboard tidak bisa diakses. Coba salin atau tempel manual.",
         "requiredSubmitHelp": "Masih ada kolom wajib yang belum diisi. Klik Buat untuk menampilkan petunjuk pada kolom tersebut.",
-        "discardAction": "Buang perubahan",
+        "discardAction": "Buang",
         "discardTitle": "Tutup tanpa menyimpan?",
-        "discardDetails": "Isian transaksi yang sudah diubah akan hilang. Pilih Tetap Mengedit jika ingin melanjutkan, atau Buang Perubahan untuk menutup tanpa menyimpan."
+        "discardDetails": "Perubahan yang belum disimpan akan hilang."
       },
       "refundRecordsList": {
         "filtersDialogTitle": "Pilih filter",

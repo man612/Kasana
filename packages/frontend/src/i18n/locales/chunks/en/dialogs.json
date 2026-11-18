@@ -190,6 +190,9 @@
         "createButton": "Create",
         "editButton": "Edit",
         "duplicateButton": "Duplicate",
+        "duplicateConfirmAction": "Duplicate",
+        "duplicateConfirmTitle": "Create a copy of this transaction?",
+        "duplicateConfirmDescription": "A new transaction form will be prefilled. Nothing is saved until you select Create.",
         "createMore": {
           "label": "Create more",
           "createdToast": "Transaction created"

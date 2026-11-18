@@ -1628,6 +1628,7 @@ const isDuplicateVisible = computed(
     }),
 );
 
+const isDuplicateConfirmOpen = ref(false);
 const duplicate = () => {
   if (isFormFieldsDisabled.value) return;
   const prefill = formToDuplicatePrefill({ form: form.value, now: new Date() });
@@ -1643,7 +1644,7 @@ useEventListener(document, 'keydown', (event: KeyboardEvent) => {
     event.code === 'KeyD' && (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey;
   if (!isDuplicateHotkey || isFormCreation.value) return;
   event.preventDefault();
-  if (isDuplicateVisible.value) duplicate();
+  if (isDuplicateVisible.value) isDuplicateConfirmOpen.value = true;
 });
 
 const onKeydown = (event: KeyboardEvent) => {
@@ -1678,7 +1679,7 @@ const trackedFormFingerprint = () =>
     legs: form.value.paymentLegs ?? null,
     pendingAttachments: pendingAttachments.value.map((file) => file.name + ':' + file.size),
   });
-let initialFormFingerprint = '';
+const initialFormFingerprint = ref('');
 // The account/category prefill can finish after mount (especially for shared accounts).
 // Take the baseline only once the initial data has arrived; otherwise merely opening
 // an untouched form can incorrectly show a discard-changes warning.
@@ -1687,13 +1688,16 @@ watch(
   async (ready) => {
     if (!ready) return;
     await nextTick();
-    initialFormFingerprint = trackedFormFingerprint();
+    initialFormFingerprint.value = trackedFormFingerprint();
   },
   { immediate: true },
 );
+const isEditUnchanged = computed(
+  () => !isFormCreation.value && Boolean(initialFormFingerprint.value) && trackedFormFingerprint() === initialFormFingerprint.value,
+);
 defineExpose({
   focusAmount: () => (isAmountFieldDisabled.value ? targetAmountFieldRef.value : editableAmountFieldRef.value)?.focus(),
-  hasUnsavedChanges: () => Boolean(initialFormFingerprint) && trackedFormFingerprint() !== initialFormFingerprint,
+  hasUnsavedChanges: () => Boolean(initialFormFingerprint.value) && trackedFormFingerprint() !== initialFormFingerprint.value,
 });
 
 onUnmounted(() => {
@@ -1714,7 +1718,7 @@ onUnmounted(() => {
           :disabled="isFormFieldsDisabled || !isEditableAsManual"
           :label="$t('dialogs.manageTransaction.form.datetimeLabel')"
           :error-message="timeErrorMessage"
-          :hide-input-time="isMobileView"
+          :hide-input-time="false"
           show-weekday
           :calendar-options="{
             maxDate: form.isPlanned ? undefined : new Date(),
@@ -1776,6 +1780,8 @@ onUnmounted(() => {
       <FormRow>
         <TextareaField
           v-model="form.note"
+          :rows="1"
+          :max-rows="3"
           :placeholder="$t('dialogs.manageTransaction.form.notePlaceholder')"
           :disabled="isFormFieldsDisabled"
           :label="$t('dialogs.manageTransaction.form.noteLabel')"
@@ -2589,6 +2595,14 @@ onUnmounted(() => {
         <template #description>{{ $t('dialogs.manageTransaction.form.deleteConfirmDescription') }}</template>
       </ResponsiveAlertDialog>
       <ResponsiveAlertDialog
+        v-model:open="isDuplicateConfirmOpen"
+        :confirm-label="$t('dialogs.manageTransaction.form.duplicateConfirmAction')"
+        @confirm="duplicate"
+      >
+        <template #title>{{ $t('dialogs.manageTransaction.form.duplicateConfirmTitle') }}</template>
+        <template #description>{{ $t('dialogs.manageTransaction.form.duplicateConfirmDescription') }}</template>
+      </ResponsiveAlertDialog>
+      <ResponsiveAlertDialog
         v-model:open="confirmDisableMultiAccountOpen"
         :confirm-label="$t('dialogs.manageTransaction.form.paymentLegs.disableConfirmAction')"
         confirm-variant="destructive"
@@ -2621,7 +2635,7 @@ onUnmounted(() => {
             :size="isMobileView ? 'icon' : 'default'"
             :aria-label="$t('dialogs.manageTransaction.form.duplicateButton')"
             :disabled="isFormFieldsDisabled"
-            @click="duplicate"
+            @click="isDuplicateConfirmOpen = true"
           >
             <CopyIcon class="size-4" />
             <template v-if="!isMobileView">
@@ -2657,9 +2671,9 @@ onUnmounted(() => {
               ? $t('dialogs.manageTransaction.form.createAriaLabel')
               : $t('dialogs.manageTransaction.form.editAriaLabel')
           "
-          :disabled="isFormFieldsDisabled || isSubmitBlocked"
+          :disabled="isFormFieldsDisabled || isSubmitBlocked || isEditUnchanged"
           :aria-disabled="hasRequiredMissing ? 'true' : undefined"
-          :class="hasRequiredMissing && 'opacity-55 saturate-40 hover:opacity-80'"
+           :class="(hasRequiredMissing || isEditUnchanged) && 'opacity-55 saturate-40 hover:opacity-80'"
           :title="hasRequiredMissing ? $t('dialogs.manageTransaction.form.requiredSubmitHelp') : undefined"
           @click="submit()"
         >
