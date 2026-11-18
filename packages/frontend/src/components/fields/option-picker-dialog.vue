@@ -88,7 +88,10 @@ const pick = (value: string) => {
         blur-overlay
         class="grid max-h-[min(85dvh,700px)] w-[calc(100vw-2rem)] max-w-lg grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-2xl p-0 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 motion-reduce:animate-none"
       >
-        <div class="border-border border-b px-4 py-4 pr-14">
+        <div class="border-border relative border-b px-4 py-4 pr-14">
+          <div v-if="$slots['header-action']" class="absolute top-3 right-12 z-10">
+            <slot name="header-action" />
+          </div>
           <Dialog.DialogTitle class="text-base font-semibold">{{ label }}</Dialog.DialogTitle>
           <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs">
             {{ placeholder ?? label }}
