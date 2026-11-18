@@ -308,6 +308,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(mobileSaveBox!.x, '320px mobile save button left').toBeGreaterThanOrEqual(-2);
       expect(mobileSaveBox!.x + mobileSaveBox!.width, '320px mobile save button right').toBeLessThanOrEqual(322);
 
+      // Saving a template from the current transaction requires real input;
+      // choosing an account alone does not enable that action.
+      await primaryAmount.fill('1234');
       // On a short mobile viewport, templates must use a centered dialog with
       // reachable bottom actions, not a clipped nested bottom sheet.
       await mobileForm.getByRole('button', { name: /^Templat|^Template/i }).first().click();
