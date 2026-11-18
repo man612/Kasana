@@ -354,7 +354,7 @@ import { useI18n } from 'vue-i18n';
 
 import {
   type ColumnDefinition,
-  type TABLE_COLUMN,
+  TABLE_COLUMN,
   type TableSorting,
   clampColumnWidth,
   fitColumnWidths,
@@ -518,7 +518,7 @@ const renderedColumns = computed(() =>
       resizing.value?.id === column.id ? { ...column, widthPx: resizing.value.widthPx, isResized: true } : column;
     // Readability wins over squeezing more columns into 320px: scroll the
     // table itself, including on 200%-text mobile devices.
-    return isMobileMode.value && AMOUNT_COLUMNS.has(effective.id)
+    return props.isMobileMode && AMOUNT_COLUMNS.has(effective.id)
       ? { ...effective, widthPx: Math.max(192, effective.widthPx) }
       : effective;
   }),
