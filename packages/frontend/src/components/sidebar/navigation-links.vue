@@ -23,6 +23,7 @@ const bottomNavItem =
   'lajur-bottom-nav-item relative flex min-h-14 flex-col justify-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-medium leading-tight transition-[background-color,color,transform] duration-220 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-[0.95] motion-reduce:transition-none';
 const navItemActive = 'lajur-bottom-nav-active bg-primary/10 text-foreground';
 const navIconBase = 'size-4 shrink-0';
+const bottomNavIconMotion = 'size-5 transition-transform duration-250 ease-out motion-reduce:transition-none';
 const navIconActive = 'text-primary-text';
 
 const { isAccountsOpen, isTransactionsOpen, isPlannedOpen } = useSidebarNavCollapse();
@@ -62,7 +63,7 @@ watch(
       :class="[bottomNav ? bottomNavItem : navItemBase + ' justify-start', isActive && navItemActive]"
       size="default"
     >
-      <LayoutDashboardIcon :class="[navIconBase, bottomNav && 'size-5', isActive && navIconActive]" />
+      <LayoutDashboardIcon :class="[navIconBase, bottomNav && bottomNavIconMotion, bottomNav && (isActive ? '-translate-y-0.5 scale-110' : 'translate-y-0 scale-100'), isActive && navIconActive]" />
       <span :class="bottomNav && 'text-[11px] leading-tight'"> {{ $t('navigation.dashboard') }} </span>
     </ui-button>
   </router-link>
@@ -70,7 +71,7 @@ watch(
   <template v-if="bottomNav">
     <router-link v-slot="{ isActive }" :to="{ name: ROUTES_NAMES.accounts }">
       <ui-button variant="ghost" as="span" :class="[bottomNavItem, (isActive || isAccountsRoute) && navItemActive]" size="default">
-        <LayersIcon :class="[navIconBase, bottomNav && 'size-5', (isActive || isAccountsRoute) && navIconActive]" />
+        <LayersIcon :class="[navIconBase, bottomNav && bottomNavIconMotion, (isActive || isAccountsRoute) ? '-translate-y-0.5 scale-110' : 'translate-y-0 scale-100', (isActive || isAccountsRoute) && navIconActive]" />
         <span class="text-[11px] leading-tight"> {{ $t('navigation.accounts') }} </span>
       </ui-button>
     </router-link>
@@ -126,7 +127,7 @@ watch(
   <template v-if="bottomNav">
     <router-link v-slot="{ isActive }" :to="{ name: ROUTES_NAMES.transactions }">
       <ui-button variant="ghost" as="span" :class="[bottomNavItem, (isActive || isTransactionsRoute) && navItemActive]" size="default">
-        <CreditCardIcon :class="[navIconBase, bottomNav && 'size-5', (isActive || isTransactionsRoute) && navIconActive]" />
+        <CreditCardIcon :class="[navIconBase, bottomNav && bottomNavIconMotion, (isActive || isTransactionsRoute) ? '-translate-y-0.5 scale-110' : 'translate-y-0 scale-100', (isActive || isTransactionsRoute) && navIconActive]" />
         <span class="text-[11px] leading-tight"> {{ $t('navigation.transactions') }} </span>
       </ui-button>
     </router-link>
@@ -212,7 +213,7 @@ watch(
       :class="[bottomNav ? bottomNavItem : navItemBase + ' justify-start', isActive && navItemActive]"
       size="default"
     >
-      <ChartColumnIcon :class="[navIconBase, bottomNav && 'size-5', isActive && navIconActive]" />
+      <ChartColumnIcon :class="[navIconBase, bottomNav && bottomNavIconMotion, bottomNav && (isActive ? '-translate-y-0.5 scale-110' : 'translate-y-0 scale-100'), isActive && navIconActive]" />
       <span :class="bottomNav && 'text-[11px] leading-tight'"> {{ $t('navigation.analytics') }} </span>
     </ui-button>
   </router-link>

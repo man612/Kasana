@@ -1,16 +1,16 @@
 <template>
-  <WidgetWrapper :is-fetching="isWidgetDataFetching" class="min-h-80">
+  <WidgetWrapper :is-fetching="isWidgetDataFetching" class="min-h-0 sm:min-h-80">
     <template #title>
       <div class="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
         <span>{{ $t('dashboard.widgets.balanceTrend.title') }}</span>
         <!-- Mobile: visible segmented choices avoid a tall select + floating menu.
              Additional sections scroll horizontally without changing the chart. -->
-        <div class="-mx-1 flex min-w-0 max-w-full gap-1 overflow-x-auto px-1 pb-0.5 sm:hidden" role="group" :aria-label="$t('dashboard.widgets.balanceTrend.title')">
+        <div class="flex w-full min-w-0 gap-1 overflow-hidden pb-0.5 sm:hidden" role="group" :aria-label="$t('dashboard.widgets.balanceTrend.title')">
           <button
             v-for="option in balanceTypeOptions"
             :key="option.value"
             type="button"
-            class="min-h-9 shrink-0 rounded-lg px-3 text-xs font-medium transition-[background-color,color,transform] duration-180 active:scale-[0.97] motion-reduce:transition-none"
+            class="min-h-9 min-w-0 flex-1 truncate rounded-lg px-1.5 text-xs font-medium transition-[background-color,color,transform] duration-180 active:scale-[0.97] motion-reduce:transition-none"
             :class="selectedBalanceType.value === option.value ? 'bg-primary text-primary-foreground' : 'bg-muted/60 text-muted-foreground hover:text-foreground'"
             :aria-pressed="selectedBalanceType.value === option.value"
             :disabled="isWidgetDataFetching"
@@ -42,7 +42,7 @@
     </template>
     <template v-else>
       <!-- Stats row - two columns with space between -->
-      <div class="max-xs:px-2 mb-3 flex flex-wrap items-start justify-between gap-3 sm:mb-4 sm:gap-4">
+      <div class="max-xs:px-1 mb-2 flex flex-wrap items-start justify-between gap-2 sm:mb-4 sm:gap-4">
         <!-- Left: Primary value -->
         <div>
           <div class="text-xl font-bold tracking-tight tabular-nums sm:text-2xl">
@@ -54,7 +54,7 @@
         </div>
 
         <!-- Right: Comparison -->
-        <div class="flex min-w-0 flex-1 flex-col items-end gap-1 max-sm:basis-full">
+        <div class="flex min-w-0 flex-[1_1_9rem] flex-col items-end gap-1">
           <div class="flex w-full items-center gap-1.5">
             <FitAmount
               v-if="balancesDiffAbsolute !== null"
@@ -102,7 +102,7 @@
       </i18n-t>
 
       <Transition name="chart-fade" mode="out-in">
-        <div :key="chartKey" ref="containerRef" data-no-nav-swipe class="max-xs:px-2 relative min-h-44 w-full flex-1">
+        <div :key="chartKey" ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative min-h-32 w-full flex-1 sm:min-h-44">
           <svg
             ref="svgRef"
             class="h-full w-full"
