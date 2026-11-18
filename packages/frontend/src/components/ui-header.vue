@@ -119,11 +119,11 @@
             >
               <p class="font-semibold">{{ $t('header.moreActionsHelpTitle') }}</p>
               <p class="text-muted-foreground">{{ $t('header.moreActionsHelpIntro') }}</p>
-              <div class="space-y-1">
+              <div class="border-border bg-muted/25 space-y-1 rounded-lg border px-3 py-2.5">
                 <p class="font-semibold">{{ $t('header.importData') }}</p>
                 <p class="text-muted-foreground">{{ $t('header.moreActionsHelpImport') }}</p>
               </div>
-              <div class="space-y-1">
+              <div class="border-border bg-muted/25 space-y-1 rounded-lg border px-3 py-2.5">
                 <p class="font-semibold">{{ $t('header.attachInvoice') }}</p>
                 <p class="text-muted-foreground">{{ $t('header.moreActionsHelpInvoice') }}</p>
               </div>
