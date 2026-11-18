@@ -523,7 +523,7 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
 
     <!-- Manage transaction dialog -->
     <UseDialogTemplate>
-      <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" />
+      <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" @request-close="closeDialog" />
     </UseDialogTemplate>
 
     <template v-if="isSinglePanel">

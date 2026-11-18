@@ -70,7 +70,7 @@ import {
   XIcon,
 } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { DialogClose, DialogTitle } from 'reka-ui';
+import { DialogTitle } from 'reka-ui';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
@@ -168,6 +168,8 @@ const oppositeTransaction = computed(() => props.oppositeTransaction);
 
 const emit = defineEmits<{
   'close-modal': [];
+  /** A user-initiated close must pass through the host's unsaved-changes guard. */
+  'request-close': [];
   created: [result: { transaction: TransactionModel | undefined; attachmentsFailed: boolean }];
   'update:createMore': [value: boolean];
   /** Saved and staying open: the host remounts this content with `prefill` for the next entry. */
@@ -176,6 +178,7 @@ const emit = defineEmits<{
 const closeModal = () => {
   emit('close-modal');
 };
+const requestCloseModal = () => emit('request-close');
 
 const isPortfolioLinkedView = computed(
   () => !!props.transaction && props.transaction.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio,
@@ -2141,18 +2144,22 @@ onUnmounted(() => {
         </template>
       </div>
 
-      <DialogClose as-child>
-        <Button
-          v-if="isMobileView"
-          variant="ghost"
-          size="icon"
-          class="shrink-0"
-          :aria-label="$t('dialogs.manageTransaction.form.closeButton')"
-        >
-          <XIcon class="size-5" />
-        </Button>
-        <Button v-else variant="ghost"> {{ $t('dialogs.manageTransaction.form.closeButton') }} </Button>
-      </DialogClose>
+      <!-- Explicit close works in both Reka Dialog and Vaul Drawer. A DialogClose
+           inside a Vaul drawer may not resolve the correct Reka root context. -->
+      <Button
+        v-if="isMobileView"
+        type="button"
+        variant="ghost"
+        size="icon"
+        class="shrink-0"
+        :aria-label="$t('dialogs.manageTransaction.form.closeButton')"
+        @click="requestCloseModal"
+      >
+        <XIcon class="size-5" />
+      </Button>
+      <Button v-else type="button" variant="ghost" @click="requestCloseModal">
+        {{ $t('dialogs.manageTransaction.form.closeButton') }}
+      </Button>
     </div>
     <div data-vaul-no-drag class="lajur-transaction-scroll min-h-0 flex-1 overflow-y-auto md:overflow-hidden">
       <div class="relative grid grid-cols-1 md:h-full md:min-h-0 md:grid-cols-[450px_minmax(0,1fr)]">

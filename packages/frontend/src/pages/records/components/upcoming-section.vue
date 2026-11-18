@@ -349,7 +349,7 @@ function confirmDeletePlan() {
     <SubscriptionMarkPaidDialog ref="markPaidDialogRef" />
 
     <TransactionDetailsModal v-model:open="isEditDialogOpen" :mobile="isMobile">
-      <ManageTransactionDialogContent :transaction="editedPlan" @close-modal="isEditDialogOpen = false" />
+      <ManageTransactionDialogContent :transaction="editedPlan" @close-modal="isEditDialogOpen = false" @request-close="isEditDialogOpen = false" />
     </TransactionDetailsModal>
 
     <ResponsiveAlertDialog

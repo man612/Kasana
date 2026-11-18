@@ -73,6 +73,7 @@ const startNextEntry = async ({ prefill }: { prefill: TransactionPrefill }) => {
       v-model:create-more="isCreateMore"
       :prefill="contentPrefill"
       @close-modal="isOpen = false"
+      @request-close="requestOpen(false)"
       @keep-open="startNextEntry"
     />
   </DefineContent>

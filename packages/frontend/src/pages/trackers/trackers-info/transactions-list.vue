@@ -339,7 +339,7 @@ const handleUnlink = () =>
     </div>
 
     <TransactionDetailsModal v-model:open="isDialogVisible" :mobile="isMobile" :is-compact="isCompactDialog">
-      <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" />
+      <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" @request-close="closeDialog" />
     </TransactionDetailsModal>
     <LoanPaymentDialog
       v-if="loanDialogProps.loanAccount"
