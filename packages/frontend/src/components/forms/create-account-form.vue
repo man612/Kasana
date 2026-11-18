@@ -188,7 +188,7 @@ const submit = async () => {
 
 <template>
   <form :id="props.formId" class="@container/create-account grid gap-4" @submit.prevent="submit">
-    <div class="flex items-end gap-2.5">
+    <div class="flex items-center gap-2.5">
       <div class="min-w-0 flex-1">
         <input-field
           v-model="form.name"

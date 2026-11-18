@@ -39,14 +39,16 @@
     <template v-else>
       <DashboardGrid ref="gridRef" class="max-md:mb-4" :current-period="currentPeriod" />
 
-      <!-- Mobile: sticky "Done/Cancel" bar at bottom during edit mode -->
-      <DashboardEditToolbar
-        v-if="gridRef?.isEditMode"
-        class="bg-background/90 sticky bottom-0 z-(--z-navbar) -mx-6 -mb-8 justify-center border-t px-6 py-3 backdrop-blur-sm md:hidden"
-        :is-edit-mode="true"
-        @save="gridRef?.saveLayout()"
-        @cancel="gridRef?.cancelEdit()"
-      />
+      <!-- Preserve the widget tree while the mobile editing action bar fades/slides. -->
+      <Transition name="kasana-section">
+        <DashboardEditToolbar
+          v-if="gridRef?.isEditMode"
+          class="bg-background/90 sticky bottom-0 z-(--z-navbar) -mx-6 -mb-8 justify-center border-t px-6 py-3 backdrop-blur-sm md:hidden"
+          :is-edit-mode="true"
+          @save="gridRef?.saveLayout()"
+          @cancel="gridRef?.cancelEdit()"
+        />
+      </Transition>
     </template>
   </PageWrapper>
 </template>

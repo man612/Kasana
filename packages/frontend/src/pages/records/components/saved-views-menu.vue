@@ -18,7 +18,10 @@
         <span v-if="isModified" class="bg-warning size-1.5 shrink-0 rounded-full">
           <span class="sr-only">{{ $t('transactions.savedViews.modified') }}</span>
         </span>
-        <ChevronDownIcon class="size-4 shrink-0" />
+        <ChevronDownIcon
+          class="size-4 shrink-0 transition-transform duration-200 ease-out motion-reduce:transition-none"
+          :class="isOpen && 'rotate-180'"
+        />
       </Button>
     </PopoverTrigger>
 

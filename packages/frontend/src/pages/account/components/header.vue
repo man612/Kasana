@@ -246,7 +246,7 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
           class="focus-visible:ring-ring flex min-h-11 cursor-pointer flex-wrap items-end justify-start gap-x-2 rounded-md transition-opacity hover:opacity-75 focus-visible:ring-2 focus-visible:outline-none"
           @click="adjustmentDialogOpen = true"
         >
-          <span class="text-amount text-3xl">
+          <span class="text-amount text-3xl" :class="displayBalance < 0 && 'text-destructive-text'">
             {{ formatUIAmount(displayBalance, { currency: account.currencyCode }) }}
           </span>
           <span v-if="baseCurrency && account.currencyCode !== baseCurrency.currencyCode" class="text-white opacity-50">
@@ -255,7 +255,7 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
           </span>
         </button>
         <div v-else class="flex flex-wrap items-end justify-start gap-2">
-          <span class="text-amount text-3xl">
+          <span class="text-amount text-3xl" :class="displayBalance < 0 && 'text-destructive-text'">
             {{ formatUIAmount(displayBalance, { currency: account.currencyCode }) }}
           </span>
           <span v-if="baseCurrency && account.currencyCode !== baseCurrency.currencyCode" class="text-white opacity-50">

@@ -17,7 +17,7 @@
               :aria-required="required"
             >
               <template v-if="selected">
-                <AccountOptionRow :account="selected" :label="getLabel(selected)" variant="trigger" />
+                <AccountOptionRow :account="selected" :label="getLabel(selected)" variant="trigger" class="min-w-0 flex-1" />
               </template>
               <span v-else class="text-muted-foreground min-w-0 flex-1 truncate">{{ placeholder || label }}</span>
               <ChevronDownIcon class="text-muted-foreground size-4 shrink-0 transition-transform duration-200" :class="mobileOpen && 'rotate-180'" />
@@ -96,7 +96,7 @@
     @update:model-value="emit('update:modelValue', $event)"
   >
     <template #trigger="{ item, label: rowLabel }">
-      <span class="flex w-full min-w-0 items-center gap-2">
+      <span class="flex min-w-0 flex-1 items-center gap-2">
         <AccountOptionRow :account="item" :label="rowLabel" variant="trigger" />
         <StarIcon
           v-if="!item._isOutOfWallet && item.id === defaultAccountId"

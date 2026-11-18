@@ -101,7 +101,7 @@ const matchingMemberPermissionLabel = computed(() => {
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen">
+  <ResponsiveDialog v-model:open="isOpen" custom-close>
     <template #title>{{ $t('dialogs.shareAccountDialog.title') }}</template>
     <template #description>
       {{ $t('dialogs.shareAccountDialog.description', { name: account.name }) }}

@@ -21,6 +21,7 @@ const { addNotification } = useNotificationCenter();
 const createLoanMutation = useCreateLoan();
 
 const isOpen = ref(false);
+const loanFormRef = ref<InstanceType<typeof LoanForm> | null>(null);
 
 const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
   try {
@@ -45,14 +46,14 @@ const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
     <template #title>{{ $t('loans.dialog.createTitle') }}</template>
     <template #description>{{ $t('loans.dialog.createDescription') }}</template>
 
-    <LoanForm :form-id="FORM_ID" :submitting="createLoanMutation.isPending.value" @submit="handleSubmit" />
+    <LoanForm ref="loanFormRef" :form-id="FORM_ID" :submitting="createLoanMutation.isPending.value" @submit="handleSubmit" />
 
     <template #footer="{ close }">
       <UiButton type="button" variant="outline" class="min-h-11 min-w-0 flex-1" @click="close()">
         {{ $t('common.actions.cancel') }}
       </UiButton>
       <div class="flex min-w-0 flex-1 justify-end">
-        <UiButton type="submit" :form="FORM_ID" class="min-h-11 w-full min-w-0" :disabled="createLoanMutation.isPending.value">
+        <UiButton type="submit" :form="FORM_ID" class="min-h-11 w-full min-w-0"  :disabled="loanFormRef?.isSubmitDisabled !== false">
           {{
             createLoanMutation.isPending.value ? $t('forms.loan.submitButtonLoading') : $t('forms.loan.submitButton')
           }}

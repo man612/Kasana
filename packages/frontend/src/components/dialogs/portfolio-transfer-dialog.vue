@@ -52,7 +52,7 @@ const dialogDescription = computed(() =>
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen">
+  <ResponsiveDialog v-model:open="isOpen" show-drawer-close-with-footer>
     <template #trigger>
       <slot />
     </template>

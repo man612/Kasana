@@ -19,7 +19,7 @@ const emitsAsProps = useEmitAsProps(emits);
   <AlertDialogPortal>
     <AlertDialogOverlay
       :class="[
-        'bg-background/80 fixed inset-0 z-(--z-dialog) backdrop-blur-xs',
+        'bg-background/80 fixed inset-0 z-(--z-over-dialog) backdrop-blur-xs',
         'data-[state=open]:animate-in data-[state=open]:fade-in-0',
         'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
       ]"
@@ -31,7 +31,7 @@ const emitsAsProps = useEmitAsProps(emits);
       v-bind="{ ...props, ...emitsAsProps }"
       :class="
         cn(
-          'border-border bg-dialog data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed top-[50%] left-[50%] z-(--z-dialog) grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] grid-cols-1 gap-4 border p-6 shadow-lg duration-200 rounded-2xl md:w-full',
+          'border-border bg-dialog data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed top-[50%] left-[50%] z-(--z-over-dialog) grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] grid-cols-1 gap-4 border p-6 shadow-lg duration-200 rounded-2xl md:w-full',
           props.class,
         )
       "

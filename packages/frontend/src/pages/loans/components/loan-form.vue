@@ -198,7 +198,7 @@ const notInFuture = helpers.withMessage(
 
 const startDateNotInFuture = helpers.withMessage(
   () => t('forms.loan.errors.startDateInFuture'),
-  (v: unknown) => !(v instanceof Date) || !isValid(v) || format(v, 'yyyy-MM-dd') <= format(new Date(), 'yyyy-MM-dd'),
+  (v: unknown) => v instanceof Date && isValid(v) && format(v, 'yyyy-MM-dd') <= format(new Date(), 'yyyy-MM-dd'),
 );
 
 const validationRules = {
@@ -241,10 +241,26 @@ const validationRules = {
   accountNumber: { maxLength: maxLength(100) },
 };
 
-const { isFormValid, getFieldErrorMessage, touchField } = useFormValidation({ form }, { form: validationRules });
+const { isFormValid, isFormValidQuiet, getFieldErrorMessage, touchField } = useFormValidation(
+  { form },
+  { form: validationRules },
+);
+
+// Date objects need stable scalar values for change detection. A restored
+// edit form must remain unsavable until its effective data differs.
+const serializeForm = () => JSON.stringify({
+  ...form,
+  startDate: form.startDate instanceof Date ? form.startDate.getTime() : form.startDate,
+});
+const initialFormSnapshot = serializeForm();
+const hasChanges = computed(() => serializeForm() !== initialFormSnapshot);
+const isSubmitDisabled = computed(
+  () => props.submitting || !isFormValidQuiet() || (isEdit.value && !hasChanges.value),
+);
+defineExpose({ isSubmitDisabled, hasChanges });
 
 const submit = () => {
-  if (props.submitting) return;
+  if (props.submitting || (isEdit.value && !hasChanges.value)) return;
   if (!isFormValid()) return;
 
   const commonFields = {

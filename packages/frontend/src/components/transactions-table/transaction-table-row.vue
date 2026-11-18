@@ -230,7 +230,7 @@
       </span>
     </td>
 
-    <td :class="['sticky right-0 z-1 border-b px-1 text-center', isPlannedRow ? 'bg-muted' : 'bg-card']">
+    <td :class="['border-b px-1 text-center sm:sticky sm:right-0 sm:z-1', isPlannedRow ? 'bg-muted' : 'bg-card']">
       <DesktopOnlyTooltip :content="$t('transactions.inlineEdit.openDetails')">
         <Button
           variant="ghost"

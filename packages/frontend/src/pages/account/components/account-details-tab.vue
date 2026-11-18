@@ -12,7 +12,7 @@ import { useAccountCurrencyCode } from '@/composable/use-account-currency-code';
 import { formatUIAmount } from '@/js/helpers';
 import { useCurrenciesStore } from '@/stores';
 import { ACCOUNT_TYPES, AccountModel, isDedicatedFlowAccountCategory } from '@bt/shared/types';
-import { ChevronDownIcon, ChevronUpIcon } from '@lucide/vue';
+import { ChevronDownIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed, defineAsyncComponent, ref, toRef } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -104,19 +104,16 @@ const isInitialBalanceEditable = computed(
           <div class="flex items-center justify-between gap-2">
             <span>{{ t('pages.account.details.currency') }}</span>
 
-            <div class="flex gap-2">
-              {{ currencyCode }}
-
+            <div class="flex min-w-0 items-center gap-1.5 text-right">
+              <span>{{ currencyCode }}</span>
               <span v-if="currenciesMap[account.currencyCode]?.isDefaultCurrency">
                 {{ t('pages.account.details.main') }}
               </span>
-
-              <template v-if="isOpen">
-                <ChevronUpIcon />
-              </template>
-              <template v-else>
-                <ChevronDownIcon />
-              </template>
+              <ChevronDownIcon
+                class="text-muted-foreground size-4 shrink-0 transition-transform duration-200 ease-out motion-reduce:transition-none"
+                :class="isOpen && 'rotate-180'"
+                aria-hidden="true"
+              />
             </div>
           </div>
         </Collapsible.CollapsibleTrigger>

@@ -77,11 +77,11 @@ const handleEdit = () => {
 
 <template>
   <div
-    class="bg-card/95 @container/bulk-toolbar sticky top-0 z-10 flex flex-wrap items-center justify-between gap-1 border-b px-3 py-3 backdrop-blur sm:gap-4"
+    class="bg-card/95 @container/bulk-toolbar sticky top-0 z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b px-3 py-3 backdrop-blur sm:gap-4"
   >
-    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-1.5 sm:gap-x-4">
+    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 sm:gap-x-4">
       <!-- Select all / deselect all checkbox -->
-      <div class="flex cursor-pointer items-center gap-2 whitespace-nowrap" @click="handleSelectAllClick">
+      <div class="flex min-h-9 cursor-pointer items-center gap-2 whitespace-nowrap" @click="handleSelectAllClick">
         <Checkbox :model-value="isAllSelected" />
         <span class="text-sm @sm/bulk-toolbar:hidden">{{ t('transactions.bulkEdit.selectAllShort') }}</span>
         <span class="hidden text-sm @sm/bulk-toolbar:inline">{{ t('transactions.bulkEdit.selectAll') }}</span>
@@ -104,6 +104,8 @@ const handleEdit = () => {
         size="sm"
         :disabled="isLoading"
         :aria-label="t('transactions.bulkEdit.selectBeforeAction')"
+        data-selection-required="true"
+        class="cursor-help opacity-55"
         @click="explainSelection"
       >
         <ListOrderedIcon class="mr-1.5 size-4" />
@@ -135,15 +137,6 @@ const handleEdit = () => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Transition name="lajur-info-reveal">
-        <div
-          v-if="showSelectionHint && !hasSelection"
-          role="status"
-          class="bg-popover text-popover-foreground absolute top-full right-0 z-20 mt-2 w-48 rounded-lg border p-3 text-xs shadow-lg"
-        >
-          {{ t('transactions.bulkEdit.selectBeforeAction') }}
-        </div>
-      </Transition>
     </div>
 
     <!-- Desktop: full action buttons -->
@@ -190,5 +183,14 @@ const handleEdit = () => {
         </span>
       </DesktopOnlyTooltip>
     </div>
+    <Transition name="kasana-feedback">
+      <p
+        v-if="showSelectionHint && !hasSelection"
+        role="status"
+        class="text-muted-foreground order-last basis-full overflow-hidden px-1 text-xs leading-relaxed"
+      >
+        {{ t('transactions.bulkEdit.selectBeforeAction') }}
+      </p>
+    </Transition>
   </div>
 </template>

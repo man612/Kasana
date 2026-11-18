@@ -16,7 +16,7 @@
     >
       <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
       <template #iconTrailing>
-        <Popover.Popover>
+        <Popover.Popover v-model:open="isPresetOpen">
           <Popover.PopoverTrigger as-child>
             <Button
               type="button"
@@ -26,7 +26,7 @@
               :aria-label="$t('forms.loan.termPresetsAriaLabel')"
               class="text-muted-foreground hover:text-foreground -mr-2 size-6"
             >
-              <ChevronDownIcon class="size-4" />
+              <ChevronDownIcon class="size-4 transition-transform duration-200 ease-out motion-reduce:transition-none" :class="isPresetOpen && 'rotate-180'" />
             </Button>
           </Popover.PopoverTrigger>
           <Popover.PopoverContent align="end" class="max-h-[min(24rem,calc(100dvh-3rem))] w-52 overflow-y-auto p-1">
@@ -63,7 +63,7 @@ import InputField from '@/components/fields/input-field.vue';
 import { Button } from '@/components/lib/ui/button';
 import * as Popover from '@/components/lib/ui/popover';
 import { ChevronDownIcon } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { formatLoanDuration } from '../utils/loan-duration';
 import { useI18n } from 'vue-i18n';
 
@@ -81,6 +81,7 @@ const emit = defineEmits<{
 }>();
 
 const { locale } = useI18n();
+const isPresetOpen = ref(false);
 
 // Year-aligned terms are what users actually quote ("a 30-year mortgage"); the months value beside
 // each one is a sanity-check.
@@ -98,5 +99,6 @@ const presets = computed(() => [
 
 const selectPreset = (months: number) => {
   emit('update:modelValue', months);
+  isPresetOpen.value = false;
 };
 </script>

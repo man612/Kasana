@@ -308,6 +308,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(mobileSaveBox!.x, '320px mobile save button left').toBeGreaterThanOrEqual(-2);
       expect(mobileSaveBox!.x + mobileSaveBox!.width, '320px mobile save button right').toBeLessThanOrEqual(322);
 
+      // Saving a template from the current transaction requires real input;
+      // choosing an account alone does not enable that action.
+      await primaryAmount.fill('1234');
       // On a short mobile viewport, templates must use a centered dialog with
       // reachable bottom actions, not a clipped nested bottom sheet.
       await mobileForm.getByRole('button', { name: /^Templat|^Template/i }).first().click();
@@ -317,9 +320,27 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(templateBounds).not.toBeNull();
       expect(templateBounds!.y).toBeGreaterThanOrEqual(-2);
       expect(templateBounds!.y + templateBounds!.height).toBeLessThanOrEqual(570);
-      await expect(templateDialog.getByRole('button', { name: /Simpan templat|Save .*template/i })).toBeVisible();
-      await page.keyboard.press('Escape');
-      await expect(templateDialog).toBeHidden();
+      // The first popup is a TEMPLATE LIST, not the template editor. Open
+      // "Save template" to inspect the second, editable popup and its Cancel.
+      await templateDialog.getByRole('button', { name: /Simpan templat|Save .*template/i }).click();
+      const templateEditor = page.getByRole('dialog', { name: /^(Simpan sebagai templat|Save as template)$/i });
+      await expect(templateEditor).toBeVisible();
+      // UX25 #2: discard confirmation must layer above the editor. Cancelling
+      // the warning preserves the user's unsaved input; confirming discards it.
+      const cancelTemplate = templateEditor.getByRole('button', { name: /^(Batal|Cancel)$/i });
+      const templateName = templateEditor.getByPlaceholder('mis. Kopi pagi');
+      await expect(cancelTemplate).toBeVisible();
+      await templateName.fill('Templat tidak boleh tersimpan');
+      await cancelTemplate.click();
+      const discardTemplate = page.getByRole('alertdialog').last();
+      await expect(discardTemplate).toBeVisible();
+      await expect(discardTemplate.getByText(/Tutup tanpa menyimpan|Close without saving/i)).toBeVisible();
+      await discardTemplate.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
+      await expect(templateEditor).toBeVisible();
+      await expect(templateName).toHaveValue('Templat tidak boleh tersimpan');
+      await cancelTemplate.click();
+      await discardTemplate.getByRole('button', { name: /Buang|Discard/i }).click();
+      await expect(templateEditor).toBeHidden();
       await expect(mobileForm).toBeVisible();
       // A tap on the transaction sheet close button must work on Vaul too.
       // With unsaved input it must ask before discarding, not silently close.
@@ -327,6 +348,11 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await mobileForm.getByRole('button', { name: /Tutup|Close/i }).click();
       const discardConfirmation = page.getByRole('alertdialog');
       await expect(discardConfirmation.getByText(/Tutup tanpa menyimpan|Close without saving/i)).toBeVisible();
+      // Cancel must retain the form and must not dispatch the destructive action.
+      await discardConfirmation.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
+      await expect(mobileForm).toBeVisible();
+      await mobileForm.getByRole('button', { name: /Tutup|Close/i }).click();
+      await expect(discardConfirmation).toBeVisible();
       await discardConfirmation.getByRole('button', { name: /Buang|Discard/i }).click();
       await expect(mobileForm).toBeHidden();
       await page.setViewportSize({ width: 390, height: 844 });
@@ -538,6 +564,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await multipleAccounts.click();
       await expect(multipleAccounts).toHaveCount(1);
       await expect(multipleAccounts).toHaveAttribute('aria-pressed', 'false');
+      // UX25 #3: removing the payment legs must not autofocus the original
+      // amount input, which would reopen a phone's virtual keyboard.
+      await expect(txDialog.locator('input[inputmode="decimal"]').first()).not.toBeFocused();
 
       // Selecting and unselecting a tag are reversible form edits, not deletion:
       // neither should launch a destructive confirmation.

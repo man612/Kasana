@@ -309,6 +309,26 @@ describe('BalanceAdjustmentDialog', () => {
   });
 
   describe('mode switching', () => {
+    it('preserves each mode\'s amount and shared note across repeated switches', async () => {
+      const w = mountDialog();
+      await amountInput(w).setValue('5000');
+      await noteInput(w).setValue('Penyesuaian manual');
+      await switchToAdjustBy(w);
+      expect((amountInput(w).element as HTMLInputElement).value).toBe('');
+      expect((noteInput(w).element as HTMLInputElement).value).toBe('Penyesuaian manual');
+
+      await amountInput(w).setValue('250');
+      const setTo = w.findAll('button').find((b) => b.text().trim() === t('pages.account.balanceAdjustmentDialog.setToBalance'))!;
+      await setTo.trigger('click');
+      await nextTick();
+      expect((amountInput(w).element as HTMLInputElement).value).toBe('5.000');
+      expect((noteInput(w).element as HTMLInputElement).value).toBe('Penyesuaian manual');
+
+      await switchToAdjustBy(w);
+      expect((amountInput(w).element as HTMLInputElement).value).toBe('250');
+      expect(mockMutateAsync).not.toHaveBeenCalled();
+    });
+
     it('resets amount when switching modes', async () => {
       const w = mountDialog();
       await amountInput(w).setValue('5000');
