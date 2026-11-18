@@ -250,11 +250,11 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await expect(mobileForm.getByTestId('date-field-time-input')).toHaveCount(0);
 
       // Closing account selection without picking must clear its search filter.
-      const accountPickerTrigger = mobileForm.getByTestId('account-select-trigger').first();
+      const accountPickerTrigger = mobileForm.locator('[data-test="account-select-trigger"]').first();
       await expect(accountPickerTrigger).toBeVisible();
       await accountPickerTrigger.click();
-      const accountPicker = page.getByTestId('account-select-dialog');
-      const accountPickerSearch = accountPicker.getByTestId('account-select-search');
+      const accountPicker = page.locator('[data-test="account-select-dialog"]').last();
+      const accountPickerSearch = accountPicker.locator('[data-test="account-select-search"]');
       await expect(accountPicker).toBeVisible();
       await accountPickerSearch.fill('this-account-does-not-exist');
       // Use the explicit close control: Escape on type=search can clear the
