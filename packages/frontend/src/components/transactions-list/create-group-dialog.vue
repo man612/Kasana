@@ -81,7 +81,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <ResponsiveDialog :open="open" dialog-content-class="sm:max-w-md" @update:open="emit('update:open', $event)">
+  <ResponsiveDialog :open="open" custom-close dialog-content-class="sm:max-w-md" @update:open="emit('update:open', $event)">
     <template #title>{{ t('transactions.transactionGroups.createGroupDialog.title') }}</template>
     <template #description>
       {{ t('transactions.transactionGroups.createGroupDialog.descriptionPrefix') }} {{ transactionIds.length }} selected
