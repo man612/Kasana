@@ -29,6 +29,16 @@ test.describe('Lajur UX-25 mobile regression gates', () => {
       await loginViaUI({ page, email: creds.email, password: creds.password });
       await page.goto('/transactions');
 
+      // UX11 #7: an empty Trash explains itself without navigating to an
+      // empty destination or disabling the tap target entirely.
+      const more = page.getByRole('button', { name: 'Lainnya', exact: true });
+      await more.click();
+      const trash = page.getByRole('menuitem', { name: /Tempat Sampah|Trash/i });
+      await expect(trash).toHaveAttribute('data-trash-empty', 'true', { timeout: 15_000 });
+      await trash.click();
+      await expect(page).toHaveURL(/\/transactions(?:\?.*)?$/);
+      await expect(page.getByText('Tempat Sampah masih kosong')).toBeVisible();
+
       const views = page.getByRole('button', { name: /^Tampilan$/i });
       await expect(views).toBeVisible({ timeout: 20_000 });
       const viewsChevron = views.locator('svg').last();
@@ -56,6 +66,12 @@ test.describe('Lajur UX-25 mobile regression gates', () => {
       await expect(tableRoot.getByRole('table')).toBeVisible();
       const viewport = tableRoot.locator('[data-reka-scroll-area-viewport]').first();
       await expect(viewport).toBeVisible();
+      // UX11 #5: vertical movement belongs to the table, not to the filters
+      // and view toolbar above it.
+      const moreTopBefore = await more.evaluate((node) => node.getBoundingClientRect().top);
+      await viewport.evaluate((node) => { node.scrollTop = node.scrollHeight; });
+      const moreTopAfter = await more.evaluate((node) => node.getBoundingClientRect().top);
+      expect(Math.abs(moreTopAfter - moreTopBefore)).toBeLessThanOrEqual(1);
 
       // At 320px the amount columns need their full width, not ellipsis.
       // Scroll only inside the table; never shift the whole document.
