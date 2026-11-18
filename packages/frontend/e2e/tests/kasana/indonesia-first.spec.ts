@@ -253,13 +253,13 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       const payeePickerTrigger = mobileForm.locator('[data-test="payee-select-field"]').first();
       await expect(payeePickerTrigger).toBeVisible();
       await payeePickerTrigger.click();
-      const payeePicker = page.getByRole('dialog').filter({ has: page.getByRole('searchbox') }).last();
+      const payeePicker = page.getByRole('dialog').filter({ has: page.locator('[data-test="payee-select-search"]') }).last();
       await expect(payeePicker).toBeVisible();
-      await payeePicker.getByRole('searchbox').fill('recipient-that-does-not-exist');
+      await payeePicker.locator('[data-test="payee-select-search"]').fill('recipient-that-does-not-exist');
       await page.keyboard.press('Escape');
       await expect(payeePicker).toBeHidden();
       await payeePickerTrigger.click();
-      await expect(payeePicker.getByRole('searchbox')).toHaveValue('');
+      await expect(payeePicker.locator('[data-test="payee-select-search"]')).toHaveValue('');
       await page.keyboard.press('Escape');
 
       const mobileAmountMetrics = await primaryAmount.evaluate((element) => ({
