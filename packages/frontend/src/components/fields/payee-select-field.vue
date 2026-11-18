@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { PlusIcon, SearchIcon, XIcon } from '@lucide/vue';
 import { useDebounce } from '@vueuse/core';
 import { ListboxContent, ListboxFilter, ListboxItem, ListboxRoot } from 'reka-ui';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { PayeeModel, TransactionLocation } from '@bt/shared/types';
 import PayeeFormDialog from '@/pages/settings/subpages/payees/components/payee-form-dialog.vue';
@@ -77,6 +77,11 @@ const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 
 const isOpen = ref(false);
 const inputValue = ref('');
+// Closing via Escape, outside tap, or the close X should never preserve stale
+// recipient search terms when this dialog is reopened.
+watch(isOpen, (open) => {
+  if (!open) inputValue.value = '';
+});
 const debouncedRaw = useDebounce(inputValue, DEBOUNCE_MS);
 const debouncedQuery = computed(() => debouncedRaw.value.trim());
 
@@ -168,11 +173,14 @@ function clearSelection() {
 const createDialogOpen = ref(false);
 const createDialogInitialName = ref('');
 
-function openCreateDialog() {
-  createDialogInitialName.value = debouncedQuery.value;
-  createDialogOpen.value = true;
-  // Close the popover so it doesn't stack under the dialog.
+async function openCreateDialog() {
+  // Use what was actually typed, including text still waiting for debounce.
+  createDialogInitialName.value = inputValue.value.trim();
+  // Close the selector before opening the independent form, otherwise
+  // dismiss/focus restoration can interfere with the newly opened dialog.
   isOpen.value = false;
+  await nextTick();
+  createDialogOpen.value = true;
 }
 
 function handlePayeeCreated(payee: PayeeModel) {
