@@ -88,7 +88,7 @@ describe('Accounts controller', () => {
     });
     it('enforces the IDR beta rule for new accounts without changing existing foreign-currency accounts', async () => {
       const legacyAccount = await helpers.createAccount({
-        payload: helpers.buildAccountPayload({ currencyCode: 'UAH' }),
+        payload: helpers.buildAccountPayload({ currencyCode: 'JPY' }),
         raw: true,
       });
       const originalFlag = process.env.LAJUR_IDR_ONLY_BETA;
@@ -96,7 +96,7 @@ describe('Accounts controller', () => {
 
       try {
         const rejected = await helpers.createAccount({
-          payload: helpers.buildAccountPayload({ currencyCode: 'UAH' }),
+          payload: helpers.buildAccountPayload({ currencyCode: 'JPY' }),
           raw: false,
         });
         expect(rejected.statusCode).toBe(ERROR_CODES.ValidationError);
@@ -108,7 +108,7 @@ describe('Accounts controller', () => {
         expect(idrAccount.currencyCode).toBe('IDR');
 
         const stillReadable = await helpers.getAccount({ id: legacyAccount.id, raw: true });
-        expect(stillReadable.currencyCode).toBe('UAH');
+        expect(stillReadable.currencyCode).toBe('JPY');
       } finally {
         if (originalFlag === undefined) delete process.env.LAJUR_IDR_ONLY_BETA;
         else process.env.LAJUR_IDR_ONLY_BETA = originalFlag;
