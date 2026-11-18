@@ -52,7 +52,7 @@ watch(
 
   <!-- Explicit help action: a click dialog, shared with HintIcon. -->
   <template v-if="interaction === 'click'">
-    <ResponsiveDialog v-model:open="open" :dismissible="!disabled">
+    <ResponsiveDialog v-model:open="open" :dismissible="!disabled" mobile-presentation="center">
       <template #trigger>
         <slot />
       </template>

@@ -65,10 +65,22 @@ const pick = (value: string) => {
           class="border-input bg-input-background hover:bg-muted/60 focus-visible:ring-ring flex h-10 w-full min-w-0 items-center gap-2 rounded-md border px-3 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50 md:h-9"
           :class="errorMessage && 'border-destructive'"
         >
-          <component :is="selected.icon" v-if="selected?.icon" class="size-4 shrink-0" :class="selected.iconClass" />
-          <span class="min-w-0 flex-1 truncate" :class="!selected && 'text-muted-foreground'">
-            {{ selected?.label ?? placeholder ?? label }}
-          </span>
+          <Transition name="lajur-info-reveal" mode="out-in">
+            <span
+              :key="selected?.value ?? 'empty-option'"
+              class="flex min-w-0 flex-1 items-center gap-2"
+            >
+              <component
+                :is="selected.icon"
+                v-if="selected?.icon"
+                class="size-4 shrink-0"
+                :class="selected.iconClass"
+              />
+              <span class="min-w-0 flex-1 truncate" :class="!selected && 'text-muted-foreground'">
+                {{ selected?.label ?? placeholder ?? label }}
+              </span>
+            </span>
+          </Transition>
           <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" />
         </button>
       </Dialog.DialogTrigger>
