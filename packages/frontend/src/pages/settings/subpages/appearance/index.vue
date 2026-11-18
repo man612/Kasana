@@ -68,7 +68,7 @@
 
       <Separator />
 
-      <!-- Local, opt-in audio feedback (mobile only). Never played for keystrokes. -->
+      <!-- Local, opt-in audio feedback on phones and desktops. Never played for keystrokes. -->
       <div>
         <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.interactionSound.title') }}</h3>
         <p class="mb-4 text-sm leading-relaxed">{{ $t('settings.appearance.interactionSound.description') }}</p>
@@ -79,9 +79,9 @@
               {{ $t('settings.appearance.interactionSound.preview') }}
             </Button>
             <Switch
-            :model-value="mobileSoundEnabled"
+              :model-value="interactionSoundEnabled"
             :aria-label="$t('settings.appearance.interactionSound.toggle')"
-            @update:model-value="(v) => updateMobileSound(!!v)"
+            @update:model-value="(v) => updateInteractionSound(!!v)"
             />
           </div>
         </div>
@@ -244,9 +244,9 @@ import { useSupportButton } from '@/composable/use-support-button';
 import { CheckIcon, CoinsIcon, HeartIcon, LayersIcon, MonitorIcon, MoonStarIcon, SunIcon } from '@lucide/vue';
 import { ref, type Component } from 'vue';
 
-const mobileSoundEnabled = ref(getMobileInteractionSoundEnabled());
-const updateMobileSound = (enabled: boolean) => {
-  mobileSoundEnabled.value = enabled;
+const interactionSoundEnabled = ref(getMobileInteractionSoundEnabled());
+const updateInteractionSound = (enabled: boolean) => {
+  interactionSoundEnabled.value = enabled;
   setMobileInteractionSoundEnabled(enabled);
 };
 
