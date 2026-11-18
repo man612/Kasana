@@ -343,7 +343,10 @@
           "subscriptionPeriod": "Subscription payment due {name}",
           "unnamed": "Untitled"
         }
-      }
+      },
+      "emptyAll": "Empty all",
+      "emptyAllConfirmTitle": "Permanently empty Trash?",
+      "emptyAllConfirmDescription": "Permanently delete all {count} transactions in Trash? This cannot be undone."
     }
   },
   "records": {

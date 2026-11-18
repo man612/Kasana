@@ -178,7 +178,7 @@ const onSectionExpand = async ({ headerEl, wrapperEl }: { headerEl?: HTMLElement
               <PlusIcon :class="['size-3.5 transition-transform', isPopoverOpen && '-rotate-45']" />
             </Button>
           </Popover.PopoverTrigger>
-          <Popover.PopoverContent side="bottom" align="end">
+          <Popover.PopoverContent dim-backdrop side="bottom" align="end">
             <div class="grid gap-2">
               <CreateAccountDialog @created="isPopoverOpen = false">
                 <Button type="button" size="sm" variant="secondary">

@@ -27,6 +27,11 @@ const { t, locale } = useI18n();
 const tagsStore = useTagsStore();
 const { tags } = storeToRefs(tagsStore);
 const isOpen = ref(false);
+const tagHeadingRef = ref<HTMLElement | null>(null);
+const onPickerAutoFocus = (event: Event) => {
+  event.preventDefault();
+  tagHeadingRef.value?.focus({ preventScroll: true });
+};
 const query = ref('');
 const isCreatingSuggestion = ref(false);
 const suggestionError = ref('');
@@ -147,9 +152,10 @@ defineExpose({ open: openList });
     <Dialog.DialogContent
       blur-overlay
       data-testid="tag-picker-dialog"
+      @open-auto-focus="onPickerAutoFocus"
       class="max-h-[min(86dvh,660px)] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden p-0"
     >
-      <div class="border-border border-b px-4 py-4 pr-14">
+      <div ref="tagHeadingRef" tabindex="-1" class="border-border border-b px-4 py-4 pr-14 outline-none">
         <Dialog.DialogTitle class="text-base font-semibold">{{ t('fields.tagSelect.dialogTitle') }}</Dialog.DialogTitle>
         <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs">
           {{ t('fields.tagSelect.dialogHint') }}
@@ -159,7 +165,6 @@ defineExpose({ open: openList });
         <input
           v-model="query"
           type="search"
-          autofocus
           :placeholder="t('fields.tagSelect.searchPlaceholder')"
           class="border-input bg-input-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:ring-2 focus-visible:outline-none"
         />

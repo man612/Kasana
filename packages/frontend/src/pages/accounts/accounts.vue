@@ -29,7 +29,7 @@
                 :aria-label="$t('accounts.actionsMenu')"
                 :aria-expanded="isActionsMenuOpen"
               >
-                <EllipsisVerticalIcon class="size-4" />
+                <PlusIcon :class="['size-4 transition-transform duration-200 motion-reduce:transition-none', isActionsMenuOpen && 'rotate-45']" />
               </UiButton>
             </Popover.PopoverTrigger>
             <Popover.PopoverContent
@@ -246,7 +246,7 @@ import AddIntegrationDialog from '@/pages/accounts/integrations/components/add-i
 import { useAccountsStore } from '@/stores';
 import { ACCOUNT_CATEGORIES, ACCOUNT_STATUSES, AccountModel } from '@bt/shared/types';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
-import { CarIcon, ChevronDownIcon, EllipsisVerticalIcon, LandmarkIcon, LinkIcon, PlusIcon } from '@lucide/vue';
+import { CarIcon, ChevronDownIcon, LandmarkIcon, LinkIcon, PlusIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';

@@ -13,7 +13,7 @@
             :variant="triggerVariant"
             :aria-label="$t(titleKey)"
           >
-            <SettingsIcon :class="cn('size-4', triggerVariant === 'ghost' && 'text-muted-foreground')" />
+            <SettingsIcon :class="cn('size-4 transition-transform duration-300 motion-reduce:transition-none', isOpen && 'rotate-90', triggerVariant === 'ghost' && 'text-muted-foreground')" />
           </Button>
         </DesktopOnlyTooltip>
       </span>

@@ -186,7 +186,8 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   // Floating guide controls are *per-device* preferences; no finance data or
   // onboarding progress is written to localStorage.
   const triggerPosition = ref<QuickStartPosition | null>(readQuickStartPosition());
-  const hiddenUntil = ref(Number(readLocalSetting(HIDDEN_UNTIL_STORAGE_KEY) || 0) || 0);
+  const storedDeadline = Number(readLocalSetting(HIDDEN_UNTIL_STORAGE_KEY));
+  const hiddenUntil = ref(Number.isFinite(storedDeadline) && storedDeadline > Date.now() ? storedDeadline : 0);
   const visibilityTick = ref(0);
   // Date.now() is not reactive: schedule the exact deadline rather than
   // waiting for another unrelated store change or a page reload.
@@ -212,19 +213,23 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
   if (typeof window !== 'undefined') {
     // Background tabs may have timers throttled. Sync on returning to the app.
-    const onVisibilityChange = () => { if (!document.hidden) refreshHiddenDeadline(); };
+    // Re-read the original absolute expiry on resume, never restart the duration.
+    const hydrateHiddenDeadline = () => {
+      const persisted = Number(readLocalSetting(HIDDEN_UNTIL_STORAGE_KEY));
+      hiddenUntil.value = Number.isFinite(persisted) && persisted > Date.now() ? persisted : 0;
+      refreshHiddenDeadline();
+    };
+    const onVisibilityChange = () => { if (!document.hidden) hydrateHiddenDeadline(); };
     const onStorageChange = (event: StorageEvent) => {
-      if (event.key !== HIDDEN_UNTIL_STORAGE_KEY) return;
-      const next = Number(event.newValue ?? 0);
-      hiddenUntil.value = Number.isFinite(next) && next > 0 ? next : 0;
+      if (event.key === HIDDEN_UNTIL_STORAGE_KEY) hydrateHiddenDeadline();
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
-    window.addEventListener('focus', refreshHiddenDeadline);
+    window.addEventListener('focus', hydrateHiddenDeadline);
     window.addEventListener('storage', onStorageChange);
     onScopeDispose(() => {
       if (hiddenDeadlineTimer !== undefined) clearTimeout(hiddenDeadlineTimer);
       document.removeEventListener('visibilitychange', onVisibilityChange);
-      window.removeEventListener('focus', refreshHiddenDeadline);
+      window.removeEventListener('focus', hydrateHiddenDeadline);
       window.removeEventListener('storage', onStorageChange);
     });
   }

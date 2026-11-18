@@ -30,27 +30,18 @@
     </DefineTableSettings>
 
     <DefineTrashLink>
-      <Button variant="secondary" as-child>
-        <RouterLink :to="{ name: ROUTES_NAMES.transactionsTrash }">
-          <Trash2Icon class="size-4" />
-          {{ $t('navigation.trash') }}
-        </RouterLink>
+      <Button variant="secondary" :data-trash-empty="isTrashEmpty ? 'true' : undefined" :class="isTrashEmpty && 'opacity-55'" @click="openTrash">
+        <Trash2Icon class="size-4" />
+        {{ $t('navigation.trash') }}
       </Button>
     </DefineTrashLink>
 
     <div
       ref="pageContentRef"
       :class="[
-        'flex flex-col gap-4',
-        // The mobile table view uses min-h so the table can push past the
-        // viewport and the page becomes scrollable – lets the user swipe away the
-        // toolbar to gain a few extra rows of table. The list view instead scrolls
-        // internally via the virtualizer and needs a bounded height: an unbounded
-        // container leaves every virtual row mounted, so the infinite-scroll
-        // sentinel is permanently on screen and fetch-next-page loops to the end.
-        useUnboundedPageHeight
-          ? 'min-h-[calc(100dvh-var(--header-height)-32px)]'
-          : 'h-[calc(100dvh-var(--header-height)-32px)] min-h-0',
+        'flex h-[calc(100dvh-var(--header-height)-var(--bottom-navbar-height,0px)-32px)] min-h-0 flex-col gap-4 overflow-hidden',
+        // Keep the filter and selection controls above the independently scrolling
+        // list/table viewport, accounting for the measured mobile bottom bar.
       ]"
     >
       <!-- Mobile compact layout: filters behind a dialog button, user toggles
@@ -113,11 +104,9 @@
                   <Maximize2Icon class="size-4" />
                   {{ $t('transactions.table.fullscreen.enter') }}
                 </DropdownMenuItem>
-                <DropdownMenuItem as-child>
-                  <RouterLink :to="{ name: ROUTES_NAMES.transactionsTrash }">
-                    <Trash2Icon class="size-4" />
-                    {{ $t('navigation.trash') }}
-                  </RouterLink>
+                <DropdownMenuItem :data-trash-empty="isTrashEmpty ? 'true' : undefined" :class="isTrashEmpty && 'opacity-55'" @select="openTrash">
+                  <Trash2Icon class="size-4" />
+                  {{ $t('navigation.trash') }}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -130,7 +119,7 @@
                when any filter is active or the user has opted it out. -->
           <UpcomingSection v-if="showUpcomingSection" @toggle-hide="toggleHideUpcoming" />
 
-          <Card class="min-h-75 flex-1 overflow-hidden">
+          <Card class="min-h-0 flex-1 overflow-hidden" style="view-transition-name: lajur-transactions-content">
             <ScrollArea class="h-full" :scroll-area-id="SCROLL_AREA_IDS.transactionsPage">
               <!-- No top padding: the list's bulk toolbar is sticky top-0 and must sit flush
                    with the scroll viewport edge, otherwise rows peek through the gap -->
@@ -165,7 +154,7 @@
                   :variant="desktopView === 'list' ? 'secondary' : 'ghost'"
                   size="icon-sm"
                   :aria-label="$t('transactions.table.viewToggle.list')"
-                  @click="setDesktopView('list')"
+                  @click="setActiveView('list')"
                 >
                   <ListIcon class="size-4" />
                 </Button>
@@ -175,7 +164,7 @@
                   :variant="desktopView === 'table' ? 'secondary' : 'ghost'"
                   size="icon-sm"
                   :aria-label="$t('transactions.table.viewToggle.table')"
-                  @click="setDesktopView('table')"
+                  @click="setActiveView('table')"
                 >
                   <Table2Icon class="size-4" />
                 </Button>
@@ -206,7 +195,7 @@
                when any filter is active or the user has opted it out. -->
           <UpcomingSection v-if="showUpcomingSection" @toggle-hide="toggleHideUpcoming" />
 
-          <Card class="min-h-0 flex-1 overflow-hidden">
+          <Card class="min-h-0 flex-1 overflow-hidden" style="view-transition-name: lajur-transactions-content">
             <ScrollArea class="h-full" :scroll-area-id="SCROLL_AREA_IDS.transactionsPage">
               <div v-if="isFetched" class="px-3 pb-3">
                 <TransactionsList
@@ -241,7 +230,7 @@
                     :variant="desktopView === 'list' ? 'secondary' : 'ghost'"
                     size="icon-sm"
                     :aria-label="$t('transactions.table.viewToggle.list')"
-                    @click="setDesktopView('list')"
+                    @click="setActiveView('list')"
                   >
                     <ListIcon class="size-4" />
                   </Button>
@@ -251,7 +240,7 @@
                     :variant="desktopView === 'table' ? 'secondary' : 'ghost'"
                     size="icon-sm"
                     :aria-label="$t('transactions.table.viewToggle.table')"
-                    @click="setDesktopView('table')"
+                    @click="setActiveView('table')"
                   >
                     <Table2Icon class="size-4" />
                   </Button>
@@ -361,7 +350,7 @@
                page itself slightly taller than the viewport, so the user can
                swipe up to push the view toggle / filters bar off-screen and
                gain extra rows of table. -->
-          <Card v-show="showTableCard" :class="['overflow-hidden', tableCardSizingClass]">
+          <Card v-show="showTableCard" :class="['overflow-hidden', tableCardSizingClass]" style="view-transition-name: lajur-transactions-content">
             <TransactionsTable
               ref="tableRef"
               :transactions="transactionsPages?.pages.flat() ?? []"
@@ -421,8 +410,8 @@ import {
   Trash2Icon,
 } from '@lucide/vue';
 import { createReusableTemplate, useDebounceFn, useElementSize, useEventListener, useMediaQuery } from '@vueuse/core';
-import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
-import { RouterLink, useRoute, useRouter } from 'vue-router';
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 
 import type { TransactionsView } from '@/api/user-settings';
 
@@ -436,6 +425,9 @@ import { useTableColumns } from '@/components/transactions-table/use-table-colum
 import { useTransactionsView } from './components/use-transactions-view';
 import UpcomingSection from './components/upcoming-section.vue';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
+import { useTransactionsTrash } from '@/pages/transactions-trash/use-transactions-trash';
+import { useNotificationCenter } from '@/components/notification-center';
+import { useI18n } from 'vue-i18n';
 
 const sorting = ref<TableSorting>({ ...DEFAULT_SORTING });
 
@@ -474,6 +466,17 @@ const [DefineTableSettings, TableSettings] = createReusableTemplate<{ anchor?: H
 const [DefineTrashLink, TrashLink] = createReusableTemplate();
 
 const { data: userSettings, patch: patchSettings } = useUserSettings();
+const { data: trashEntries, isFetched: isTrashFetched, isError: isTrashError } = useTransactionsTrash();
+const isTrashEmpty = computed(() => isTrashFetched.value && !isTrashError.value && trashEntries.value?.length === 0);
+const { addWarningNotification } = useNotificationCenter();
+const { t } = useI18n();
+const openTrash = () => {
+  if (isTrashEmpty.value) {
+    addWarningNotification(t('transactions.trashPage.emptyTitle'));
+    return;
+  }
+  void router.push({ name: ROUTES_NAMES.transactionsTrash });
+};
 
 /**
  * The pinned Upcoming section is shown in every layout, only when no filter is
@@ -492,9 +495,27 @@ function toggleHideUpcoming() {
 // User's preferred view for the current screen-size class. Drives both the
 // active layout and which setting the toggle writes back to.
 const activeView = computed<TransactionsView>(() => (isMobileMode.value ? mobileView.value : desktopView.value));
+// Interpolate the named content-card bounds when switching layout;
+// non-supporting browsers and reduced-motion users get an immediate update.
+const animateLayoutChange = (update: () => void) => {
+  const start = (document as Document & {
+    startViewTransition?: (callback: () => Promise<void>) => unknown;
+  }).startViewTransition;
+  if (!start || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    update();
+    return;
+  }
+  start.call(document, async () => {
+    update();
+    await nextTick();
+  });
+};
 const setActiveView = (view: TransactionsView) => {
-  if (isMobileMode.value) setMobileView(view);
-  else setDesktopView(view);
+  if (activeView.value === view) return;
+  animateLayoutChange(() => {
+    if (isMobileMode.value) setMobileView(view);
+    else setDesktopView(view);
+  });
 };
 
 // Mobile compact layout = view toggle + filters dialog + list/table card.
@@ -535,12 +556,8 @@ const isFullscreenMode = ref(false);
 // `pointer: coarse` flags touch input – used to hide the "Esc" hint on tablets
 // where pressing Esc isn't an option.
 const isTouchPointer = useMediaQuery('(pointer: coarse)');
-const enterFullscreen = () => {
-  isFullscreenMode.value = true;
-};
-const exitFullscreen = () => {
-  isFullscreenMode.value = false;
-};
+const enterFullscreen = () => animateLayoutChange(() => { isFullscreenMode.value = true; });
+const exitFullscreen = () => animateLayoutChange(() => { isFullscreenMode.value = false; });
 // An open reka layer (dialog, popover, select) takes Escape first. This listener is registered before any layer's
 // window listener, so the layer is still open here. Tooltip layers use other data-state values and don't block.
 useEventListener('keydown', (event: KeyboardEvent) => {
@@ -558,19 +575,8 @@ useEventListener('keydown', (event: KeyboardEvent) => {
 // page's flex flow.
 const showTableCard = computed(() => isFullscreenMode.value || activeView.value === 'table');
 
-// Only the mobile table view wants the page to grow past the viewport (swipe-away
-// toolbar). Every other case – desktop, and the mobile list view whose
-// virtualizer scrolls internally – needs a bounded, viewport-height container.
-const useUnboundedPageHeight = computed(
-  () => isMobileMode.value && !isFullscreenMode.value && activeView.value === 'table',
-);
-
-// Mobile non-fullscreen: pin the card to viewport height so the page overflows
-// (swipe-away toolbar). Must be a definite `h-`, not `min-h-` + flex-1: the table's
-// `h-full` would resolve to auto and the virtualizer would mount every row.
-const tableCardSizingClass = computed(() =>
-  isFullscreenMode.value || !isMobileMode.value ? 'min-h-0 flex-1' : 'h-[calc(100dvh-var(--header-height))] shrink-0',
-);
+// Virtualized table height is allocated by the bounded flex parent.
+const tableCardSizingClass = computed(() => 'min-h-0 flex-1');
 
 // Filters apply automatically – no Apply button. One debounce window covers
 // both typed inputs (coalesces keystrokes) and discrete controls (near-instant).
