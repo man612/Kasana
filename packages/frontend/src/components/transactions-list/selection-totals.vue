@@ -73,12 +73,12 @@ const breakdown = computed<Figure[]>(() => [
 <template>
   <Popover>
     <PopoverTrigger as-child>
-      <Button variant="outline" size="sm" class="gap-2">
+      <Button variant="outline" size="sm" class="max-w-full min-w-0 gap-1 px-2 sm:gap-2 sm:px-3">
         <span class="text-muted-foreground flex items-center gap-1">
           <component :is="matching ? ListIcon : SquareCheckBigIcon" class="size-3.5" />
           <span class="text-sm tabular-nums">{{ selectedCount }}</span>
         </span>
-        <span :class="net.colorClass" class="text-sm tabular-nums">{{ formatBaseCurrency(net.value) }}</span>
+        <span :class="net.colorClass" class="min-w-0 truncate text-xs tabular-nums sm:text-sm">{{ formatBaseCurrency(net.value) }}</span>
         <ChevronDownIcon class="text-muted-foreground size-3.5" />
       </Button>
     </PopoverTrigger>

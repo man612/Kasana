@@ -19,7 +19,7 @@ import {
   ChevronDownIcon,
   Trash2Icon,
 } from '@lucide/vue';
-import { computed } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import SelectionTotals from './selection-totals.vue';
@@ -49,6 +49,14 @@ const emit = defineEmits<{
 }>();
 
 const hasSelection = computed(() => props.selectedCount > 0);
+const showSelectionHint = ref(false);
+let hintTimeout: ReturnType<typeof setTimeout> | undefined;
+const explainSelection = () => {
+  showSelectionHint.value = true;
+  if (hintTimeout) clearTimeout(hintTimeout);
+  hintTimeout = setTimeout(() => { showSelectionHint.value = false; }, 2500);
+};
+onUnmounted(() => { if (hintTimeout) clearTimeout(hintTimeout); });
 
 const handleSelectAllClick = () => {
   emit('select-all', !props.isAllSelected);
@@ -71,7 +79,7 @@ const handleEdit = () => {
   <div
     class="bg-card/95 @container/bulk-toolbar sticky top-0 z-10 flex flex-wrap items-center justify-between gap-1 border-b px-3 py-3 backdrop-blur sm:gap-4"
   >
-    <div class="flex flex-wrap items-center gap-x-1 gap-y-1.5 sm:gap-x-4">
+    <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-1.5 sm:gap-x-4">
       <!-- Select all / deselect all checkbox -->
       <div class="flex cursor-pointer items-center gap-2 whitespace-nowrap" @click="handleSelectAllClick">
         <Checkbox :model-value="isAllSelected" />
@@ -89,8 +97,19 @@ const handleEdit = () => {
     </div>
 
     <!-- Mobile: compact dropdown with all actions -->
-    <div class="sm:hidden">
-      <DropdownMenu>
+    <div class="relative shrink-0 sm:hidden">
+      <Button
+        v-if="!hasSelection"
+        variant="outline"
+        size="sm"
+        :disabled="isLoading"
+        :aria-label="t('transactions.bulkEdit.selectBeforeAction')"
+        @click="explainSelection"
+      >
+        <ListOrderedIcon class="mr-1.5 size-4" />
+        <ChevronDownIcon class="size-3.5" />
+      </Button>
+      <DropdownMenu v-else>
         <DropdownMenuTrigger as-child>
           <Button variant="outline" size="sm" :disabled="!hasSelection || isLoading">
             <ListOrderedIcon class="mr-1.5 size-4" />
@@ -116,6 +135,15 @@ const handleEdit = () => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <Transition name="lajur-info-reveal">
+        <div
+          v-if="showSelectionHint && !hasSelection"
+          role="status"
+          class="bg-popover text-popover-foreground absolute top-full right-0 z-20 mt-2 w-48 rounded-lg border p-3 text-xs shadow-lg"
+        >
+          {{ t('transactions.bulkEdit.selectBeforeAction') }}
+        </div>
+      </Transition>
     </div>
 
     <!-- Desktop: full action buttons -->

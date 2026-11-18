@@ -90,6 +90,7 @@
     "bulkEdit": {
       "selectAll": "Select all",
       "selectAllShort": "All",
+      "selectBeforeAction": "Select at least one transaction to use these actions.",
       "cancelSelection": "Cancel selection",
       "editButton": "Edit",
       "selectedCount": "{count} selected",

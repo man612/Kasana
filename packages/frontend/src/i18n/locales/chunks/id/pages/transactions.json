@@ -90,6 +90,7 @@
     "bulkEdit": {
       "selectAll": "Pilih semua",
       "selectAllShort": "Semua",
+      "selectBeforeAction": "Pilih transaksi dahulu untuk menggunakan tindakan ini.",
       "cancelSelection": "Batalkan pilihan",
       "editButton": "Sunting",
       "selectedCount": "{count} dipilih",
