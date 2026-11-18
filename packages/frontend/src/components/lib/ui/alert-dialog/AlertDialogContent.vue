@@ -9,7 +9,10 @@ import {
   useEmitAsProps,
 } from 'reka-ui';
 
-const props = defineProps<AlertDialogContentProps & { class?: string }>();
+const props = defineProps<AlertDialogContentProps & {
+  class?: string;
+  onBackdropClick?: () => void;
+}>();
 const emits = defineEmits<AlertDialogContentEmits>();
 
 const emitsAsProps = useEmitAsProps(emits);
@@ -18,6 +21,7 @@ const emitsAsProps = useEmitAsProps(emits);
 <template>
   <AlertDialogPortal>
     <AlertDialogOverlay
+      @click.stop.prevent="props.onBackdropClick?.()"
       :class="[
         'bg-background/80 fixed inset-0 z-(--z-over-dialog) backdrop-blur-xs',
         'data-[state=open]:animate-in data-[state=open]:fade-in-0',
