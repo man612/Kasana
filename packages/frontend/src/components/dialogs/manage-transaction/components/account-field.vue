@@ -182,7 +182,7 @@
       </input-field>
     </form-row>
   </template>
-  <ResponsiveDialog v-model:open="isOutOfWalletHelpOpen">
+  <ResponsiveDialog v-model:open="isOutOfWalletHelpOpen" mobile-presentation="center">
     <template #title>{{ $t('dialogs.manageTransaction.form.outOfWalletHelpTitle') }}</template>
     <template #description>{{ $t('dialogs.manageTransaction.form.outOfWalletHelpDescription') }}</template>
     <p class="text-muted-foreground px-1 pb-2 text-sm leading-relaxed">
