@@ -30,7 +30,7 @@ const onCreated = () => {
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen">
+  <ResponsiveDialog v-model:open="isOpen" custom-close>
     <template v-if="$slots.default" #trigger>
       <slot />
     </template>
@@ -39,13 +39,13 @@ const onCreated = () => {
 
     <CreateVehicleForm ref="formRef" :form-id="formId" :show-submit-button="false" @created="onCreated" />
     <template #footer="{ close }">
-      <UiButton type="button" variant="outline" class="min-h-11" @click="close()">
+      <UiButton type="button" variant="outline" class="min-h-11 min-w-0" @click="close()">
         {{ $t('common.actions.cancel') }}
       </UiButton>
       <UiButton
         type="submit"
         :form="formId"
-        class="ml-auto min-w-30"
+        class="min-h-11 min-w-0"
         :disabled="formRef?.isSubmitting || formRef?.isSubmitDisabled !== false"
       >
         {{

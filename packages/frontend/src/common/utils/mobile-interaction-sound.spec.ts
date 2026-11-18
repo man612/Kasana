@@ -63,11 +63,11 @@ describe('Optional desktop and Android click feedback', () => {
     document.body.innerHTML = '';
   });
 
-  it('stays silent until explicitly enabled', () => {
+  it('plays by default for a first-time user', () => {
     const button = document.createElement('button');
     document.body.append(button);
     button.click();
-    expect(startTone).not.toHaveBeenCalled();
+    expect(startTone).toHaveBeenCalledTimes(1);
   });
 
   it('plays once for a normal button on desktop', () => {
@@ -76,7 +76,15 @@ describe('Optional desktop and Android click feedback', () => {
     document.body.append(button);
     button.click();
     expect(startTone).toHaveBeenCalledTimes(1);
-    expect(setGainLevel).toHaveBeenCalledWith(0.04, 0);
+    expect(setGainLevel).toHaveBeenCalledWith(0.10, 0);
+  });
+
+  it('respects an explicit off preference', () => {
+    setMobileInteractionSoundEnabled(false);
+    const button = document.createElement('button');
+    document.body.append(button);
+    button.click();
+    expect(startTone).not.toHaveBeenCalled();
   });
 
   it('does not double-play the explicit Test sound action', () => {

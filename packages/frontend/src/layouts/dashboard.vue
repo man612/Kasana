@@ -115,7 +115,7 @@ const onDashboardTouchEnd = (event: TouchEvent) => {
   const dx = touch.clientX - start.x;
   const dy = touch.clientY - start.y;
   if (Math.abs(dx) <= 100 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
-  if (start.x <= 84 && dx > 0 && String(route.name ?? '') === ROUTES_NAMES.home) {
+  if (dx > 0 && String(route.name ?? '') === ROUTES_NAMES.home) {
     isMobileSheetOpen.value = true;
     return;
   }

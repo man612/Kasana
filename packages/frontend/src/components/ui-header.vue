@@ -27,6 +27,7 @@
             </Sheet.SheetTrigger>
             <Sheet.SheetContent
               side="left"
+              :style="sidebarDragStyle"
               :class="[
                 'xs:w-3/4 w-full overflow-y-auto px-0',
                 'data-[state=closed]:duration-200 data-[state=open]:duration-300',
@@ -38,6 +39,7 @@
               <div
                 class="h-full"
                 @touchstart.passive="onSidebarTouchStart"
+                @touchmove.passive="onSidebarTouchMove"
                 @touchend="onSidebarTouchEnd"
                 @touchcancel="clearSidebarTouch"
               >
@@ -117,11 +119,11 @@
             >
               <p class="font-semibold">{{ $t('header.moreActionsHelpTitle') }}</p>
               <p class="text-muted-foreground">{{ $t('header.moreActionsHelpIntro') }}</p>
-              <div class="space-y-1">
+              <div class="border-border bg-muted/25 space-y-1 rounded-lg border px-3 py-2.5">
                 <p class="font-semibold">{{ $t('header.importData') }}</p>
                 <p class="text-muted-foreground">{{ $t('header.moreActionsHelpImport') }}</p>
               </div>
-              <div class="space-y-1">
+              <div class="border-border bg-muted/25 space-y-1 rounded-lg border px-3 py-2.5">
                 <p class="font-semibold">{{ $t('header.attachInvoice') }}</p>
                 <p class="text-muted-foreground">{{ $t('header.moreActionsHelpInvoice') }}</p>
               </div>
@@ -195,11 +197,38 @@ const AttachInvoiceDialog = defineAsyncComponent(() => import('@/components/dial
 const userStore = useUserStore();
 const isAddMenuOpen = ref(false);
 let sidebarTouch: { x: number; y: number } | null = null;
-const clearSidebarTouch = () => { sidebarTouch = null; };
+const sidebarDragX = ref(0);
+const sidebarDragging = ref(false);
+const sidebarReturning = ref(false);
+let sidebarReturnTimeout: ReturnType<typeof setTimeout> | undefined;
+const sidebarDragStyle = computed(() => {
+  if (!sidebarDragging.value && !sidebarReturning.value) return undefined;
+  return {
+    transform: `translate3d(${sidebarDragX.value}px, 0, 0)`,
+    transition: sidebarDragging.value ? 'none' : 'transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+  };
+});
+const clearSidebarTouch = () => {
+  sidebarTouch = null;
+  sidebarDragX.value = 0;
+  sidebarDragging.value = false;
+  sidebarReturning.value = false;
+  if (sidebarReturnTimeout) clearTimeout(sidebarReturnTimeout);
+};
 const onSidebarTouchStart = (event: TouchEvent) => {
   if (!isMobileSheetOpen.value || event.touches.length !== 1) return;
   const touch = event.touches[0]!;
   sidebarTouch = { x: touch.clientX, y: touch.clientY };
+};
+const onSidebarTouchMove = (event: TouchEvent) => {
+  if (!sidebarTouch || event.touches.length !== 1) return;
+  const touch = event.touches[0]!;
+  const dx = touch.clientX - sidebarTouch.x;
+  const dy = touch.clientY - sidebarTouch.y;
+  if (dx >= -8 || Math.abs(dx) <= Math.abs(dy) * 1.3) return;
+  sidebarReturning.value = false;
+  sidebarDragging.value = true;
+  sidebarDragX.value = Math.max(-window.innerWidth, dx);
 };
 const onSidebarTouchEnd = (event: TouchEvent) => {
   if (!sidebarTouch || event.changedTouches.length !== 1) return;
@@ -208,8 +237,20 @@ const onSidebarTouchEnd = (event: TouchEvent) => {
   const touch = event.changedTouches[0]!;
   const dx = touch.clientX - start.x;
   const dy = touch.clientY - start.y;
-  if (dx < -85 && Math.abs(dx) > Math.abs(dy) * 1.5) isMobileSheetOpen.value = false;
+  if (dx < -85 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    isMobileSheetOpen.value = false;
+    clearSidebarTouch();
+    return;
+  }
+  if (sidebarDragging.value) {
+    sidebarDragging.value = false;
+    sidebarReturning.value = true;
+    sidebarDragX.value = 0;
+    if (sidebarReturnTimeout) clearTimeout(sidebarReturnTimeout);
+    sidebarReturnTimeout = setTimeout(() => { sidebarReturning.value = false; }, 220);
+  }
 };
+watch(isMobileSheetOpen, (open) => { if (!open) clearSidebarTouch(); });
 const isAttachInvoiceMounted = ref(false);
 const isAttachInvoiceOpen = ref(false);
 

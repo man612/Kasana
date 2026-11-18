@@ -4,7 +4,7 @@
   <CategoryListTemplate>
     <div
       v-if="!isSearching && expandableCategoryIds.length"
-      class="border-border mb-1 flex items-center justify-between gap-2 border-b px-3 py-2"
+      class="border-border bg-dialog sticky top-0 z-10 mb-1 flex items-center justify-between gap-2 border-b px-3 py-2"
     >
       <span class="text-muted-foreground text-xs">{{ $t('fields.categorySelect.groupHint') }}</span>
       <button
@@ -137,7 +137,7 @@
                 <button
                   v-if="selectedValue && !disabled"
                   type="button"
-                  class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-8 z-10 flex w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+                  class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-8 flex w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
                   :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
                   @click.stop="clearSelection"
                 >
@@ -241,7 +241,7 @@
               <button
                 v-if="selectedValue && !disabled"
                 type="button"
-                class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-8 z-10 flex w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+                class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-8 flex w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
                 :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
                 @click.stop="clearSelection"
               >

@@ -391,7 +391,7 @@ const confirmDelete = async () => {
     </div>
 
     <template #footer>
-      <div class="flex w-full items-center gap-2">
+      <div class="flex min-w-0 w-full items-center gap-2 px-2">
         <Button
           v-if="isEditingExisting"
           variant="soft-destructive"
@@ -400,7 +400,7 @@ const confirmDelete = async () => {
         >
           {{ $t('dialogs.manageTransaction.templates.form.delete') }}
         </Button>
-        <Button class="ml-auto" :disabled="isPending" :loading="isPending" @click="save">
+        <Button class="ml-auto min-w-24" :disabled="isPending" :loading="isPending" @click="save">
           {{ $t('dialogs.manageTransaction.templates.form.save') }}
         </Button>
       </div>

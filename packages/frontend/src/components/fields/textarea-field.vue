@@ -69,6 +69,8 @@ const props = withDefaults(
     maxlength?: string | number;
     // textarea proxies
     rows?: string | number;
+    /** Grow up to this many lines, then scroll within the field. */
+    maxRows?: number;
     cols?: string | number;
   }>(),
   {
@@ -96,7 +98,18 @@ const resize = () => {
   const el = textareaRef.value;
   if (!el) return;
   el.style.height = 'auto';
-  el.style.height = `${el.scrollHeight + el.offsetHeight - el.clientHeight}px`;
+  const requestedHeight = el.scrollHeight + el.offsetHeight - el.clientHeight;
+  if (!props.maxRows) {
+    el.style.height = `${requestedHeight}px`;
+    return;
+  }
+  const style = window.getComputedStyle(el);
+  const lineHeight = parseFloat(style.lineHeight) || 24;
+  const padding = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
+  const border = el.offsetHeight - el.clientHeight;
+  const maximumHeight = lineHeight * props.maxRows + padding + border;
+  el.style.height = `${Math.min(requestedHeight, maximumHeight)}px`;
+  el.style.overflowY = requestedHeight > maximumHeight ? 'auto' : 'hidden';
 };
 
 onMounted(resize);

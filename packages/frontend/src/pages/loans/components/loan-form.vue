@@ -309,7 +309,9 @@ const submit = () => {
         :label="$t('forms.loan.loanTypeLabel')"
         :placeholder="$t('forms.loan.loanTypePlaceholder')"
         @update:model-value="(value) => (form.loanType = value as LOAN_TYPE)"
-      />
+      >
+        <template #header-action><FormFieldHelp topic="loanType" /></template>
+      </OptionPickerDialog>
     </div>
 
     <div class="grid grid-cols-1 items-start gap-3 @sm/loan-form:grid-cols-2">

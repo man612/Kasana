@@ -168,6 +168,11 @@ export const useFormValidation = <Vargs extends ValidationArgs, T extends Extrac
         const genericMessageKey = GENERIC_VALIDATION_MESSAGE_KEYS[rule];
 
         const ruleParams = field[rule].$params ?? {};
+        // Custom between predicates carry no min/max metadata. Use their message
+        // instead of interpolating an incorrect generic "between 0 and 0".
+        if (rule === 'between' && (ruleParams.min == null || ruleParams.max == null) && field[rule].$message) {
+          return String(field[rule].$message);
+        }
         return (
           customErrorMessage ||
           (genericMessageKey &&

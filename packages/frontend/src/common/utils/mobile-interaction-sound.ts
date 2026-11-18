@@ -2,15 +2,15 @@
  * Optional, local-only feedback for interactive UI chrome on desktop and mobile.
  * Do not play for typing, read-out amounts, failed requests or user data.
  * No network calls or bundled audio assets; Android requires a direct user click
- * before Web Audio can start. Disabled by default for accessibility.
+ * before Web Audio can start. Users may disable it in Appearance settings.
  */
 const STORAGE_KEY = 'lajur:mobile-interaction-sound';
 
 export const getMobileInteractionSoundEnabled = (): boolean => {
   try {
-    return window.localStorage.getItem(STORAGE_KEY) === 'on';
+    return window.localStorage.getItem(STORAGE_KEY) !== 'off';
   } catch {
-    return false;
+    return true;
   }
 };
 
@@ -30,12 +30,11 @@ const playTone = (audio: AudioContext) => {
   const now = audio.currentTime;
   const oscillator = audio.createOscillator();
   const gain = audio.createGain();
-  oscillator.type = 'sine';
+  oscillator.type = 'triangle';
   oscillator.frequency.setValueAtTime(680, now);
   oscillator.frequency.exponentialRampToValueAtTime(480, now + 0.05);
-  // 0.018 was too quiet on phone speakers at normal media volume.
-  // 0.04 remains a short, soft UI cue (~7 dB louder), not a notification beep.
-  gain.gain.setValueAtTime(0.04, now);
+  // Easier to hear on small speakers while remaining a brief UI cue.
+  gain.gain.setValueAtTime(0.10, now);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
   oscillator.connect(gain);
   gain.connect(audio.destination);

@@ -222,8 +222,8 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await mobileNewTransaction.click();
       const mobileForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
       await expect(mobileForm).toBeVisible();
-      // At 320px, the transaction date is on a separate row and inline
-      // time controls are hidden (the calendar dialog still edits the time).
+      // At 320px, the date is on a separate row but its time remains
+      // directly editable, just like other transaction date-time fields.
       const amountDateStack = mobileForm.getByTestId('transaction-amount-date-stack');
       const primaryAmount = amountDateStack.locator('input[inputmode="decimal"]').first();
       const mobileDateInput = amountDateStack.getByTestId('date-field-numeric-input');
@@ -247,7 +247,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
           { message: '320px amount and date must be vertically separate', timeout: 8_000 },
         )
         .toBeGreaterThanOrEqual(4);
-      await expect(mobileForm.getByTestId('date-field-time-input')).toHaveCount(0);
+      await expect(mobileForm.getByTestId('date-field-time-input')).toBeVisible();
 
       // Closing account selection without picking must clear its search filter.
       const accountPickerTrigger = mobileForm.locator('[data-test="account-select-trigger"]').first();
@@ -321,7 +321,14 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await page.keyboard.press('Escape');
       await expect(templateDialog).toBeHidden();
       await expect(mobileForm).toBeVisible();
-      await page.keyboard.press('Escape');
+      // A tap on the transaction sheet close button must work on Vaul too.
+      // With unsaved input it must ask before discarding, not silently close.
+      await primaryAmount.fill('1234');
+      await mobileForm.getByRole('button', { name: /Tutup|Close/i }).click();
+      const discardConfirmation = page.getByRole('alertdialog');
+      await expect(discardConfirmation.getByText(/Tutup tanpa menyimpan|Close without saving/i)).toBeVisible();
+      await discardConfirmation.getByRole('button', { name: /Buang|Discard/i }).click();
+      await expect(mobileForm).toBeHidden();
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto('/dashboard');
       const mobileDateTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();

@@ -3,6 +3,9 @@
     <InputField
       :model-value="modelValue"
       type="number"
+      :min="1"
+      :max="1200"
+      :step="1"
       :label="label"
       :placeholder="placeholder"
       :disabled="disabled"

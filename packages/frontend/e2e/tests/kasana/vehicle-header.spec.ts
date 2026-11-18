@@ -115,7 +115,51 @@ test.describe('Vehicle header responsive geometry', () => {
           await page.addInitScript(({ language }) => localStorage.setItem('preferred-locale', language), {
             language: locale,
           });
+          // Temporary capture-only diagnostics for a browser regression where
+          // an alert CANCEL unexpectedly precedes a vehicle DELETE request.
+          // Never modify application events; retain original user interactions.
+          await page.addInitScript(() => {
+            const events: string[] = [];
+            (window as Window & { __lajurVehicleDialogEvents?: string[] }).__lajurVehicleDialogEvents = events;
+            const record = (event: Event) => {
+              const target = event.target instanceof Element ? event.target.closest('button') : null;
+              if (!target) return;
+              const label = (target.getAttribute('aria-label') || target.textContent || '').trim().slice(0, 60);
+              if (!target.closest('[role="alertdialog"]') && !/vehicle|kendaraan|Hapus|Delete|Cancel|Batal/i.test(label))
+                return;
+              events.push(
+                `${Math.round(event.timeStamp)} ${event.type} ${label} detail=${event instanceof MouseEvent ? event.detail : '-'}`,
+              );
+              if (events.length > 80) events.shift();
+            };
+            for (const name of ['pointerdown', 'pointerup', 'keydown', 'keyup', 'click']) {
+              document.addEventListener(name, record, true);
+            }
+          });
           const api = role === 'owner' ? ownerApi : viewerApi;
+          // This suite tests responsive geometry and dialog cancellation, NOT
+          // destructive writes. Protect the shared beforeAll fixture: if a UI
+          // regression accidentally submits DELETE, fail this test explicitly
+          // without destroying the vehicle for subsequent viewport cases.
+          const unexpectedDeletePhases: string[] = [];
+          let interactionPhase = 'initial page load';
+          if (role === 'owner') {
+            await page.route('**/api/v1/vehicles/**', async (route) => {
+              if (route.request().method() === 'DELETE') {
+                unexpectedDeletePhases.push(interactionPhase);
+                await route.fulfill({
+                  status: 409,
+                  contentType: 'application/json',
+                  body: JSON.stringify({
+                    status: 'error',
+                    response: { message: 'Vehicle deletion blocked in UI geometry smoke test' },
+                  }),
+                });
+              } else {
+                await route.continue();
+              }
+            });
+          }
           await page.context().addCookies((await api.storageState()).cookies);
           await page.goto('/accounts/vehicles/' + vehicleId);
           const heading = page.getByRole('heading', { name: LONG_NAME, exact: true });
@@ -236,6 +280,8 @@ test.describe('Vehicle header responsive geometry', () => {
               const remove = hero.getByRole('button', { name: LABELS[locale].delete, exact: true });
               await expect(remove).toHaveCount(1);
               for (const action of [override, edit, remove]) {
+                const actionName = action === remove ? 'delete' : action === edit ? 'edit' : 'override';
+                interactionPhase = `${scale}x/${actionName}/activate`;
                 await action.scrollIntoViewIfNeeded();
                 await action.focus();
                 await expect(action).toBeFocused();
@@ -243,10 +289,25 @@ test.describe('Vehicle header responsive geometry', () => {
                 else await page.keyboard.press('Enter');
                 const dialog = page.locator('[role="dialog"], [role="alertdialog"]').last();
                 await expect(dialog).toBeVisible();
-                if (action === remove)
+                if (action === remove) {
+                  expect(unexpectedDeletePhases, 'Opening a confirmation must not submit DELETE').toEqual([]);
+                  interactionPhase = `${scale}x/delete/cancel-click`;
                   await dialog.getByRole('button', { name: LABELS[locale].cancel, exact: true }).click();
-                else await page.keyboard.press('Escape');
+                  // Cancellation must be observable in the backend, not only
+                  // through a disappearing alert dialog.
+                  expect(extractId(await apiGet({
+                    request: ownerApi,
+                    path: '/api/v1/vehicles/' + vehicleId,
+                  }))).toBe(vehicleId);
+                } else await page.keyboard.press('Escape');
                 await expect(page.locator('[role="dialog"], [role="alertdialog"]')).toHaveCount(0);
+                const dialogEvents = await page.evaluate(
+                  () => (window as Window & { __lajurVehicleDialogEvents?: string[] }).__lajurVehicleDialogEvents ?? [],
+                );
+                expect(
+                  unexpectedDeletePhases,
+                  `Unexpected vehicle DELETE during ${interactionPhase}; recent dialog events: ${dialogEvents.join(' | ')}`,
+                ).toEqual([]);
               }
             } else {
               await expect(hero.getByRole('button')).toHaveCount(0);
@@ -255,6 +316,7 @@ test.describe('Vehicle header responsive geometry', () => {
               await expect(hero.getByRole('button', { name: LABELS[locale].delete, exact: true })).toHaveCount(0);
             }
           }
+          expect(unexpectedDeletePhases, 'Cancel must not dispatch a destructive vehicle DELETE').toEqual([]);
         });
       }
     }

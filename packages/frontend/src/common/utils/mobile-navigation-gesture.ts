@@ -1,10 +1,10 @@
 import { ref } from 'vue';
 
-/** Optional app-level swipe navigation; not the mandatory Android OS back gesture. */
+/** Configurable mobile swipes; preserve Android OS back gestures and interactive elements. */
 const KEY = 'lajur:mobile-page-swipe';
 const savedValue = (): boolean => {
-  try { return window.localStorage.getItem(KEY) === 'on'; }
-  catch { return false; }
+  try { return window.localStorage.getItem(KEY) !== 'off'; }
+  catch { return true; }
 };
 export const mobilePageSwipeEnabled = ref(savedValue());
 export const setMobilePageSwipeEnabled = (enabled: boolean) => {

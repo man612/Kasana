@@ -70,7 +70,7 @@ import {
   XIcon,
 } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { DialogClose, DialogTitle } from 'reka-ui';
+import { DialogTitle } from 'reka-ui';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
@@ -168,6 +168,8 @@ const oppositeTransaction = computed(() => props.oppositeTransaction);
 
 const emit = defineEmits<{
   'close-modal': [];
+  /** A user-initiated close must pass through the host's unsaved-changes guard. */
+  'request-close': [];
   created: [result: { transaction: TransactionModel | undefined; attachmentsFailed: boolean }];
   'update:createMore': [value: boolean];
   /** Saved and staying open: the host remounts this content with `prefill` for the next entry. */
@@ -176,6 +178,7 @@ const emit = defineEmits<{
 const closeModal = () => {
   emit('close-modal');
 };
+const requestCloseModal = () => emit('request-close');
 
 const isPortfolioLinkedView = computed(
   () => !!props.transaction && props.transaction.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio,
@@ -1628,6 +1631,7 @@ const isDuplicateVisible = computed(
     }),
 );
 
+const isDuplicateConfirmOpen = ref(false);
 const duplicate = () => {
   if (isFormFieldsDisabled.value) return;
   const prefill = formToDuplicatePrefill({ form: form.value, now: new Date() });
@@ -1643,7 +1647,7 @@ useEventListener(document, 'keydown', (event: KeyboardEvent) => {
     event.code === 'KeyD' && (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey;
   if (!isDuplicateHotkey || isFormCreation.value) return;
   event.preventDefault();
-  if (isDuplicateVisible.value) duplicate();
+  if (isDuplicateVisible.value) isDuplicateConfirmOpen.value = true;
 });
 
 const onKeydown = (event: KeyboardEvent) => {
@@ -1678,7 +1682,7 @@ const trackedFormFingerprint = () =>
     legs: form.value.paymentLegs ?? null,
     pendingAttachments: pendingAttachments.value.map((file) => file.name + ':' + file.size),
   });
-let initialFormFingerprint = '';
+const initialFormFingerprint = ref('');
 // The account/category prefill can finish after mount (especially for shared accounts).
 // Take the baseline only once the initial data has arrived; otherwise merely opening
 // an untouched form can incorrectly show a discard-changes warning.
@@ -1687,13 +1691,16 @@ watch(
   async (ready) => {
     if (!ready) return;
     await nextTick();
-    initialFormFingerprint = trackedFormFingerprint();
+    initialFormFingerprint.value = trackedFormFingerprint();
   },
   { immediate: true },
 );
+const isEditUnchanged = computed(
+  () => !isFormCreation.value && Boolean(initialFormFingerprint.value) && trackedFormFingerprint() === initialFormFingerprint.value,
+);
 defineExpose({
   focusAmount: () => (isAmountFieldDisabled.value ? targetAmountFieldRef.value : editableAmountFieldRef.value)?.focus(),
-  hasUnsavedChanges: () => Boolean(initialFormFingerprint) && trackedFormFingerprint() !== initialFormFingerprint,
+  hasUnsavedChanges: () => Boolean(initialFormFingerprint.value) && trackedFormFingerprint() !== initialFormFingerprint.value,
 });
 
 onUnmounted(() => {
@@ -1714,7 +1721,7 @@ onUnmounted(() => {
           :disabled="isFormFieldsDisabled || !isEditableAsManual"
           :label="$t('dialogs.manageTransaction.form.datetimeLabel')"
           :error-message="timeErrorMessage"
-          :hide-input-time="isMobileView"
+          :hide-input-time="false"
           show-weekday
           :calendar-options="{
             maxDate: form.isPlanned ? undefined : new Date(),
@@ -1776,6 +1783,8 @@ onUnmounted(() => {
       <FormRow>
         <TextareaField
           v-model="form.note"
+          :rows="1"
+          :max-rows="3"
           :placeholder="$t('dialogs.manageTransaction.form.notePlaceholder')"
           :disabled="isFormFieldsDisabled"
           :label="$t('dialogs.manageTransaction.form.noteLabel')"
@@ -2135,18 +2144,22 @@ onUnmounted(() => {
         </template>
       </div>
 
-      <DialogClose as-child>
-        <Button
-          v-if="isMobileView"
-          variant="ghost"
-          size="icon"
-          class="shrink-0"
-          :aria-label="$t('dialogs.manageTransaction.form.closeButton')"
-        >
-          <XIcon class="size-5" />
-        </Button>
-        <Button v-else variant="ghost"> {{ $t('dialogs.manageTransaction.form.closeButton') }} </Button>
-      </DialogClose>
+      <!-- Explicit close works in both Reka Dialog and Vaul Drawer. A DialogClose
+           inside a Vaul drawer may not resolve the correct Reka root context. -->
+      <Button
+        v-if="isMobileView"
+        type="button"
+        variant="ghost"
+        size="icon"
+        class="shrink-0"
+        :aria-label="$t('dialogs.manageTransaction.form.closeButton')"
+        @click="requestCloseModal"
+      >
+        <XIcon class="size-5" />
+      </Button>
+      <Button v-else type="button" variant="ghost" @click="requestCloseModal">
+        {{ $t('dialogs.manageTransaction.form.closeButton') }}
+      </Button>
     </div>
     <div data-vaul-no-drag class="lajur-transaction-scroll min-h-0 flex-1 overflow-y-auto md:overflow-hidden">
       <div class="relative grid grid-cols-1 md:h-full md:min-h-0 md:grid-cols-[450px_minmax(0,1fr)]">
@@ -2589,6 +2602,14 @@ onUnmounted(() => {
         <template #description>{{ $t('dialogs.manageTransaction.form.deleteConfirmDescription') }}</template>
       </ResponsiveAlertDialog>
       <ResponsiveAlertDialog
+        v-model:open="isDuplicateConfirmOpen"
+        :confirm-label="$t('dialogs.manageTransaction.form.duplicateConfirmAction')"
+        @confirm="duplicate"
+      >
+        <template #title>{{ $t('dialogs.manageTransaction.form.duplicateConfirmTitle') }}</template>
+        <template #description>{{ $t('dialogs.manageTransaction.form.duplicateConfirmDescription') }}</template>
+      </ResponsiveAlertDialog>
+      <ResponsiveAlertDialog
         v-model:open="confirmDisableMultiAccountOpen"
         :confirm-label="$t('dialogs.manageTransaction.form.paymentLegs.disableConfirmAction')"
         confirm-variant="destructive"
@@ -2621,7 +2642,7 @@ onUnmounted(() => {
             :size="isMobileView ? 'icon' : 'default'"
             :aria-label="$t('dialogs.manageTransaction.form.duplicateButton')"
             :disabled="isFormFieldsDisabled"
-            @click="duplicate"
+            @click="isDuplicateConfirmOpen = true"
           >
             <CopyIcon class="size-4" />
             <template v-if="!isMobileView">
@@ -2657,9 +2678,9 @@ onUnmounted(() => {
               ? $t('dialogs.manageTransaction.form.createAriaLabel')
               : $t('dialogs.manageTransaction.form.editAriaLabel')
           "
-          :disabled="isFormFieldsDisabled || isSubmitBlocked"
+          :disabled="isFormFieldsDisabled || isSubmitBlocked || isEditUnchanged"
           :aria-disabled="hasRequiredMissing ? 'true' : undefined"
-          :class="hasRequiredMissing && 'opacity-55 saturate-40 hover:opacity-80'"
+           :class="(hasRequiredMissing || isEditUnchanged) && 'opacity-55 saturate-40 hover:opacity-80'"
           :title="hasRequiredMissing ? $t('dialogs.manageTransaction.form.requiredSubmitHelp') : undefined"
           @click="submit()"
         >

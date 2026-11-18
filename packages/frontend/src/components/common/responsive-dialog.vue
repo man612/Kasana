@@ -92,7 +92,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
         <Button
-          v-if="props.dismissible && !props.customClose"
+          v-if="props.dismissible && !props.customClose && (!$slots.footer || hideDrawerFooter)"
           type="button"
           variant="ghost"
           size="icon"
@@ -128,7 +128,10 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
 
         <ScrollAreaContent />
 
-        <Drawer.DrawerFooter v-if="$slots.footer && !hideDrawerFooter" class="px-0">
+        <Drawer.DrawerFooter
+          v-if="$slots.footer && !hideDrawerFooter"
+          class="flex-row items-stretch gap-2 px-0 [&>*]:min-w-0 [&>*]:flex-1"
+        >
           <FooterSlotContent />
         </Drawer.DrawerFooter>
       </Drawer.DrawerContent>

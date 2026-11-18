@@ -26,6 +26,7 @@
           <Dialog.DialogContent
             data-test="account-select-dialog"
             blur-overlay
+            @open-auto-focus.prevent
             class="grid max-h-[min(86dvh,720px)] w-[calc(100vw-2rem)] max-w-md grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden rounded-2xl p-0"
           >
             <div class="border-border border-b px-4 py-4 pr-14">

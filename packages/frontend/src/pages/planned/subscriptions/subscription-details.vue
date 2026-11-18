@@ -1096,7 +1096,7 @@ async function openTransaction({ transactionId }: { transactionId: string }) {
 
     <!-- Linked-transaction detail dialog -->
     <TransactionDetailsModal v-model:open="isDialogVisible" :mobile="isMobileView" :is-compact="isCompactDialog">
-      <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" />
+      <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" @request-close="closeDialog" />
     </TransactionDetailsModal>
   </div>
 </template>

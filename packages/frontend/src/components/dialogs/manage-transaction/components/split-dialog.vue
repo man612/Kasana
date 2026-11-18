@@ -192,9 +192,9 @@ const handleClearAll = () => {
           {{ $t('dialogs.manageTransaction.splitDialog.mainCategoryLabel') }}
         </div>
         <div class="flex items-center justify-between gap-3">
-          <div class="flex min-w-0 items-center gap-2">
+          <div class="flex min-w-0 flex-1 items-center gap-2">
             <div class="size-3 shrink-0 rounded-full" :style="{ backgroundColor: mainCategory?.color || '#666' }" />
-            <span class="truncate font-medium">
+            <span class="min-w-0 flex-1 truncate font-medium">
               {{ mainCategory?.name || $t('dialogs.manageTransaction.splitDialog.selectCategoryPlaceholder') }}
             </span>
           </div>
@@ -209,12 +209,12 @@ const handleClearAll = () => {
         <div
           v-for="(split, index) in localSplits"
           :key="split.tempId ?? split.id ?? `split-${index}`"
-          class="group w-full"
+          class="group min-w-0 w-full"
         >
           <div
             :class="
               cn(
-                'border-input bg-input-background focus-within:border-ring flex items-stretch overflow-hidden rounded-md border transition-colors',
+                'border-input bg-input-background focus-within:border-ring flex min-w-0 items-stretch overflow-hidden rounded-md border transition-colors',
                 getSplitError(index) && 'border-destructive/60',
               )
             "

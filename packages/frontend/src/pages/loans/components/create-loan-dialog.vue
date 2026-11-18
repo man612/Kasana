@@ -48,11 +48,11 @@ const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
     <LoanForm :form-id="FORM_ID" :submitting="createLoanMutation.isPending.value" @submit="handleSubmit" />
 
     <template #footer="{ close }">
-      <UiButton type="button" variant="outline" class="min-h-11" @click="close()">
+      <UiButton type="button" variant="outline" class="min-h-11 min-w-0 flex-1" @click="close()">
         {{ $t('common.actions.cancel') }}
       </UiButton>
-      <div class="flex justify-end gap-2">
-        <UiButton type="submit" :form="FORM_ID" class="min-w-30" :disabled="createLoanMutation.isPending.value">
+      <div class="flex min-w-0 flex-1 justify-end">
+        <UiButton type="submit" :form="FORM_ID" class="min-h-11 w-full min-w-0" :disabled="createLoanMutation.isPending.value">
           {{
             createLoanMutation.isPending.value ? $t('forms.loan.submitButtonLoading') : $t('forms.loan.submitButton')
           }}
