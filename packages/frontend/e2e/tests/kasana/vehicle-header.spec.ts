@@ -115,6 +115,27 @@ test.describe('Vehicle header responsive geometry', () => {
           await page.addInitScript(({ language }) => localStorage.setItem('preferred-locale', language), {
             language: locale,
           });
+          // Temporary capture-only diagnostics for a browser regression where
+          // an alert CANCEL unexpectedly precedes a vehicle DELETE request.
+          // Never modify application events; retain original user interactions.
+          await page.addInitScript(() => {
+            const events: string[] = [];
+            (window as Window & { __lajurVehicleDialogEvents?: string[] }).__lajurVehicleDialogEvents = events;
+            const record = (event: Event) => {
+              const target = event.target instanceof Element ? event.target.closest('button') : null;
+              if (!target) return;
+              const label = (target.getAttribute('aria-label') || target.textContent || '').trim().slice(0, 60);
+              if (!target.closest('[role="alertdialog"]') && !/vehicle|kendaraan|Hapus|Delete|Cancel|Batal/i.test(label))
+                return;
+              events.push(
+                `${Math.round(event.timeStamp)} ${event.type} ${label} detail=${event instanceof MouseEvent ? event.detail : '-'}`,
+              );
+              if (events.length > 80) events.shift();
+            };
+            for (const name of ['pointerdown', 'pointerup', 'keydown', 'keyup', 'click']) {
+              document.addEventListener(name, record, true);
+            }
+          });
           const api = role === 'owner' ? ownerApi : viewerApi;
           // This suite tests responsive geometry and dialog cancellation, NOT
           // destructive writes. Protect the shared beforeAll fixture: if a UI
@@ -280,7 +301,13 @@ test.describe('Vehicle header responsive geometry', () => {
                   }))).toBe(vehicleId);
                 } else await page.keyboard.press('Escape');
                 await expect(page.locator('[role="dialog"], [role="alertdialog"]')).toHaveCount(0);
-                expect(unexpectedDeletePhases, `Unexpected vehicle DELETE during ${interactionPhase}`).toEqual([]);
+                const dialogEvents = await page.evaluate(
+                  () => (window as Window & { __lajurVehicleDialogEvents?: string[] }).__lajurVehicleDialogEvents ?? [],
+                );
+                expect(
+                  unexpectedDeletePhases,
+                  `Unexpected vehicle DELETE during ${interactionPhase}; recent dialog events: ${dialogEvents.join(' | ')}`,
+                ).toEqual([]);
               }
             } else {
               await expect(hero.getByRole('button')).toHaveCount(0);
