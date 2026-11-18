@@ -7,6 +7,7 @@ import {
 } from './mobile-interaction-sound';
 
 const startTone = vi.fn();
+const setGainLevel = vi.fn();
 const resumeAudio = vi.fn(async () => {});
 class FakeAudioContext {
   static lastCreated: FakeAudioContext | null = null;
@@ -30,7 +31,7 @@ class FakeAudioContext {
 
   createGain() {
     return {
-      gain: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() },
+      gain: { setValueAtTime: setGainLevel, exponentialRampToValueAtTime: vi.fn() },
       connect: vi.fn(),
     } as unknown as GainNode;
   }
@@ -51,6 +52,7 @@ describe('Optional desktop and Android click feedback', () => {
     localStorage.clear();
     document.body.innerHTML = '';
     startTone.mockClear();
+    setGainLevel.mockClear();
     resumeAudio.mockClear();
     if (FakeAudioContext.lastCreated) FakeAudioContext.lastCreated.state = 'running';
   });
@@ -74,6 +76,7 @@ describe('Optional desktop and Android click feedback', () => {
     document.body.append(button);
     button.click();
     expect(startTone).toHaveBeenCalledTimes(1);
+    expect(setGainLevel).toHaveBeenCalledWith(0.04, 0);
   });
 
   it('does not double-play the explicit Test sound action', () => {
