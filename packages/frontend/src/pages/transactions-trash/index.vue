@@ -3,15 +3,18 @@ import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.v
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import { Callout } from '@/components/lib/ui/callout';
 import { Card } from '@/components/lib/ui/card';
+import { Button } from '@/components/lib/ui/button';
+import { ROUTES_NAMES } from '@/routes/constants';
 import TransactionRecordSkeleton from '@/components/transactions-list/transaction-record-skeleton.vue';
 import ErrorState from '@/components/widgets/components/error-state.vue';
 import { cn } from '@/lib/utils';
 import { useUserStore } from '@/stores';
 import { TRANSACTION_TRASH_RETENTION_DAYS, type RecordId, type TrashEntry } from '@bt/shared/types';
-import { ClockIcon, Trash2Icon } from '@lucide/vue';
+import { ArrowLeftIcon, ClockIcon, Trash2Icon } from '@lucide/vue';
 import { useElementSize, useNow } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
 import TrashEntryDetails from './components/trash-entry-details.vue';
 import TrashRow from './components/trash-row.vue';
@@ -23,7 +26,12 @@ const SKELETON_ROW_COUNT = 5;
 const SPLIT_LAYOUT_MIN_WIDTH = 740;
 const NOW_REFRESH_MS = 60 * 60 * 1000;
 
+const router = useRouter();
 const { isDemo } = storeToRefs(useUserStore());
+const goBack = () => {
+  if (window.history.state?.back) router.back();
+  else void router.push({ name: ROUTES_NAMES.transactions });
+};
 const { data: entries, isFetched, isError, refetch } = useTransactionsTrash();
 const { restore, remove } = useTrashActions();
 const describeEntry = useTrashEntryDisplay();
@@ -72,6 +80,27 @@ const selectEntry = ({ entry }: { entry: TrashEntry }) => {
 };
 
 const isDeleteConfirmOpen = ref(false);
+const isEmptyAllConfirmOpen = ref(false);
+const isEmptyingAll = ref(false);
+const deleteAll = async () => {
+  if (isEmptyingAll.value || !entries.value?.length || isDemo.value) return;
+  isEmptyingAll.value = true;
+  try {
+    // Limit each request to a small batch so large trash bins do not
+    // exceed server body validation limits. Each batch is explicitly confirmed
+    // by this one user action; the existing mutation handles cache invalidation.
+    const ids = entries.value.map((entry) => entry.id);
+    for (let index = 0; index < ids.length; index += 50) {
+      await remove.mutateAsync({ transactionIds: ids.slice(index, index + 50) });
+    }
+    isEmptyAllConfirmOpen.value = false;
+  } catch {
+    // The existing mutation shows the API error; refresh any partial progress.
+    await refetch();
+  } finally {
+    isEmptyingAll.value = false;
+  }
+};
 
 const restoreSelected = () => {
   if (!selectedRow.value) return;
@@ -89,11 +118,28 @@ const deleteSelected = () => {
 
 <template>
   <div ref="rootRef" class="flex max-w-275 flex-col gap-5 p-4">
-    <div class="flex flex-col gap-1">
-      <h1 class="text-2xl font-bold tracking-tight">{{ $t('transactions.trashPage.title') }}</h1>
-      <p class="text-muted-foreground text-sm">
-        {{ $t('transactions.trashPage.description', { days: TRANSACTION_TRASH_RETENTION_DAYS }) }}
-      </p>
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="flex min-w-0 items-start gap-2">
+        <Button variant="ghost" size="icon" :aria-label="$t('common.actions.back')" @click="goBack">
+          <ArrowLeftIcon class="size-5" />
+        </Button>
+        <div class="min-w-0 space-y-1">
+          <h1 class="text-2xl font-bold tracking-tight">{{ $t('transactions.trashPage.title') }}</h1>
+          <p class="text-muted-foreground text-sm">
+            {{ $t('transactions.trashPage.description', { days: TRANSACTION_TRASH_RETENTION_DAYS }) }}
+          </p>
+        </div>
+      </div>
+      <Button
+        v-if="rows.length && !isDemo"
+        variant="soft-destructive"
+        size="sm"
+        :disabled="isEmptyingAll || remove.isPending.value"
+        @click="isEmptyAllConfirmOpen = true"
+      >
+        <Trash2Icon class="size-4" />
+        {{ $t('transactions.trashPage.emptyAll') }}
+      </Button>
     </div>
 
     <Callout v-if="expiring" variant="warning" :icon="ClockIcon" role="status">
@@ -197,6 +243,17 @@ const deleteSelected = () => {
     >
       <template #title>{{ $t('transactions.trashPage.deleteConfirmTitle') }}</template>
       <template #description>{{ $t('transactions.trashPage.deleteConfirmDescription') }}</template>
+    </ResponsiveAlertDialog>
+    <ResponsiveAlertDialog
+      v-model:open="isEmptyAllConfirmOpen"
+      :confirm-label="$t('transactions.trashPage.emptyAll')"
+      confirm-variant="destructive"
+      :confirm-disabled="isEmptyingAll"
+      :backdrop-dismissible="!isEmptyingAll"
+      @confirm="deleteAll"
+    >
+      <template #title>{{ $t('transactions.trashPage.emptyAllConfirmTitle') }}</template>
+      <template #description>{{ $t('transactions.trashPage.emptyAllConfirmDescription', { count: rows.length }) }}</template>
     </ResponsiveAlertDialog>
   </div>
 </template>
