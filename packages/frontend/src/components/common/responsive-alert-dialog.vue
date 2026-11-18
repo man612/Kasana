@@ -13,8 +13,9 @@ const props = withDefaults(
     confirmLabel?: string;
     confirmVariant?: ButtonVariantProps['variant'];
     confirmDisabled?: boolean;
+    backdropDismissible?: boolean;
   }>(),
-  { cancelLabel: undefined, confirmLabel: undefined, confirmVariant: 'default', confirmDisabled: false },
+  { cancelLabel: undefined, confirmLabel: undefined, confirmVariant: 'default', confirmDisabled: false, backdropDismissible: true },
 );
 const emit = defineEmits<{
   'update:open': [value: boolean];
@@ -24,11 +25,16 @@ const emit = defineEmits<{
 const isOpen = useVModel(props, 'open', emit, { passive: true });
 const cancelLabel = computed(() => props.cancelLabel || t('common.actions.cancel'));
 const confirmLabel = computed(() => props.confirmLabel || t('common.actions.confirm'));
+const cancelByBackdrop = () => {
+  if (!props.backdropDismissible || props.confirmDisabled) return;
+  isOpen.value = false;
+  emit('cancel');
+};
 </script>
 
 <template>
   <AlertDialog.AlertDialog v-model:open="isOpen">
-    <AlertDialog.AlertDialogContent class="max-h-[90dvh] w-[calc(100vw-2rem)] max-w-md overflow-y-auto rounded-2xl p-5 sm:max-w-lg sm:p-6">
+    <AlertDialog.AlertDialogContent :on-backdrop-click="cancelByBackdrop" class="max-h-[90dvh] w-[calc(100vw-2rem)] max-w-md overflow-y-auto rounded-2xl p-5 sm:max-w-lg sm:p-6">
       <AlertDialog.AlertDialogHeader>
         <AlertDialog.AlertDialogTitle><slot name="title" /></AlertDialog.AlertDialogTitle>
         <AlertDialog.AlertDialogDescription as="div"><slot name="description" /></AlertDialog.AlertDialogDescription>
