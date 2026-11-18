@@ -116,6 +116,28 @@ test.describe('Vehicle header responsive geometry', () => {
             language: locale,
           });
           const api = role === 'owner' ? ownerApi : viewerApi;
+          // This suite tests responsive geometry and dialog cancellation, NOT
+          // destructive writes. Protect the shared beforeAll fixture: if a UI
+          // regression accidentally submits DELETE, fail this test explicitly
+          // without destroying the vehicle for subsequent viewport cases.
+          let unexpectedDeleteAttempts = 0;
+          if (role === 'owner') {
+            await page.route('**/api/v1/vehicles/**', async (route) => {
+              if (route.request().method() === 'DELETE') {
+                unexpectedDeleteAttempts += 1;
+                await route.fulfill({
+                  status: 409,
+                  contentType: 'application/json',
+                  body: JSON.stringify({
+                    status: 'error',
+                    response: { message: 'Vehicle deletion blocked in UI geometry smoke test' },
+                  }),
+                });
+              } else {
+                await route.continue();
+              }
+            });
+          }
           await page.context().addCookies((await api.storageState()).cookies);
           await page.goto('/accounts/vehicles/' + vehicleId);
           const heading = page.getByRole('heading', { name: LONG_NAME, exact: true });
@@ -243,9 +265,15 @@ test.describe('Vehicle header responsive geometry', () => {
                 else await page.keyboard.press('Enter');
                 const dialog = page.locator('[role="dialog"], [role="alertdialog"]').last();
                 await expect(dialog).toBeVisible();
-                if (action === remove)
+                if (action === remove) {
                   await dialog.getByRole('button', { name: LABELS[locale].cancel, exact: true }).click();
-                else await page.keyboard.press('Escape');
+                  // Cancellation must be observable in the backend, not only
+                  // through a disappearing alert dialog.
+                  expect(extractId(await apiGet({
+                    request: ownerApi,
+                    path: '/api/v1/vehicles/' + vehicleId,
+                  }))).toBe(vehicleId);
+                } else await page.keyboard.press('Escape');
                 await expect(page.locator('[role="dialog"], [role="alertdialog"]')).toHaveCount(0);
               }
             } else {
@@ -255,6 +283,10 @@ test.describe('Vehicle header responsive geometry', () => {
               await expect(hero.getByRole('button', { name: LABELS[locale].delete, exact: true })).toHaveCount(0);
             }
           }
+          expect(
+            unexpectedDeleteAttempts,
+            'Cancel must not dispatch a destructive vehicle DELETE',
+          ).toBe(0);
         });
       }
     }
