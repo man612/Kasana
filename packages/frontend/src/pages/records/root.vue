@@ -30,11 +30,9 @@
     </DefineTableSettings>
 
     <DefineTrashLink>
-      <Button variant="secondary" as-child>
-        <RouterLink :to="{ name: ROUTES_NAMES.transactionsTrash }">
-          <Trash2Icon class="size-4" />
-          {{ $t('navigation.trash') }}
-        </RouterLink>
+      <Button variant="secondary" :aria-disabled="isTrashEmpty" :class="isTrashEmpty && 'opacity-55'" @click="openTrash">
+        <Trash2Icon class="size-4" />
+        {{ $t('navigation.trash') }}
       </Button>
     </DefineTrashLink>
 
@@ -111,11 +109,9 @@
                   <Maximize2Icon class="size-4" />
                   {{ $t('transactions.table.fullscreen.enter') }}
                 </DropdownMenuItem>
-                <DropdownMenuItem as-child>
-                  <RouterLink :to="{ name: ROUTES_NAMES.transactionsTrash }">
-                    <Trash2Icon class="size-4" />
-                    {{ $t('navigation.trash') }}
-                  </RouterLink>
+                <DropdownMenuItem :aria-disabled="isTrashEmpty" :class="isTrashEmpty && 'opacity-55'" @select="openTrash">
+                  <Trash2Icon class="size-4" />
+                  {{ $t('navigation.trash') }}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -420,7 +416,7 @@ import {
 } from '@lucide/vue';
 import { createReusableTemplate, useDebounceFn, useElementSize, useEventListener, useMediaQuery } from '@vueuse/core';
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue';
-import { RouterLink, useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import type { TransactionsView } from '@/api/user-settings';
 
@@ -434,6 +430,9 @@ import { useTableColumns } from '@/components/transactions-table/use-table-colum
 import { useTransactionsView } from './components/use-transactions-view';
 import UpcomingSection from './components/upcoming-section.vue';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
+import { useTransactionsTrash } from '@/pages/transactions-trash/use-transactions-trash';
+import { useNotificationCenter } from '@/components/notification-center';
+import { useI18n } from 'vue-i18n';
 
 const sorting = ref<TableSorting>({ ...DEFAULT_SORTING });
 
@@ -472,6 +471,17 @@ const [DefineTableSettings, TableSettings] = createReusableTemplate<{ anchor?: H
 const [DefineTrashLink, TrashLink] = createReusableTemplate();
 
 const { data: userSettings, patch: patchSettings } = useUserSettings();
+const { data: trashEntries, isFetched: isTrashFetched, isError: isTrashError } = useTransactionsTrash();
+const isTrashEmpty = computed(() => isTrashFetched.value && !isTrashError.value && trashEntries.value?.length === 0);
+const { addWarningNotification } = useNotificationCenter();
+const { t } = useI18n();
+const openTrash = () => {
+  if (isTrashEmpty.value) {
+    addWarningNotification(t('transactions.trashPage.emptyTitle'));
+    return;
+  }
+  void router.push({ name: ROUTES_NAMES.transactionsTrash });
+};
 
 /**
  * The pinned Upcoming section is shown in every layout, only when no filter is
