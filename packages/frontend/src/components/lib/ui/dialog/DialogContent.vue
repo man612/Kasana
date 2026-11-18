@@ -14,7 +14,7 @@ import {
   DialogPortal,
   useForwardPropsEmits,
 } from 'reka-ui';
-import { type HTMLAttributes, computed } from 'vue';
+import { type HTMLAttributes, computed, onMounted, onUnmounted, ref } from 'vue';
 
 // Fallthrough attributes belong to the actual dialog element, not its Portal.
 defineOptions({ inheritAttrs: false });
@@ -40,6 +40,29 @@ const delegatedProps = computed(() => {
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 const describedByAttrs = useDescribedByAttrs();
+
+// On mobile the keyboard shrinks the visual viewport, not the layout viewport.
+const keyboardViewportStyle = ref<{ top: string; maxHeight: string }>();
+const updateVisualViewport = () => {
+  const viewport = window.visualViewport;
+  if (!viewport || window.innerWidth > 767 || viewport.height >= window.innerHeight - 100) {
+    keyboardViewportStyle.value = undefined;
+    return;
+  }
+  keyboardViewportStyle.value = {
+    top: `${viewport.offsetTop + viewport.height / 2}px`,
+    maxHeight: `${Math.max(160, viewport.height - 24)}px`,
+  };
+};
+onMounted(() => {
+  updateVisualViewport();
+  window.visualViewport?.addEventListener('resize', updateVisualViewport);
+  window.visualViewport?.addEventListener('scroll', updateVisualViewport);
+});
+onUnmounted(() => {
+  window.visualViewport?.removeEventListener('resize', updateVisualViewport);
+  window.visualViewport?.removeEventListener('scroll', updateVisualViewport);
+});
 </script>
 
 <template>
@@ -54,6 +77,7 @@ const describedByAttrs = useDescribedByAttrs();
     />
     <DialogContent
       v-animate-dialog-height
+      :style="keyboardViewportStyle"
       v-bind="{ ...forwarded, ...describedByAttrs, ...$attrs }"
       :class="
         cn(

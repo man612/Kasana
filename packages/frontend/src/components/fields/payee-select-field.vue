@@ -74,6 +74,9 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
+const preventMobileAutoFocus = (event: Event) => {
+  if (isMobile.value) event.preventDefault();
+};
 
 const isOpen = ref(false);
 const inputValue = ref('');
@@ -242,6 +245,7 @@ function handlePayeeCreated(payee: PayeeModel) {
 
       <component
         :is="isMobile ? Dialog.DialogContent : Popover.PopoverContent"
+        @open-auto-focus="preventMobileAutoFocus"
         v-bind="isMobile ? { blurOverlay: true } : { align: 'start', sideOffset: 4 }"
         :class="
           isMobile
