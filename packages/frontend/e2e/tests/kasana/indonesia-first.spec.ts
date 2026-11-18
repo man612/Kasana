@@ -269,11 +269,13 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       const payeePicker = page.getByRole('dialog').filter({ has: page.locator('[data-test="payee-select-search"]') }).last();
       await expect(payeePicker).toBeVisible();
       await payeePicker.locator('[data-test="payee-select-search"]').fill('recipient-that-does-not-exist');
-      await page.keyboard.press('Escape');
+      // A recipient search field can own keyboard handling; exercise the
+      // explicit dialog X independently of the account selector's Escape path.
+      await payeePicker.getByRole('button', { name: /Tutup|Close/i }).click();
       await expect(payeePicker).toBeHidden();
       await payeePickerTrigger.click();
       await expect(payeePicker.locator('[data-test="payee-select-search"]')).toHaveValue('');
-      await page.keyboard.press('Escape');
+      await payeePicker.getByRole('button', { name: /Tutup|Close/i }).click();
 
       const mobileAmountMetrics = await primaryAmount.evaluate((element) => ({
         fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
