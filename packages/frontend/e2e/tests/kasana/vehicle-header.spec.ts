@@ -120,11 +120,12 @@ test.describe('Vehicle header responsive geometry', () => {
           // destructive writes. Protect the shared beforeAll fixture: if a UI
           // regression accidentally submits DELETE, fail this test explicitly
           // without destroying the vehicle for subsequent viewport cases.
-          let unexpectedDeleteAttempts = 0;
+          const unexpectedDeletePhases: string[] = [];
+          let interactionPhase = 'initial page load';
           if (role === 'owner') {
             await page.route('**/api/v1/vehicles/**', async (route) => {
               if (route.request().method() === 'DELETE') {
-                unexpectedDeleteAttempts += 1;
+                unexpectedDeletePhases.push(interactionPhase);
                 await route.fulfill({
                   status: 409,
                   contentType: 'application/json',
@@ -258,6 +259,8 @@ test.describe('Vehicle header responsive geometry', () => {
               const remove = hero.getByRole('button', { name: LABELS[locale].delete, exact: true });
               await expect(remove).toHaveCount(1);
               for (const action of [override, edit, remove]) {
+                const actionName = action === remove ? 'delete' : action === edit ? 'edit' : 'override';
+                interactionPhase = `${scale}x/${actionName}/activate`;
                 await action.scrollIntoViewIfNeeded();
                 await action.focus();
                 await expect(action).toBeFocused();
@@ -266,6 +269,8 @@ test.describe('Vehicle header responsive geometry', () => {
                 const dialog = page.locator('[role="dialog"], [role="alertdialog"]').last();
                 await expect(dialog).toBeVisible();
                 if (action === remove) {
+                  expect(unexpectedDeletePhases, 'Opening a confirmation must not submit DELETE').toEqual([]);
+                  interactionPhase = `${scale}x/delete/cancel-click`;
                   await dialog.getByRole('button', { name: LABELS[locale].cancel, exact: true }).click();
                   // Cancellation must be observable in the backend, not only
                   // through a disappearing alert dialog.
@@ -275,6 +280,7 @@ test.describe('Vehicle header responsive geometry', () => {
                   }))).toBe(vehicleId);
                 } else await page.keyboard.press('Escape');
                 await expect(page.locator('[role="dialog"], [role="alertdialog"]')).toHaveCount(0);
+                expect(unexpectedDeletePhases, `Unexpected vehicle DELETE during ${interactionPhase}`).toEqual([]);
               }
             } else {
               await expect(hero.getByRole('button')).toHaveCount(0);
@@ -283,10 +289,7 @@ test.describe('Vehicle header responsive geometry', () => {
               await expect(hero.getByRole('button', { name: LABELS[locale].delete, exact: true })).toHaveCount(0);
             }
           }
-          expect(
-            unexpectedDeleteAttempts,
-            'Cancel must not dispatch a destructive vehicle DELETE',
-          ).toBe(0);
+          expect(unexpectedDeletePhases, 'Cancel must not dispatch a destructive vehicle DELETE').toEqual([]);
         });
       }
     }
