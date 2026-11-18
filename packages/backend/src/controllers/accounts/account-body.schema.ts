@@ -1,6 +1,7 @@
 import { ACCOUNT_CATEGORIES, ACCOUNT_STATUSES, ACCOUNT_TYPES, PAYMENT_TYPES } from '@bt/shared/types';
 import { currencyCode } from '@common/lib/zod/custom-types';
 import { logoFieldsShape, refineLogoFields, refineLogoFieldsOnCreate } from '@controllers/common/logo-fields.schema';
+import { isIdrOnlyBetaEnabled } from '@services/currencies/idr-beta-policy';
 import { z } from 'zod';
 
 /**
@@ -27,7 +28,16 @@ export const createAccountBodySchema = z
     ...createAccountBodyFields,
     type: z.nativeEnum(ACCOUNT_TYPES).default(ACCOUNT_TYPES.system),
   })
-  .superRefine((data, ctx) => refineLogoFieldsOnCreate({ data, ctx }));
+  .superRefine((data, ctx) => {
+    refineLogoFieldsOnCreate({ data, ctx });
+    if (isIdrOnlyBetaEnabled() && data.currencyCode !== 'IDR') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['currencyCode'],
+        message: 'The Lajur. private beta currently allows new accounts in IDR only.',
+      });
+    }
+  });
 
 // `status` is not part of the MCP tool: archiving has its own tool with its side effects.
 export const updateAccountBodyFields = {
