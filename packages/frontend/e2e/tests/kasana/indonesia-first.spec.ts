@@ -250,15 +250,20 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await expect(mobileForm.getByTestId('date-field-time-input')).toHaveCount(0);
 
       // Closing account selection without picking must clear its search filter.
-      const accountPickerTrigger = mobileForm.locator('[data-test="account-select-field"] button').first();
+      const accountPickerTrigger = mobileForm.getByTestId('account-select-trigger').first();
       await expect(accountPickerTrigger).toBeVisible();
       await accountPickerTrigger.click();
-      const accountPicker = page.getByRole('dialog').filter({ has: page.locator('input[type="search"]') }).last();
+      const accountPicker = page.getByTestId('account-select-dialog');
+      const accountPickerSearch = accountPicker.getByTestId('account-select-search');
       await expect(accountPicker).toBeVisible();
-      await accountPicker.getByRole('searchbox').fill('this-account-does-not-exist');
-      await page.keyboard.press('Escape');
+      await accountPickerSearch.fill('this-account-does-not-exist');
+      // Use the explicit close control: Escape on type=search can clear the
+      // native search field before it dismisses the surrounding dialog.
+      await accountPicker.getByRole('button', { name: /Tutup|Close/i }).click();
       await expect(accountPicker).toBeHidden();
       await accountPickerTrigger.click();
+      await expect(accountPicker).toBeVisible();
+      await expect(accountPickerSearch).toHaveValue('');
       await expect(accountPicker.getByText(accountName).first()).toBeVisible();
       await accountPicker.getByText(accountName).first().click();
       await expect(accountPicker).toBeHidden();
