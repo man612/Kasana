@@ -126,7 +126,7 @@ jobs:
       # not need to compile the 6 GiB-heap Vue frontend on its tight root disk.
       # Only same-repo integration PRs, no fork-supplied workflow artifacts.
       - name: Export disposable InstaBox frontend image
-        if: ${{ github.event_name == 'pull_request' && (startsWith(github.head_ref, 'integration/lajur-instabox-') || github.head_ref == 'fix/lajur-mobile-ux-audit-20261118') && github.event.pull_request.head.repo.full_name == github.repository }}
+        if: ${{ github.event_name == 'pull_request' && (startsWith(github.head_ref, 'integration/lajur-instabox-') || github.head_ref == 'fix/lajur-mobile-ux-audit-20261118' || github.head_ref == 'fix/lajur-mobile-ux-feedback3-20261118') && github.event.pull_request.head.repo.full_name == github.repository }}
         shell: bash
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -145,7 +145,7 @@ jobs:
             > "${RUNNER_TEMP}/lajur-instabox-frontend-info.txt"
 
       - name: Upload short-lived disposable InstaBox image
-        if: ${{ github.event_name == 'pull_request' && (startsWith(github.head_ref, 'integration/lajur-instabox-') || github.head_ref == 'fix/lajur-mobile-ux-audit-20261118') && github.event.pull_request.head.repo.full_name == github.repository }}
+        if: ${{ github.event_name == 'pull_request' && (startsWith(github.head_ref, 'integration/lajur-instabox-') || github.head_ref == 'fix/lajur-mobile-ux-audit-20261118' || github.head_ref == 'fix/lajur-mobile-ux-feedback3-20261118') && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: lajur-instabox-frontend-${{ github.event.pull_request.head.sha }}
