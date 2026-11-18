@@ -34,9 +34,10 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
   <TooltipPortal>
     <TooltipContent
       v-bind="{ ...forwarded, ...$attrs }"
+      :collision-padding="12"
       :class="
         cn(
-          'bg-popover text-popover-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-(--z-over-dialog) max-w-[450px] overflow-hidden rounded-md border px-3 py-1.5 text-sm text-pretty shadow-md',
+          'bg-popover text-popover-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-(--z-over-dialog) max-h-[min(40dvh,16rem)] max-w-[min(20rem,calc(100vw-24px))] overflow-y-auto overscroll-contain wrap-anywhere rounded-md border px-3 py-2 text-sm leading-relaxed text-pretty shadow-md',
           props.class,
         )
       "
