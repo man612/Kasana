@@ -303,27 +303,27 @@
     },
     "trashPage": {
       "title": "Tempat Sampah",
-      "description": "Newest deletions first. Each is removed for good after {days} days. Pick one to see what comes back with it.",
-      "expiringBanner": "{count} will be deleted permanently within {days}.",
-      "expiringCount": "1 transaction | {count} transactions",
-      "expiringDays": "1 day | {count} days",
-      "loadError": "Couldn't load the Trash",
-      "emptyTitle": "Trash is empty",
-      "emptyDescription": "Deleted transactions stay here for {days} days before they're removed for good.",
-      "daysLeft": "1 day left | {count} days left",
-      "deletedOn": "deleted {date}",
-      "transferTitle": "Transfer from {from} to {to}",
-      "unknownAccount": "Unknown account",
+      "description": "Transaksi yang baru dihapus ditampilkan lebih dulu. Setelah {days} hari, transaksi dihapus permanen.",
+      "expiringBanner": "{count} akan dihapus permanen dalam {days}.",
+      "expiringCount": "1 transaksi | {count} transaksi",
+      "expiringDays": "1 hari | {count} hari",
+      "loadError": "Gagal memuat Tempat Sampah",
+      "emptyTitle": "Tempat Sampah masih kosong",
+      "emptyDescription": "Transaksi yang dihapus tetap tersimpan di sini selama {days} hari sebelum dihapus permanen.",
+      "daysLeft": "Sisa 1 hari | Sisa {count} hari",
+      "deletedOn": "dihapus {date}",
+      "transferTitle": "Transfer dari {from} ke {to}",
+      "unknownAccount": "Akun tidak diketahui",
       "restore": "Pulihkan",
-      "deletePermanently": "Delete permanently",
-      "deleteConfirmTitle": "Delete permanently?",
-      "deleteConfirmDescription": "This transaction will be removed for good. This can't be undone.",
+      "deletePermanently": "Hapus permanen",
+      "deleteConfirmTitle": "Hapus permanen?",
+      "deleteConfirmDescription": "Transaksi akan dihapus selamanya. Tindakan ini tidak bisa dibatalkan.",
       "notifications": {
-        "restored": "Transaction restored",
-        "restoreError": "Failed to restore the transaction",
-        "deleted": "Transaction deleted permanently",
-        "deleteError": "Failed to delete the transaction",
-        "restoredWithDroppedRefundLinks": "Restored. 1 refund link couldn't be restored because it no longer fits. | Restored. {count} refund links couldn't be restored because they no longer fit."
+        "restored": "Transaksi berhasil dipulihkan",
+        "restoreError": "Gagal memulihkan transaksi",
+        "deleted": "Transaksi dihapus permanen",
+        "deleteError": "Gagal menghapus transaksi",
+        "restoredWithDroppedRefundLinks": "Transaksi dipulihkan, tetapi 1 tautan pengembalian dana tidak dapat dipulihkan. | Transaksi dipulihkan, tetapi {count} tautan pengembalian dana tidak dapat dipulihkan."
       },
       "comesBack": {
         "title": "Comes back with",
@@ -343,7 +343,10 @@
           "subscriptionPeriod": "Subscription payment due {name}",
           "unnamed": "Tanpa Judul"
         }
-      }
+      },
+      "emptyAll": "Kosongkan Semua",
+      "emptyAllConfirmTitle": "Kosongkan seluruh Tempat Sampah?",
+      "emptyAllConfirmDescription": "Hapus permanen {count} transaksi dari Tempat Sampah? Tindakan ini tidak bisa dibatalkan."
     }
   },
   "records": {
