@@ -40,20 +40,14 @@ test.describe('Lajur UX-25 mobile regression gates', () => {
       await page.keyboard.press('Escape');
       await expect(viewsChevron).not.toHaveClass(/rotate-180/);
 
-      // UX25 #13: no selection means no bulk mutations. The explanation is
-      // inline and does not require a hover-only tooltip.
+      // UX25 #13: financial bulk actions must remain unavailable, but the
+      // dimmed explanation trigger itself must be operable by touch, pointer,
+      // and keyboard. ARIA-disabled would incorrectly block this help action.
       const withoutSelection = page.getByRole('button', { name: 'Pilih transaksi dahulu untuk menggunakan tindakan ini.' });
-      await expect(withoutSelection).toHaveAttribute('aria-disabled', 'true');
-      // ARIA-disabled communicates that financial actions are unavailable,
-      // but the real pointer target still explains why when tapped. A normal
-      // Playwright locator.click() refuses to operate ARIA-disabled controls.
-      const unavailableBox = await withoutSelection.boundingBox();
-      expect(unavailableBox).not.toBeNull();
-      await page.mouse.click(
-        unavailableBox!.x + unavailableBox!.width / 2,
-        unavailableBox!.y + unavailableBox!.height / 2,
-      );
+      await expect(withoutSelection).toHaveAttribute('data-selection-required', 'true');
+      await withoutSelection.click();
       await expect(page.getByRole('status').filter({ hasText: 'Pilih transaksi dahulu untuk menggunakan tindakan ini.' })).toBeVisible();
+      await expect(page.getByRole('menuitem', { name: /Hapus|Delete/i })).toHaveCount(0);
 
       await page.getByRole('button', { name: 'Lainnya', exact: true }).click();
       await page.getByRole('menuitemradio', { name: 'Tampilan tabel' }).click();

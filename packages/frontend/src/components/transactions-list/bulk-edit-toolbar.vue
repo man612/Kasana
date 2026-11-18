@@ -104,8 +104,8 @@ const handleEdit = () => {
         size="sm"
         :disabled="isLoading"
         :aria-label="t('transactions.bulkEdit.selectBeforeAction')"
-        aria-disabled="true"
-        class="cursor-not-allowed opacity-55"
+        data-selection-required="true"
+        class="cursor-help opacity-55"
         @click="explainSelection"
       >
         <ListOrderedIcon class="mr-1.5 size-4" />
