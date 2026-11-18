@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 import {
+  apiDelete,
   completeOnboarding,
   createAccount,
   createTransaction,
@@ -117,4 +118,54 @@ test.describe('Lajur UX-25 mobile regression gates', () => {
       await api.dispose();
     }
   });
+
+  test('Trash supports back navigation and confirm-only empty-all for disposable transactions', async ({ page, playwright }) => {
+    test.setTimeout(120_000);
+    const creds = buildTestCredentials({ prefix: 'lajur-ux11-trash' });
+    await signUpAndVerify({ creds });
+    const api = await signInViaApi({ playwright, email: creds.email, password: creds.password });
+    try {
+      await completeOnboarding({ request: api, currencyCode: 'IDR' });
+      const accountId = extractId(
+        await createAccount({ request: api, name: 'Dompet uji sampah', currencyCode: 'IDR', initialBalance: 3_000_000 }),
+      );
+      const firstId = extractId(await createTransaction({
+        request: api, accountId, amount: 102_000, note: 'Transaksi uji sampah satu',
+      }));
+      const secondId = extractId(await createTransaction({
+        request: api, accountId, amount: 203_000, note: 'Transaksi uji sampah dua',
+      }));
+      await apiDelete({ request: api, path: `/api/v1/transactions/${firstId}` });
+      await apiDelete({ request: api, path: `/api/v1/transactions/${secondId}` });
+      await loginViaUI({ page, email: creds.email, password: creds.password });
+      await page.goto('/transactions');
+
+      const more = page.getByRole('button', { name: 'Lainnya', exact: true });
+      await more.click();
+      const trashMenuItem = page.getByRole('menuitem', { name: /Tempat Sampah|Trash/i });
+      await expect(trashMenuItem).not.toHaveAttribute('data-trash-empty', 'true');
+      await trashMenuItem.click();
+      await expect(page.getByRole('heading', { name: 'Tempat Sampah' })).toBeVisible();
+      const emptyAll = page.getByRole('button', { name: 'Kosongkan Semua' });
+      await expect(emptyAll).toBeVisible();
+
+      await emptyAll.click();
+      const confirm = page.getByRole('alertdialog').last();
+      await expect(confirm).toBeVisible();
+      // UX11 #7/#9: outside tap cancels, never permanently deletes.
+      await page.mouse.click(4, 4);
+      await expect(confirm).toBeHidden();
+      await expect(emptyAll).toBeVisible();
+
+      await emptyAll.click();
+      await expect(confirm).toBeVisible();
+      await confirm.getByRole('button', { name: 'Kosongkan Semua' }).click();
+      await expect(page.getByText('Tempat Sampah masih kosong')).toBeVisible({ timeout: 20_000 });
+      await page.getByRole('button', { name: /Kembali|Back/i }).first().click();
+      await expect(page).toHaveURL(/\\/transactions(?:\\?.*)?$/);
+    } finally {
+      await api.dispose();
+    }
+  });
+
 });
