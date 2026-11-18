@@ -15,7 +15,8 @@
       "errors": {
         "unableToLoadCurrencies": "Tidak dapat memuat daftar mata uang. Coba lagi nanti",
         "unableToSetCurrency": "Kesalahan tak terduga. Tidak dapat mengatur mata uang dasar. Silakan coba lagi atau hubungi dukungan."
-      }
+      },
+      "idrNotice": "Untuk beta Lajur. Indonesia, mata uang dasar ditetapkan ke Rupiah (IDR). Mata uang lain masih ditutup sementara agar pencatatan konsisten."
     },
     "oauthCallback": {
       "completingSignIn": "Menyelesaikan masuk...",

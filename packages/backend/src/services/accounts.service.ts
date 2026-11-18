@@ -52,6 +52,7 @@ import { restampRefInitialBalance } from './accounts/restamp-ref-initial-balance
 import { unlinkSubscriptionsFromAccount } from './accounts/unlink-subscriptions-from-account';
 import { unlinkTemplatesFromAccount } from './accounts/unlink-templates-from-account';
 import { withTransaction } from './common/with-transaction';
+import { enforceBetaIdrCurrency } from './currencies/idr-beta-policy';
 
 type AccountWithRelinkStatus = Accounts.default & {
   needsRelink?: boolean;
@@ -217,6 +218,10 @@ export const createAccount = withTransaction(
         });
       }
 
+      // Account creation can auto-connect a currency, bypassing the explicit
+      // add-currency endpoint. Apply the beta rule at the service boundary too
+      // so REST, MCP, vehicle/loan flows and imports share the same guard.
+      enforceBetaIdrCurrency(currencyCode);
       await ensureUserCurrencyConnected({ userId, currencyCode });
 
       const refCreditLimit = await calculateRefAmount({

@@ -45,7 +45,7 @@ const goTo = (target: View) => {
         />
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="w-64 overflow-hidden p-0" align="end">
+    <PopoverContent dim-backdrop class="w-64 max-w-[calc(100vw-2rem)] overflow-hidden p-0" align="end">
       <SlidingPanels v-model="view" :panels="['main', 'sections']">
         <template #main>
           <div class="flex flex-col">

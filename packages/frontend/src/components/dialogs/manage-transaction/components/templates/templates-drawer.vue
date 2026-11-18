@@ -5,7 +5,7 @@ import * as Dialog from '@/components/lib/ui/dialog';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { TransactionTemplateModel } from '@bt/shared/types';
-import { ChevronDownIcon, ChevronUpIcon, LayoutTemplateIcon, XIcon } from '@lucide/vue';
+import { ChevronDownIcon, LayoutTemplateIcon, XIcon } from '@lucide/vue';
 import { computed, nextTick, ref, watch } from 'vue';
 
 import TemplatePreview from './template-preview.vue';
@@ -27,6 +27,9 @@ const expandedId = ref<string | null>(null);
 let appliedFromDialog = false;
 
 const isFilterVisible = computed(() => props.templates.length > FILTER_VISIBLE_FROM);
+// Mobile: one clear primary action. Blank-template authoring still exists on
+// desktop; phones save the current transaction fields instead.
+const mobileFooterActions = computed(() => footerActions.value.filter((action) => action.key !== 'new'));
 
 watch(
   () => props.open,
@@ -82,7 +85,10 @@ const onCloseAutoFocus = (event: Event) => {
           <span class="truncate">
             {{ applied ? applied.name : $t('dialogs.manageTransaction.templates.trigger') }}
           </span>
-          <ChevronUpIcon class="size-3.5 shrink-0" />
+          <ChevronDownIcon
+            class="size-3.5 shrink-0 transition-transform duration-200 motion-reduce:transition-none"
+            :class="isOpen && 'rotate-180'"
+          />
         </Button>
       </Dialog.DialogTrigger>
 
@@ -100,10 +106,10 @@ const onCloseAutoFocus = (event: Event) => {
 
     <Dialog.DialogContent
       blur-overlay
-      class="max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-2xl p-4"
+      class="max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-2xl p-5 duration-200 ease-out motion-reduce:transition-none"
       @close-auto-focus="onCloseAutoFocus"
     >
-      <Dialog.DialogTitle class="pr-10 text-base font-semibold">
+      <Dialog.DialogTitle class="pr-14 text-base font-semibold">
         {{ $t('dialogs.manageTransaction.templates.trigger') }}
       </Dialog.DialogTitle>
       <p v-if="templates.length" class="text-muted-foreground mt-1 pb-3 text-xs">
@@ -183,9 +189,9 @@ const onCloseAutoFocus = (event: Event) => {
         />
       </div>
 
-      <div class="border-border mt-3 grid grid-cols-1 gap-2 border-t pt-3 min-[390px]:grid-cols-2">
+      <div class="border-border mt-3 grid grid-cols-1 gap-2 border-t pt-3">
         <Button
-          v-for="action in footerActions"
+          v-for="action in mobileFooterActions"
           :key="action.key"
           :variant="action.variant"
           class="h-auto min-h-11 min-w-0 w-full justify-start gap-2 px-3 text-left text-sm font-normal whitespace-normal"

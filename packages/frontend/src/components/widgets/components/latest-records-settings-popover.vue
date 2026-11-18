@@ -2,10 +2,13 @@
   <Popover v-model:open="isOpen">
     <PopoverTrigger as-child>
       <Button size="icon-sm" variant="ghost" :aria-label="$t('common.actions.settings')">
-        <SettingsIcon class="text-muted-foreground size-4" />
+        <SettingsIcon
+          class="text-muted-foreground size-4 transition-transform duration-250 ease-out motion-reduce:transition-none"
+          :class="isOpen && 'rotate-90'"
+        />
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="w-72 overflow-hidden p-0" align="end">
+    <PopoverContent dim-backdrop class="w-72 overflow-hidden p-0" align="end">
       <SlidingPanels v-model="view" :panels="['main', 'exclusions']">
         <template #main>
           <div class="flex flex-col">

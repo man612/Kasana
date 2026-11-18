@@ -86,6 +86,35 @@ describe('Accounts controller', () => {
       expect(account.creditLimit).toStrictEqual(creditLimit);
       expect(account.refCreditLimit).toStrictEqual(creditLimit);
     });
+    it('enforces the IDR beta rule for new accounts without changing existing foreign-currency accounts', async () => {
+      const legacyAccount = await helpers.createAccount({
+        payload: helpers.buildAccountPayload({ currencyCode: 'JPY' }),
+        raw: true,
+      });
+      const originalFlag = process.env.LAJUR_IDR_ONLY_BETA;
+      process.env.LAJUR_IDR_ONLY_BETA = 'true';
+
+      try {
+        const rejected = await helpers.createAccount({
+          payload: helpers.buildAccountPayload({ currencyCode: 'JPY' }),
+          raw: false,
+        });
+        expect(rejected.statusCode).toBe(ERROR_CODES.ValidationError);
+
+        const idrAccount = await helpers.createAccount({
+          payload: helpers.buildAccountPayload({ currencyCode: 'IDR' }),
+          raw: true,
+        });
+        expect(idrAccount.currencyCode).toBe('IDR');
+
+        const stillReadable = await helpers.getAccount({ id: legacyAccount.id, raw: true });
+        expect(stillReadable.currencyCode).toBe('JPY');
+      } finally {
+        if (originalFlag === undefined) delete process.env.LAJUR_IDR_ONLY_BETA;
+        else process.env.LAJUR_IDR_ONLY_BETA = originalFlag;
+      }
+    });
+
     it('should correctly create account with correct balance for external currency', async () => {
       const currency = (await helpers.addUserCurrencies({ currencyCodes: ['UAH'], raw: true })).currencies[0]!;
 

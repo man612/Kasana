@@ -15,7 +15,8 @@
       "errors": {
         "unableToLoadCurrencies": "Unable to load currencies list. Try later",
         "unableToSetCurrency": "Unexpected error. Cannot set base currency. Please try later or contact support."
-      }
+      },
+      "idrNotice": "During the Indonesian Lajur. beta, new accounts use Rupiah (IDR) as the base currency. Other currencies are temporarily unavailable to keep accounting consistent."
     },
     "oauthCallback": {
       "completingSignIn": "Completing sign in...",

@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import * as Dialog from '@/components/lib/ui/dialog';
+import { Button } from '@/components/lib/ui/button';
+import { XIcon } from '@lucide/vue';
+import { useI18n } from 'vue-i18n';
 import * as Drawer from '@/components/lib/ui/drawer';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { useCloseDialogWhen } from '@/composable/use-close-dialog-when';
@@ -7,6 +10,7 @@ import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-br
 import { createReusableTemplate, useVModel } from '@vueuse/core';
 import type { HTMLAttributes } from 'vue';
 
+const { t } = useI18n();
 const [UseTemplate, SlotContent] = createReusableTemplate();
 const [UseFooterTemplate, FooterSlotContent] = createReusableTemplate();
 const [UseScrollArea, ScrollAreaContent] = createReusableTemplate();
@@ -15,6 +19,8 @@ const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const props = withDefaults(
   defineProps<{
     open?: boolean;
+    /** Short mobile explanations appear centered instead of as a tall sheet. */
+    mobilePresentation?: 'drawer' | 'center';
     dialogContentClass?: HTMLAttributes['class'];
     drawerContentClass?: HTMLAttributes['class'];
     customClose?: boolean;
@@ -37,7 +43,7 @@ const props = withDefaults(
      * click and drawer swipe are ignored. For app-locking progress that must run to the end. */
     dismissible?: boolean;
   }>(),
-  { dismissible: true },
+  { dismissible: true, mobilePresentation: 'drawer' },
 );
 
 const emit = defineEmits(['update:open', 'open-auto-focus']);
@@ -70,9 +76,9 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
     <SlotContent v-else />
   </UseScrollArea>
 
-  <template v-if="isMobile">
+  <template v-if="isMobile && props.mobilePresentation === 'drawer'">
     <Drawer.Drawer :open="isOpen" :dismissible="props.dismissible" @update:open="setOpen">
-      <Drawer.DrawerTrigger as-child>
+      <Drawer.DrawerTrigger v-if="$slots.trigger" as-child>
         <slot name="trigger" />
       </Drawer.DrawerTrigger>
 
@@ -85,7 +91,18 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         ]"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
-        <div v-if="$slots['header-actions']" class="absolute top-3 right-12 z-20 flex items-center">
+        <Button
+          v-if="props.dismissible && !props.customClose"
+          type="button"
+          variant="ghost"
+          size="icon"
+          class="absolute top-3 right-3 z-30 size-10"
+          :aria-label="t('common.ui.close')"
+          @click="close"
+        >
+          <XIcon class="size-5" />
+        </Button>
+        <div v-if="$slots['header-actions']" class="absolute top-3 right-14 z-20 flex items-center">
           <slot name="header-actions" />
         </div>
         <template v-if="props.srOnlyHeader">
@@ -119,7 +136,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
   </template>
   <template v-else>
     <Dialog.Dialog :open="isOpen" @update:open="setOpen">
-      <Dialog.DialogTrigger as-child>
+      <Dialog.DialogTrigger v-if="$slots.trigger" as-child>
         <slot name="trigger" />
       </Dialog.DialogTrigger>
 
@@ -127,11 +144,13 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         :class="[
           !props.noInternalScroll && 'grid grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden',
           dialogContentClass,
+          isMobile && 'max-h-[88dvh] w-[calc(100vw-2rem)] max-w-md rounded-2xl',
         ]"
+        :blur-overlay="isMobile"
         :custom-close="customClose"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
-        <div v-if="$slots['header-actions']" class="absolute top-3 right-12 z-20 flex items-center">
+        <div v-if="$slots['header-actions']" class="absolute top-3 right-14 z-20 flex items-center">
           <slot name="header-actions" />
         </div>
         <template v-if="props.srOnlyHeader">

@@ -77,7 +77,15 @@ const isOpen = ref(false);
 
 function onOpenChange(open: boolean) {
   isOpen.value = open;
-  if (open) hasOpened.value = true;
+  if (open) {
+    hasOpened.value = true;
+  } else {
+    // Dismissal should restore the full list even if a debounce is pending.
+    filterValues.cancel();
+    searchQuery.value = '';
+    isFiltered.value = false;
+    debouncedFilteredValues.value = props.values;
+  }
 }
 
 defineExpose({ open: () => onOpenChange(true) });
@@ -133,19 +141,24 @@ function clearSelection(event: MouseEvent) {
   if (event.detail === 0) triggerWrapperRef.value?.querySelector<HTMLElement>('[role="combobox"]')?.focus();
 }
 
-watch(
-  searchQuery,
-  debounce((query: string) => {
-    const lowerCaseQuery = query.toLowerCase();
-    isFiltered.value = Boolean(query);
-    // Matches the visible label plus any extra searchKeys fields, so labels with
-    // computed parts (translations, suffixes) stay searchable alongside raw fields.
-    debouncedFilteredValues.value = props.values.filter((item) => {
-      if (getLabelFromValue(item).toLowerCase().includes(lowerCaseQuery)) return true;
-      return Boolean(props.searchKeys?.some((key) => String(item[key]).toLowerCase().includes(lowerCaseQuery)));
-    });
-  }, 300),
-);
+const filterValues = debounce((query: string) => {
+  const lowerCaseQuery = query.toLowerCase();
+  isFiltered.value = Boolean(query);
+  debouncedFilteredValues.value = props.values.filter((item) => {
+    if (getLabelFromValue(item).toLowerCase().includes(lowerCaseQuery)) return true;
+    return Boolean(props.searchKeys?.some((key) => String(item[key]).toLowerCase().includes(lowerCaseQuery)));
+  });
+}, 300);
+
+watch(searchQuery, (query) => {
+  if (!query) {
+    filterValues.cancel();
+    isFiltered.value = false;
+    debouncedFilteredValues.value = props.values;
+  } else {
+    filterValues(query);
+  }
+});
 
 // Sync filtered values when props.values changes (e.g., async-loaded data)
 watch(

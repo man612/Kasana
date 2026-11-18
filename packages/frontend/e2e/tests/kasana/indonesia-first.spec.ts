@@ -1,14 +1,47 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 
 import {
+  apiPut,
   completeOnboarding,
   createAccount,
   createTransaction,
+  dismissOnboarding,
   extractId,
   signInViaApi,
 } from '../../helpers/api-client';
 import { loginViaUI } from '../../helpers/auth';
 import { buildTestCredentials, signUpAndVerify } from '../../helpers/test-setup';
+
+// Playwright supports synthetic TouchEvents for legacy touch gesture handlers.
+// Use the real target geometry, so the same sequence works at 320 and 390px.
+async function swipeElement(element: Locator, from: number, to: number) {
+  await element.evaluate((node, { from, to }) => {
+    const rect = node.getBoundingClientRect();
+    const y = rect.top + rect.height / 2;
+    const touch = (x: number) => new Touch({
+      identifier: 1,
+      target: node,
+      clientX: rect.left + rect.width * x,
+      clientY: y,
+    });
+    const initial = touch(from);
+    node.dispatchEvent(new TouchEvent('touchstart', {
+      touches: [initial],
+      targetTouches: [initial],
+      changedTouches: [initial],
+      bubbles: true,
+      cancelable: true,
+    }));
+    const finalTouch = touch(to);
+    node.dispatchEvent(new TouchEvent('touchend', {
+      touches: [],
+      targetTouches: [],
+      changedTouches: [finalTouch],
+      bubbles: true,
+      cancelable: true,
+    }));
+  }, { from, to });
+}
 
 test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', () => {
   test.use({ viewport: { width: 390, height: 844 } });
@@ -50,11 +83,48 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         password: credentials.password,
       });
 
-      await page.goto('/accounts');
+      // The generic onboarding fixture deliberately permanently dismisses the guide.
+      // Reopen it for this isolated timer check, then restore the fixture's original
+      // dismissed state before continuing the other interaction smoke assertions.
+      await apiPut({
+        request: api,
+        path: '/api/v1/user/settings/onboarding',
+        data: { isDismissed: false, dismissedAt: null },
+      });
+      // A short, cross-tab Quick Start hide must expire without reloading.
+      // The timer is owned by the Pinia store even when the floating button is hidden.
+      await page.goto('/dashboard');
+      const quickStart = page.locator('button.fixed:has(svg.lucide-rocket)');
+      await expect(quickStart).toBeVisible({ timeout: 20_000 });
+      await page.evaluate(() => {
+        const key = 'kasana.quick-start-hidden-until-v1';
+        const hiddenUntil = String(Date.now() + 2_500);
+        localStorage.setItem(key, hiddenUntil);
+        window.dispatchEvent(new StorageEvent('storage', { key, newValue: hiddenUntil }));
+      });
+      await expect(quickStart).toBeHidden();
+      await expect(quickStart).toBeVisible({ timeout: 8_000 });
+      await dismissOnboarding({ request: api });
+      await page.reload();
+      await expect(quickStart).toBeHidden();
+
+      // Swipe from just inside the system-back edge to open the app sidebar.
+      const shell = page.locator('.h-dvh').first();
+      await swipeElement(shell, 0.14, 0.74);
+      const sidebarSheet = page.locator('[role="dialog"][data-state="open"]').first();
+      await expect(sidebarSheet).toBeVisible();
+      await swipeElement(sidebarSheet.locator(':scope > div.h-full').first(), 0.80, 0.18);
+      await expect(sidebarSheet).toBeHidden();
+
+      // Swiping the four-item bottom navbar moves one destination at a time.
+      const navGestureTarget = page.getByRole('navigation', { name: 'Navigasi utama' });
+      await swipeElement(navGestureTarget, 0.85, 0.15);
+      await expect(page).toHaveURL(/\/accounts(?:\?.*)?$/);
       await expect(page.getByText(accountName).first()).toBeVisible({ timeout: 20_000 });
 
-      // The mobile create-account/vehicle menu must be a bounded dialog,
-      // not a fragile popover that vanishes when another field receives focus.
+      // The mobile account menu is deliberately an anchored popover, not a
+      // centered confirmation. Outside taps dismiss it, and launching the
+      // vehicle form must close the menu first to avoid competing focus layers.
       const accountMenuTrigger = page.getByRole('button', { name: /Tindakan akun|Account actions/i });
       await accountMenuTrigger.click();
       const accountMenu = page.getByRole('dialog', { name: /Tindakan akun|Account actions/i });
@@ -62,9 +132,12 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await expect(accountMenu.getByRole('button', { name: /Buat akun|Create account/i })).toBeVisible();
       await expect(accountMenu.getByRole('button', { name: /Tambah kendaraan|Add vehicle/i })).toBeVisible();
       await page.mouse.click(4, 4);
-      await expect(accountMenu).toBeVisible();
-      await page.keyboard.press('Escape');
       await expect(accountMenu).toBeHidden();
+      await accountMenuTrigger.click();
+      await accountMenu.getByRole('button', { name: /Tambah kendaraan|Add vehicle/i }).click();
+      await expect(accountMenu).toBeHidden();
+      await expect(page.getByRole('dialog', { name: /Tambah kendaraan|Add vehicle/i })).toBeVisible();
+      await page.keyboard.press('Escape');
 
       // New tab has the authenticated cookie but no prior app navigation
       // history. It must still have an explicit, reliable Back destination.
@@ -175,6 +248,40 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         )
         .toBeGreaterThanOrEqual(4);
       await expect(mobileForm.getByTestId('date-field-time-input')).toHaveCount(0);
+
+      // Closing account selection without picking must clear its search filter.
+      const accountPickerTrigger = mobileForm.locator('[data-test="account-select-trigger"]').first();
+      await expect(accountPickerTrigger).toBeVisible();
+      await accountPickerTrigger.click();
+      const accountPicker = page.locator('[data-test="account-select-dialog"]').last();
+      const accountPickerSearch = accountPicker.locator('[data-test="account-select-search"]');
+      await expect(accountPicker).toBeVisible();
+      await accountPickerSearch.fill('this-account-does-not-exist');
+      // Use the explicit close control: Escape on type=search can clear the
+      // native search field before it dismisses the surrounding dialog.
+      await accountPicker.getByRole('button', { name: /Tutup|Close/i }).click();
+      await expect(accountPicker).toBeHidden();
+      await accountPickerTrigger.click();
+      await expect(accountPicker).toBeVisible();
+      await expect(accountPickerSearch).toHaveValue('');
+      await expect(accountPicker.getByText(accountName).first()).toBeVisible();
+      await accountPicker.getByText(accountName).first().click();
+      await expect(accountPicker).toBeHidden();
+
+      const payeePickerTrigger = mobileForm.locator('[data-test="payee-select-field"]').first();
+      await expect(payeePickerTrigger).toBeVisible();
+      await payeePickerTrigger.click();
+      const payeePicker = page.getByRole('dialog').filter({ has: page.locator('[data-test="payee-select-search"]') }).last();
+      await expect(payeePicker).toBeVisible();
+      await payeePicker.locator('[data-test="payee-select-search"]').fill('recipient-that-does-not-exist');
+      // A recipient search field can own keyboard handling; exercise the
+      // explicit dialog X independently of the account selector's Escape path.
+      await payeePicker.getByRole('button', { name: /Tutup|Close/i }).click();
+      await expect(payeePicker).toBeHidden();
+      await payeePickerTrigger.click();
+      await expect(payeePicker.locator('[data-test="payee-select-search"]')).toHaveValue('');
+      await payeePicker.getByRole('button', { name: /Tutup|Close/i }).click();
+
       const mobileAmountMetrics = await primaryAmount.evaluate((element) => ({
         fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
         height: element.getBoundingClientRect().height,
@@ -210,7 +317,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(templateBounds).not.toBeNull();
       expect(templateBounds!.y).toBeGreaterThanOrEqual(-2);
       expect(templateBounds!.y + templateBounds!.height).toBeLessThanOrEqual(570);
-      await expect(templateDialog.getByRole('button', { name: /Templat baru|New template/i })).toBeVisible();
+      await expect(templateDialog.getByRole('button', { name: /Simpan templat|Save .*template/i })).toBeVisible();
       await page.keyboard.press('Escape');
       await expect(templateDialog).toBeHidden();
       await expect(mobileForm).toBeVisible();
@@ -239,7 +346,10 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await page.goto('/settings/appearance');
       const accents = page.getByRole('group', { name: /Warna aksen|Accent color/i });
       await expect(accents).toBeVisible();
-      await expect(accents.getByRole('button', { name: /Ungu|Purple/i })).toHaveAttribute('aria-pressed', 'true');
+      // Fresh accounts default to blue in Lajur. Mobile UX Round 2; purple
+      // remains a selectable user preference, not the initial default.
+      await expect(accents.getByRole('button', { name: /Biru|Blue/i })).toHaveAttribute('aria-pressed', 'true');
+      await expect(accents.getByRole('button', { name: /Ungu|Purple/i })).toHaveAttribute('aria-pressed', 'false');
       const accentSaved = page.waitForResponse(
         (response) =>
           response.request().method() === 'PATCH' &&

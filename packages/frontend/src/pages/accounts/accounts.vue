@@ -21,43 +21,36 @@
         <div v-if="accounts?.length || vehicles?.length" class="flex items-center gap-2 @[35rem]/accounts-page:hidden">
           <AccountsSortMenu trigger-variant="icon" />
 
-          <!-- A controlled centered dialog avoids nested popover dismissal
-               when choosing an account or vehicle creation action. -->
-          <UiButton
-            variant="outline"
-            size="icon"
-            :aria-label="$t('accounts.actionsMenu')"
-            aria-haspopup="dialog"
-            :aria-expanded="isActionsMenuOpen"
-            @click="isActionsMenuOpen = true"
-          >
-            <EllipsisVerticalIcon class="size-4" />
-          </UiButton>
-          <Dialog.Dialog :open="isActionsMenuOpen" @update:open="isActionsMenuOpen = $event">
-            <Dialog.DialogContent
-              class="w-[calc(100vw-2rem)] max-w-sm gap-3 rounded-2xl p-5"
-              @interact-outside.prevent
+          <Popover.Popover v-model:open="isActionsMenuOpen">
+            <Popover.PopoverTrigger as-child>
+              <UiButton
+                variant="outline"
+                size="icon"
+                :aria-label="$t('accounts.actionsMenu')"
+                :aria-expanded="isActionsMenuOpen"
+              >
+                <EllipsisVerticalIcon class="size-4" />
+              </UiButton>
+            </Popover.PopoverTrigger>
+            <Popover.PopoverContent
+              dim-backdrop
+              align="end"
+              :aria-label="$t('accounts.actionsMenu')"
+              class="w-60 space-y-1 rounded-xl p-2"
             >
-              <Dialog.DialogTitle class="pr-10 text-base font-semibold">{{ $t('accounts.actionsMenu') }}</Dialog.DialogTitle>
-              <Dialog.DialogDescription class="sr-only">
-                {{ $t('accounts.createAccount') }} / {{ $t('accounts.createVehicle') }}
-              </Dialog.DialogDescription>
-              <div class="grid gap-2">
-                <CreateVehicleDialog @created="isActionsMenuOpen = false">
-                  <UiButton variant="outline" class="min-h-12 w-full justify-start gap-3">
-                    <CarIcon class="size-5" />
-                    {{ $t('accounts.createVehicle') }}
-                  </UiButton>
-                </CreateVehicleDialog>
-                <CreateAccountDialog @created="isActionsMenuOpen = false">
-                  <UiButton variant="outline" class="min-h-12 w-full justify-start gap-3">
-                    <PlusIcon class="size-5" />
-                    {{ $t('accounts.createAccount') }}
-                  </UiButton>
-                </CreateAccountDialog>
-              </div>
-            </Dialog.DialogContent>
-          </Dialog.Dialog>
+              <p class="text-muted-foreground px-3 py-1 text-xs font-medium">{{ $t('accounts.actionsMenu') }}</p>
+              <UiButton variant="ghost" class="min-h-11 w-full justify-start gap-3" @click="openMobileCreateAction('vehicle')">
+                <CarIcon class="size-5" />
+                {{ $t('accounts.createVehicle') }}
+              </UiButton>
+              <UiButton variant="ghost" class="min-h-11 w-full justify-start gap-3" @click="openMobileCreateAction('account')">
+                <PlusIcon class="size-5" />
+                {{ $t('accounts.createAccount') }}
+              </UiButton>
+            </Popover.PopoverContent>
+          </Popover.Popover>
+          <CreateVehicleDialog v-model:open="isMobileCreateVehicleOpen" />
+          <CreateAccountDialog v-model:open="isMobileCreateAccountOpen" />
         </div>
       </div>
 
@@ -243,7 +236,7 @@ import CreateVehicleDialog from '@/components/dialogs/create-vehicle-dialog.vue'
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import { Card } from '@/components/lib/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/lib/ui/collapsible';
-import * as Dialog from '@/components/lib/ui/dialog';
+import * as Popover from '@/components/lib/ui/popover';
 import GroupTotal from '@/components/sidebar/accounts-view/group-total.vue';
 import { collectGroupAccounts, flattenAccounts } from '@/components/sidebar/accounts-view/helpers/account-totals';
 import { useAccountGroupsQuery } from '@/composable/data-queries/account-groups';
@@ -255,7 +248,7 @@ import { ACCOUNT_CATEGORIES, ACCOUNT_STATUSES, AccountModel } from '@bt/shared/t
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import { CarIcon, ChevronDownIcon, EllipsisVerticalIcon, LandmarkIcon, LinkIcon, PlusIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -275,6 +268,16 @@ const queryClient = useQueryClient();
 const { t } = useI18n();
 
 const isActionsMenuOpen = ref(false);
+const isMobileCreateAccountOpen = ref(false);
+const isMobileCreateVehicleOpen = ref(false);
+const openMobileCreateAction = async (kind: 'account' | 'vehicle') => {
+  isActionsMenuOpen.value = false;
+  // Dismiss and unmount the popover before opening the independent form.
+  // Otherwise Reka's focus restoration closes the nested dialog.
+  await nextTick();
+  if (kind === 'account') isMobileCreateAccountOpen.value = true;
+  else isMobileCreateVehicleOpen.value = true;
+};
 
 const { sortConnectionRows, sortLeafAccounts, sortVehicles, sortManual } = useAccountsSort();
 

@@ -1,5 +1,5 @@
 /**
- * Optional, local-only feedback for interactive UI chrome on small touch screens.
+ * Optional, local-only feedback for interactive UI chrome on desktop and mobile.
  * Do not play for typing, read-out amounts, failed requests or user data.
  * No network calls or bundled audio assets; Android requires a direct user click
  * before Web Audio can start. Disabled by default for accessibility.
@@ -25,27 +25,35 @@ export const setMobileInteractionSoundEnabled = (enabled: boolean): void => {
 let context: AudioContext | null = null;
 let isInstalled = false;
 
-const playTapSound = () => {
+const playTone = (audio: AudioContext) => {
+  if (audio.state !== 'running') return;
+  const now = audio.currentTime;
+  const oscillator = audio.createOscillator();
+  const gain = audio.createGain();
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(680, now);
+  oscillator.frequency.exponentialRampToValueAtTime(480, now + 0.05);
+  // 0.018 was too quiet on phone speakers at normal media volume.
+  // 0.04 remains a short, soft UI cue (~7 dB louder), not a notification beep.
+  gain.gain.setValueAtTime(0.04, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+  oscillator.connect(gain);
+  gain.connect(audio.destination);
+  oscillator.start(now);
+  oscillator.stop(now + 0.075);
+};
+
+export const previewInteractionSound = () => {
   if (!window.AudioContext) return;
   try {
     context ??= new AudioContext();
+    // The first tap often resumes an AudioContext suspended by autoplay policy.
+    // Previously it returned without ever playing the first sound.
     if (context.state !== 'running') {
-      void context.resume().catch(() => undefined);
+      void context.resume().then(() => playTone(context!)).catch(() => undefined);
       return;
     }
-
-    const now = context.currentTime;
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(560, now);
-    oscillator.frequency.exponentialRampToValueAtTime(440, now + 0.035);
-    gain.gain.setValueAtTime(0.008, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.045);
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start(now);
-    oscillator.stop(now + 0.05);
+    playTone(context);
   } catch {
     // Audio is optional; a blocked audio context must never break a button.
   }
@@ -58,14 +66,16 @@ export const installMobileInteractionSounds = (): void => {
   document.addEventListener(
     'click',
     (event) => {
-      if (!getMobileInteractionSoundEnabled() || window.innerWidth > 767) return;
+      if (!getMobileInteractionSoundEnabled()) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
       const control = target.closest<HTMLElement>(
         'button, a[href], [role="button"], [role="tab"], [role="menuitem"]',
       );
       if (!control || control.matches(':disabled, [disabled], [aria-disabled="true"]')) return;
-      playTapSound();
+      // Preview plays its own sound; the document click must not replay it.
+      if (control.closest('[data-interaction-sound-preview]')) return;
+      previewInteractionSound();
     },
     { passive: true },
   );

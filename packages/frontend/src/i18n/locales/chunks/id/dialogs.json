@@ -480,10 +480,10 @@
       "templates": {
         "trigger": "Templat",
         "filterPlaceholder": "Cari templat…",
-        "emptyState": "Belum ada templat. Simpan isian transaksi ini atau buat templat baru. Transaksi tidak akan dicatat otomatis.",
+        "emptyState": "Templat menyimpan isian yang sering Anda pakai supaya tidak perlu mengulangnya. Isi transaksi terlebih dahulu, lalu tekan Simpan templat. Templat tidak membuat transaksi otomatis.",
         "noMatches": "Tidak ada templat yang cocok.",
         "loadError": "Tidak dapat memuat templat Anda.",
-        "saveCurrent": "Simpan yang sekarang sebagai templat",
+        "saveCurrent": "Simpan templat",
         "updateApplied": "Perbarui ‘{name}’",
         "saveAsNew": "Simpan sebagai baru",
         "newTemplate": "Templat baru",

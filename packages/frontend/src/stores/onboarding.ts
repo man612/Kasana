@@ -5,7 +5,7 @@ import {
 import { i18n } from '@/i18n';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { defineStore, storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, onScopeDispose, ref, watch } from 'vue';
 
 import { useUserStore } from './user';
 
@@ -188,6 +188,47 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   const triggerPosition = ref<QuickStartPosition | null>(readQuickStartPosition());
   const hiddenUntil = ref(Number(readLocalSetting(HIDDEN_UNTIL_STORAGE_KEY) || 0) || 0);
   const visibilityTick = ref(0);
+  // Date.now() is not reactive: schedule the exact deadline rather than
+  // waiting for another unrelated store change or a page reload.
+  let hiddenDeadlineTimer: ReturnType<typeof setTimeout> | undefined;
+  const refreshHiddenDeadline = () => {
+    if (hiddenDeadlineTimer !== undefined) {
+      clearTimeout(hiddenDeadlineTimer);
+      hiddenDeadlineTimer = undefined;
+    }
+    const remaining = hiddenUntil.value - Date.now();
+    if (!Number.isFinite(remaining) || remaining <= 0) {
+      if (hiddenUntil.value !== 0) {
+        hiddenUntil.value = 0;
+        saveLocalSetting(HIDDEN_UNTIL_STORAGE_KEY, null);
+        visibilityTick.value++;
+      }
+      return;
+    }
+    // setTimeout is capped at a signed 32-bit millisecond delay.
+    hiddenDeadlineTimer = setTimeout(refreshHiddenDeadline, Math.min(remaining, 2_147_483_647));
+  };
+  watch(hiddenUntil, refreshHiddenDeadline, { immediate: true });
+
+  if (typeof window !== 'undefined') {
+    // Background tabs may have timers throttled. Sync on returning to the app.
+    const onVisibilityChange = () => { if (!document.hidden) refreshHiddenDeadline(); };
+    const onStorageChange = (event: StorageEvent) => {
+      if (event.key !== HIDDEN_UNTIL_STORAGE_KEY) return;
+      const next = Number(event.newValue ?? 0);
+      hiddenUntil.value = Number.isFinite(next) && next > 0 ? next : 0;
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('focus', refreshHiddenDeadline);
+    window.addEventListener('storage', onStorageChange);
+    onScopeDispose(() => {
+      if (hiddenDeadlineTimer !== undefined) clearTimeout(hiddenDeadlineTimer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('focus', refreshHiddenDeadline);
+      window.removeEventListener('storage', onStorageChange);
+    });
+  }
+
   const isAtDefaultPosition = computed(() => triggerPosition.value === null);
   const isTemporarilyHidden = computed(() => {
     void visibilityTick.value;
@@ -280,7 +321,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
       // Auto-open panel on first visit if not dismissed and not all complete.
       // Demo users land on a data-rich dashboard — starting collapsed avoids
       // shrinking the page content on first impression.
-      if (!data.isDismissed && completedTasks.value.length < allTasks.value.length && !isDemo.value) {
+      if (!data.isDismissed && !isTemporarilyHidden.value && completedTasks.value.length < allTasks.value.length && !isDemo.value) {
         isPanelOpen.value = true;
 
         // Expand the first category that has incomplete tasks
@@ -359,6 +400,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   };
 
   const openPanel = () => {
+    if (isTemporarilyHidden.value) return;
     isPanelOpen.value = true;
   };
 

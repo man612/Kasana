@@ -20,6 +20,8 @@ const props = withDefaults(
        * so height changes inside it don't flip the popover to the opposite side.
        */
       lockSide?: boolean;
+      /** Dim the page behind this menu without stealing outside-tap dismissal. */
+      dimBackdrop?: boolean;
     }
   >(),
   {
@@ -29,7 +31,7 @@ const props = withDefaults(
 );
 const emits = defineEmits<PopoverContentEmits>();
 
-const forwarded = useForwardPropsEmits(reactiveOmit(props, 'lockSide'), emits);
+const forwarded = useForwardPropsEmits(reactiveOmit(props, 'lockSide', 'dimBackdrop'), emits);
 
 const rootContext = injectPopoverRootContext();
 const lockedSide = ref<PopoverContentProps['side']>();
@@ -49,6 +51,20 @@ const lockedPosition = computed(() => (lockedSide.value ? { side: lockedSide.val
 
 <template>
   <PopoverPortal>
+    <Transition
+      enter-active-class="transition-opacity duration-200 ease-out motion-reduce:transition-none"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-150 ease-in motion-reduce:transition-none"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="props.dimBackdrop && rootContext.open.value"
+        class="pointer-events-none fixed inset-0 z-(--z-dialog) bg-black/60 backdrop-blur-[2px]"
+        aria-hidden="true"
+      />
+    </Transition>
     <PopoverContent
       v-bind="{ ...forwarded, ...$attrs, ...lockedPosition }"
       :collision-padding="12"

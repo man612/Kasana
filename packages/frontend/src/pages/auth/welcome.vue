@@ -31,27 +31,9 @@ const { data: allCurrencies, isLoading: isCurrenciesLoading, isError: isErrorLoa
 const { data: baseCurrency } = useBaseCurrency();
 const { mutate: setBaseCurrency, isPending: isSubmitting } = useSetBaseCurrency();
 
-// Indonesian private deployment: offer IDR first on first-run onboarding; other currencies stay available.
-const currencies = computed(() => {
-  if (!allCurrencies.value || allCurrencies.value.length === 0) return [];
-
-  const priorityCurrencies = ['IDR', 'USD', 'EUR', 'UAH', 'PLN'];
-  const priority: CurrencyModel[] = [];
-  const others: CurrencyModel[] = [];
-
-  allCurrencies.value.forEach((currency) => {
-    if (priorityCurrencies.includes(currency.code)) {
-      priority.push(currency);
-    } else {
-      others.push(currency);
-    }
-  });
-
-  // Sort priority currencies by their order in the priorityCurrencies array
-  priority.sort((a, b) => priorityCurrencies.indexOf(a.code) - priorityCurrencies.indexOf(b.code));
-
-  return [...priority, ...others];
-});
+// Private Indonesian beta: new accounts begin with Rupiah only. Existing
+// accounts retain their saved currency; do not rewrite persisted balances.
+const currencies = computed(() => (allCurrencies.value ?? []).filter((currency) => currency.code === 'IDR'));
 
 watch(selectedCurrency, () => (formError.value = null));
 watch(currencies, () => (selectedCurrency.value = currencies.value[0] ?? null));
@@ -100,13 +82,13 @@ const submitBaseCurrency = () => {
               value-key="code"
               :placeholder="$t('auth.welcome.placeholders.loading')"
               :label="$t('auth.welcome.labels.baseCurrency')"
-              with-search
-              :disabled="isFormDisabled"
+              :disabled="isFormDisabled || currencies.length === 1"
               :label-key="
                 (item: CurrencyModel) => formatCurrencyLabel({ code: item.code, fallbackName: item.currency })
               "
             />
           </div>
+          <p class="text-muted-foreground mt-2 text-xs leading-relaxed">{{ $t('auth.welcome.idrNotice') }}</p>
           <p class="mt-3 mb-14 text-sm">
             {{ $t('auth.welcome.description') }}
           </p>

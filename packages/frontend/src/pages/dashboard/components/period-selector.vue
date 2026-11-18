@@ -1,5 +1,11 @@
 <template>
-  <div class="flex min-w-0 items-center justify-center gap-0.5">
+  <div
+    data-no-nav-swipe
+    class="flex min-w-0 items-center justify-center gap-0.5 max-md:touch-pan-y"
+    @touchstart.passive="onPeriodTouchStart"
+    @touchend="onPeriodTouchEnd"
+    @touchcancel="clearPeriodTouch"
+  >
     <Button size="icon-sm" variant="ghost" @click="selectPrevPeriod">
       <ChevronLeft :size="16" />
     </Button>
@@ -58,6 +64,30 @@ import { useI18n } from 'vue-i18n';
 import { type Period } from '../types';
 
 const { t, te } = useI18n();
+
+let periodTouch: { x: number; y: number } | null = null;
+const clearPeriodTouch = () => {
+  periodTouch = null;
+};
+const onPeriodTouchStart = (event: TouchEvent) => {
+  if (!window.matchMedia('(max-width: 767px)').matches || event.touches.length !== 1) return;
+  const touch = event.touches[0]!;
+  periodTouch = { x: touch.clientX, y: touch.clientY };
+};
+const onPeriodTouchEnd = (event: TouchEvent) => {
+  if (!periodTouch || event.changedTouches.length !== 1) return;
+  const start = periodTouch;
+  periodTouch = null;
+  const touch = event.changedTouches[0]!;
+  const dx = touch.clientX - start.x;
+  const dy = touch.clientY - start.y;
+  if (Math.abs(dx) < 62 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+  // Only this period strip responds; charts, input fields and browser back
+  // gestures elsewhere retain their native behavior.
+  if (dx > 0) selectPrevPeriod();
+  else if (!isNextDisabled.value) selectNextPeriod();
+  event.preventDefault();
+};
 const presetShort = (key: string) =>
   te(`dashboard.periodSelector.presetsShort.${key}`)
     ? t(`dashboard.periodSelector.presetsShort.${key}`)

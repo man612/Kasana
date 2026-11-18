@@ -49,7 +49,7 @@
                 :disabled="disabled"
                 data-testid="date-field-numeric-input"
                 :aria-label="i18n.global.t('common.dateSelector.numericInputHelp')"
-                class="border-input bg-input-background focus-visible:ring-ring h-10 w-full rounded-md border py-2 pr-36 pl-3 text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-9"
+                class="border-input bg-input-background focus-visible:ring-ring h-10 w-full rounded-md border py-2 pr-14 pl-3 text-base tabular-nums focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-9 md:pr-36 md:text-sm"
                 @input="handleLocalInputUpdate"
                 @blur="handleBlur"
                 @keydown.enter.prevent="handleBlur($event)"
@@ -57,7 +57,7 @@
               <span
                 v-if="friendlyWeekday"
                 aria-hidden="true"
-                class="text-muted-foreground pointer-events-none absolute top-1/2 right-14 -translate-y-1/2 truncate text-xs"
+                class="text-muted-foreground pointer-events-none absolute top-1/2 right-14 -translate-y-1/2 truncate text-xs max-md:hidden"
               >
                 {{ friendlyWeekday }}
               </span>

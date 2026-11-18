@@ -20,8 +20,8 @@ withDefaults(defineProps<{ bottomNav?: boolean }>(), { bottomNav: false });
 
 const navItemBase = 'w-full gap-2 px-3';
 const bottomNavItem =
-  'flex min-h-14 flex-col justify-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-medium leading-tight transition-[background-color,color,transform] duration-150 active:scale-[0.97] motion-reduce:transition-none';
-const navItemActive = 'bg-primary/10 text-foreground';
+  'lajur-bottom-nav-item relative flex min-h-14 flex-col justify-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-medium leading-tight transition-[background-color,color,transform] duration-220 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-[0.95] motion-reduce:transition-none';
+const navItemActive = 'lajur-bottom-nav-active bg-primary/10 text-foreground';
 const navIconBase = 'size-4 shrink-0';
 const navIconActive = 'text-primary-text';
 

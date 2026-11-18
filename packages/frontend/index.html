@@ -45,13 +45,46 @@
     />
 
     <!-- Additional SEO -->
-    <meta name="theme-color" content="#7355be" />
+    <meta name="theme-color" content="#2563eb" />
+    <style>
+      /* Static first-paint fallback while the Vue entry and locale initialize. */
+      .lajur-boot {
+        min-height: 100dvh;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 14px;
+        background: #0d0d0f;
+        color: #f4f4f5;
+        font: 500 14px system-ui, sans-serif;
+      }
+      .lajur-boot img { width: 50px; height: 50px; border-radius: 12px; }
+      .lajur-boot-indicator {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #45454c;
+        border-top-color: #60a5fa;
+        border-radius: 50%;
+        animation: lajur-boot-spin 0.85s linear infinite;
+      }
+      @keyframes lajur-boot-spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) {
+        .lajur-boot-indicator { animation: none; border-top-color: #60a5fa; }
+      }
+    </style>
   </head>
   <body>
     <noscript>
       <strong> Lajur. memerlukan JavaScript agar dapat berjalan. Aktifkan JavaScript di browser. </strong>
     </noscript>
-    <div id="app"></div>
+    <div id="app">
+      <div class="lajur-boot" role="status" aria-live="polite">
+        <img src="/favicon-96x96.png" alt="" />
+        <strong>Lajur.</strong>
+        <span>Memuat aplikasi…</span>
+        <span class="lajur-boot-indicator" aria-hidden="true"></span>
+      </div>
+    </div>
     <!-- Runtime config shim. Served by the Docker entrypoint in production
          (window.__APP_CONFIG__); a public/ placeholder covers dev. Must load
          before the app module so config reads see it. -->

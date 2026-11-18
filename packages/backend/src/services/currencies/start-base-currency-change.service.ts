@@ -3,6 +3,7 @@ import { ValidationError } from '@js/errors';
 import { exchangeRateProviderRegistry } from '@services/exchange-rates/providers';
 
 import { enqueueBaseCurrencyChange } from './base-currency-change-queue';
+import { enforceBetaIdrCurrency } from './idr-beta-policy';
 
 /**
  * Starts the background change of a user's base currency and returns its job.
@@ -19,6 +20,8 @@ export async function startBaseCurrencyChange({
   userId: number;
   newCurrencyCode: string;
 }): Promise<{ jobId: string; state: 'queued' }> {
+  // This is opt-in for the private IDR beta. Never enqueue a forbidden conversion.
+  enforceBetaIdrCurrency(newCurrencyCode);
   if (!exchangeRateProviderRegistry.isCurrencySupportedForHistoricalData(newCurrencyCode)) {
     const supportedCurrencies = exchangeRateProviderRegistry.getSupportedCurrenciesForHistoricalData();
     throw new ValidationError({

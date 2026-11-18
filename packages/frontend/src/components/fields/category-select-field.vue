@@ -137,7 +137,7 @@
                 <button
                   v-if="selectedValue && !disabled"
                   type="button"
-                  class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-8 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+                  class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-8 z-10 flex w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
                   :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
                   @click.stop="clearSelection"
                 >
@@ -241,7 +241,7 @@
               <button
                 v-if="selectedValue && !disabled"
                 type="button"
-                class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute top-1/2 right-8 z-10 flex size-6 -translate-y-1/2 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
+                class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-8 z-10 flex w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
                 :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
                 @click.stop="clearSelection"
               >
@@ -259,7 +259,7 @@
 
     <!-- Mobile: Drawer -->
     <Drawer.Drawer v-if="isMobile" :open="isOpen" @update:open="handleDrawerOpenChange">
-      <Drawer.DrawerContent class="px-4 pb-4">
+      <Drawer.DrawerContent class="h-[88dvh] max-h-[92dvh] px-4 pb-4">
         <Drawer.DrawerHeader class="px-0 pb-2">
           <Drawer.DrawerTitle>{{ $t('fields.categorySelect.selectCategoryLabel') }}</Drawer.DrawerTitle>
         </Drawer.DrawerHeader>
@@ -277,7 +277,7 @@
           {{ $t('fields.categorySelect.unlistedNotice') }}
         </div>
 
-        <ListboxRoot :model-value="selectedValue" by="id" highlight-on-hover>
+        <ListboxRoot :model-value="selectedValue" by="id" highlight-on-hover class="flex min-h-0 flex-1 flex-col">
           <div
             class="border-input bg-input-background mb-3 flex h-10 w-full items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9"
           >
@@ -300,7 +300,7 @@
             </button>
           </div>
 
-          <div class="lajur-dialog-scroll h-[min(50dvh,420px)] min-h-0 overflow-y-auto overscroll-contain pr-4">
+          <div class="lajur-dialog-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain pr-4">
             <CategoryListContent />
           </div>
         </ListboxRoot>

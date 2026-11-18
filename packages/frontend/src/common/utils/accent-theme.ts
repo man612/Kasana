@@ -8,7 +8,7 @@ export const ACCENT_OPTIONS = [
 ] as const;
 
 export type AccentTheme = AccentThemePreference;
-const DEFAULT_ACCENT: AccentTheme = 'purple';
+const DEFAULT_ACCENT: AccentTheme = 'blue';
 const _accentTheme = ref<AccentTheme>(DEFAULT_ACCENT);
 let activeUserId: number | null = null;
 
@@ -21,7 +21,7 @@ export function normalizeAccentTheme(value: string | null | undefined): AccentTh
 function applyAccent(value: AccentTheme): void {
   document.documentElement.dataset.kasanaAccent = value;
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-  meta?.setAttribute('content', ACCENT_OPTIONS.find((option) => option.value === value)?.swatch ?? '#7355be');
+  meta?.setAttribute('content', ACCENT_OPTIONS.find((option) => option.value === value)?.swatch ?? '#2563eb');
 }
 
 const keyForUser = (userId: number): string => 'kasana-accent:user:' + userId;

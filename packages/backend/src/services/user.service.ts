@@ -11,6 +11,7 @@ import * as Users from '@models/users.model';
 import { withTransaction } from './common/with-transaction';
 import { addUserCurrencies } from './currencies/add-user-currency';
 import { getCurrencyInUseBlockers } from './currencies/get-currency-in-use-blockers';
+import { enforceBetaIdrCurrency } from './currencies/idr-beta-policy';
 import { revalueAccountsInCurrencies } from './user-exchange-rate/revalue-accounts-in-currencies';
 
 export const getUser = async (id: number) => {
@@ -104,6 +105,9 @@ export const getUserBaseCurrency = withTransaction(({ userId }: { userId: number
 
 export const setBaseUserCurrency = withTransaction(
   async ({ userId, currencyCode }: { userId: number; currencyCode: string }) => {
+    // First-time onboarding is the only place where the beta changes a user's base.
+    // The guard never rewrites an existing base currency or any stored balances.
+    enforceBetaIdrCurrency(currencyCode);
     const existingBaseCurrency = await getUserBaseCurrency({ userId });
 
     if (existingBaseCurrency) {

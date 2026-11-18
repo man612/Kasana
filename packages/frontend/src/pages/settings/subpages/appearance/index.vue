@@ -68,16 +68,39 @@
 
       <Separator />
 
-      <!-- Local, opt-in audio feedback (mobile only). Never played for keystrokes. -->
+      <!-- Local, opt-in audio feedback on phones and desktops. Never played for keystrokes. -->
       <div>
         <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.interactionSound.title') }}</h3>
         <p class="mb-4 text-sm leading-relaxed">{{ $t('settings.appearance.interactionSound.description') }}</p>
         <div class="flex items-center justify-between gap-4">
           <span class="text-sm">{{ $t('settings.appearance.interactionSound.toggle') }}</span>
+          <div class="flex shrink-0 items-center gap-2">
+            <Button data-interaction-sound-preview variant="outline" size="sm" @click="previewInteractionSound">
+              {{ $t('settings.appearance.interactionSound.preview') }}
+            </Button>
+            <Switch
+              :model-value="interactionSoundEnabled"
+              :aria-label="$t('settings.appearance.interactionSound.toggle')"
+              @update:model-value="(v) => updateInteractionSound(!!v)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      <!-- Opt-in full-page swipe. Navbar and sidebar still have direct touch gestures. -->
+      <div>
+        <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.pageSwipe.title') }}</h3>
+        <p class="text-muted-foreground mb-3 text-sm leading-relaxed">
+          {{ $t('settings.appearance.pageSwipe.description') }}
+        </p>
+        <div class="flex items-center justify-between gap-4">
+          <span class="text-sm">{{ $t('settings.appearance.pageSwipe.toggle') }}</span>
           <Switch
-            :model-value="mobileSoundEnabled"
-            :aria-label="$t('settings.appearance.interactionSound.toggle')"
-            @update:model-value="(v) => updateMobileSound(!!v)"
+            :model-value="mobilePageSwipeEnabled"
+            :aria-label="$t('settings.appearance.pageSwipe.toggle')"
+            @update:model-value="(value) => setMobilePageSwipeEnabled(!!value)"
           />
         </div>
       </div>
@@ -202,7 +225,12 @@
 <script setup lang="ts">
 import HintIcon from '@/components/common/hint-icon.vue';
 import { ThemePreference, setThemePreference, themePreference } from '@/common/utils/color-theme';
-import { getMobileInteractionSoundEnabled, setMobileInteractionSoundEnabled } from '@/common/utils/mobile-interaction-sound';
+import { mobilePageSwipeEnabled, setMobilePageSwipeEnabled } from '@/common/utils/mobile-navigation-gesture';
+import {
+  getMobileInteractionSoundEnabled,
+  previewInteractionSound,
+  setMobileInteractionSoundEnabled,
+} from '@/common/utils/mobile-interaction-sound';
 import { ACCENT_OPTIONS, accentTheme, setAccentTheme, type AccentTheme } from '@/common/utils/accent-theme';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import Button from '@/components/lib/ui/button/Button.vue';
@@ -216,9 +244,9 @@ import { useSupportButton } from '@/composable/use-support-button';
 import { CheckIcon, CoinsIcon, HeartIcon, LayersIcon, MonitorIcon, MoonStarIcon, SunIcon } from '@lucide/vue';
 import { ref, type Component } from 'vue';
 
-const mobileSoundEnabled = ref(getMobileInteractionSoundEnabled());
-const updateMobileSound = (enabled: boolean) => {
-  mobileSoundEnabled.value = enabled;
+const interactionSoundEnabled = ref(getMobileInteractionSoundEnabled());
+const updateInteractionSound = (enabled: boolean) => {
+  interactionSoundEnabled.value = enabled;
   setMobileInteractionSoundEnabled(enabled);
 };
 

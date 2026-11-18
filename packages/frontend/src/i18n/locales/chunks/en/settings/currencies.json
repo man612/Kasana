@@ -102,7 +102,8 @@
           "lockedShares": "You have {count} active account share. Revoke it from the account first. | You have {count} active account shares. Revoke them from each account first.",
           "lockedBudgetPlan": "An active budget plan is blocking the change. Delete it first. | {count} active budget plans are blocking the change. Delete them first."
         }
-      }
+      },
+      "idrBetaNotice": "Adding additional currencies is paused during the Indonesian beta. Existing account and transaction records are not changed."
     }
   }
 }

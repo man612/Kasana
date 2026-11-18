@@ -335,20 +335,23 @@ const submit = async () => {
       <template #label-right><FormFieldHelp topic="vehicleDepreciation" /></template>
     </SelectField>
 
-    <input-field
-      v-if="showCustomRate"
-      v-model="form.customAnnualRatePct"
-      type="number"
-      :label="$t('forms.createVehicle.customAnnualRatePctLabel')"
-      :error-message="getFieldErrorMessage('form.customAnnualRatePct')"
-      @blur="touchField('form.customAnnualRatePct')"
-      non-label-wrapper
-      :aria-label="$t('forms.createVehicle.customAnnualRatePctLabel')"
-    >
-      <template #label-right>
-        <FormFieldHelp topic="vehicleCustomRate" />
-      </template>
-    </input-field>
+    <Transition name="lajur-form-panel">
+      <div v-if="showCustomRate" class="min-w-0">
+        <input-field
+          v-model="form.customAnnualRatePct"
+          type="number"
+          :label="$t('forms.createVehicle.customAnnualRatePctLabel')"
+          :error-message="getFieldErrorMessage('form.customAnnualRatePct')"
+          @blur="touchField('form.customAnnualRatePct')"
+          non-label-wrapper
+          :aria-label="$t('forms.createVehicle.customAnnualRatePctLabel')"
+        >
+          <template #label-right>
+            <FormFieldHelp topic="vehicleCustomRate" />
+          </template>
+        </input-field>
+      </div>
+    </Transition>
 
     <input-field
       v-model="form.salvageFloorPct"
