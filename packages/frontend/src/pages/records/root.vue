@@ -40,13 +40,8 @@
       ref="pageContentRef"
       :class="[
         'flex h-[calc(100dvh-var(--header-height)-var(--bottom-navbar-height,0px)-32px)] min-h-0 flex-col gap-4 overflow-hidden',
-        // The mobile table view uses min-h so the table can push past the
-        // viewport and the page becomes scrollable – lets the user swipe away the
-        // toolbar to gain a few extra rows of table. The list view instead scrolls
-        // internally via the virtualizer and needs a bounded height: an unbounded
-        // container leaves every virtual row mounted, so the infinite-scroll
-        // sentinel is permanently on screen and fetch-next-page loops to the end.
-        // A single bounded viewport keeps list/table scroll local to their cards.
+        // Keep the filter and selection controls above the independently scrolling
+        // list/table viewport, accounting for the measured mobile bottom bar.
       ]"
     >
       <!-- Mobile compact layout: filters behind a dialog button, user toggles
@@ -159,7 +154,7 @@
                   :variant="desktopView === 'list' ? 'secondary' : 'ghost'"
                   size="icon-sm"
                   :aria-label="$t('transactions.table.viewToggle.list')"
-                  @click="setDesktopView('list')"
+                  @click="setActiveView('list')"
                 >
                   <ListIcon class="size-4" />
                 </Button>
@@ -169,7 +164,7 @@
                   :variant="desktopView === 'table' ? 'secondary' : 'ghost'"
                   size="icon-sm"
                   :aria-label="$t('transactions.table.viewToggle.table')"
-                  @click="setDesktopView('table')"
+                  @click="setActiveView('table')"
                 >
                   <Table2Icon class="size-4" />
                 </Button>
@@ -235,7 +230,7 @@
                     :variant="desktopView === 'list' ? 'secondary' : 'ghost'"
                     size="icon-sm"
                     :aria-label="$t('transactions.table.viewToggle.list')"
-                    @click="setDesktopView('list')"
+                    @click="setActiveView('list')"
                   >
                     <ListIcon class="size-4" />
                   </Button>
@@ -245,7 +240,7 @@
                     :variant="desktopView === 'table' ? 'secondary' : 'ghost'"
                     size="icon-sm"
                     :aria-label="$t('transactions.table.viewToggle.table')"
-                    @click="setDesktopView('table')"
+                    @click="setActiveView('table')"
                   >
                     <Table2Icon class="size-4" />
                   </Button>
