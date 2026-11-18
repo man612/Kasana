@@ -32,6 +32,8 @@ const props = withDefaults(
     /** When true, the footer slot is not rendered in drawer (mobile) mode.
      * Use when the footer only contains a close action — swipe-to-close is enough on mobile. */
     hideDrawerFooter?: boolean;
+    /** Transfer forms keep a fixed footer but still need a visible mobile X. */
+    showDrawerCloseWithFooter?: boolean;
     /** When true, the drawer (mobile) skips the grey grab-handle indicator.
      * Use when the content paints its own flush element at the top edge. */
     drawerCustomIndicator?: boolean;
@@ -92,7 +94,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
         <Button
-          v-if="props.dismissible && !props.customClose && (!$slots.footer || hideDrawerFooter)"
+          v-if="props.dismissible && !props.customClose && (!$slots.footer || hideDrawerFooter || props.showDrawerCloseWithFooter)"
           type="button"
           variant="ghost"
           size="icon"
@@ -102,7 +104,11 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         >
           <XIcon class="size-5" />
         </Button>
-        <div v-if="$slots['header-actions']" class="absolute top-3 right-14 z-20 flex items-center">
+        <div
+          v-if="$slots['header-actions']"
+          class="absolute top-3 z-20 flex min-h-10 items-center"
+          :class="props.dismissible && !props.customClose && (!$slots.footer || hideDrawerFooter || props.showDrawerCloseWithFooter) ? 'right-14' : 'right-3'"
+        >
           <slot name="header-actions" />
         </div>
         <template v-if="props.srOnlyHeader">

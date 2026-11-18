@@ -228,6 +228,7 @@
       "plannedRows": "{count} planned transactions",
       "emptyTitle": "No transactions match these filters",
       "emptyDescription": "Try adjusting or resetting the filters.",
+      "horizontalScrollHint": "Swipe sideways to see more table columns.",
       "columnConfig": {
         "title": "Table settings",
         "columns": "Columns",

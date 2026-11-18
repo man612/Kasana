@@ -5,12 +5,12 @@
         <span>{{ $t('dashboard.widgets.balanceTrend.title') }}</span>
         <!-- Mobile: visible segmented choices avoid a tall select + floating menu.
              Additional sections scroll horizontally without changing the chart. -->
-        <div class="flex w-full min-w-0 gap-1 overflow-hidden pb-0.5 sm:hidden" role="group" :aria-label="$t('dashboard.widgets.balanceTrend.title')">
+        <div class="flex w-full min-w-0 gap-1 overflow-x-auto overscroll-x-contain pb-0.5 touch-pan-x sm:hidden" role="group" :aria-label="$t('dashboard.widgets.balanceTrend.title')">
           <button
             v-for="option in balanceTypeOptions"
             :key="option.value"
             type="button"
-            class="min-h-9 min-w-0 flex-1 truncate rounded-lg px-1.5 text-xs font-medium transition-[background-color,color,transform] duration-180 active:scale-[0.97] motion-reduce:transition-none"
+            class="min-h-9 shrink-0 whitespace-nowrap rounded-lg px-2.5 text-xs font-medium transition-[background-color,color,transform] duration-180 active:scale-[0.97] motion-reduce:transition-none"
             :class="selectedBalanceType.value === option.value ? 'bg-primary text-primary-foreground' : 'bg-muted/60 text-muted-foreground hover:text-foreground'"
             :aria-pressed="selectedBalanceType.value === option.value"
             :disabled="isWidgetDataFetching"

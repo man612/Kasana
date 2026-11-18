@@ -8,6 +8,7 @@ import { useUpdateLoan } from '@/composable/data-queries/loans';
 import { ApiErrorResponseError, getApiErrorMessage } from '@/js/errors';
 import { captureException } from '@/lib/sentry';
 import { useI18n } from 'vue-i18n';
+import { ref } from 'vue';
 
 import LoanForm from './loan-form.vue';
 
@@ -19,6 +20,7 @@ const emit = defineEmits<{ 'update:open': [value: boolean] }>();
 const { t } = useI18n();
 const { addNotification } = useNotificationCenter();
 const updateLoanMutation = useUpdateLoan();
+const loanFormRef = ref<InstanceType<typeof LoanForm> | null>(null);
 
 const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
   try {
@@ -52,6 +54,7 @@ const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
     <template #description>{{ $t('loans.dialog.editDescription') }}</template>
 
     <LoanForm
+      ref="loanFormRef"
       mode="edit"
       :form-id="FORM_ID"
       :initial-loan="loan"
@@ -60,8 +63,11 @@ const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
     />
 
     <template #footer>
-      <div class="flex justify-end gap-2">
-        <UiButton type="submit" :form="FORM_ID" class="min-w-30" :disabled="updateLoanMutation.isPending.value">
+      <div class="flex w-full items-stretch justify-end gap-2">
+        <UiButton type="button" variant="outline" class="min-h-11 min-w-0 flex-1" :disabled="updateLoanMutation.isPending.value" @click="emit('update:open', false)">
+          {{ $t('common.actions.cancel') }}
+        </UiButton>
+        <UiButton type="submit" :form="FORM_ID" class="min-h-11 min-w-0 flex-1" :disabled="loanFormRef?.isSubmitDisabled !== false">
           {{ updateLoanMutation.isPending.value ? $t('forms.loan.submitButtonLoading') : $t('forms.loan.saveButton') }}
         </UiButton>
       </div>

@@ -19,7 +19,9 @@
       </button>
     </div>
     <ListboxContent>
-      <TransitionGroup name="lajur-category-items" tag="div">
+      <!-- Search results should update immediately; animating every keystroke stacks
+           exiting rows over incoming ones. Keep motion for tree expand/collapse. -->
+      <TransitionGroup :name="isSearching ? undefined : 'lajur-category-items'" tag="div">
         <!-- ListboxItem memoizes its attrs, so rows remount when search toggles to update the indent. -->
         <template v-for="(item, index) in filteredItems" :key="`${item.id}:${isSearching}`">
           <!-- Group separator (shown only when searching) -->

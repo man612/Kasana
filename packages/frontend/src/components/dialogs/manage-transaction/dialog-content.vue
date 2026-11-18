@@ -386,6 +386,12 @@ const setFormPanelHeight = (element: Element) => {
   node.style.setProperty('--lajur-panel-height', String(node.scrollHeight + 12) + 'px');
 };
 const isMultiAccount = computed(() => form.value.paymentLegs !== undefined);
+const hasUsedMultiAccount = ref(false);
+// Do not autofocus the numeric input when a previously visible multi-account
+// editor is removed; on phones this would reopen the virtual keyboard.
+watch(isMultiAccount, (active) => {
+  if (active) hasUsedMultiAccount.value = true;
+}, { immediate: true });
 const isSavedMultiAccount = computed(() => hasPaymentParts({ transaction: transaction.value }));
 const hasLinkedPaymentLegs = computed(() => Boolean(form.value.paymentLegs?.some((leg) => leg.isLinked)));
 const showLegErrors = ref(false);
@@ -2236,7 +2242,7 @@ onUnmounted(() => {
                   :disabled="isFormFieldsDisabled || isAmountFieldDisabled"
                   :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
                   :error-message="amountErrorMessage"
-                  autofocus
+                  :autofocus="!hasUsedMultiAccount"
                   @blur="onAmountBlur"
                 >
                   <template #iconTrailing>

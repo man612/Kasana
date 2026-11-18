@@ -14,7 +14,11 @@
       },
       "balanceTrend": {
         "title": "Tren saldo",
-        "table": { "toggle": "Lihat angka per tanggal", "date": "Tanggal", "amount": "Saldo" },
+        "table": {
+          "toggle": "Lihat angka per tanggal",
+          "date": "Tanggal",
+          "amount": "Saldo"
+        },
         "balanceTypes": {
           "total": "Total",
           "accounts": "Akun",
@@ -217,14 +221,14 @@
       },
       "spendingPace": {
         "tabs": {
-          "lastMonth": "dibanding bulan lalu",
-          "average": "vs 3-mo avg"
+          "lastMonth": "vs bulan lalu",
+          "average": "vs rata-rata 3 bulan"
         },
         "spentIn": "Dibelanjakan pada {month}",
         "onTrackFor": "Sesuai target untuk {amount}",
         "vsComparison": "{percent} dibanding {name}",
         "comparison": {
-          "average": "{n}-mo avg"
+          "average": "Rata-rata {n} bulan"
         },
         "stats": {
           "byToday": "{name} hingga hari ini",
@@ -254,9 +258,9 @@
         "settings": {
           "spikes": {
             "title": "Penanda lonjakan pengeluaran",
-            "summary": "Days with ≥{percent}% of the month's spending",
-            "inputLabel": "Mark a day when it reaches",
-            "hint": "Share of last month's total spending, 1–100%. Marks show in “vs last month” mode."
+            "summary": "Hari dengan ≥{percent}% pengeluaran bulanan",
+            "inputLabel": "Tandai hari ketika mencapai",
+            "hint": "Persentase dari total pengeluaran bulan lalu (1–100%). Penanda muncul saat membandingkan dengan bulan lalu."
           },
           "saved": "Pengaturan diperbarui"
         }
@@ -389,8 +393,8 @@
           "description": "What you own, what you owe, and the net worth between them"
         },
         "spendingPace": {
-          "name": "Spending pace",
-          "description": "Month-to-date spending with a forecast for the rest of the month, compared with last month or your 3-month average."
+          "name": "Laju Pengeluaran",
+          "description": "Pantau pengeluaran bulan berjalan dan perkiraan hingga akhir bulan. Bandingkan dengan bulan lalu atau rata-rata tiga bulan sebelumnya."
         },
         "plannedOverview": {
           "name": "Ikhtisar terencana",
@@ -482,16 +486,16 @@
         "plannedTitle": "Transaksi terencana",
         "excludePlannedDescription": "Sembunyikan transaksi terencana yang tertunda dari daftar",
         "scheduledTitle": "Pembayaran terjadwal",
-        "excludeScheduledDescription": "Hide upcoming and overdue subscription payments from the list",
-        "scheduledSaveError": "Failed to update scheduled payments setting",
+        "excludeScheduledDescription": "Sembunyikan pembayaran langganan mendatang dan yang lewat jatuh tempo dari daftar",
+        "scheduledSaveError": "Gagal menyimpan pengaturan pembayaran terjadwal",
         "nothingExcluded": "Tidak ada yang dikecualikan",
         "tagsStyleTitle": "Tag",
-        "tagsStyleNames": "Names",
-        "tagsStyleBars": "Bars",
-        "tagsStyleSaveError": "Couldn't save the tag style. Please try again.",
+        "tagsStyleNames": "Nama",
+        "tagsStyleBars": "Batang",
+        "tagsStyleSaveError": "Gagal menyimpan tampilan tag. Coba lagi.",
         "showAccountTitle": "Akun",
-        "showAccountDescription": "Show the account logo on each transaction",
-        "showAccountSaveError": "Couldn't save the account setting. Please try again."
+        "showAccountDescription": "Tampilkan logo akun pada setiap transaksi",
+        "showAccountSaveError": "Gagal menyimpan pengaturan akun. Coba lagi."
       },
       "overdueBadge": "Terlambat",
       "scheduledBadge": "Terjadwal",

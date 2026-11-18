@@ -38,7 +38,7 @@
         "label": "Terencana"
       },
       "attachments": {
-        "label": "Attachments"
+        "label": "Lampiran"
       },
       "filterOperation": {
         "all": "Semua",
@@ -56,7 +56,7 @@
         "tagPlural": "tag",
         "selected": "dipilih",
         "searchPlaceholder": "Cari tag...",
-        "blankOption": "No tags"
+        "blankOption": "Tidak ada tag"
       },
       "payees": {
         "label": "Penerima",
@@ -123,10 +123,10 @@
       "tagModeRemove": "Hapus tag ini",
       "tagModeAddShort": "Tambah",
       "tagModeReplaceShort": "Ganti",
-      "tagModeRemoveShort": "Remove",
-      "tagModeAddHint": "Keeps current tags and adds these.",
-      "tagModeReplaceHint": "Removes all current tags, then adds these.",
-      "tagModeRemoveHint": "Removes only these tags. Other tags stay.",
+      "tagModeRemoveShort": "Hapus",
+      "tagModeAddHint": "Pertahankan tag yang ada dan tambahkan pilihan ini.",
+      "tagModeReplaceHint": "Hapus semua tag lama, lalu tambahkan pilihan ini.",
+      "tagModeRemoveHint": "Hapus hanya tag yang dipilih. Tag lain tetap ada.",
       "totals": {
         "income": "Pemasukan",
         "expense": "Pengeluaran",
@@ -225,17 +225,18 @@
       },
       "outOfWallet": "Di luar dompet",
       "hint": "Klik baris untuk melihat detail. Pilih baris untuk mengedit massal.",
-      "plannedRows": "{count} planned transactions",
+      "plannedRows": "{count} transaksi terencana",
       "emptyTitle": "Tidak ada transaksi yang cocok dengan filter ini",
       "emptyDescription": "Coba sesuaikan atau atur ulang filter.",
+      "horizontalScrollHint": "Geser tabel ke samping untuk melihat kolom lainnya.",
       "columnConfig": {
         "title": "Pengaturan tabel",
         "columns": "Kolom",
         "visibleCount": "{count} terlihat",
         "resetDefaults": "Kembalikan ke bawaan",
         "alwaysShowLockedCells": {
-          "label": "Always show locked cells",
-          "description": "Shade cells you can't edit here on every row, not only on hover."
+          "label": "Selalu tampilkan sel terkunci",
+          "description": "Tandai sel yang tidak dapat disunting pada setiap baris, bukan hanya saat ditunjuk."
         }
       },
       "categorizationSourceValues": {
@@ -277,28 +278,28 @@
     },
     "savedViews": {
       "trigger": "Tampilan",
-      "empty": "No saved views yet. Set up filters, then save them as a view.",
-      "modified": "Filters changed",
-      "update": "Update “{name}” with current filters",
-      "updateShort": "Update view",
+      "empty": "Belum ada tampilan tersimpan. Atur filter, lalu simpan sebagai tampilan.",
+      "modified": "Filter berubah",
+      "update": "Perbarui “{name}” dengan filter saat ini",
+      "updateShort": "Perbarui tampilan",
       "revert": "Kembalikan",
-      "saveNew": "Save as new view",
-      "actions": "View actions",
+      "saveNew": "Simpan sebagai tampilan baru",
+      "actions": "Tindakan tampilan",
       "rename": "Ubah nama",
-      "moveUp": "Move up",
-      "moveDown": "Move down",
+      "moveUp": "Geser ke atas",
+      "moveDown": "Geser ke bawah",
       "saveTitle": "Simpan tampilan",
-      "renameTitle": "Rename view",
-      "dialogDescription": "A view keeps the current filters and sorting so you can apply them again in one click.",
+      "renameTitle": "Ubah nama tampilan",
+      "dialogDescription": "Tampilan menyimpan filter dan urutan saat ini agar bisa digunakan kembali dengan sekali ketuk.",
       "nameLabel": "Nama",
-      "namePlaceholder": "e.g. Groceries, last 3 months",
+      "namePlaceholder": "Contoh: Belanja, 3 bulan terakhir",
       "savedToast": "Tampilan disimpan",
-      "updatedToast": "View updated",
+      "updatedToast": "Tampilan diperbarui",
       "deletedToast": "Tampilan dihapus",
-      "saveError": "Couldn't save your views. Try again.",
-      "deleteTitle": "Delete view “{name}”?",
-      "deleteDescription": "Your transactions are not affected. This can't be undone.",
-      "filtersCount": "{count} filter | {count} filters"
+      "saveError": "Gagal menyimpan tampilan. Coba lagi.",
+      "deleteTitle": "Hapus tampilan “{name}”?",
+      "deleteDescription": "Transaksi tidak akan terhapus. Tindakan ini tidak dapat dibatalkan.",
+      "filtersCount": "{count} filter"
     },
     "trashPage": {
       "title": "Tempat Sampah",

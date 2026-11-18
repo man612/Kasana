@@ -80,10 +80,23 @@ const createMutation = useCreateTransactionTemplate();
 const updateMutation = useUpdateTransactionTemplate();
 const deleteMutation = useDeleteTransactionTemplate();
 
+const initialFormSnapshot = ref('');
+const isDiscardConfirmationOpen = ref(false);
 const isOpen = computed({
   get: () => props.open,
-  set: (value: boolean) => emit('update:open', value),
+  set: (value: boolean) => {
+    if (!value && isPending.value) return;
+    if (!value && initialFormSnapshot.value && JSON.stringify(buildPayload()) !== initialFormSnapshot.value) {
+      isDiscardConfirmationOpen.value = true;
+      return;
+    }
+    emit('update:open', value);
+  },
 });
+const confirmDiscard = () => {
+  isDiscardConfirmationOpen.value = false;
+  emit('update:open', false);
+};
 
 const isEditingExisting = computed(() => props.mode === 'edit' || props.mode === 'update');
 const fromCurrentForm = computed(() => props.mode === 'save-current' || props.mode === 'update');
@@ -177,6 +190,10 @@ watch(
       form.value = emptyTemplateForm();
     }
     form.value.name = seedName();
+    // Compare the normalized payload, not Vue object identity, before discarding edits.
+    void nextTick(() => {
+      if (props.open) initialFormSnapshot.value = JSON.stringify(buildPayload());
+    });
 
     // No autofocus on mobile: a selected input blocks vaul's swipe-to-close and pops the keyboard.
     if (!isMobile.value) {
@@ -259,7 +276,7 @@ const save = async () => {
         : t('dialogs.manageTransaction.templates.toasts.saved'),
     );
     emit('saved', { template: saved, fromCurrentForm: fromCurrentForm.value });
-    isOpen.value = false;
+    emit('update:open', false);
   } catch (error) {
     if (isApiErrorWithCode(error, API_ERROR_CODES.conflict)) {
       nameConflictError.value =
@@ -282,7 +299,7 @@ const confirmDelete = async () => {
   addSuccessNotification(t('dialogs.manageTransaction.templates.toasts.deleted'));
   emit('deleted', { id });
   isDeleteConfirmOpen.value = false;
-  isOpen.value = false;
+  emit('update:open', false);
 };
 </script>
 
@@ -400,12 +417,25 @@ const confirmDelete = async () => {
         >
           {{ $t('dialogs.manageTransaction.templates.form.delete') }}
         </Button>
-        <Button class="ml-auto min-w-24" :disabled="isPending" :loading="isPending" @click="save">
+        <Button variant="outline" class="ml-auto min-w-24" :disabled="isPending" @click="isOpen = false">
+          {{ $t('common.actions.cancel') }}
+        </Button>
+        <Button class="min-w-24" :disabled="isPending" :loading="isPending" @click="save">
           {{ $t('dialogs.manageTransaction.templates.form.save') }}
         </Button>
       </div>
     </template>
   </ResponsiveDialog>
+
+  <ResponsiveAlertDialog
+    v-model:open="isDiscardConfirmationOpen"
+    :confirm-label="$t('dialogs.manageTransaction.form.discardAction')"
+    confirm-variant="destructive"
+    @confirm="confirmDiscard"
+  >
+    <template #title>{{ $t('dialogs.manageTransaction.form.discardTitle') }}</template>
+    <template #description>{{ $t('dialogs.manageTransaction.form.discardDetails') }}</template>
+  </ResponsiveAlertDialog>
 
   <ResponsiveAlertDialog
     v-model:open="isDeleteConfirmOpen"

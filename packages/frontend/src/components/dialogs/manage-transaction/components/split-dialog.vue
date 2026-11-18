@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { FormattedCategory } from '@/common/types';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import { vAnimateDialogHeight } from '@/composable/animate-dialog-height';
 import CategorySelectField from '@/components/fields/category-select-field.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import { Button } from '@/components/lib/ui/button';
@@ -185,7 +186,7 @@ const handleClearAll = () => {
       {{ $t('dialogs.manageTransaction.splitDialog.description') }}
     </template>
 
-    <div class="min-h-0 py-4">
+    <div v-animate-dialog-height data-state="open" class="min-h-0 py-4">
       <!-- Main category display -->
       <div class="border-input bg-input-background mb-4 rounded-md border px-3 py-2.5">
         <div class="text-muted-foreground mb-1.5 text-[11px] font-medium tracking-wider uppercase">
@@ -209,7 +210,7 @@ const handleClearAll = () => {
         <div
           v-for="(split, index) in localSplits"
           :key="split.tempId ?? split.id ?? `split-${index}`"
-          class="group min-w-0 w-full"
+          class="group w-full min-w-0 overflow-hidden"
         >
           <div
             :class="
@@ -220,18 +221,18 @@ const handleClearAll = () => {
             "
           >
             <!-- Category selector -->
-            <div class="grid min-w-0 flex-1 items-center">
+            <div class="grid min-w-0 flex-1 items-center overflow-hidden">
               <CategorySelectField
                 :model-value="split.category"
                 :values="categories"
                 :placeholder="$t('dialogs.manageTransaction.splitDialog.selectCategoryPlaceholder')"
-                class="rounded-none border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+                class="min-w-0 max-w-full overflow-hidden rounded-none border-0 bg-transparent text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
                 @update:model-value="(cat) => updateSplit(index, { category: cat })"
               />
             </div>
 
             <!-- Amount input -->
-            <div class="border-input w-32 shrink-0 border-l">
+            <div class="border-input w-[min(42%,8rem)] min-w-[6.5rem] shrink-0 border-l sm:w-32">
               <FormattedAmountField
                 :model-value="split.amount ?? null"
                 embedded

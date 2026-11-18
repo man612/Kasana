@@ -149,10 +149,15 @@
     <ScrollArea
       v-else
       ref="scrollAreaRef"
-      class="min-h-0 flex-1"
-      viewport-class="overscroll-none"
+      class="min-h-0 min-w-0 flex-1"
+      viewport-class="overscroll-x-contain"
+      data-no-nav-swipe
       with-horizontal-scrollbar
     >
+      <p v-if="isMobileMode && tableWidthPx > viewportWidth + 8"
+        class="text-muted-foreground sticky left-0 w-fit max-w-full px-3 py-1 text-[11px]"
+        role="note"
+      >{{ $t('transactions.table.horizontalScrollHint') }}</p>
       <!-- table-fixed: column widths come from the header only, so rows mounted
            mid-scroll by the virtualizer can never widen the table. The explicit
            width overflows into horizontal scroll when columns don't fit. -->
@@ -208,7 +213,7 @@
                 @dblclick="emit('resize-column', { id: column.id, widthPx: null })"
               />
             </th>
-            <th class="bg-muted sticky right-0 z-1 border-b" :style="{ width: `${detailsColumnWidthPx}px` }" />
+            <th class="bg-muted border-b sm:sticky sm:right-0 sm:z-1" :style="{ width: `${detailsColumnWidthPx}px` }" />
           </tr>
         </thead>
 
@@ -506,10 +511,17 @@ const paddingBottom = computed(() =>
 // Column resizing: the dragged width lives here until pointerup, then goes to the parent to persist.
 const resizing = ref<{ id: TABLE_COLUMN; startX: number; startWidthPx: number; widthPx: number } | null>(null);
 
+const AMOUNT_COLUMNS = new Set([TABLE_COLUMN.amount, TABLE_COLUMN.refAmount, TABLE_COLUMN.originalAmount]);
 const renderedColumns = computed(() =>
-  props.visibleColumns.map((column) =>
-    resizing.value?.id === column.id ? { ...column, widthPx: resizing.value.widthPx, isResized: true } : column,
-  ),
+  props.visibleColumns.map((column) => {
+    const effective =
+      resizing.value?.id === column.id ? { ...column, widthPx: resizing.value.widthPx, isResized: true } : column;
+    // Readability wins over squeezing more columns into 320px: scroll the
+    // table itself, including on 200%-text mobile devices.
+    return isMobileMode.value && AMOUNT_COLUMNS.has(effective.id)
+      ? { ...effective, widthPx: Math.max(192, effective.widthPx) }
+      : effective;
+  }),
 );
 const columnLayout = computed(() =>
   fitColumnWidths({

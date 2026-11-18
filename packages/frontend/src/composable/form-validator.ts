@@ -61,6 +61,8 @@ export const useFormValidation = <Vargs extends ValidationArgs, T extends Extrac
   },
 ): {
   isFormValid: (formPart?: string) => boolean;
+  /** Inspect current validity without marking every untouched input as dirty. */
+  isFormValidQuiet: (formPart?: string) => boolean;
   touchField: (fieldPath: string) => void;
   getFieldErrorMessage: (fieldPath: string) => string;
   resetValidation: () => void;
@@ -193,9 +195,15 @@ export const useFormValidation = <Vargs extends ValidationArgs, T extends Extrac
     instance.value.$reset();
   };
 
+  const isFormValidQuiet = (formPart?: string): boolean => {
+    const localInstance = formPart ? safeGet(instance.value, formPart) : instance.value;
+    return !localInstance || !localInstance.$invalid;
+  };
+
   return {
     touchField,
     isFormValid,
+    isFormValidQuiet,
     getFieldErrorMessage,
     resetValidation,
   };

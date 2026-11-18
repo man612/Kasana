@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import { vAnimateDialogHeight } from '@/composable/animate-dialog-height';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
@@ -125,11 +126,12 @@ watch(isOpen, (val) => {
   if (!val) emit('close');
 });
 
-// Reset form + validation when switching modes
-watch(mode, () => {
-  form.value.amount = null;
-  form.value.note = '';
-  form.value.time = new Date();
+// Preserve the amounts separately between modes; notes/date always belong
+// to this adjustment, so switching presentation must never erase typed data.
+const amountByMode = ref<Record<'set-to' | 'adjust-by', number | null>>({ 'set-to': null, 'adjust-by': null });
+watch(mode, (next, previous) => {
+  amountByMode.value[previous] = form.value.amount;
+  form.value.amount = amountByMode.value[next];
   resetValidation();
 });
 </script>
@@ -138,31 +140,29 @@ watch(mode, () => {
   <ResponsiveDialog v-model:open="isOpen">
     <template #title>{{ label('title') }}</template>
 
-    <div class="grid gap-4 py-2">
-      <!-- Mode toggle — styled tabs -->
-      <div class="border-border bg-muted/20 flex gap-1 rounded-lg border p-1">
+    <div v-animate-dialog-height data-state="open" class="grid gap-4 py-2">
+      <!-- Shared sliding selection for balance and vehicle value override. -->
+      <div class="border-border bg-muted/20 relative grid grid-cols-2 gap-1 rounded-lg border p-1" role="group" :aria-label="label('title')">
+        <span
+          aria-hidden="true"
+          class="bg-dialog pointer-events-none absolute top-1 bottom-1 left-1 rounded-md shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none"
+          style="width: calc(50% - 6px)"
+          :style="{ transform: mode === 'adjust-by' ? 'translateX(calc(100% + 4px))' : 'translateX(0)' }"
+        />
         <button
           type="button"
-          :class="
-            cn(
-              'flex-1 cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-all',
-              mode === 'set-to' ? 'bg-dialog text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-            )
-          "
+          class="relative z-1 min-w-0 rounded-md px-2 py-1.5 text-xs font-medium transition-colors duration-200 sm:text-sm"
+          :class="mode === 'set-to' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
+          :aria-pressed="mode === 'set-to'"
           @click="mode = 'set-to'"
         >
           {{ label('setToBalance') }}
         </button>
         <button
           type="button"
-          :class="
-            cn(
-              'flex-1 cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-all',
-              mode === 'adjust-by'
-                ? 'bg-dialog text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )
-          "
+          class="relative z-1 min-w-0 rounded-md px-2 py-1.5 text-xs font-medium transition-colors duration-200 sm:text-sm"
+          :class="mode === 'adjust-by' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'"
+          :aria-pressed="mode === 'adjust-by'"
           @click="mode = 'adjust-by'"
         >
           {{ label('adjustByAmount') }}
@@ -180,6 +180,7 @@ watch(mode, () => {
       />
 
       <!-- Direction toggle — Income/Expense with color coding -->
+      <Transition name="lajur-form-panel">
       <div v-if="mode === 'adjust-by'" class="flex gap-1.5" role="group" :aria-label="label('adjustByAmount')">
         <button
           type="button"
@@ -212,6 +213,7 @@ watch(mode, () => {
           {{ label('expense') }}
         </button>
       </div>
+      </Transition>
 
       <!-- Live preview panel — fixed min-height to prevent layout shift -->
       <div class="border-border bg-muted/20 flex min-h-[calc(2lh+2rem)] flex-col justify-center rounded-lg border p-4">

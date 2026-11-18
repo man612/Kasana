@@ -31,6 +31,7 @@
               :class="[
                 'xs:w-3/4 w-full overflow-y-auto px-0',
                 'data-[state=closed]:duration-200 data-[state=open]:duration-300',
+                 sidebarGestureClosing && 'data-[state=closed]:!animate-none',
               ]"
             >
               <Sheet.SheetTitle></Sheet.SheetTitle>
@@ -200,6 +201,7 @@ let sidebarTouch: { x: number; y: number } | null = null;
 const sidebarDragX = ref(0);
 const sidebarDragging = ref(false);
 const sidebarReturning = ref(false);
+const sidebarGestureClosing = ref(false);
 let sidebarReturnTimeout: ReturnType<typeof setTimeout> | undefined;
 const sidebarDragStyle = computed(() => {
   if (!sidebarDragging.value && !sidebarReturning.value) return undefined;
@@ -213,6 +215,7 @@ const clearSidebarTouch = () => {
   sidebarDragX.value = 0;
   sidebarDragging.value = false;
   sidebarReturning.value = false;
+  sidebarGestureClosing.value = false;
   if (sidebarReturnTimeout) clearTimeout(sidebarReturnTimeout);
 };
 const onSidebarTouchStart = (event: TouchEvent) => {
@@ -238,8 +241,14 @@ const onSidebarTouchEnd = (event: TouchEvent) => {
   const dx = touch.clientX - start.x;
   const dy = touch.clientY - start.y;
   if (dx < -85 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-    isMobileSheetOpen.value = false;
-    clearSidebarTouch();
+    // Finish the *current* drag directly off-screen. Only then dismiss Reka;
+    // the default sheet exit animation must not restart from x=0.
+    sidebarDragging.value = false;
+    sidebarReturning.value = true;
+    sidebarGestureClosing.value = true;
+    sidebarDragX.value = -window.innerWidth;
+    if (sidebarReturnTimeout) clearTimeout(sidebarReturnTimeout);
+    sidebarReturnTimeout = setTimeout(() => { isMobileSheetOpen.value = false; }, 220);
     return;
   }
   if (sidebarDragging.value) {
@@ -250,7 +259,14 @@ const onSidebarTouchEnd = (event: TouchEvent) => {
     sidebarReturnTimeout = setTimeout(() => { sidebarReturning.value = false; }, 220);
   }
 };
-watch(isMobileSheetOpen, (open) => { if (!open) clearSidebarTouch(); });
+watch(isMobileSheetOpen, (open) => {
+  if (open) return;
+  if (sidebarGestureClosing.value) {
+    // Leave the off-screen transform in place until the portal unmounts.
+    if (sidebarReturnTimeout) clearTimeout(sidebarReturnTimeout);
+    sidebarReturnTimeout = setTimeout(clearSidebarTouch, 240);
+  } else clearSidebarTouch();
+});
 const isAttachInvoiceMounted = ref(false);
 const isAttachInvoiceOpen = ref(false);
 
