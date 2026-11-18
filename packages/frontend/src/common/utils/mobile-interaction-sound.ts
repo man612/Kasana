@@ -33,12 +33,14 @@ const playTone = (audio: AudioContext) => {
   oscillator.type = 'sine';
   oscillator.frequency.setValueAtTime(680, now);
   oscillator.frequency.exponentialRampToValueAtTime(480, now + 0.05);
-  gain.gain.setValueAtTime(0.018, now);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
+  // 0.018 was too quiet on phone speakers at normal media volume.
+  // 0.04 remains a short, soft UI cue (~7 dB louder), not a notification beep.
+  gain.gain.setValueAtTime(0.04, now);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
   oscillator.connect(gain);
   gain.connect(audio.destination);
   oscillator.start(now);
-  oscillator.stop(now + 0.06);
+  oscillator.stop(now + 0.075);
 };
 
 export const previewInteractionSound = () => {
