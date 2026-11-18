@@ -162,7 +162,7 @@ test.describe('Lajur UX-25 mobile regression gates', () => {
       await confirm.getByRole('button', { name: 'Kosongkan Semua' }).click();
       await expect(page.getByText('Tempat Sampah masih kosong')).toBeVisible({ timeout: 20_000 });
       await page.getByRole('button', { name: /Kembali|Back/i }).first().click();
-      await expect(page).toHaveURL(/\\/transactions(?:\\?.*)?$/);
+      await expect(page).toHaveURL(/\/transactions(?:\?.*)?$/);
     } finally {
       await api.dispose();
     }
