@@ -68,7 +68,7 @@
 
       <Separator />
 
-      <!-- Local, opt-in audio feedback on phones and desktops. Never played for keystrokes. -->
+      <!-- Local audio feedback on phones and desktops; user can disable it. Never played for keystrokes. -->
       <div>
         <h3 class="mb-2 text-lg font-medium">{{ $t('settings.appearance.interactionSound.title') }}</h3>
         <p class="mb-4 text-sm leading-relaxed">{{ $t('settings.appearance.interactionSound.description') }}</p>
