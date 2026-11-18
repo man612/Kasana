@@ -21,6 +21,7 @@ const { addNotification } = useNotificationCenter();
 const emit = defineEmits<{ created: [] }>();
 
 const isOpen = ref(false);
+const formId = 'lajur-create-portfolio-form';
 
 const form = reactive({
   name: '',
@@ -80,7 +81,7 @@ const createPortfolio = async () => {
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen">
+  <ResponsiveDialog v-model:open="isOpen" custom-close>
     <template #trigger>
       <slot />
     </template>
@@ -89,7 +90,7 @@ const createPortfolio = async () => {
 
     <template #description> {{ $t('dialogs.createPortfolio.description') }} </template>
 
-    <form class="mt-4 grid gap-6" @submit.prevent="createPortfolio">
+    <form :id="formId" class="mt-4 grid gap-6" @submit.prevent="createPortfolio">
       <Callout>
         <i18n-t keypath="dialogs.createPortfolio.assetSupportNotice" tag="p">
           <template #roadmapLink>
@@ -146,16 +147,20 @@ const createPortfolio = async () => {
         :disabled="createPortfolioMutation.isPending.value"
       />
 
-      <div class="flex">
-        <UiButton type="submit" class="ml-auto min-w-30" :disabled="isSubmitDisabled">
-          <CheckIcon class="size-4" />
-          {{
-            createPortfolioMutation.isPending.value
-              ? $t('dialogs.createPortfolio.form.submitButtonLoading')
-              : $t('dialogs.createPortfolio.form.submitButton')
-          }}
-        </UiButton>
-      </div>
     </form>
+
+    <template #footer="{ close }">
+      <UiButton type="button" variant="outline" class="min-h-11 min-w-0" @click="close()">
+        {{ $t('common.actions.cancel') }}
+      </UiButton>
+      <UiButton type="submit" :form="formId" class="min-h-11 min-w-0" :disabled="isSubmitDisabled">
+        <CheckIcon class="size-4" />
+        {{
+          createPortfolioMutation.isPending.value
+            ? $t('dialogs.createPortfolio.form.submitButtonLoading')
+            : $t('dialogs.createPortfolio.form.submitButton')
+        }}
+      </UiButton>
+    </template>
   </ResponsiveDialog>
 </template>
