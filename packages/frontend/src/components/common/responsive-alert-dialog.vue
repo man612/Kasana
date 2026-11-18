@@ -34,7 +34,7 @@ const confirmLabel = computed(() => props.confirmLabel || t('common.actions.conf
         <AlertDialog.AlertDialogDescription as="div"><slot name="description" /></AlertDialog.AlertDialogDescription>
       </AlertDialog.AlertDialogHeader>
       <slot />
-      <AlertDialog.AlertDialogFooter class="mt-2 flex flex-col-reverse gap-2 sm:flex-row">
+      <AlertDialog.AlertDialogFooter class="mt-2 grid grid-cols-2 gap-2 sm:flex sm:justify-end">
         <AlertDialog.AlertDialogCancel class="min-h-11 flex-1" @click="emit('cancel')">{{ cancelLabel }}</AlertDialog.AlertDialogCancel>
         <AlertDialog.AlertDialogAction :variant="confirmVariant" :disabled="confirmDisabled" class="min-h-11 flex-1" @click="emit('confirm')">{{ confirmLabel }}</AlertDialog.AlertDialogAction>
       </AlertDialog.AlertDialogFooter>
