@@ -12,6 +12,7 @@
               class="border-input bg-input-background focus-visible:ring-ring flex h-11 min-w-0 flex-1 items-center gap-2 rounded-md border px-3 text-left text-base focus-visible:ring-2 focus-visible:outline-none disabled:opacity-50"
               :class="[$slots['field-right'] && 'rounded-r-none border-r-0', embedded && EMBEDDED_TRIGGER_CLASS]"
               :aria-label="label || placeholder"
+              data-test="account-select-trigger"
               :disabled="disabled"
               :aria-required="required"
             >
@@ -23,6 +24,7 @@
             </button>
           </Dialog.DialogTrigger>
           <Dialog.DialogContent
+            data-test="account-select-dialog"
             blur-overlay
             class="grid max-h-[min(86dvh,720px)] w-[calc(100vw-2rem)] max-w-md grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden rounded-2xl p-0"
           >
@@ -33,6 +35,7 @@
                 v-if="withSearch"
                 v-model="mobileSearch"
                 type="search"
+                data-test="account-select-search"
                 class="border-input bg-input-background mt-3 h-11 w-full rounded-md border px-3 text-base outline-none focus-visible:ring-2"
                 :placeholder="$t('fields.select.searchPlaceholder')"
                 :aria-label="$t('fields.select.searchPlaceholder')"
