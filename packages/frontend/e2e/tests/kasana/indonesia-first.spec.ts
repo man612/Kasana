@@ -357,6 +357,14 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       const discardTemplate = page.getByRole('alertdialog').last();
       await expect(discardTemplate).toBeVisible();
       await expect(discardTemplate.getByText(/Tutup tanpa menyimpan|Close without saving/i)).toBeVisible();
+      // UX11 #9: tapping outside is Cancel, never Discard; the unsaved
+      // transaction-template input must survive the backdrop gesture.
+      await page.mouse.click(4, 4);
+      await expect(discardTemplate).toBeHidden();
+      await expect(templateEditor).toBeVisible();
+      await expect(templateName).toHaveValue('Templat tidak boleh tersimpan');
+      await cancelTemplate.click();
+      await expect(discardTemplate).toBeVisible();
       await discardTemplate.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
       await expect(templateEditor).toBeVisible();
       await expect(templateName).toHaveValue('Templat tidak boleh tersimpan');
