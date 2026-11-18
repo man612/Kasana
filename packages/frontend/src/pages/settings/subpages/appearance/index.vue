@@ -80,8 +80,8 @@
             </Button>
             <Switch
               :model-value="interactionSoundEnabled"
-            :aria-label="$t('settings.appearance.interactionSound.toggle')"
-            @update:model-value="(v) => updateInteractionSound(!!v)"
+              :aria-label="$t('settings.appearance.interactionSound.toggle')"
+              @update:model-value="(v) => updateInteractionSound(!!v)"
             />
           </div>
         </div>
