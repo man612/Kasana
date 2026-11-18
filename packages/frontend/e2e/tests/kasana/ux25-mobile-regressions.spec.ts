@@ -44,7 +44,15 @@ test.describe('Lajur UX-25 mobile regression gates', () => {
       // inline and does not require a hover-only tooltip.
       const withoutSelection = page.getByRole('button', { name: 'Pilih transaksi dahulu untuk menggunakan tindakan ini.' });
       await expect(withoutSelection).toHaveAttribute('aria-disabled', 'true');
-      await withoutSelection.click();
+      // ARIA-disabled communicates that financial actions are unavailable,
+      // but the real pointer target still explains why when tapped. A normal
+      // Playwright locator.click() refuses to operate ARIA-disabled controls.
+      const unavailableBox = await withoutSelection.boundingBox();
+      expect(unavailableBox).not.toBeNull();
+      await page.mouse.click(
+        unavailableBox!.x + unavailableBox!.width / 2,
+        unavailableBox!.y + unavailableBox!.height / 2,
+      );
       await expect(page.getByRole('status').filter({ hasText: 'Pilih transaksi dahulu untuk menggunakan tindakan ini.' })).toBeVisible();
 
       await page.getByRole('button', { name: 'Lainnya', exact: true }).click();
@@ -88,7 +96,9 @@ test.describe('Lajur UX-25 mobile regression gates', () => {
       const cancel = dialog.getByRole('button', { name: /^Batal$/i });
       await expect(submit).toBeDisabled();
       await expect(cancel).toBeVisible();
-      await dialog.locator('input').first().fill('Pinjaman belum lengkap');
+      // The first form input is a hidden IDR currency field; type into the
+      // actual visible loan-name control instead.
+      await dialog.locator('input:not([type="hidden"])').first().fill('Pinjaman belum lengkap');
       await expect(submit, 'A name alone cannot make a financial form valid').toBeDisabled();
       await cancel.click();
       await expect(dialog).toBeHidden();

@@ -317,23 +317,27 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(templateBounds).not.toBeNull();
       expect(templateBounds!.y).toBeGreaterThanOrEqual(-2);
       expect(templateBounds!.y + templateBounds!.height).toBeLessThanOrEqual(570);
-      await expect(templateDialog.getByRole('button', { name: /Simpan templat|Save .*template/i })).toBeVisible();
-      // UX25 #2: a nested template can be cancelled without saving. When a
-      // name has been entered, the destructive warning must be on TOP of the
-      // transaction sheet and Cancel must keep the user's typed value.
-      const cancelTemplate = templateDialog.getByRole('button', { name: /^(Batal|Cancel)$/i });
+      // The first popup is a TEMPLATE LIST, not the template editor. Open
+      // "Save template" to inspect the second, editable popup and its Cancel.
+      await templateDialog.getByRole('button', { name: /Simpan templat|Save .*template/i }).click();
+      const templateEditor = page.getByRole('dialog', { name: /^(Simpan sebagai templat|Save as template)$/i });
+      await expect(templateEditor).toBeVisible();
+      // UX25 #2: discard confirmation must layer above the editor. Cancelling
+      // the warning preserves the user's unsaved input; confirming discards it.
+      const cancelTemplate = templateEditor.getByRole('button', { name: /^(Batal|Cancel)$/i });
+      const templateName = templateEditor.getByPlaceholder('mis. Kopi pagi');
       await expect(cancelTemplate).toBeVisible();
-      await templateDialog.locator('input').first().fill('Templat tidak boleh tersimpan');
+      await templateName.fill('Templat tidak boleh tersimpan');
       await cancelTemplate.click();
       const discardTemplate = page.getByRole('alertdialog').last();
       await expect(discardTemplate).toBeVisible();
       await expect(discardTemplate.getByText(/Tutup tanpa menyimpan|Close without saving/i)).toBeVisible();
       await discardTemplate.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
-      await expect(templateDialog).toBeVisible();
-      await expect(templateDialog.locator('input').first()).toHaveValue('Templat tidak boleh tersimpan');
+      await expect(templateEditor).toBeVisible();
+      await expect(templateName).toHaveValue('Templat tidak boleh tersimpan');
       await cancelTemplate.click();
       await discardTemplate.getByRole('button', { name: /Buang|Discard/i }).click();
-      await expect(templateDialog).toBeHidden();
+      await expect(templateEditor).toBeHidden();
       await expect(mobileForm).toBeVisible();
       // A tap on the transaction sheet close button must work on Vaul too.
       // With unsaved input it must ask before discarding, not silently close.
