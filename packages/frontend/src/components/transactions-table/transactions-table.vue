@@ -10,12 +10,11 @@
       <!-- `min-h-12` keeps the unselected and selected states the same height, so selecting
            a row does not shift the table. -->
       <div class="@container/bulk-toolbar flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3 py-2">
-        <SelectionTotals v-if="selectedCount > 0" :totals="selectedTotals" :selected-count="selectedCount" />
         <SelectionTotals
-          v-else-if="matching"
-          :totals="matching.summary"
-          :selected-count="matching.summary.count"
-          matching
+          v-if="selectedCount > 0 || matching"
+          :totals="selectedCount > 0 ? selectedTotals : matching!.summary"
+          :selected-count="selectedCount > 0 ? selectedCount : matching!.summary.count"
+          :matching="selectedCount === 0"
         />
         <span v-else class="text-muted-foreground text-sm">
           {{ $t('transactions.table.hint') }}
@@ -25,6 +24,14 @@
              one row alongside "N selected" + Cancel. The Cancel control is always
              an icon button (X) – the ghost text version reads as a stray label
              rather than a button. -->
+        <Transition
+          enter-active-class="transition-[opacity,transform,max-height] duration-200 ease-out motion-reduce:transition-none"
+          enter-from-class="max-h-0 -translate-y-1 opacity-0"
+          enter-to-class="max-h-24 translate-y-0 opacity-100"
+          leave-active-class="transition-[opacity,transform,max-height] duration-150 ease-in motion-reduce:transition-none"
+          leave-from-class="max-h-24 translate-y-0 opacity-100"
+          leave-to-class="max-h-0 -translate-y-1 opacity-0"
+        >
         <div v-if="selectedCount > 0" class="flex flex-wrap items-center gap-2">
           <DesktopOnlyTooltip :content="$t('transactions.bulkEdit.editButton')" :disabled="!isMobileMode">
             <Button
@@ -127,6 +134,7 @@
             </Button>
           </DesktopOnlyTooltip>
         </div>
+        </Transition>
       </div>
     </slot>
 
