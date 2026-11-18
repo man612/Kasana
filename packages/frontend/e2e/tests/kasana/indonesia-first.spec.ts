@@ -1,9 +1,11 @@
 import { expect, test, type Locator } from '@playwright/test';
 
 import {
+  apiPut,
   completeOnboarding,
   createAccount,
   createTransaction,
+  dismissOnboarding,
   extractId,
   signInViaApi,
 } from '../../helpers/api-client';
@@ -81,6 +83,14 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         password: credentials.password,
       });
 
+      // The generic onboarding fixture deliberately permanently dismisses the guide.
+      // Reopen it for this isolated timer check, then restore the fixture's original
+      // dismissed state before continuing the other interaction smoke assertions.
+      await apiPut({
+        request: api,
+        path: '/api/v1/user/settings/onboarding',
+        data: { isDismissed: false, dismissedAt: null },
+      });
       // A short, cross-tab Quick Start hide must expire without reloading.
       // The timer is owned by the Pinia store even when the floating button is hidden.
       await page.goto('/dashboard');
@@ -94,6 +104,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       });
       await expect(quickStart).toBeHidden();
       await expect(quickStart).toBeVisible({ timeout: 8_000 });
+      await dismissOnboarding({ request: api });
+      await page.reload();
+      await expect(quickStart).toBeHidden();
 
       // Swipe from just inside the system-back edge to open the app sidebar.
       const shell = page.locator('.h-dvh').first();
