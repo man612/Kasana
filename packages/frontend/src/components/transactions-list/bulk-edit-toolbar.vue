@@ -87,12 +87,11 @@ const handleEdit = () => {
         <span class="hidden text-sm @sm/bulk-toolbar:inline">{{ t('transactions.bulkEdit.selectAll') }}</span>
       </div>
 
-      <SelectionTotals v-if="hasSelection" :totals="selectedTotals" :selected-count="selectedCount" />
       <SelectionTotals
-        v-else-if="matchingSummary"
-        :totals="matchingSummary"
-        :selected-count="matchingSummary.count"
-        matching
+        v-if="hasSelection || matchingSummary"
+        :totals="hasSelection ? selectedTotals : matchingSummary!"
+        :selected-count="hasSelection ? selectedCount : matchingSummary!.count"
+        :matching="!hasSelection"
       />
     </div>
 
