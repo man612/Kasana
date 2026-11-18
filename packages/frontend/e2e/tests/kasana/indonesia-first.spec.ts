@@ -341,6 +341,11 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await mobileForm.getByRole('button', { name: /Tutup|Close/i }).click();
       const discardConfirmation = page.getByRole('alertdialog');
       await expect(discardConfirmation.getByText(/Tutup tanpa menyimpan|Close without saving/i)).toBeVisible();
+      // Cancel must retain the form and must not dispatch the destructive action.
+      await discardConfirmation.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
+      await expect(mobileForm).toBeVisible();
+      await mobileForm.getByRole('button', { name: /Tutup|Close/i }).click();
+      await expect(discardConfirmation).toBeVisible();
       await discardConfirmation.getByRole('button', { name: /Buang|Discard/i }).click();
       await expect(mobileForm).toBeHidden();
       await page.setViewportSize({ width: 390, height: 844 });
@@ -552,6 +557,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await multipleAccounts.click();
       await expect(multipleAccounts).toHaveCount(1);
       await expect(multipleAccounts).toHaveAttribute('aria-pressed', 'false');
+      // UX25 #3: removing the payment legs must not autofocus the original
+      // amount input, which would reopen a phone's virtual keyboard.
+      await expect(txDialog.locator('input[inputmode="decimal"]').first()).not.toBeFocused();
 
       // Selecting and unselecting a tag are reversible form edits, not deletion:
       // neither should launch a destructive confirmation.

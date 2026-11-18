@@ -321,7 +321,7 @@ describe('BalanceAdjustmentDialog', () => {
       const setTo = w.findAll('button').find((b) => b.text().trim() === t('pages.account.balanceAdjustmentDialog.setToBalance'))!;
       await setTo.trigger('click');
       await nextTick();
-      expect((amountInput(w).element as HTMLInputElement).value).toBe('5000');
+      expect((amountInput(w).element as HTMLInputElement).value).toBe('5.000');
       expect((noteInput(w).element as HTMLInputElement).value).toBe('Penyesuaian manual');
 
       await switchToAdjustBy(w);

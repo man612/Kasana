@@ -31,10 +31,21 @@ test.describe('Lajur UX-25 mobile regression gates', () => {
 
       const views = page.getByRole('button', { name: /^Tampilan$/i });
       await expect(views).toBeVisible({ timeout: 20_000 });
+      const viewsChevron = views.locator('svg').last();
+      await expect(viewsChevron).not.toHaveClass(/rotate-180/);
       await views.click();
+      await expect(viewsChevron).toHaveClass(/rotate-180/);
       await expect(page.getByText('Belum ada tampilan tersimpan. Atur filter, lalu simpan sebagai tampilan.')).toBeVisible();
       await expect(page.getByRole('button', { name: 'Simpan sebagai tampilan baru' })).toBeVisible();
       await page.keyboard.press('Escape');
+      await expect(viewsChevron).not.toHaveClass(/rotate-180/);
+
+      // UX25 #13: no selection means no bulk mutations. The explanation is
+      // inline and does not require a hover-only tooltip.
+      const withoutSelection = page.getByRole('button', { name: 'Pilih transaksi terlebih dahulu' });
+      await expect(withoutSelection).toHaveAttribute('aria-disabled', 'true');
+      await withoutSelection.click();
+      await expect(page.getByRole('status').filter({ hasText: 'Pilih transaksi terlebih dahulu' })).toBeVisible();
 
       await page.getByRole('button', { name: 'Lainnya', exact: true }).click();
       await page.getByRole('menuitemradio', { name: 'Tampilan tabel' }).click();
