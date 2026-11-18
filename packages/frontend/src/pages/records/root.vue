@@ -30,7 +30,7 @@
     </DefineTableSettings>
 
     <DefineTrashLink>
-      <Button variant="secondary" :aria-disabled="isTrashEmpty" :class="isTrashEmpty && 'opacity-55'" @click="openTrash">
+      <Button variant="secondary" :data-trash-empty="isTrashEmpty ? 'true' : undefined" :class="isTrashEmpty && 'opacity-55'" @click="openTrash">
         <Trash2Icon class="size-4" />
         {{ $t('navigation.trash') }}
       </Button>
@@ -109,7 +109,7 @@
                   <Maximize2Icon class="size-4" />
                   {{ $t('transactions.table.fullscreen.enter') }}
                 </DropdownMenuItem>
-                <DropdownMenuItem :aria-disabled="isTrashEmpty" :class="isTrashEmpty && 'opacity-55'" @select="openTrash">
+                <DropdownMenuItem :data-trash-empty="isTrashEmpty ? 'true' : undefined" :class="isTrashEmpty && 'opacity-55'" @select="openTrash">
                   <Trash2Icon class="size-4" />
                   {{ $t('navigation.trash') }}
                 </DropdownMenuItem>
