@@ -56,7 +56,7 @@
             </Button>
           </ManageTransactionDialog>
 
-          <Popover.Popover v-model:open="isAddMenuOpen">
+          <Popover.Popover v-model:open="isAddMenuOpen" modal>
             <Popover.PopoverTrigger as-child>
               <Button variant="default" size="sm" class="rounded-l-none px-2" :aria-label="$t('header.moreActions')">
                 <ChevronDownIcon
@@ -65,9 +65,18 @@
                 />
               </Button>
             </Popover.PopoverTrigger>
-            <Popover.PopoverContent class="grid w-72 gap-0.5 p-1.5" align="start">
-              <RouterLink :to="{ name: ROUTES_NAMES.settingsDataManagement }" @click="isAddMenuOpen = false">
-                <Button variant="ghost" class="h-auto w-full justify-start gap-3 p-2 text-left whitespace-normal">
+            <Popover.PopoverContent
+              dim-backdrop
+              class="grid w-72 max-w-[calc(100vw-1.5rem)] gap-0.5 p-1.5"
+              align="start"
+              @close-auto-focus="isAttachInvoiceOpen && $event.preventDefault()"
+            >
+              <Button
+                as-child
+                variant="ghost"
+                class="h-auto w-full justify-start gap-3 p-2 text-left whitespace-normal"
+              >
+                <RouterLink :to="{ name: ROUTES_NAMES.settingsDataManagement }" @click="isAddMenuOpen = false">
                   <span
                     class="bg-muted text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-md"
                   >
@@ -77,8 +86,8 @@
                     <span class="text-sm font-semibold">{{ $t('header.importData') }}</span>
                     <span class="text-muted-foreground text-xs font-normal">{{ $t('header.importDataHint') }}</span>
                   </span>
-                </Button>
-              </RouterLink>
+                </RouterLink>
+              </Button>
 
               <Button
                 v-if="!userStore.isDemo"

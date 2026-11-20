@@ -82,7 +82,9 @@
         },
         "projection": {
           "summary": "{amount} projected · {count} planned entry through {date} | {amount} projected · {count} planned entries through {date}"
-        }
+        },
+        "panHint": "Drag across the chart or use the arrow keys to explore dates.",
+        "showFullRange": "Show full range"
       },
       "expensesStructure": {
         "title": "Expenses structure",
@@ -494,7 +496,7 @@
         "nothingExcluded": "Nothing excluded",
         "tagsStyleTitle": "Tags",
         "tagsStyleNames": "Names",
-        "tagsStyleBars": "Bars",
+        "tagsStyleBars": "Compact",
         "tagsStyleSaveError": "Couldn't save the tag style. Please try again.",
         "showAccountTitle": "Account",
         "showAccountDescription": "Show the account logo on each transaction",

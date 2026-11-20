@@ -234,7 +234,7 @@
         "mobility": "Mobilitas pribadi",
         "watercraft": "Kendaraan air",
         "aircraft": "Kendaraan udara",
-        "fictional": "Kendaraan fiksi",
+        "fictional": "Unik",
         "other": "Lainnya"
       },
       "types": {
@@ -277,7 +277,7 @@
         "plane": "Pesawat pribadi",
         "jet": "Jet pribadi",
         "ufo": "UFO",
-        "rocket": "Roket fiksi",
+        "rocket": "Roket",
         "trex": "T-Rex",
         "velociraptor": "Velociraptor",
         "triceratops": "Triceratops",

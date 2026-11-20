@@ -4,37 +4,24 @@
       <div class="flex items-start justify-between gap-3">
         <AccountLogoPicker :account-id="loan.id" class="size-10" />
         <div class="min-w-0 flex-1">
-          <div class="truncate text-xl font-semibold">{{ loan.name }}</div>
-          <div v-if="loan.loanDetails.lenderName" class="text-muted-foreground mt-1 truncate text-sm">
-            {{ loan.loanDetails.lenderName }}
-          </div>
+          <h1 class="text-xl leading-tight font-semibold wrap-anywhere">{{ loan.name }}</h1>
+          <p class="text-muted-foreground mt-1 text-sm wrap-anywhere">
+            {{ $t(`loans.types.${loan.loanDetails.loanType}`)
+            }}<template v-if="loan.loanDetails.lenderName"> · {{ loan.loanDetails.lenderName }}</template>
+          </p>
         </div>
-        <div class="flex shrink-0 flex-col items-end gap-1.5">
-          <span
-            :class="
-              cn(
-                'inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-[0.18em] uppercase',
-                loanTypeSolidBadgeClass,
-              )
-            "
-          >
-            <span aria-hidden="true">{{ loanTypeEmoji }}</span>
-            <span>{{ $t(`loans.types.${loan.loanDetails.loanType}`) }}</span>
-          </span>
-          <span
-            v-if="loan.projection.isPaidOff"
-            class="bg-app-income-color/15 text-app-income-color inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-medium tracking-wider uppercase"
-          >
-            {{ $t('loans.detail.paidOffBadge') }}
-          </span>
-        </div>
+        <span
+          v-if="isPaidOff"
+          class="bg-success/15 text-success-text shrink-0 rounded-full px-2 py-1 text-xs font-medium"
+          >{{ $t('loans.detail.paidOffBadge') }}</span
+        >
       </div>
     </CardHeader>
     <CardContent>
       <!-- Active loans lead with the outstanding balance; paid-off loans surface that in the settled
            banner instead, so the card opens straight into the details grid. -->
       <template v-if="!isPaidOff">
-        <div class="text-app-expense-color text-3xl font-semibold tracking-tight">
+        <div class="text-app-expense-color text-3xl font-semibold tracking-tight wrap-anywhere tabular-nums">
           {{ outstandingBalanceDisplay }}
         </div>
         <div class="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
@@ -43,53 +30,70 @@
         </div>
       </template>
 
-      <div :class="cn('grid grid-cols-2 gap-4 text-sm @sm/loan-summary:grid-cols-3', isPaidOff ? '' : 'mt-5')">
-        <div>
-          <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.apr') }}</div>
-          <div class="mt-0.5 font-medium">{{ aprDisplay }}</div>
-        </div>
-        <div>
-          <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.originalPrincipal') }}</div>
-          <div class="mt-0.5 font-medium">{{ originalPrincipalDisplay }}</div>
-        </div>
-        <div>
-          <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.term') }}</div>
-          <div class="mt-0.5 font-medium">{{ termDisplay }}</div>
-        </div>
-        <div>
-          <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.startDate') }}</div>
-          <div class="mt-0.5 font-medium">{{ startDateDisplay }}</div>
-        </div>
-        <div>
-          <div class="text-muted-foreground flex items-center gap-1 text-xs">
-            <span>{{ $t('loans.detail.summary.balanceAnchor') }}</span>
-            <HintIcon :content="$t('loans.detail.summary.balanceAnchorTooltip')" />
-          </div>
-          <div class="mt-0.5 font-medium">{{ balanceAnchorDisplay }}</div>
-        </div>
-        <div>
-          <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.paymentDay') }}</div>
-          <div class="mt-0.5 font-medium">{{ paymentDayDisplay }}</div>
-        </div>
-        <div v-if="loan.loanDetails.accountNumber">
-          <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.accountNumber') }}</div>
-          <div class="mt-0.5 font-medium">{{ loan.loanDetails.accountNumber }}</div>
-        </div>
-        <template v-if="isPaidOff">
+      <Button
+        type="button"
+        variant="ghost"
+        class="border-border/65 mt-3 min-h-11 w-full justify-between rounded-none border-t px-0"
+        :aria-expanded="showDetails"
+        :aria-controls="detailsId"
+        @click="showDetails = !showDetails"
+      >
+        {{ $t('loans.detail.detailsToggle') }}
+        <ChevronDownIcon
+          class="size-4 motion-safe:transition-transform motion-safe:duration-200"
+          :class="showDetails && 'rotate-180'"
+          aria-hidden="true"
+        />
+      </Button>
+      <LayoutCollapse :id="detailsId" :open="showDetails">
+        <div class="grid grid-cols-2 gap-4 pb-2 text-sm wrap-anywhere @sm/loan-summary:grid-cols-3">
           <div>
-            <div class="text-muted-foreground text-xs">{{ $t('loans.paidOff.opened') }}</div>
-            <div class="mt-0.5 font-medium">{{ openedFullDisplay }}</div>
+            <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.apr') }}</div>
+            <div class="mt-0.5 font-medium">{{ aprDisplay }}</div>
           </div>
           <div>
-            <div class="text-muted-foreground text-xs">{{ $t('loans.paidOff.closed') }}</div>
-            <div class="mt-0.5 font-medium">{{ closedFullDisplay }}</div>
+            <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.originalPrincipal') }}</div>
+            <div class="mt-0.5 font-medium">{{ originalPrincipalDisplay }}</div>
           </div>
           <div>
-            <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.actualDuration') }}</div>
-            <div class="mt-0.5 font-medium">{{ actualDurationDisplay }}</div>
+            <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.term') }}</div>
+            <div class="mt-0.5 font-medium">{{ termDisplay }}</div>
           </div>
-        </template>
-      </div>
+          <div>
+            <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.startDate') }}</div>
+            <div class="mt-0.5 font-medium">{{ startDateDisplay }}</div>
+          </div>
+          <div>
+            <div class="text-muted-foreground flex items-center gap-1 text-xs">
+              <span>{{ $t('loans.detail.summary.balanceAnchor') }}</span>
+              <HintIcon :content="$t('loans.detail.summary.balanceAnchorTooltip')" />
+            </div>
+            <div class="mt-0.5 font-medium">{{ balanceAnchorDisplay }}</div>
+          </div>
+          <div>
+            <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.paymentDay') }}</div>
+            <div class="mt-0.5 font-medium">{{ paymentDayDisplay }}</div>
+          </div>
+          <div v-if="loan.loanDetails.accountNumber">
+            <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.accountNumber') }}</div>
+            <div class="mt-0.5 font-medium">{{ loan.loanDetails.accountNumber }}</div>
+          </div>
+          <template v-if="isPaidOff">
+            <div>
+              <div class="text-muted-foreground text-xs">{{ $t('loans.paidOff.opened') }}</div>
+              <div class="mt-0.5 font-medium">{{ openedFullDisplay }}</div>
+            </div>
+            <div>
+              <div class="text-muted-foreground text-xs">{{ $t('loans.paidOff.closed') }}</div>
+              <div class="mt-0.5 font-medium">{{ closedFullDisplay }}</div>
+            </div>
+            <div>
+              <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.actualDuration') }}</div>
+              <div class="mt-0.5 font-medium">{{ actualDurationDisplay }}</div>
+            </div>
+          </template>
+        </div>
+      </LayoutCollapse>
     </CardContent>
   </Card>
 </template>
@@ -98,19 +102,19 @@
 import HintIcon from '@/components/common/hint-icon.vue';
 import type { LoanApi } from '@/api/loans';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
-import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
+import { Button } from '@/components/lib/ui/button';
+import { ChevronDownIcon } from '@lucide/vue';
 import { useFormatCurrency } from '@/composable/formatters';
 import { useDateLocale } from '@/composable/use-date-locale';
-import { cn } from '@/lib/utils';
 import AccountLogoPicker from '@/pages/account/components/account-logo-picker.vue';
 
 import { parseISO } from 'date-fns';
-import { computed } from 'vue';
+import { computed, ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { getLoanDurationParts, getMonthsEarly } from '../utils/paid-off-stats';
 import { outstandingAmount } from '../utils/outstanding-amount';
-import { getLoanTypeEmoji, getLoanTypeSolidBadgeClass } from '../loan-type-presentation';
 
 const props = defineProps<{ loan: LoanApi }>();
 
@@ -146,11 +150,8 @@ const paymentDayDisplay = computed(() => {
   return t('loans.detail.summary.dayOfMonth', { day });
 });
 
-const loanTypeSolidBadgeClass = computed(() =>
-  getLoanTypeSolidBadgeClass({ loanType: props.loan.loanDetails.loanType }),
-);
-
-const loanTypeEmoji = computed(() => getLoanTypeEmoji({ loanType: props.loan.loanDetails.loanType }));
+const showDetails = ref(false);
+const detailsId = useId();
 
 const isPaidOff = computed(() => props.loan.projection.isPaidOff);
 

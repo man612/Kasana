@@ -102,7 +102,6 @@
           <AccountsOverviewCard
             v-if="baseCurrencyCode"
             :overview="overview"
-            :base-currency-code="baseCurrencyCode"
             :has-vehicles="!!vehiclesWithAccount.length"
             :planned="plannedTotals"
             :projected-total="projectedTotal"
@@ -176,6 +175,7 @@
                 :account="vehicle.account!"
                 :subtitle="`${vehicle.year} ${vehicle.make} ${vehicle.model}`"
                 :category-override="ACCOUNT_CATEGORIES.vehicle"
+                :fallback-icon="getVehicleTypeIcon({ type: vehicle.vehicleType, legacyClass: vehicle.vehicleClass })"
               />
             </div>
           </AccountsSection>
@@ -276,6 +276,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 import { computeAccountsOverview } from './accounts-overview-totals';
 import AccountGroupRow from './components/account-group-row.vue';
+import { getVehicleTypeIcon } from '@/components/forms/vehicle-class-options';
 import AccountListRow from './components/account-list-row.vue';
 import AccountsOverviewCard from './components/accounts-overview-card.vue';
 import AccountsSection from './components/accounts-section.vue';

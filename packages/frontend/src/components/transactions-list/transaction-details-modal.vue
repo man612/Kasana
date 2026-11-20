@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
-import { TRANSACTION_DIALOG_CLOSE } from '@/components/dialogs/manage-transaction/composables/transaction-dialog-close';
-import { provide, ref, shallowRef, watch } from 'vue';
+import type { TransactionDialogSession } from '@/components/dialogs/manage-transaction/composables/transaction-dialog-close';
+import { ref, watch } from 'vue';
 import * as Dialog from '@/components/lib/ui/dialog';
 import * as Drawer from '@/components/lib/ui/drawer';
 
 const open = defineModel<boolean>('open', { required: true });
 
-defineProps<{
+const props = defineProps<{
   /**
    * Narrow-layout flag supplied by the view: the list derives it from the
    * viewport, the table from its container width — so it stays a prop here
@@ -16,41 +16,35 @@ defineProps<{
   mobile: boolean;
   /** Compact (max-w-lg) desktop dialog instead of the full-width editor. */
   isCompact?: boolean;
+  session: TransactionDialogSession | null;
 }>();
-const getChanges = shallowRef<() => boolean>();
 const confirmOpen = ref(false);
-const hasChanges = () => getChanges.value?.() === true;
+const hasChanges = () => props.session?.hasUnsavedChanges() === true;
+const isSaving = () => props.session?.isSaving() === true;
 const requestOpen = (value: boolean) => {
+  if (!value && (!open.value || isSaving())) return;
   if (!value && hasChanges()) confirmOpen.value = true;
   else open.value = value;
 };
 const requestDismiss = (event: Event) => {
+  if (isSaving()) return event.preventDefault();
   if (!hasChanges()) return;
   event.preventDefault();
   confirmOpen.value = true;
 };
-provide(TRANSACTION_DIALOG_CLOSE, {
-  requestClose: () => requestOpen(false),
-  register: (callback) => {
-    getChanges.value = callback;
-    return () => {
-      if (getChanges.value === callback) getChanges.value = undefined;
-    };
-  },
-});
 watch(open, (value) => {
   if (!value) confirmOpen.value = false;
 });
 </script>
 
 <template>
-  <Drawer.Drawer v-if="mobile" :dismissible="!hasChanges()" :open="open" @update:open="requestOpen">
+  <Drawer.Drawer v-if="mobile" :dismissible="!hasChanges() && !isSaving()" :open="open" @update:open="requestOpen">
     <Drawer.DrawerContent custom-indicator @pointer-down-outside="requestDismiss" @escape-key-down="requestDismiss">
       <Drawer.DrawerTitle class="sr-only">{{ $t('transactions.list.detailsTitle') }}</Drawer.DrawerTitle>
       <Drawer.DrawerDescription class="sr-only">{{
         $t('transactions.list.detailsDescription')
       }}</Drawer.DrawerDescription>
-      <slot />
+      <slot :request-close="() => requestOpen(false)" />
     </Drawer.DrawerContent>
   </Drawer.Drawer>
 
@@ -65,7 +59,7 @@ watch(open, (value) => {
       <Dialog.DialogDescription class="sr-only">{{
         $t('transactions.list.detailsDescription')
       }}</Dialog.DialogDescription>
-      <slot />
+      <slot :request-close="() => requestOpen(false)" />
     </Dialog.DialogContent>
   </Dialog.Dialog>
   <ResponsiveAlertDialog

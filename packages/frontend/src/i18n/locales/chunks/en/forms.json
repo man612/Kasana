@@ -233,7 +233,7 @@
         "mobility": "Personal mobility",
         "watercraft": "Watercraft",
         "aircraft": "Aircraft",
-        "fictional": "Fictional vehicles",
+        "fictional": "Unusual",
         "other": "Other"
       },
       "types": {
@@ -276,7 +276,7 @@
         "plane": "Private plane",
         "jet": "Private jet",
         "ufo": "UFO",
-        "rocket": "Fictional rocket",
+        "rocket": "Rocket",
         "trex": "T-Rex",
         "velociraptor": "Velociraptor",
         "triceratops": "Triceratops",

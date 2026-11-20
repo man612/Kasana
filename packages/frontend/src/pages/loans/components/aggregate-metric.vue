@@ -1,9 +1,9 @@
 <template>
-  <div class="min-w-0">
-    <div class="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase">
+  <div class="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-baseline gap-2 py-2">
+    <div class="text-muted-foreground text-sm">
       {{ label }}
     </div>
-    <div class="mt-1 truncate text-lg font-semibold tracking-tight tabular-nums">{{ value }}</div>
+    <div class="min-w-0 text-right text-sm font-semibold wrap-anywhere tabular-nums">{{ value }}</div>
   </div>
 </template>
 

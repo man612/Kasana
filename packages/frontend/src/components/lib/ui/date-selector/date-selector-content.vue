@@ -1,11 +1,12 @@
 <script lang="ts" setup>
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import { PillTabs } from '@/components/lib/ui/pill-tabs';
 import { useDateLocale } from '@/composable/use-date-locale';
 import { type Period } from '@/composable/use-period-navigation';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { ChevronDownIcon, SlidersHorizontalIcon, X } from '@lucide/vue';
 import { endOfDay, endOfMonth, startOfDay, startOfMonth, subMonths } from 'date-fns';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import Button from '../button/Button.vue';
@@ -65,9 +66,7 @@ if (props.allowedFilterModes?.length && !props.allowedFilterModes.includes(activ
   activeFilterMode.value = props.allowedFilterModes[0]!;
 }
 
-watch([activePeriodType, activeFilterMode], () => {
-  clearSelection();
-});
+watch([activePeriodType, activeFilterMode], clearSelection, { flush: 'sync' });
 
 const periodTypeTabs = computed<{ value: DateSelectorPeriodType; label: string }[]>(() => [
   { value: 'day', label: t('common.dateSelector.periodTypes.day') },
@@ -116,6 +115,7 @@ const showAdvancedFilters = ref(
 );
 
 const inputValue = ref('');
+const advancedOptionsId = useId();
 
 const placeholderText = computed(() => {
   switch (activePeriodType.value) {
@@ -136,7 +136,7 @@ const placeholderText = computed(() => {
 
 function handleInputSubmit() {
   const parsed = parseDateInput({ input: inputValue.value });
-  if (!parsed) return;
+  if (!parsed || (props.allowedFilterModes && !props.allowedFilterModes.includes(parsed.filterMode))) return;
 
   activePeriodType.value = parsed.periodType;
   activeFilterMode.value = parsed.filterMode;
@@ -197,40 +197,40 @@ function setPeriodType(type: DateSelectorPeriodType) {
         @update:model-value="setPeriodType($event as DateSelectorPeriodType)"
       />
 
-      <Button
-        variant="ghost"
-        size="sm"
-        class="text-muted-foreground h-8 gap-1.5 self-start px-1 text-xs"
-        :aria-expanded="showAdvancedFilters"
-        @click="showAdvancedFilters = !showAdvancedFilters"
-      >
-        <SlidersHorizontalIcon class="size-3.5" />
-        {{ t('common.dateSelector.advancedOptions') }}
-        <ChevronDownIcon
-          class="size-3.5 transition-transform duration-200"
-          :class="showAdvancedFilters && 'rotate-180'"
-        />
-      </Button>
-
-      <Transition name="kasana-feedback">
-        <div
-          v-if="showAdvancedFilters"
-          class="border-border bg-muted/30 flex min-w-0 flex-col gap-2 rounded-lg border p-3"
+      <div>
+        <Button
+          variant="ghost"
+          size="sm"
+          class="text-muted-foreground h-8 gap-1.5 self-start px-1 text-xs"
+          :aria-expanded="showAdvancedFilters"
+          :aria-controls="advancedOptionsId"
+          @click="showAdvancedFilters = !showAdvancedFilters"
         >
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-xs font-medium">{{ t('common.dateSelector.dueDate') }}</span>
-            <DateSelectorFilterMode v-model="activeFilterMode" :allowed-modes="allowedFilterModes" />
-          </div>
-          <input
-            v-model="inputValue"
-            type="text"
-            :placeholder="placeholderText"
-            :aria-label="t('common.dateSelector.manualDate')"
-            class="border-input bg-input-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
-            @keydown.enter="handleInputSubmit"
+          <SlidersHorizontalIcon class="size-3.5" />
+          {{ t('common.dateSelector.advancedOptions') }}
+          <ChevronDownIcon
+            class="size-3.5 motion-safe:transition-transform motion-safe:duration-200"
+            :class="showAdvancedFilters && 'rotate-180'"
           />
-        </div>
-      </Transition>
+        </Button>
+
+        <LayoutCollapse :id="advancedOptionsId" :open="showAdvancedFilters">
+          <div class="border-border bg-muted/30 mt-2 flex min-w-0 flex-col gap-2 rounded-lg border p-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-medium">{{ t('common.dateSelector.rangeFilter') }}</span>
+              <DateSelectorFilterMode v-model="activeFilterMode" :allowed-modes="allowedFilterModes" />
+            </div>
+            <input
+              v-model="inputValue"
+              type="text"
+              :placeholder="placeholderText"
+              :aria-label="t('common.dateSelector.manualDate')"
+              class="border-input bg-input-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-2 text-sm transition-colors focus-visible:ring-1 focus-visible:outline-hidden"
+              @keydown.enter="handleInputSubmit"
+            />
+          </div>
+        </LayoutCollapse>
+      </div>
 
       <div class="min-w-0">
         <Transition name="kasana-section" mode="out-in">

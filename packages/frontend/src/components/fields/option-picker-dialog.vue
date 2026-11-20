@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import LayoutCollapse from '@/components/common/layout-collapse.vue';
+import DialogHeaderActions from '@/components/common/dialog-header-actions.vue';
 import { Button } from '@/components/lib/ui/button';
 import { createReusableTemplate } from '@vueuse/core';
 import InputField from '@/components/fields/input-field.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import * as Dialog from '@/components/lib/ui/dialog';
+import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { CheckIcon, ChevronDownIcon, ChevronRightIcon, ChevronsUpDownIcon, PencilIcon, SearchIcon } from '@lucide/vue';
 import { computed, ref, watch, type Component } from 'vue';
 
@@ -164,18 +166,23 @@ const pick = (value: string) => {
       </Dialog.DialogTrigger>
       <Dialog.DialogContent
         blur-overlay
+        custom-close
         :intrinsic-height-motion="collapsibleGroups"
         @open-auto-focus="onOpenAutoFocus"
-        class="data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 grid max-h-[min(85dvh,700px)] w-[calc(100vw-2rem)] max-w-lg grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-2xl p-0 motion-reduce:animate-none"
+        class="data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 flex max-h-[min(85dvh,700px)] w-[calc(100vw-2rem)] max-w-lg gap-0 overflow-hidden rounded-2xl p-0 motion-reduce:animate-none"
       >
-        <div ref="heading" tabindex="-1" class="border-border relative border-b px-4 py-4 outline-none">
-          <div v-if="$slots['header-action']" class="absolute top-3 right-12 z-10">
-            <slot name="header-action" />
+        <div ref="heading" tabindex="-1" class="border-border shrink-0 border-b px-4 pt-3 pb-3 outline-none">
+          <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+            <div class="min-w-0">
+              <Dialog.DialogTitle class="text-base font-semibold">{{ label }}</Dialog.DialogTitle>
+              <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs">{{
+                placeholder ?? label
+              }}</Dialog.DialogDescription>
+            </div>
+            <DialogHeaderActions :close="() => (isOpen = false)">
+              <slot name="header-action" />
+            </DialogHeaderActions>
           </div>
-          <Dialog.DialogTitle class="pr-14 text-base font-semibold">{{ label }}</Dialog.DialogTitle>
-          <Dialog.DialogDescription class="text-muted-foreground mt-1 pr-14 text-xs">
-            {{ placeholder ?? label }}
-          </Dialog.DialogDescription>
           <InputField
             v-if="searchPlaceholder"
             v-model="query"
@@ -189,66 +196,87 @@ const pick = (value: string) => {
             </template>
           </InputField>
         </div>
-        <div class="lajur-dialog-scroll min-h-0 space-y-1 overflow-y-auto overscroll-contain p-3">
-          <template v-if="showGroups">
-            <div v-if="groupNames.length" class="bg-dialog sticky top-0 z-1 flex justify-end pb-1">
-              <Button type="button" variant="ghost" size="sm" class="min-h-10" @click="toggleAllGroups">
-                <ChevronsUpDownIcon class="size-4" aria-hidden="true" />
-                {{ $t(allGroupsExpanded ? 'fields.categorySelect.collapseAll' : 'fields.categorySelect.expandAll') }}
-              </Button>
-            </div>
-            <div v-for="[group, options] in groupedOptions" :key="group">
-              <Button
-                v-if="group"
-                variant="ghost"
-                class="h-auto min-h-12 w-full justify-start rounded-lg px-2 text-left whitespace-normal"
-                :aria-expanded="expandedGroups.includes(group)"
-                @click="toggleGroup(group)"
+        <div v-if="showGroups && groupNames.length" class="flex shrink-0 justify-end px-3 pt-1">
+          <Button type="button" variant="ghost" size="sm" class="min-h-11" @click="toggleAllGroups">
+            <ChevronsUpDownIcon
+              class="size-4 motion-safe:transition-transform motion-safe:duration-200"
+              :class="allGroupsExpanded && 'rotate-180'"
+              aria-hidden="true"
+            />
+            <span class="grid">
+              <span
+                class="col-start-1 row-start-1 motion-safe:transition-opacity"
+                :class="allGroupsExpanded && 'opacity-0'"
+                :aria-hidden="allGroupsExpanded"
+                >{{ $t('fields.categorySelect.expandAll') }}</span
               >
-                <span
-                  class="grid size-9 shrink-0 place-items-center rounded-lg"
-                  :class="options[0]?.iconClass ?? 'bg-muted text-muted-foreground'"
-                >
-                  <component :is="options[0]?.groupIcon ?? options[0]?.icon" class="size-4" />
-                </span>
-                <span class="min-w-0 flex-1">{{ group }}</span>
-                <ChevronDownIcon
-                  class="text-muted-foreground size-4 shrink-0 motion-safe:transition-transform motion-safe:duration-200"
-                  :class="expandedGroups.includes(group) && 'rotate-180'"
-                />
-              </Button>
-              <LayoutCollapse :open="!group || expandedGroups.includes(group)">
-                <div class="border-border/70 ml-6 border-l pl-2">
-                  <ReuseOption v-for="option in options" :key="option.value" :option="option" />
-                </div>
-              </LayoutCollapse>
-            </div>
-          </template>
-          <TransitionGroup v-else name="lajur-info-reveal">
-            <p
-              v-if="!visibleOptions.length && noResultsLabel"
-              key="empty"
-              role="status"
-              class="text-muted-foreground px-3 py-4 text-sm"
-            >
-              {{ noResultsLabel }}
-            </p>
-            <div v-for="(option, index) in visibleOptions" :key="option.value">
-              <p
-                v-if="
-                  !collapsibleGroups &&
-                  option.group &&
-                  (index === 0 || option.group !== visibleOptions[index - 1]?.group)
-                "
-                class="text-muted-foreground px-3 pt-3 pb-1 text-[10px] font-semibold tracking-wider uppercase"
-                :class="index === 0 && 'pt-1'"
+              <span
+                class="col-start-1 row-start-1 motion-safe:transition-opacity"
+                :class="!allGroupsExpanded && 'opacity-0'"
+                :aria-hidden="!allGroupsExpanded"
+                >{{ $t('fields.categorySelect.collapseAll') }}</span
               >
-                {{ option.group }}
-              </p>
-              <ReuseOption :option="option" :show-group="!!collapsibleGroups" />
-            </div>
-          </TransitionGroup>
+            </span>
+          </Button>
         </div>
+        <ScrollArea class="min-h-0" viewport-class="overscroll-contain">
+          <div class="space-y-1 p-3">
+            <template v-if="showGroups">
+              <div v-for="[group, options] in groupedOptions" :key="group">
+                <template v-if="group">
+                  <Button
+                    variant="ghost"
+                    class="h-auto min-h-12 w-full justify-start rounded-lg px-2 text-left whitespace-normal"
+                    :aria-expanded="expandedGroups.includes(group)"
+                    @click="toggleGroup(group)"
+                  >
+                    <span
+                      class="grid size-9 shrink-0 place-items-center rounded-lg"
+                      :class="options[0]?.iconClass ?? 'bg-muted text-muted-foreground'"
+                    >
+                      <component :is="options[0]?.groupIcon ?? options[0]?.icon" class="size-4" />
+                    </span>
+                    <span class="min-w-0 flex-1">{{ group }}</span>
+                    <ChevronDownIcon
+                      class="text-muted-foreground size-4 shrink-0 motion-safe:transition-transform motion-safe:duration-200"
+                      :class="expandedGroups.includes(group) && 'rotate-180'"
+                    />
+                  </Button>
+                  <LayoutCollapse :open="expandedGroups.includes(group)">
+                    <div class="border-border/70 ml-6 border-l pl-2">
+                      <ReuseOption v-for="option in options" :key="option.value" :option="option" />
+                    </div>
+                  </LayoutCollapse>
+                </template>
+                <ReuseOption v-else v-for="option in options" :key="option.value" :option="option" />
+              </div>
+            </template>
+            <TransitionGroup v-else name="lajur-info-reveal">
+              <p
+                v-if="!visibleOptions.length && noResultsLabel"
+                key="empty"
+                role="status"
+                class="text-muted-foreground px-3 py-4 text-sm"
+              >
+                {{ noResultsLabel }}
+              </p>
+              <div v-for="(option, index) in visibleOptions" :key="option.value">
+                <p
+                  v-if="
+                    !collapsibleGroups &&
+                    option.group &&
+                    (index === 0 || option.group !== visibleOptions[index - 1]?.group)
+                  "
+                  class="text-muted-foreground px-3 pt-3 pb-1 text-[10px] font-semibold tracking-wider uppercase"
+                  :class="index === 0 && 'pt-1'"
+                >
+                  {{ option.group }}
+                </p>
+                <ReuseOption :option="option" :show-group="!!collapsibleGroups" />
+              </div>
+            </TransitionGroup>
+          </div>
+        </ScrollArea>
       </Dialog.DialogContent>
     </Dialog.Dialog>
     <FieldError :error-message="errorMessage" />

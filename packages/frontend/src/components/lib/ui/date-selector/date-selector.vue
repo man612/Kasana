@@ -59,7 +59,7 @@ const triggerText = computed(() => {
   }
 
   if (isSameMonth(from, to)) {
-    return format(from, 'MMM yyyy');
+    return format(from, props.dialogOnDesktop ? 'MMMM yyyy' : 'MMM yyyy');
   }
 
   if (from.getFullYear() === to.getFullYear()) {
@@ -102,10 +102,10 @@ function handleCancel() {
       </DrawerTrigger>
       <DrawerContent class="px-4 pb-4">
         <VisuallyHidden>
-          <DrawerTitle>{{ t('common.dateSelector.currentMonth') }}</DrawerTitle>
-          <DrawerDescription>{{ t('common.dateSelector.currentMonth') }}</DrawerDescription>
+          <DrawerTitle>{{ t('common.dateSelector.simpleTitle') }}</DrawerTitle>
+          <DrawerDescription>{{ t('common.dateSelector.simpleHint') }}</DrawerDescription>
         </VisuallyHidden>
-        <div class="min-h-0 flex-1 overflow-y-auto pt-4">
+        <div class="min-h-0 flex-1 overflow-hidden pt-3">
           <SlotContent />
         </div>
       </DrawerContent>
@@ -120,6 +120,7 @@ function handleCancel() {
       </Dialog.DialogTrigger>
       <Dialog.DialogContent
         blur-overlay
+        intrinsic-height-motion
         class="grid max-h-[min(90dvh,800px)] w-[calc(100vw-1.5rem)] max-w-3xl grid-rows-[auto_minmax(0,1fr)] gap-2 overflow-hidden p-4"
       >
         <Dialog.DialogTitle class="pr-12 text-base font-semibold">

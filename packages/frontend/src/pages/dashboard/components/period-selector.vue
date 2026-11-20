@@ -1,7 +1,7 @@
 <template>
   <div
     data-no-nav-swipe
-    class="flex min-w-0 items-center justify-center gap-0.5 max-md:touch-pan-y"
+    class="grid w-full min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center max-md:touch-pan-y"
     :style="{ '--period-direction': direction }"
     @touchstart.passive="onPeriodTouchStart"
     @touchend="onPeriodTouchEnd"
@@ -10,6 +10,7 @@
     <Button
       size="icon-sm"
       variant="ghost"
+      class="size-11"
       :aria-label="$t('dashboard.periodSelector.previousPeriod')"
       @click="selectPrevPeriod"
     >
@@ -27,13 +28,15 @@
         <Button
           variant="ghost"
           size="sm"
-          class="min-w-0 shrink justify-center gap-1.5 px-1 font-medium"
+          class="min-h-11 min-w-0 justify-center gap-1.5 px-0 py-1 leading-tight font-medium whitespace-normal"
           :aria-label="triggerText"
         >
           <CalendarIcon class="size-3.5 shrink-0" aria-hidden="true" />
           <span class="grid min-w-0 overflow-hidden text-center" aria-hidden="true">
             <Transition name="period-label">
-              <span :key="triggerText" class="col-start-1 row-start-1 block min-w-0 truncate">{{ triggerText }}</span>
+              <span :key="triggerText" class="col-start-1 row-start-1 block min-w-0 self-center">{{
+                triggerText
+              }}</span>
             </Transition>
           </span>
         </Button>
@@ -43,6 +46,7 @@
     <Button
       size="icon-sm"
       variant="ghost"
+      class="size-11"
       :disabled="isNextDisabled"
       :aria-label="$t('dashboard.periodSelector.nextPeriod')"
       @click="selectNextPeriod"
@@ -52,7 +56,7 @@
     <Button
       size="icon-sm"
       variant="ghost"
-      class="absolute left-3 motion-safe:transition-opacity md:left-6"
+      class="absolute left-3 size-11 motion-safe:transition-opacity md:left-6"
       :class="isCurrentPayPeriod(period) && 'pointer-events-none opacity-0'"
       :disabled="isCurrentPayPeriod(period)"
       :aria-hidden="isCurrentPayPeriod(period)"
@@ -60,7 +64,7 @@
       :title="$t('dashboard.periodSelector.backToCurrent')"
       @click="period = getCurrentPayPeriod()"
     >
-      <RotateCcwIcon class="size-3.5" aria-hidden="true" />
+      <CalendarCheckIcon class="size-3.5" aria-hidden="true" />
     </Button>
   </div>
 </template>
@@ -71,7 +75,7 @@ import { DateSelector, type DateSelectorPreset } from '@/components/lib/ui/date-
 import { useEarliestTransactionDate } from '@/composable/data-queries/earliest-transaction-date';
 import { getPayPeriod, usePeriodNavigation } from '@/composable/use-period-navigation';
 import { format as dateFnsFormat, endOfYear, isBefore, isSameDay, startOfYear, subMonths, subYears } from 'date-fns';
-import { CalendarIcon, ChevronLeft, ChevronRight, RotateCcwIcon } from '@lucide/vue';
+import { CalendarIcon, ChevronLeft, ChevronRight, CalendarCheckIcon } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -151,6 +155,7 @@ function selectPrevPeriod() {
 }
 
 function selectNextPeriod() {
+  if (isNextDisabled.value) return;
   period.value = nextPeriod.value;
 }
 

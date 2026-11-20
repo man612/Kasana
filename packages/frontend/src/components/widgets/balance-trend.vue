@@ -115,9 +115,17 @@
       <div ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative min-h-32 w-full flex-1 sm:min-h-44">
         <svg
           ref="svgRef"
-          class="h-full w-full"
+          class="focus-visible:ring-ring h-full w-full touch-pan-y focus-visible:ring-2 focus-visible:outline-none"
           role="group"
           :aria-label="$t('dashboard.widgets.balanceTrend.title')"
+          :aria-describedby="canPanChart ? chartPanHelpId : undefined"
+          :tabindex="canPanChart ? 0 : undefined"
+          @pointerdown="rememberChartPointer"
+          @pointerup="finishChartPointer"
+          @pointercancel="cancelChartPointer"
+          @click.capture="protectChartPan"
+          @keydown.left.prevent="moveChartWindow({ points: -CHART_WINDOW_POINTS })"
+          @keydown.right.prevent="moveChartWindow({ points: CHART_WINDOW_POINTS })"
         ></svg>
 
         <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
@@ -185,6 +193,18 @@
           @close="closeSpikePanel"
           @see-all="navigateToSpikeTransactions"
         />
+      </div>
+      <div v-if="canPanChart" class="flex flex-wrap items-center justify-between gap-x-2 px-2 text-xs">
+        <p :id="chartPanHelpId" class="text-muted-foreground">{{ $t('dashboard.widgets.balanceTrend.panHint') }}</p>
+        <Button
+          v-if="chartWindowStart !== null"
+          type="button"
+          size="sm"
+          variant="ghost"
+          @click="chartWindowStart = null"
+        >
+          {{ $t('dashboard.widgets.balanceTrend.showFullRange') }}
+        </Button>
       </div>
       <!-- Accessible numerical alternative to hovering the SVG. Sampled evenly,
            always including the first and latest real balance observations. -->
@@ -336,6 +356,9 @@ const props = defineProps<{
 }>();
 
 const { t, locale } = useI18n();
+const CHART_WINDOW_POINTS = 31;
+const CHART_PAN_THRESHOLD = 10;
+const chartPanHelpId = useId();
 
 type BalanceTypeValue = 'total' | 'accounts' | 'portfolios' | 'ventures' | 'vehicles' | 'loans';
 type BalanceTypeOption = { value: BalanceTypeValue; label: string };
@@ -698,6 +721,55 @@ const chartData = computed(() => {
     };
   });
 });
+const chartWindowStart = ref<number | null>(null);
+const canPanChart = computed(() => chartData.value.length > CHART_WINDOW_POINTS);
+const chartWindow = computed(() => {
+  if (!canPanChart.value || chartWindowStart.value === null) return null;
+  const start = Math.min(chartWindowStart.value, chartData.value.length - CHART_WINDOW_POINTS);
+  return chartData.value.slice(start, start + CHART_WINDOW_POINTS);
+});
+
+watch(
+  () => [props.selectedPeriod.from.getTime(), props.selectedPeriod.to.getTime(), selectedBalanceType.value.value],
+  () => {
+    chartWindowStart.value = null;
+  },
+);
+
+const moveChartWindow = ({ points }: { points: number }) => {
+  if (!canPanChart.value) return;
+  const lastStart = chartData.value.length - CHART_WINDOW_POINTS;
+  const from = chartWindowStart.value ?? (points < 0 ? lastStart : 0);
+  chartWindowStart.value = Math.max(0, Math.min(lastStart, from + points));
+};
+
+let chartPointer: { id: number; x: number; y: number } | null = null;
+let ignoreChartClick = false;
+const rememberChartPointer = (event: PointerEvent) => {
+  if (!event.isPrimary || event.button !== 0) return;
+  chartPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  ignoreChartClick = false;
+};
+const finishChartPointer = (event: PointerEvent) => {
+  if (chartPointer?.id !== event.pointerId) return;
+  const dx = event.clientX - chartPointer.x;
+  const dy = event.clientY - chartPointer.y;
+  chartPointer = null;
+  if (!canPanChart.value || Math.abs(dx) < Math.max(CHART_PAN_THRESHOLD, Math.abs(dy))) return;
+  const width = svgRef.value?.clientWidth || 1;
+  const steps = Math.max(1, Math.round((Math.abs(dx) * CHART_WINDOW_POINTS) / width));
+  ignoreChartClick = true;
+  moveChartWindow({ points: -Math.sign(dx) * steps });
+};
+const cancelChartPointer = () => {
+  chartPointer = null;
+  tooltip.visible = false;
+};
+const protectChartPan = (event: MouseEvent) => {
+  if (!ignoreChartClick) return;
+  ignoreChartClick = false;
+  event.stopPropagation();
+};
 
 const isBalanceTableOpen = ref(false);
 
@@ -906,6 +978,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  cancelAnimationFrame(chartRenderFrame);
+  cancelAnimationFrame(chartHoverFrame);
   document.removeEventListener('click', handleDocumentClick);
   document.removeEventListener('keydown', handleEscapeKey);
 });
@@ -918,9 +992,14 @@ const getColors = () => {
 const formatAxisValue = (value: number, step?: number) =>
   formatAxisCurrency({ value, symbol: getCurrencySymbol(), currencyCode: baseCurrency.value?.currency?.code, step });
 
+let chartRenderFrame = 0;
+let chartHoverFrame = 0;
 const renderChart = () => {
+  cancelAnimationFrame(chartHoverFrame);
   if (!svgRef.value || !containerRef.value || chartData.value.length === 0) return;
 
+  const points = chartWindow.value ?? chartData.value;
+  const visibleProjection = chartWindow.value ? null : projection.value;
   const colors = getColors();
   const svg = d3.select(svgRef.value);
   svg.selectAll('*').remove();
@@ -932,7 +1011,7 @@ const renderChart = () => {
   // Use the same value universe for Y-axis label width and Y-axis domain.
   // Projection can exceed historical values; otherwise its larger labels clip
   // against the left side on narrow Android viewports.
-  const yValues = [...chartData.value.map((d) => d.value), ...(projection.value?.points.map((p) => p.value) ?? [])];
+  const yValues = [...points.map((d) => d.value), ...(visibleProjection?.points.map((p) => p.value) ?? [])];
   const [dataMin = 0, dataMax = 0] = d3.extent(yValues);
   const approxTickStep = Math.max(1, (dataMax - dataMin) / 4 || 500);
   const longestLabel = Math.max(
@@ -953,8 +1032,9 @@ const renderChart = () => {
   // Calculate x-axis ticks - limit to 6-7 max
   const pixelsPerTick = isMobile ? 80 : 120;
   const ticksAmount = Math.min(7, Math.max(2, Math.round(innerWidth / pixelsPerTick)));
-  const fromDate = actualDataPeriod.value.from;
-  const toDate = chartXAxisEnd.value;
+  const fromDate = chartWindow.value ? new Date(points[0]!.date) : actualDataPeriod.value.from;
+  const toDate = chartWindow.value ? new Date(points.at(-1)!.date) : chartXAxisEnd.value;
+  const visibleSpikes = spikePoints.value.filter((point) => point.date >= +fromDate && point.date <= +toDate);
   const xAxisTicks = generateDateSteps({ datesToShow: ticksAmount, fromDate, toDate });
 
   // X scale
@@ -1026,21 +1106,21 @@ const renderChart = () => {
 
   // A constant balance is a line, not a large filled rectangle. Avoid
   // implying volatility when the data has not actually moved.
-  const hasMovement = chartData.value.some((point) => point.value !== chartData.value[0]?.value);
+  const hasMovement = points.some((point) => point.value !== points[0]?.value);
   if (hasMovement) {
-    g.append('path').datum(chartData.value).attr('class', 'area').attr('fill', `url(#${gradientId})`).attr('d', area);
+    g.append('path').datum(points).attr('class', 'area').attr('fill', `url(#${gradientId})`).attr('d', area);
   }
 
   // Draw line
   g.append('path')
-    .datum(chartData.value)
+    .datum(points)
     .attr('class', 'line')
     .attr('fill', 'none')
     .attr('stroke', 'var(--primary)')
     .attr('stroke-width', 2.5)
     .attr('d', line);
 
-  const latestRealPoint = chartData.value[chartData.value.length - 1];
+  const latestRealPoint = points.at(-1);
   if (latestRealPoint) {
     g.append('circle')
       .attr('cx', xScale(latestRealPoint.date))
@@ -1121,68 +1201,76 @@ const renderChart = () => {
       hoverDot.style('opacity', 1);
       hoverLine.style('opacity', 0.5);
     })
-    .on('mousemove click', (event: MouseEvent) => {
-      hoverDot.style('opacity', 1);
-      hoverLine.style('opacity', 0.5);
-      const [mouseX] = d3.pointer(event);
-      const x0 = xScale.invert(mouseX);
-      const index = bisect(chartData.value, x0, 1);
-      const d0 = chartData.value[index - 1];
-      const d1 = chartData.value[index];
+    .on('pointermove click', (event: MouseEvent) => {
+      const interactionTarget = event.currentTarget;
+      if (!(interactionTarget instanceof SVGRectElement)) return;
+      cancelAnimationFrame(chartHoverFrame);
+      chartHoverFrame = requestAnimationFrame(() => {
+        hoverDot.style('opacity', 1);
+        hoverLine.style('opacity', 0.5);
+        const [mouseX] = d3.pointer(event, interactionTarget);
+        const x0 = xScale.invert(mouseX);
+        const index = bisect(points, x0, 1);
+        const d0 = points[index - 1];
+        const d1 = points[index];
 
-      if (!d0) return;
+        if (!d0) return;
 
-      const isCloserToD1 = d1 && x0 - d0.date > d1.date - x0;
-      const d = isCloserToD1 ? d1 : d0;
-      const currentIndex = isCloserToD1 ? index : index - 1;
+        const isCloserToD1 = d1 && x0 - d0.date > d1.date - x0;
+        const d = isCloserToD1 ? d1 : d0;
+        const currentIndex = isCloserToD1 ? index : index - 1;
 
-      // Update hover dot position
-      hoverDot.attr('cx', xScale(d.date)).attr('cy', yScale(d.value));
+        // Update hover dot position
+        hoverDot.attr('cx', xScale(d.date)).attr('cy', yScale(d.value));
 
-      // Update hover line position
-      hoverLine.attr('x1', xScale(d.date)).attr('x2', xScale(d.date));
+        // Update hover line position
+        hoverLine.attr('x1', xScale(d.date)).attr('x2', xScale(d.date));
 
-      // Update tooltip
-      tooltip.date = new Date(d.date).toLocaleDateString(locale.value, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
+        // Update tooltip
+        tooltip.date = new Date(d.date).toLocaleDateString(locale.value, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        });
+        tooltip.accountsBalance = d.accountsBalance;
+        tooltip.portfoliosBalance = d.portfoliosBalance;
+        tooltip.venturesBalance = d.venturesBalance;
+        tooltip.vehiclesBalance = d.vehiclesBalance;
+        tooltip.loansBalance = d.loansBalance;
+        tooltip.totalBalance = d.totalBalance;
+
+        // Compute point-over-point deltas (charted line + each component)
+        const previousIndex = chartWindow.value ? chartData.value.indexOf(d) - 1 : currentIndex - 1;
+        if (previousIndex >= 0) {
+          const prevPoint = chartData.value[previousIndex]!;
+          tooltip.deltaAbsolute = d.value - prevPoint.value;
+          tooltip.deltaPercent =
+            prevPoint.value !== 0 ? ((d.value - prevPoint.value) / Math.abs(prevPoint.value)) * 100 : 0;
+          tooltip.accountsDelta = d.accountsBalance - prevPoint.accountsBalance;
+          tooltip.portfoliosDelta = d.portfoliosBalance - prevPoint.portfoliosBalance;
+          tooltip.venturesDelta = d.venturesBalance - prevPoint.venturesBalance;
+          tooltip.vehiclesDelta = d.vehiclesBalance - prevPoint.vehiclesBalance;
+          tooltip.loansDelta = d.loansBalance - prevPoint.loansBalance;
+          tooltip.hasDelta = true;
+        } else {
+          tooltip.deltaAbsolute = 0;
+          tooltip.deltaPercent = 0;
+          tooltip.accountsDelta = 0;
+          tooltip.portfoliosDelta = 0;
+          tooltip.venturesDelta = 0;
+          tooltip.vehiclesDelta = 0;
+          tooltip.loansDelta = 0;
+          tooltip.hasDelta = false;
+        }
+
+        tooltip.visible = true;
+
+        updateTooltipPosition(event);
       });
-      tooltip.accountsBalance = d.accountsBalance;
-      tooltip.portfoliosBalance = d.portfoliosBalance;
-      tooltip.venturesBalance = d.venturesBalance;
-      tooltip.vehiclesBalance = d.vehiclesBalance;
-      tooltip.loansBalance = d.loansBalance;
-      tooltip.totalBalance = d.totalBalance;
-
-      // Compute point-over-point deltas (charted line + each component)
-      if (currentIndex > 0) {
-        const prevPoint = chartData.value[currentIndex - 1]!;
-        tooltip.deltaAbsolute = d.value - prevPoint.value;
-        tooltip.deltaPercent =
-          prevPoint.value !== 0 ? ((d.value - prevPoint.value) / Math.abs(prevPoint.value)) * 100 : 0;
-        tooltip.accountsDelta = d.accountsBalance - prevPoint.accountsBalance;
-        tooltip.portfoliosDelta = d.portfoliosBalance - prevPoint.portfoliosBalance;
-        tooltip.venturesDelta = d.venturesBalance - prevPoint.venturesBalance;
-        tooltip.vehiclesDelta = d.vehiclesBalance - prevPoint.vehiclesBalance;
-        tooltip.loansDelta = d.loansBalance - prevPoint.loansBalance;
-        tooltip.hasDelta = true;
-      } else {
-        tooltip.deltaAbsolute = 0;
-        tooltip.deltaPercent = 0;
-        tooltip.accountsDelta = 0;
-        tooltip.portfoliosDelta = 0;
-        tooltip.venturesDelta = 0;
-        tooltip.vehiclesDelta = 0;
-        tooltip.loansDelta = 0;
-        tooltip.hasDelta = false;
-      }
-
-      tooltip.visible = true;
-
-      updateTooltipPosition(event);
     })
-    .on('mouseleave', () => {
+    .on('pointerleave', (event: PointerEvent) => {
+      if (event.pointerType === 'touch') return;
+      cancelAnimationFrame(chartHoverFrame);
       tooltip.visible = false;
       hoverDot.style('opacity', 0);
       hoverLine.style('opacity', 0);
@@ -1196,7 +1284,7 @@ const renderChart = () => {
   // Invisible hit areas (larger click target)
   markers
     .selectAll('.spike-hit-area')
-    .data(spikePoints.value)
+    .data(visibleSpikes)
     .join('circle')
     .attr('class', 'spike-hit-area')
     .attr('cx', (d) => xScale(d.date))
@@ -1229,7 +1317,7 @@ const renderChart = () => {
   // Visible markers
   markers
     .selectAll('.spike-dot')
-    .data(spikePoints.value)
+    .data(visibleSpikes)
     .join('circle')
     .attr('class', 'spike-dot')
     .attr('cx', (d) => xScale(d.date))
@@ -1244,7 +1332,7 @@ const renderChart = () => {
 
   // Projected continuation: dashed step-line from the last real point, one hollow dot
   // per plan date, holding the final level to the period end.
-  if (projection.value) {
+  if (visibleProjection) {
     const projectionGroup = g.append('g').attr('class', 'projection');
 
     const todayTs = startOfDay(new Date()).getTime();
@@ -1269,7 +1357,7 @@ const renderChart = () => {
 
     projectionGroup
       .append('path')
-      .datum(projection.value.points)
+      .datum(visibleProjection.points)
       .attr('fill', 'none')
       .attr('stroke', 'var(--primary)')
       .attr('stroke-width', 1.5)
@@ -1279,7 +1367,7 @@ const renderChart = () => {
 
     projectionGroup
       .selectAll('.projection-dot')
-      .data(projection.value.steps)
+      .data(visibleProjection.steps)
       .join('circle')
       .attr('class', 'projection-dot')
       .attr('cx', (d) => xScale(d.date))
@@ -1377,15 +1465,22 @@ const measureIndicator = () => {
 useResizeObserver(filterRow, measureIndicator);
 watch([selectedBalanceType, balanceTypeOptions], measureIndicator, { flush: 'post' });
 
-useResizeObserver(containerRef, renderChart);
+const scheduleChartRender = () => {
+  if (chartRenderFrame) return;
+  chartRenderFrame = requestAnimationFrame(() => {
+    chartRenderFrame = 0;
+    renderChart();
+  });
+};
+useResizeObserver(containerRef, scheduleChartRender);
 watch(
-  [chartData, actualDataPeriod, currentTheme, spikePoints, chartXAxisEnd, projection],
+  [svgRef, chartData, actualDataPeriod, currentTheme, spikePoints, chartXAxisEnd, projection, chartWindow],
   () => {
     closeSpikePanel();
     tooltip.visible = false;
-    renderChart();
+    scheduleChartRender();
   },
-  { deep: true, flush: 'post' },
+  { flush: 'post' },
 );
 
 let filterAnimations: Animation[] = [];

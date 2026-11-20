@@ -159,9 +159,6 @@ const isMobileView = useWindowBreakpoints(1024);
             </div>
           </div>
         </div>
-        <template v-if="!hasNextPage">
-          <p class="flex justify-center">{{ t('transactions.list.noMoreData') }}</p>
-        </template>
       </ScrollArea>
     </div>
   </ResponsiveDialog>

@@ -85,7 +85,8 @@
       "noMoreData": "Tidak ada lagi transaksi",
       "loadingMore": "Memuat lebih banyak...",
       "detailsTitle": "Detail transaksi",
-      "detailsDescription": "Lihat dan edit transaksi"
+      "detailsDescription": "Lihat dan edit transaksi",
+      "empty": "Belum ada transaksi pada tampilan ini"
     },
     "bulkEdit": {
       "actions": "Tindakan transaksi",

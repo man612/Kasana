@@ -266,9 +266,6 @@ watch(
               <div v-else class="flex h-13 items-center justify-center">{{ $t('transactions.list.loadingMore') }}</div>
             </div>
           </div>
-          <template v-if="!hasNextTransactionsPage">
-            <p class="text-muted-foreground flex justify-center text-sm">{{ $t('transactions.list.noMoreData') }}</p>
-          </template>
         </ScrollArea>
       </div>
     </div>

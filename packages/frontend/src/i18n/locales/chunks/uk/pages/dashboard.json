@@ -77,7 +77,9 @@
         },
         "projection": {
           "summary": "Прогноз {amount} · {count} запланований запис до {date} | Прогноз {amount} · {count} заплановані записи до {date} | Прогноз {amount} · {count} запланованих записів до {date}"
-        }
+        },
+        "panHint": "Перетягніть графік або використайте клавіші зі стрілками, щоб переглянути дати.",
+        "showFullRange": "Показати весь період"
       },
       "expensesStructure": {
         "title": "Витрати за категоріями",
@@ -480,7 +482,7 @@
         "nothingExcluded": "Нічого не виключено",
         "tagsStyleTitle": "Теги",
         "tagsStyleNames": "Назви",
-        "tagsStyleBars": "Смужки",
+        "tagsStyleBars": "Компактно",
         "tagsStyleSaveError": "Не вдалося зберегти стиль тегів. Спробуйте ще раз.",
         "showAccountTitle": "Рахунок",
         "showAccountDescription": "Показувати логотип рахунку для кожної транзакції",

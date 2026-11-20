@@ -377,6 +377,11 @@
         "monthsLabel": "{n} міс. від придбання",
         "yearsLabel": "{n} р. від придбання",
         "yearsMonthsLabel": "{y}р {m}міс від придбання"
+      },
+      "tabs": {
+        "summary": "Огляд",
+        "activity": "Активність",
+        "information": "Інформація"
       }
     }
   }

@@ -23,6 +23,8 @@ const LABELS = {
   id: {
     override: 'Timpa nilai',
     edit: 'Sunting',
+    more: 'Lainnya',
+    estimate: 'Estimasi nilai saat ini',
     delete: 'Hapus kendaraan?',
     cancel: 'Batal',
     disclaimer: 'Ini bukan harga jual pasar terkini; kilometer kendaraan belum memengaruhi perhitungan.',
@@ -30,6 +32,8 @@ const LABELS = {
   en: {
     override: 'Override value',
     edit: 'Edit',
+    more: 'More',
+    estimate: 'Estimated current value',
     delete: 'Delete vehicle?',
     cancel: 'Cancel',
     disclaimer: 'This is not a live resale price; vehicle mileage does not currently affect the calculation.',
@@ -125,7 +129,10 @@ test.describe('Vehicle header responsive geometry', () => {
               const target = event.target instanceof Element ? event.target.closest('button') : null;
               if (!target) return;
               const label = (target.getAttribute('aria-label') || target.textContent || '').trim().slice(0, 60);
-              if (!target.closest('[role="alertdialog"]') && !/vehicle|kendaraan|Hapus|Delete|Cancel|Batal/i.test(label))
+              if (
+                !target.closest('[role="alertdialog"]') &&
+                !/vehicle|kendaraan|Hapus|Delete|Cancel|Batal/i.test(label)
+              )
                 return;
               events.push(
                 `${Math.round(event.timeStamp)} ${event.type} ${label} detail=${event instanceof MouseEvent ? event.detail : '-'}`,
@@ -164,11 +171,11 @@ test.describe('Vehicle header responsive geometry', () => {
           await page.goto('/accounts/vehicles/' + vehicleId);
           const heading = page.getByRole('heading', { name: LONG_NAME, exact: true });
           const hero = page.locator('section').filter({ has: heading }).first();
-          const metadata = hero.locator('h1 + div');
-          const disclaimer = hero.locator('p').filter({ hasText: LABELS[locale].disclaimer });
+          const metadata = hero.locator('h1 + p');
+          const estimateHelp = hero.getByRole('button', { name: LABELS[locale].estimate, exact: true });
           await expect(heading).toBeVisible();
           await expect(metadata).toContainText(LONG_TRIM);
-          await expect(disclaimer).toBeVisible();
+          await expect(estimateHelp).toBeVisible();
           const initialFontSize = await page.evaluate(() =>
             Number.parseFloat(getComputedStyle(document.documentElement).fontSize),
           );
@@ -259,7 +266,7 @@ test.describe('Vehicle header responsive geometry', () => {
                 ).toBeLessThanOrEqual(GEOMETRY_TOLERANCE);
               }
             }
-            for (const content of [heading, metadata, disclaimer]) {
+            for (const content of [heading, metadata]) {
               for (const line of await textRects({ locator: content })) {
                 expect(line.x, 'Header text must remain inside its card').toBeGreaterThanOrEqual(
                   card.x - GEOMETRY_TOLERANCE,
@@ -273,21 +280,26 @@ test.describe('Vehicle header responsive geometry', () => {
               await page.evaluate(() => document.documentElement.scrollWidth - innerWidth),
               'Page must not overflow horizontally',
             ).toBeLessThanOrEqual(GEOMETRY_TOLERANCE);
-            await disclaimer.scrollIntoViewIfNeeded();
-            await expect(disclaimer).toBeInViewport();
+            await estimateHelp.click();
+            const valuationGuide = page.getByRole('dialog').filter({ hasText: LABELS[locale].disclaimer });
+            await expect(valuationGuide).toBeVisible();
+            await page.keyboard.press('Escape');
+            await expect(valuationGuide).toBeHidden();
 
             if (role === 'owner') {
-              const remove = hero.getByRole('button', { name: LABELS[locale].delete, exact: true });
-              await expect(remove).toHaveCount(1);
+              const more = hero.getByRole('button', { name: LABELS[locale].more, exact: true });
+              const remove = page.getByRole('button', { name: LABELS[locale].delete, exact: true });
+              await expect(remove).toHaveCount(0);
               for (const action of [override, edit, remove]) {
                 const actionName = action === remove ? 'delete' : action === edit ? 'edit' : 'override';
                 interactionPhase = `${scale}x/${actionName}/activate`;
+                if (action === remove) await more.click();
                 await action.scrollIntoViewIfNeeded();
                 await action.focus();
                 await expect(action).toBeFocused();
                 if (scale === 1) await action.click();
                 else await page.keyboard.press('Enter');
-                const dialog = page.locator('[role="dialog"], [role="alertdialog"]').last();
+                const dialog = action === remove ? page.getByRole('alertdialog') : page.getByRole('dialog').last();
                 await expect(dialog).toBeVisible();
                 if (action === remove) {
                   expect(unexpectedDeletePhases, 'Opening a confirmation must not submit DELETE').toEqual([]);
@@ -295,10 +307,14 @@ test.describe('Vehicle header responsive geometry', () => {
                   await dialog.getByRole('button', { name: LABELS[locale].cancel, exact: true }).click();
                   // Cancellation must be observable in the backend, not only
                   // through a disappearing alert dialog.
-                  expect(extractId(await apiGet({
-                    request: ownerApi,
-                    path: '/api/v1/vehicles/' + vehicleId,
-                  }))).toBe(vehicleId);
+                  expect(
+                    extractId(
+                      await apiGet({
+                        request: ownerApi,
+                        path: '/api/v1/vehicles/' + vehicleId,
+                      }),
+                    ),
+                  ).toBe(vehicleId);
                 } else await page.keyboard.press('Escape');
                 await expect(page.locator('[role="dialog"], [role="alertdialog"]')).toHaveCount(0);
                 const dialogEvents = await page.evaluate(
@@ -310,7 +326,7 @@ test.describe('Vehicle header responsive geometry', () => {
                 ).toEqual([]);
               }
             } else {
-              await expect(hero.getByRole('button')).toHaveCount(0);
+              await expect(hero.getByRole('button', { name: LABELS[locale].more, exact: true })).toHaveCount(0);
               await expect(override).toHaveCount(0);
               await expect(edit).toHaveCount(0);
               await expect(hero.getByRole('button', { name: LABELS[locale].delete, exact: true })).toHaveCount(0);

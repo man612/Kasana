@@ -389,7 +389,12 @@
         "yearsLabel": "{n} yr since purchase",
         "yearsMonthsLabel": "{y}y {m}mo since purchase"
       },
-      "estimateDisclaimer": "Calculated from the purchase price or latest manual value update, its effective date and the selected depreciation pattern. This is not a live resale price; vehicle mileage does not currently affect the calculation."
+      "estimateDisclaimer": "Calculated from the purchase price or latest manual value update, its effective date and the selected depreciation pattern. This is not a live resale price; vehicle mileage does not currently affect the calculation.",
+      "tabs": {
+        "summary": "Overview",
+        "activity": "Activity",
+        "information": "Information"
+      }
     }
   }
 }

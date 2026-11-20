@@ -91,17 +91,26 @@
               </Button>
             </div>
             <Tabs.TabsContent value="records">
-              <template v-if="isFetched">
-                <p v-if="rawTransactionsList.length === 0" class="text-muted-foreground py-8 text-center text-sm">
+              <Transition name="lajur-info-reveal" mode="out-in">
+                <div v-if="!isFetched" key="loading" aria-busy="true">
+                  <TransactionRecordSkeleton v-for="row in 3" :key="row" />
+                </div>
+                <p
+                  v-else-if="rawTransactionsList.length === 0"
+                  key="empty"
+                  class="text-muted-foreground py-8 text-center text-sm"
+                >
                   {{ t('pages.account.rightPanel.noTransactions') }}
                 </p>
                 <ScrollArea
                   v-else
+                  key="rows"
                   :scroll-area-id="SCROLL_AREA_IDS.accountTransactions"
                   class="max-h-[min(60dvh,38rem)]"
                   viewport-class="max-h-[min(60dvh,38rem)] overflow-y-auto"
                 >
                   <TransactionsList
+                    animate-changes
                     :hasNextPage="hasNextPage"
                     :transactions="rawTransactionsList"
                     :isFetchingNextPage="isFetchingNextPage"
@@ -109,7 +118,7 @@
                     @fetch-next-page="fetchNextPage"
                   />
                 </ScrollArea>
-              </template>
+              </Transition>
             </Tabs.TabsContent>
           </Tabs.Tabs>
         </Card.CardContent>
@@ -132,6 +141,7 @@ import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import { Separator } from '@/components/lib/ui/separator';
 import * as Tabs from '@/components/lib/ui/tabs';
 import TransactionsList from '@/components/transactions-list/transactions-list.vue';
+import TransactionRecordSkeleton from '@/components/transactions-list/transaction-record-skeleton.vue';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useAccountsStore } from '@/stores';
 import { ACCOUNT_CATEGORIES } from '@bt/shared/types';
@@ -263,7 +273,7 @@ const {
   isFetchingNextPage,
   isFetched,
 } = useInfiniteQuery({
-  queryKey: [...VUE_QUERY_CACHE_KEYS.accountSpecificTransactions, account],
+  queryKey: [...VUE_QUERY_CACHE_KEYS.accountSpecificTransactions, computed(() => account.value?.id)],
   queryFn: fetchTransactions,
   initialPageParam: 0,
   getNextPageParam: (lastPage, pages) => {

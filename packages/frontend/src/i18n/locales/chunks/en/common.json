@@ -250,7 +250,8 @@
       "invalidTime": "Enter a valid 24-hour time such as 14:30.",
       "nowHelp": "Set the transaction date and time to right now, using your device time zone.",
       "numericInputHelp": "Date in day/month/year format",
-      "alreadyNow": "Already set to the current minute."
+      "alreadyNow": "Already set to the current minute.",
+      "rangeFilter": "Date filter"
     },
     "appUpdate": {
       "title": "Update available",

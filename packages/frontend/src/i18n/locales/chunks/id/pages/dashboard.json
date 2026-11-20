@@ -82,7 +82,9 @@
         },
         "projection": {
           "summary": "Proyeksi {amount} · {count} entri terencana hingga {date} | Proyeksi {amount} · {count} entri terencana hingga {date}"
-        }
+        },
+        "panHint": "Geser grafik atau gunakan tombol panah untuk menelusuri tanggal.",
+        "showFullRange": "Tampilkan seluruh rentang"
       },
       "expensesStructure": {
         "title": "Struktur Pengeluaran",
@@ -494,7 +496,7 @@
         "nothingExcluded": "Tidak ada yang dikecualikan",
         "tagsStyleTitle": "Tag",
         "tagsStyleNames": "Nama",
-        "tagsStyleBars": "Batang",
+        "tagsStyleBars": "Ringkas",
         "tagsStyleSaveError": "Gagal menyimpan tampilan tag. Coba lagi.",
         "showAccountTitle": "Akun",
         "showAccountDescription": "Tampilkan logo akun pada setiap transaksi",

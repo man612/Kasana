@@ -347,7 +347,23 @@ class ApiCaller {
       });
     }
 
-    const { status, response } = parsed;
+    const { status, response } = parsed ?? {};
+
+    // Gateways can return JSON that does not use the API response envelope.
+    // A non-2xx response must still reject, including for a void mutation.
+    if (!result.ok && (status !== API_RESPONSE_STATUS.error || typeof response?.code !== 'string')) {
+      const payloadTooLarge = result.status === 413;
+      const message = payloadTooLarge
+        ? t('errors.api.payloadTooLarge', 'The request is too large. Please try importing fewer items at a time')
+        : serverFailure
+          ? serverMessage
+          : t('errors.api.unexpectedError', 'An unexpected error occurred');
+      throw new errors.ApiErrorResponseError(message, {
+        code: payloadTooLarge ? API_ERROR_CODES.payloadTooLarge : API_ERROR_CODES.unexpected,
+        message,
+        statusText: result.statusText,
+      });
+    }
 
     if (status === API_RESPONSE_STATUS.success) {
       reportApiAvailability(null);

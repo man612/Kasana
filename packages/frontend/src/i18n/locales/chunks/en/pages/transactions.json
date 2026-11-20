@@ -85,7 +85,8 @@
       "noMoreData": "No more transactions",
       "loadingMore": "Loading more...",
       "detailsTitle": "Transaction details",
-      "detailsDescription": "View and edit transaction"
+      "detailsDescription": "View and edit transaction",
+      "empty": "No transactions in this view yet"
     },
     "bulkEdit": {
       "actions": "Transaction actions",

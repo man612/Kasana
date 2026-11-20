@@ -72,7 +72,7 @@ import {
 } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { DialogTitle } from 'reka-ui';
-import { computed, inject, nextTick, onScopeDispose, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -110,7 +110,6 @@ import {
   useTransferFormLogic,
   useUnlinkTransactions,
 } from './composables';
-import { TRANSACTION_DIALOG_CLOSE } from './composables/transaction-dialog-close';
 import type { TransferDestinationType } from './composables/transfer-form';
 import { useDefaultPaymentType } from './composables/use-default-payment-type';
 import { useFieldReveal, type MountableField } from './composables/use-field-reveal';
@@ -180,11 +179,7 @@ const emit = defineEmits<{
 const closeModal = () => {
   emit('close-modal');
 };
-const dialogClose = inject(TRANSACTION_DIALOG_CLOSE, undefined);
-const requestCloseModal = () => {
-  if (dialogClose) dialogClose.requestClose();
-  else emit('request-close');
-};
+const requestCloseModal = () => emit('request-close');
 
 const isPortfolioLinkedView = computed(
   () => !!props.transaction && props.transaction.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio,
@@ -482,9 +477,15 @@ const pendingAttachments = ref<File[]>(props.initialAttachments);
 const isCreateMoreAvailable = computed(() => isFormCreation.value && props.createMore !== undefined);
 let shouldKeepOpen = false;
 let isHandedOffToNextEntry = false;
+const hasPersisted = ref(false);
+const closeAfterCommit = () => {
+  hasPersisted.value = true;
+  closeModal();
+};
 
 const submitMutation = useSubmitTransaction({
   onSuccess: ({ created, attachmentsFailed }) => {
+    hasPersisted.value = true;
     // Emitted for every creation submit: only a plain creation answers with the new row, and a
     // listener that prefilled the form needs to know when it did not get one.
     if (isFormCreation.value) emit('created', { transaction: created, attachmentsFailed: Boolean(attachmentsFailed) });
@@ -497,8 +498,8 @@ const submitMutation = useSubmitTransaction({
     closeModal();
   },
 });
-const unlinkMutation = useUnlinkTransactions({ onSuccess: closeModal });
-const deleteMutation = useDeleteTransaction({ onSuccess: closeModal });
+const unlinkMutation = useUnlinkTransactions({ onSuccess: closeAfterCommit });
+const deleteMutation = useDeleteTransaction({ onSuccess: closeAfterCommit });
 const isDeleteConfirmOpen = ref(false);
 
 const isLoading = computed(
@@ -1208,7 +1209,7 @@ watch(exchangeRates, () => {
 });
 
 const submit = ({ keepOpen = false }: { keepOpen?: boolean } = {}) => {
-  if (isSubmitBlocked.value) return;
+  if (isLoading.value || hasPersisted.value || isSubmitBlocked.value) return;
   touchField('form.amount');
   touchField('form.targetAmount');
   touchField('form.time');
@@ -1738,12 +1739,14 @@ const isEditUnchanged = computed(
 );
 const hasUnsavedChanges = () =>
   !isReadOnly.value &&
+  !hasPersisted.value &&
   Boolean(initialFormFingerprint.value) &&
   trackedFormFingerprint() !== initialFormFingerprint.value;
-if (dialogClose) onScopeDispose(dialogClose.register(hasUnsavedChanges));
+const isSaving = () => isLoading.value && !hasPersisted.value;
 defineExpose({
   focusAmount: () => (isAmountFieldDisabled.value ? targetAmountFieldRef.value : editableAmountFieldRef.value)?.focus(),
   hasUnsavedChanges,
+  isSaving,
 });
 
 onUnmounted(() => {

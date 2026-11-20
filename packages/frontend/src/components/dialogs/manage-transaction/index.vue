@@ -32,7 +32,9 @@ const contentRef = ref<InstanceType<typeof ManageTransactionDialogContent> | nul
 const contentPrefill = computed(() => nextEntryPrefill.value ?? props.prefill);
 const isDiscardConfirmationOpen = ref(false);
 const hasDirtyForm = () => contentRef.value?.hasUnsavedChanges() === true;
+const isSaving = () => contentRef.value?.isSaving() === true;
 const interceptDismiss = (event: Event) => {
+  if (isSaving()) return event.preventDefault();
   if (!hasDirtyForm()) return;
   event.preventDefault();
   isDiscardConfirmationOpen.value = true;
@@ -42,6 +44,7 @@ const requestOpen = (open: boolean) => {
     isOpen.value = true;
     return;
   }
+  if (!isOpen.value || isSaving()) return;
   if (hasDirtyForm()) {
     isDiscardConfirmationOpen.value = true;
     return;
@@ -107,7 +110,7 @@ const startNextEntry = async ({ prefill }: { prefill: TransactionPrefill }) => {
   </Dialog.Dialog>
 
   <!-- Mobile: Drawer -->
-  <Drawer.Drawer v-else :dismissible="!hasDirtyForm()" :open="isOpen" @update:open="requestOpen">
+  <Drawer.Drawer v-else :dismissible="!hasDirtyForm() && !isSaving()" :open="isOpen" @update:open="requestOpen">
     <Drawer.DrawerTrigger class="w-full" as-child>
       <slot />
     </Drawer.DrawerTrigger>

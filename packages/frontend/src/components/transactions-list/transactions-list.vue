@@ -6,7 +6,17 @@ import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-br
 import { TransactionModel } from '@bt/shared/types';
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import { createReusableTemplate } from '@vueuse/core';
-import { computed, defineAsyncComponent, reactive, ref, watch, watchEffect, type ComponentPublicInstance } from 'vue';
+import { ListIcon } from '@lucide/vue';
+import {
+  computed,
+  defineAsyncComponent,
+  reactive,
+  ref,
+  TransitionGroup,
+  watch,
+  watchEffect,
+  type ComponentPublicInstance,
+} from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
@@ -53,6 +63,7 @@ const props = withDefaults(
     /** Totals and filters of the whole result set; enables "select all" beyond the loaded rows. */
     matching?: MatchingTransactions;
     compact?: boolean;
+    animateChanges?: boolean;
     hideDate?: boolean;
     hidePlannedMarker?: boolean;
     tagsVariant?: TagsIndicatorVariant;
@@ -94,11 +105,16 @@ const rowKey = (index: number) => {
   const row = rows.value[index];
   return row === PLANNED_HEADER ? 'planned-header' : getDisplayItemKey(row, index);
 };
+const hasRowDivider = (index: number) => {
+  const nextRow = rows.value[index + 1];
+  return Boolean(nextRow && nextRow !== PLANNED_HEADER && !isGroupRow(nextRow));
+};
 
 // Transaction detail dialog (Dialog on desktop, Drawer on mobile). transfer_to_loan
 // pairs route to a separate, simpler loan dialog with its own visibility flag.
 const {
   isDialogVisible,
+  editSession,
   dialogProps,
   isCompactDialog,
   handleRecordClick,
@@ -195,11 +211,8 @@ const virtualizer = useVirtualizer(
   })),
 );
 
-const measureGroupRow = ({ element, index }: { element: Element | ComponentPublicInstance | null; index: number }) => {
-  const row = rows.value[index];
-  if (element instanceof HTMLElement && row && row !== PLANNED_HEADER && isGroupRow(row)) {
-    virtualizer.value.measureElement(element);
-  }
+const measureRow = (element: Element | ComponentPublicInstance | null) => {
+  virtualizer.value.measureElement(element instanceof HTMLElement ? element : null);
 };
 
 defineExpose({
@@ -210,6 +223,26 @@ defineExpose({
 
 const virtualRows = computed(() => virtualizer.value.getVirtualItems());
 const totalSize = computed(() => virtualizer.value.getTotalSize());
+const changedRowKeys = new Set<string>();
+const liveRowKeys = computed(
+  () => new Set(props.animateChanges ? rows.value.map((_, index) => String(rowKey(index))) : []),
+);
+watch(liveRowKeys, (current, previous) => {
+  if (!props.animateChanges) return;
+  changedRowKeys.clear();
+  for (const key of current) if (!previous.has(key)) changedRowKeys.add(key);
+});
+const animateRow = (element: Element, done: () => void, entering: boolean) => {
+  if (!(element instanceof HTMLElement) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return done();
+  const key = element.dataset.rowKey ?? '';
+  if (entering ? !changedRowKeys.delete(key) : liveRowKeys.value.has(key)) return done();
+  const fade = [
+    { opacity: 0, translate: '0 -4px' },
+    { opacity: 1, translate: '0 0' },
+  ];
+  const animation = element.animate(entering ? fade : fade.reverse(), { duration: 160, easing: 'ease-out' });
+  void animation.finished.then(done, done);
+};
 
 watchEffect(() => {
   const lastItem = virtualRows.value.at(-1);
@@ -244,7 +277,7 @@ watchEffect(() => {
     />
 
     <!-- Bulk edit / group / delete dialogs -->
-    <BulkActionDialogs :actions="bulkActions" />
+    <BulkActionDialogs v-if="enableBulkEdit" :actions="bulkActions" />
 
     <!-- Reusable row template: renders a group row or a transaction row with leading/trailing slots -->
     <DefineRowTemplate v-slot="{ item, index }">
@@ -270,6 +303,7 @@ watchEffect(() => {
         <div class="min-w-0 flex-1">
           <TransactionRecord
             :tx="item as TransactionModel"
+            :show-divider="hasRowDivider(index)"
             :show-checkbox="enableBulkEdit"
             :compact="compact"
             :hide-date="hideDate"
@@ -289,15 +323,44 @@ watchEffect(() => {
     </DefineRowTemplate>
 
     <DefineRows>
-      <template v-if="paginate">
+      <div
+        v-if="enableBulkEdit && !rows.length && !hasNextPage"
+        class="grid justify-items-center gap-2 px-4 py-12 text-center"
+      >
+        <div class="bg-muted text-muted-foreground grid size-10 place-items-center rounded-full">
+          <ListIcon class="size-5" aria-hidden="true" />
+        </div>
+        <p class="text-sm font-medium">
+          {{ $t(contentFiltersActive ? 'transactions.table.emptyTitle' : 'transactions.list.empty') }}
+        </p>
+        <p v-if="contentFiltersActive" class="text-muted-foreground text-sm">
+          {{ $t('transactions.table.emptyDescription') }}
+        </p>
+      </div>
+      <template v-else-if="paginate">
         <div ref="listContainerRef" class="relative">
           <div v-bind="$attrs" v-if="transactions" class="w-full">
-            <div :style="{ height: `${totalSize}px` }" class="relative">
+            <component
+              :is="animateChanges ? TransitionGroup : 'div'"
+              v-bind="
+                animateChanges
+                  ? {
+                      tag: 'div',
+                      css: false,
+                      onEnter: (el: Element, done: () => void) => animateRow(el, done, true),
+                      onLeave: (el: Element, done: () => void) => animateRow(el, done, false),
+                    }
+                  : {}
+              "
+              :style="{ height: `${totalSize}px` }"
+              class="relative"
+            >
               <div
                 v-for="virtualRow in virtualRows"
                 :key="rowKey(virtualRow.index)"
                 :data-index="virtualRow.index"
-                :ref="(element) => measureGroupRow({ element, index: virtualRow.index })"
+                :data-row-key="animateChanges ? rowKey(virtualRow.index) : undefined"
+                :ref="measureRow"
                 :style="{
                   position: 'absolute',
                   top: 0,
@@ -311,19 +374,15 @@ watchEffect(() => {
                   :item="rows[virtualRow.index]!"
                   :index="virtualRow.index"
                 />
+                <div
+                  v-else-if="isFetchingNextPage && !rawList"
+                  role="status"
+                  class="text-muted-foreground flex min-h-10 items-center justify-center text-sm"
+                >
+                  {{ t('transactions.list.loadingMore') }}
+                </div>
               </div>
-            </div>
-
-            <div v-if="!rawList" class="flex h-10 items-center justify-center">
-              <template v-if="!hasNextPage">{{ t('transactions.list.noMoreData') }}</template>
-            </div>
-          </div>
-
-          <div
-            v-if="!rawList"
-            class="absolute right-0 bottom-0 left-0 flex h-10 items-center justify-center bg-white/5 empty:hidden"
-          >
-            <template v-if="isFetchingNextPage">{{ t('transactions.list.loadingMore') }}</template>
+            </component>
           </div>
         </div>
       </template>
@@ -340,12 +399,24 @@ watchEffect(() => {
     </ScrollArea>
     <UseRows v-else />
 
-    <TransactionDetailsModal v-model:open="isDialogVisible" :mobile="isMobile" :is-compact="isCompactDialog">
-      <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" @request-close="closeDialog" />
+    <TransactionDetailsModal
+      v-slot="{ requestClose }"
+      v-model:open="isDialogVisible"
+      :session="editSession"
+      :mobile="isMobile"
+      :is-compact="isCompactDialog"
+    >
+      <ManageTransactionDialogContent
+        ref="editSession"
+        v-bind="dialogProps"
+        @close-modal="closeDialog"
+        @request-close="requestClose"
+      />
     </TransactionDetailsModal>
 
     <!-- Group detail dialog -->
     <TransactionGroupDialog
+      v-if="groupDialogPreview"
       v-model:open="isGroupDialogOpen"
       :group-id="groupDialogPreview?.groupId"
       :preview="

@@ -71,7 +71,7 @@ const PRESENTATION: Record<VEHICLE_CLASS, VehicleClassPresentation> = {
   [VEHICLE_CLASS.motorcycle]: {
     groupKey: 'forms.createVehicle.vehicleClassGroups.motorcycle',
     descriptionKey: 'forms.createVehicle.vehicleClassDescriptions.motorcycle',
-    icon: BikeIcon,
+    icon: MotorbikeIcon,
     iconClass: 'text-orange-500',
   },
   [VEHICLE_CLASS.other]: {
@@ -146,6 +146,10 @@ const typeIcons: Partial<Record<VehicleType, Component>> = {
   triceratops: FootprintsIcon,
 };
 
+export function getVehicleTypeIcon({ type, legacyClass }: { type?: VehicleType | null; legacyClass: VEHICLE_CLASS }) {
+  return type ? (typeIcons[type] ?? catalogueGroups[VEHICLE_TYPES[type].group].icon) : PRESENTATION[legacyClass].icon;
+}
+
 export function buildVehicleTypeOptions({
   translate,
   legacyClass,
@@ -169,9 +173,11 @@ export function buildVehicleTypeOptions({
       const { group } = VEHICLE_TYPES[value];
       return {
         value,
-        label: translate(`forms.createVehicle.types.${value}`),
-        group: translate(`forms.createVehicle.typeGroups.${group}`),
-        icon: typeIcons[value] ?? catalogueGroups[group].icon,
+        label: translate(
+          group === 'other' ? 'forms.createVehicle.typeGroups.other' : `forms.createVehicle.types.${value}`,
+        ),
+        group: group === 'other' ? undefined : translate(`forms.createVehicle.typeGroups.${group}`),
+        icon: getVehicleTypeIcon({ type: value, legacyClass: VEHICLE_CLASS.other }),
         groupIcon: catalogueGroups[group].icon,
         iconClass: catalogueGroups[group].tint,
       };

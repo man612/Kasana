@@ -150,6 +150,7 @@ function handleMarkPaid(sub: SubscriptionListItem) {
 }
 
 const editedPlan = ref<TransactionModel | undefined>(undefined);
+const editSession = ref<InstanceType<typeof ManageTransactionDialogContent> | null>(null);
 const isEditDialogOpen = ref(false);
 
 function handleEditPlan({ plan }: { plan: TransactionModel }) {
@@ -348,8 +349,18 @@ function confirmDeletePlan() {
     <!-- Mark-paid dialog instance owned here; avoids duplicating it per list row. -->
     <SubscriptionMarkPaidDialog ref="markPaidDialogRef" />
 
-    <TransactionDetailsModal v-model:open="isEditDialogOpen" :mobile="isMobile">
-      <ManageTransactionDialogContent :transaction="editedPlan" @close-modal="isEditDialogOpen = false" @request-close="isEditDialogOpen = false" />
+    <TransactionDetailsModal
+      v-slot="{ requestClose }"
+      v-model:open="isEditDialogOpen"
+      :session="editSession"
+      :mobile="isMobile"
+    >
+      <ManageTransactionDialogContent
+        ref="editSession"
+        :transaction="editedPlan"
+        @close-modal="isEditDialogOpen = false"
+        @request-close="requestClose"
+      />
     </TransactionDetailsModal>
 
     <ResponsiveAlertDialog

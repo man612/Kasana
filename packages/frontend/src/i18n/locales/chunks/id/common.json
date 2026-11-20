@@ -250,7 +250,8 @@
       "invalidTime": "Isi jam dengan format 24 jam yang benar, misalnya 14:30.",
       "nowHelp": "Atur tanggal dan jam transaksi ke waktu saat ini. Waktu menggunakan zona waktu perangkat.",
       "numericInputHelp": "Tanggal, format tanggal/bulan/tahun",
-      "alreadyNow": "Sudah menunjukkan waktu saat ini."
+      "alreadyNow": "Sudah menunjukkan waktu saat ini.",
+      "rangeFilter": "Filter tanggal"
     },
     "appUpdate": {
       "title": "Pembaruan tersedia",
