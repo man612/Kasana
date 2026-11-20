@@ -7,6 +7,7 @@ umask 077
 REPO='man612/Kasana'
 PR=65
 HEAD='eb0b2be9e806576270e308904df5fa5010bfb310'
+CI_CHECKOUT_SHA='2eb67a71f60e39f3d037e54d785e01cac0fa5a13'
 RUN=44789688531
 ARTIFACT=14656202312
 SHORT="${HEAD:0:12}"
@@ -66,7 +67,10 @@ fi
 grep -Fxq "PR_HEAD_SHA=$HEAD" "$BASE/lajur-instabox-frontend-info.txt" || fail 'Commit artifact berbeda.'
 grep -Fxq "IMAGE=lajur-instabox-frontend:preview-$SHORT" "$BASE/lajur-instabox-frontend-info.txt" || fail 'Tag artifact berbeda.'
 checkout_sha=$(sed -n 's/^CHECKOUT_SHA=//p' "$BASE/lajur-instabox-frontend-info.txt")
-[[ "$checkout_sha" == "$HEAD" ]] || fail 'Commit checkout CI tidak sesuai.'
+# pull_request jobs check out refs/pull/65/merge by default, not HEAD.
+# Pin the exact merge commit verified in the successful frontend build job.
+[[ "$checkout_sha" == "$CI_CHECKOUT_SHA" ]] ||
+  fail "Checkout SHA berbeda dari CI build yang terverifikasi: $checkout_sha"
 
 cd "$SELFHOST"
 compose=(docker compose -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml -f docker-compose.instabox.yml)
