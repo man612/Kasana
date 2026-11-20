@@ -64,7 +64,7 @@ export const filterActionableTrashed = async ({ userId, rows }: { userId: number
   return actionable;
 };
 
-export const findActionableTrashed = async ({ userId, lock }: { userId: number; lock?: boolean }) => {
+const findActionableTrashed = async ({ userId, lock }: { userId: number; lock?: boolean }) => {
   const accountIds = await getAccessibleAccountIdsForUser({ userId });
   if (!accountIds.length) return [];
   return filterActionableTrashed({
