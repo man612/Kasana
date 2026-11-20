@@ -14,11 +14,12 @@ interface CreateTransactionGroupPayload {
   name: string;
   note?: string | null;
   icon?: string | null;
+  iconColor?: string | null;
   transactionIds: RecordId[];
 }
 
 export const createTransactionGroup = withTransaction(async (payload: CreateTransactionGroupPayload) => {
-  const { userId, name, note, icon, transactionIds } = payload;
+  const { userId, name, note, icon, iconColor, transactionIds } = payload;
 
   // Auto-include opposite sides of transfer pairs
   const expandedIds = await resolveTransferPairs({ transactionIds, userId });
@@ -36,6 +37,7 @@ export const createTransactionGroup = withTransaction(async (payload: CreateTran
     name,
     note: note ?? null,
     icon: icon ?? null,
+    iconColor: icon ? (iconColor ?? null) : null,
   });
 
   const items = expandedIds.map((transactionId) => ({

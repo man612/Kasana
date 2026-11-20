@@ -484,6 +484,7 @@
         "incompleteHint": "Fill in the transaction details first.",
         "trigger": "Templates",
         "filterPlaceholder": "Find a template…",
+        "emptyMobile": "Save frequently used details as a template. Templates only fill this form.",
         "emptyState": "Templates fill this form with details you enter often — amount, account, category, payee, tags, note. They never add anything on their own; for something that repeats on a schedule use Recurring Payments.",
         "noMatches": "No templates match.",
         "loadError": "Couldn't load your templates.",

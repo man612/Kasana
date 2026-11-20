@@ -171,7 +171,13 @@ export interface TransactionModel {
   tags?: TagModel[];
   /** Present on transaction read endpoints; absent on create/update responses.
    *  transactionCount is the group's full membership size, not the members in the fetch window. */
-  transactionGroups?: Array<{ id: RecordId; name: string; icon?: string | null; transactionCount: number }>;
+  transactionGroups?: Array<{
+    id: RecordId;
+    name: string;
+    icon?: string | null;
+    iconColor?: string | null;
+    transactionCount: number;
+  }>;
   /** Who attached this tx to the tracker: the recipient who attached it, else the tracker owner
    *  (also for rule and AI links). Present on tracker-scoped tx fetches; absent elsewhere.
    *  With several trackers in scope, one link row decides both this and `addedByRule`. */

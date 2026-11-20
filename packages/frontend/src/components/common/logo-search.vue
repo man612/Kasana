@@ -36,8 +36,9 @@ const props = withDefaults(
     /** Seeds the search field so the panel opens already showing matches for the entity. */
     nameForSearch: string;
     tabs?: LogoTab[];
+    autofocusIconSearch?: boolean;
   }>(),
-  { tabs: () => DEFAULT_LOGO_TABS },
+  { tabs: () => DEFAULT_LOGO_TABS, autofocusIconSearch: true },
 );
 
 const emit = defineEmits<{
@@ -90,7 +91,7 @@ const {
   results: brandResults,
   isFetching,
   isError,
-} = useSearchBrandLogo({ q: debouncedQuery, enabled: brandLogosAvailable });
+} = useSearchBrandLogo({ q: debouncedQuery, enabled: brandLogosAvailable && props.tabs.includes('brand') });
 
 // A trimmed query that looks like a bare domain (has a dot, no spaces, no
 // slashes – e.g. "amazon.com"). logo.dev always returns a 200 monogram for any
@@ -358,7 +359,7 @@ function applyIcon() {
             class="size-12 shrink-0 text-lg"
           />
           <div class="min-w-0 flex-1">
-            <IconPickerDropdown v-model="iconName" />
+            <IconPickerDropdown v-model="iconName" :autofocus="autofocusIconSearch" />
           </div>
         </div>
 

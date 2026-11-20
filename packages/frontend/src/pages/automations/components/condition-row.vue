@@ -25,7 +25,7 @@ import { migrateAmountBounds } from './automation-validation';
 import BankConnectionSelect from './bank-connection-select.vue';
 import { CONDITION_FIELDS, CONDITION_REGISTRY } from './condition-registry';
 import KeywordChipsField from './keyword-chips-field.vue';
-import FieldError from '@/components/fields/components/field-error.vue';
+import AutomationFieldError from './automation-field-error.vue';
 
 type AmountCondition = Extract<AutomationCondition, { field: 'amount' }>;
 
@@ -148,124 +148,135 @@ const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | n
         />
       </div>
 
-      <div class="order-last w-full min-w-0 @xl/condition:order-0 @xl/condition:max-w-xl @xl/condition:flex-1">
-        <template v-if="modelValue.field === 'note' || modelValue.field === 'merchant'">
-          <KeywordChipsField
-            v-if="modelValue.operator !== 'is_empty'"
-            :model-value="modelValue.value"
-            :max="AUTOMATION_LIMITS.maxKeywords"
-            :max-length="AUTOMATION_LIMITS.maxKeywordLength"
-            :placeholder="$t('automations.editor.keywordPlaceholder')"
-            @update:model-value="(value) => patch({ ...modelValue, value } as AutomationCondition)"
-          />
-        </template>
+      <TransitionGroup
+        name="lajur-flow-row"
+        tag="div"
+        class="order-last w-full min-w-0 empty:hidden @xl/condition:order-0 @xl/condition:max-w-xl @xl/condition:flex-1"
+      >
+        <div
+          v-if="modelValue.operator !== 'is_empty'"
+          :key="`${modelValue.field}:${modelValue.operator}`"
+          class="lajur-flow-row"
+        >
+          <div>
+            <template v-if="modelValue.field === 'note' || modelValue.field === 'merchant'">
+              <KeywordChipsField
+                :model-value="modelValue.value"
+                :max="AUTOMATION_LIMITS.maxKeywords"
+                :max-length="AUTOMATION_LIMITS.maxKeywordLength"
+                :placeholder="$t('automations.editor.keywordPlaceholder')"
+                @update:model-value="(value) => patch({ ...modelValue, value } as AutomationCondition)"
+              />
+            </template>
 
-        <PayeeMultiSelectField
-          v-else-if="modelValue.field === 'payee'"
-          :payee-ids="modelValue.value"
-          @update:payee-ids="(value) => patch({ ...modelValue, value } as AutomationCondition)"
-        />
+            <PayeeMultiSelectField
+              v-else-if="modelValue.field === 'payee'"
+              :payee-ids="modelValue.value"
+              @update:payee-ids="(value) => patch({ ...modelValue, value } as AutomationCondition)"
+            />
 
-        <div v-else-if="modelValue.field === 'amount'" class="flex flex-wrap items-start gap-2">
-          <InputField
-            v-if="modelValue.operator !== 'lte'"
-            :model-value="modelValue.value.min ?? null"
-            type="number"
-            only-positive
-            class="w-32"
-            :placeholder="
-              modelValue.operator === 'between'
-                ? $t('automations.editor.minPlaceholder')
-                : $t('automations.editor.amountPlaceholder')
-            "
-            @update:model-value="
-              (value) => setAmountBound({ condition: modelValue as AmountCondition, key: 'min', value })
-            "
-          />
-          <InputField
-            v-if="modelValue.operator === 'lte' || modelValue.operator === 'between'"
-            :model-value="modelValue.value.max ?? null"
-            type="number"
-            only-positive
-            class="w-32"
-            :placeholder="
-              modelValue.operator === 'between'
-                ? $t('automations.editor.maxPlaceholder')
-                : $t('automations.editor.amountPlaceholder')
-            "
-            @update:model-value="
-              (value) => setAmountBound({ condition: modelValue as AmountCondition, key: 'max', value })
-            "
-          />
-          <SelectField
-            :model-value="
-              currencyOptions.find(
-                (option) => option.value === currencyValue({ condition: modelValue as AmountCondition }),
-              ) ?? null
-            "
-            :values="currencyOptions"
-            with-search
-            :search-keys="['label']"
-            class="w-56"
-            :placeholder="$t('automations.editor.currencyPlaceholder')"
-            @update:model-value="
-              (option) => option && setCurrency({ condition: modelValue as AmountCondition, code: option.value })
-            "
-          />
+            <div v-else-if="modelValue.field === 'amount'" class="flex flex-wrap items-start gap-2">
+              <InputField
+                v-if="modelValue.operator !== 'lte'"
+                :model-value="modelValue.value.min ?? null"
+                type="number"
+                only-positive
+                class="w-32"
+                :placeholder="
+                  modelValue.operator === 'between'
+                    ? $t('automations.editor.minPlaceholder')
+                    : $t('automations.editor.amountPlaceholder')
+                "
+                @update:model-value="
+                  (value) => setAmountBound({ condition: modelValue as AmountCondition, key: 'min', value })
+                "
+              />
+              <InputField
+                v-if="modelValue.operator === 'lte' || modelValue.operator === 'between'"
+                :model-value="modelValue.value.max ?? null"
+                type="number"
+                only-positive
+                class="w-32"
+                :placeholder="
+                  modelValue.operator === 'between'
+                    ? $t('automations.editor.maxPlaceholder')
+                    : $t('automations.editor.amountPlaceholder')
+                "
+                @update:model-value="
+                  (value) => setAmountBound({ condition: modelValue as AmountCondition, key: 'max', value })
+                "
+              />
+              <SelectField
+                :model-value="
+                  currencyOptions.find(
+                    (option) => option.value === currencyValue({ condition: modelValue as AmountCondition }),
+                  ) ?? null
+                "
+                :values="currencyOptions"
+                with-search
+                :search-keys="['label']"
+                class="w-56"
+                :placeholder="$t('automations.editor.currencyPlaceholder')"
+                @update:model-value="
+                  (option) => option && setCurrency({ condition: modelValue as AmountCondition, code: option.value })
+                "
+              />
+            </div>
+
+            <PillTabs
+              v-else-if="modelValue.field === 'transactionType'"
+              :items="typeTabs"
+              :model-value="modelValue.value"
+              @update:model-value="(value) => patch({ ...modelValue, value } as AutomationCondition)"
+            />
+
+            <AccountMultiSelectField
+              v-else-if="modelValue.field === 'account'"
+              include-archived
+              :model-value="modelValue.value"
+              :placeholder="$t('automations.editor.accountsPlaceholder')"
+              @update:model-value="(value) => patch({ ...modelValue, value } as AutomationCondition)"
+            />
+
+            <AccountGroupSelect
+              v-else-if="modelValue.field === 'accountGroup'"
+              :model-value="modelValue.value"
+              :placeholder="$t('automations.editor.accountGroupPlaceholder')"
+              @update:model-value="(value) => patch({ ...modelValue, value } as AutomationCondition)"
+            />
+
+            <BankConnectionSelect
+              v-else-if="modelValue.field === 'bankConnection'"
+              :model-value="modelValue.value"
+              :placeholder="$t('automations.editor.bankConnectionPlaceholder')"
+              @update:model-value="(value) => patch({ ...modelValue, value } as AutomationCondition)"
+            />
+
+            <div v-else-if="modelValue.field === 'dayOfMonth'" class="flex items-start gap-2">
+              <InputField
+                :model-value="modelValue.value.min"
+                type="number"
+                only-positive
+                min="1"
+                max="31"
+                class="w-24"
+                :placeholder="$t('automations.editor.dayFromPlaceholder')"
+                @update:model-value="(value) => setDay({ key: 'min', value })"
+              />
+              <InputField
+                :model-value="modelValue.value.max"
+                type="number"
+                only-positive
+                min="1"
+                max="31"
+                class="w-24"
+                :placeholder="$t('automations.editor.dayToPlaceholder')"
+                @update:model-value="(value) => setDay({ key: 'max', value })"
+              />
+            </div>
+          </div>
         </div>
-
-        <PillTabs
-          v-else-if="modelValue.field === 'transactionType'"
-          :items="typeTabs"
-          :model-value="modelValue.value"
-          @update:model-value="(value) => patch({ ...modelValue, value } as AutomationCondition)"
-        />
-
-        <AccountMultiSelectField
-          v-else-if="modelValue.field === 'account'"
-          include-archived
-          :model-value="modelValue.value"
-          :placeholder="$t('automations.editor.accountsPlaceholder')"
-          @update:model-value="(value) => patch({ ...modelValue, value } as AutomationCondition)"
-        />
-
-        <AccountGroupSelect
-          v-else-if="modelValue.field === 'accountGroup'"
-          :model-value="modelValue.value"
-          :placeholder="$t('automations.editor.accountGroupPlaceholder')"
-          @update:model-value="(value) => patch({ ...modelValue, value } as AutomationCondition)"
-        />
-
-        <BankConnectionSelect
-          v-else-if="modelValue.field === 'bankConnection'"
-          :model-value="modelValue.value"
-          :placeholder="$t('automations.editor.bankConnectionPlaceholder')"
-          @update:model-value="(value) => patch({ ...modelValue, value } as AutomationCondition)"
-        />
-
-        <div v-else-if="modelValue.field === 'dayOfMonth'" class="flex items-start gap-2">
-          <InputField
-            :model-value="modelValue.value.min"
-            type="number"
-            only-positive
-            min="1"
-            max="31"
-            class="w-24"
-            :placeholder="$t('automations.editor.dayFromPlaceholder')"
-            @update:model-value="(value) => setDay({ key: 'min', value })"
-          />
-          <InputField
-            :model-value="modelValue.value.max"
-            type="number"
-            only-positive
-            min="1"
-            max="31"
-            class="w-24"
-            :placeholder="$t('automations.editor.dayToPlaceholder')"
-            @update:model-value="(value) => setDay({ key: 'max', value })"
-          />
-        </div>
-      </div>
+      </TransitionGroup>
 
       <DesktopOnlyTooltip :content="$t('automations.editor.removeCondition')">
         <Button
@@ -281,6 +292,6 @@ const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | n
       </DesktopOnlyTooltip>
     </div>
 
-    <FieldError :error-message="errorMessage" class="mt-2" />
+    <AutomationFieldError :error-message="errorMessage" class="mt-2" />
   </div>
 </template>

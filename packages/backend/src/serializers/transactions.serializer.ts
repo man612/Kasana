@@ -97,6 +97,7 @@ export interface TransactionApiResponse {
     id: string;
     name: string;
     icon?: string | null;
+    iconColor?: string | null;
     /** Full group membership size, independent of how many members are in this fetch
      *  window. Populated when the group include computes the correlated count. */
     transactionCount: number;
@@ -306,6 +307,7 @@ export function serializeTransaction(
         id: group.id,
         name: group.name,
         icon: group.icon,
+        iconColor: group.iconColor,
         // Attached via a correlated subquery on the include, so it lives in dataValues
         // (no model getter for aliased literals) and must be read with getDataValue.
         // Falls back to the loaded-member count on paths that don't compute the aggregate.

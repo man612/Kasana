@@ -9,10 +9,11 @@ interface UpdateTransactionGroupPayload {
   name?: string;
   note?: string | null;
   icon?: string | null;
+  iconColor?: string | null;
 }
 
 export const updateTransactionGroup = withTransaction(async (payload: UpdateTransactionGroupPayload) => {
-  const { id, userId, name, note, icon } = payload;
+  const { id, userId, name, note, icon, iconColor } = payload;
 
   const group = await findOrThrowNotFound({
     query: TransactionGroups.findOne({
@@ -25,6 +26,7 @@ export const updateTransactionGroup = withTransaction(async (payload: UpdateTran
     ...(name !== undefined && { name }),
     ...(note !== undefined && { note }),
     ...(icon !== undefined && { icon }),
+    ...(icon === null ? { iconColor: null } : iconColor !== undefined && { iconColor }),
   });
 
   return group;

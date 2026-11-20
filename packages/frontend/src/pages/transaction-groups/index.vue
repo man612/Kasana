@@ -328,7 +328,7 @@ const formatPhoneCaption = ({ group }: { group: TransactionGroupResponse }) =>
                   class="text-foreground h-auto min-w-[min(50%,max-content)] shrink justify-start p-0 text-base font-medium after:absolute after:inset-0 hover:no-underline"
                   @click="openGroupDialog({ group })"
                 >
-                  <TransactionGroupIcon :icon="group.icon" />
+                  <TransactionGroupIcon :icon="group.icon" :color="group.iconColor" />
                   <span class="truncate">{{ group.name }}</span>
                 </Button>
                 <span

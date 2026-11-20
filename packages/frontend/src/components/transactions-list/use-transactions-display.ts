@@ -76,6 +76,7 @@ export function useTransactionsDisplay({
         groupId: membership.id,
         groupName: membership.name,
         icon: membership.icon,
+        iconColor: membership.iconColor,
         members,
         transactionCount: membership.transactionCount ?? members.length,
         dateFrom: new Date(Math.min(...timestamps)),

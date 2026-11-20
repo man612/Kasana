@@ -28,7 +28,7 @@ const emit = defineEmits<{
 
 const { addErrorNotification } = useNotificationCenter();
 
-const form = reactive({ name: '', note: '' as string | undefined, icon: '' });
+const form = reactive({ name: '', note: '' as string | undefined, icon: '', iconColor: null as string | null });
 
 watch(
   () => props.open,
@@ -37,6 +37,7 @@ watch(
       form.name = props.group.name;
       form.note = props.group.note ?? '';
       form.icon = props.group.icon ?? '';
+      form.iconColor = props.group.iconColor ?? null;
     }
   },
 );
@@ -53,6 +54,7 @@ const save = async () => {
         name: form.name.trim(),
         note: form.note?.trim() || null,
         icon: form.icon || null,
+        iconColor: form.iconColor,
       },
     });
     await syncTransactionGroupQueries({ queryClient, groupId: group.id, group });
@@ -80,7 +82,7 @@ const save = async () => {
           :placeholder="$t('transactions.transactionGroups.createGroupDialog.groupNamePlaceholder')"
           :maxlength="100"
         />
-        <GroupIconField v-model="form.icon" />
+        <GroupIconField v-model="form.icon" v-model:color="form.iconColor" :name="form.name" />
       </div>
       <TextareaField
         v-model="form.note"

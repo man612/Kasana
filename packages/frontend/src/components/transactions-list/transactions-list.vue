@@ -41,6 +41,8 @@ const props = withDefaults(
     rawList?: boolean; // whenever we don't need to show anything except actual records
     maxDisplay?: number; // maximum number of items to display after deduplication
     enableBulkEdit?: boolean;
+    expandGroups?: boolean;
+    groupPreviewLimit?: number;
     /** When true, content filters are active — groups dissolve and individual transactions show */
     contentFiltersActive?: boolean;
     /** For scoped lists (e.g. a single payee) where a group row would misrepresent the set and hide per-row actions */
@@ -242,7 +244,8 @@ watchEffect(() => {
       <TransactionGroupRecord
         v-else-if="isGroupRow(item)"
         :group="item"
-        :expandable="enableBulkEdit"
+        :expandable="enableBulkEdit || expandGroups"
+        :preview-limit="groupPreviewLimit"
         :expanded="expandedGroups.has(item.groupId)"
         @click="handleGroupRowClick"
         @toggle="toggleGroup"
@@ -322,7 +325,13 @@ watchEffect(() => {
     <TransactionGroupDialog
       v-model:open="isGroupDialogOpen"
       :group-id="groupDialogPreview?.groupId"
-      :preview="groupDialogPreview && { name: groupDialogPreview.groupName, icon: groupDialogPreview.icon }"
+      :preview="
+        groupDialogPreview && {
+          name: groupDialogPreview.groupName,
+          icon: groupDialogPreview.icon,
+          iconColor: groupDialogPreview.iconColor,
+        }
+      "
     />
 
     <!-- Dedicated loan-payment dialog: opens for transfer_to_loan rows -->

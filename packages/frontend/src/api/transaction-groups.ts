@@ -6,6 +6,7 @@ export interface TransactionGroupResponse {
   name: string;
   note: string | null;
   icon?: string | null;
+  iconColor?: string | null;
   createdAt: string;
   updatedAt: string;
   transactionCount?: number;
@@ -33,14 +34,16 @@ export const createTransactionGroup = async ({
   name,
   note,
   icon,
+  iconColor,
   transactionIds,
 }: {
   name: string;
   note?: string | null;
   icon?: string | null;
+  iconColor?: string | null;
   transactionIds: string[];
 }): Promise<TransactionGroupResponse> => {
-  return api.post('/transaction-groups', { name, note, icon, transactionIds });
+  return api.post('/transaction-groups', { name, note, icon, iconColor, transactionIds });
 };
 
 export const updateTransactionGroup = async ({
@@ -48,7 +51,7 @@ export const updateTransactionGroup = async ({
   payload,
 }: {
   id: string;
-  payload: { name?: string; note?: string | null; icon?: string | null };
+  payload: { name?: string; note?: string | null; icon?: string | null; iconColor?: string | null };
 }): Promise<TransactionGroupResponse> => {
   return api.put(`/transaction-groups/${id}`, payload);
 };

@@ -2282,7 +2282,7 @@ onUnmounted(() => {
               {{ $t('dialogs.loanPayment.overdrawWarning', { account: form.account?.name ?? '' }) }}
             </p>
 
-            <div v-if="!isTransferTx" class="mb-1 flex justify-end">
+            <div v-if="!isTransferTx" class="-mt-1 flex justify-end">
               <ReuseMultiAccountPill />
             </div>
             <LayoutCollapse v-if="!isTransferTx" :open="isMultiAccount">
@@ -2691,18 +2691,23 @@ onUnmounted(() => {
             </template>
           </Button>
         </DesktopOnlyTooltip>
-        <label
-          v-if="isCreateMoreAvailable"
-          :class="cn('flex items-center gap-2 text-sm whitespace-nowrap', !isFormFieldsDisabled && 'cursor-pointer')"
-        >
-          <Switch
-            :model-value="createMore"
-            :disabled="isFormFieldsDisabled"
-            @update:model-value="(value: boolean) => emit('update:createMore', value)"
+        <div v-if="isCreateMoreAvailable" class="flex items-center gap-1">
+          <label
+            :class="cn('flex items-center gap-2 text-sm whitespace-nowrap', !isFormFieldsDisabled && 'cursor-pointer')"
+          >
+            <Switch
+              :model-value="createMore"
+              :disabled="isFormFieldsDisabled"
+              @update:model-value="(value: boolean) => emit('update:createMore', value)"
+            />
+            <span class="leading-none">{{ $t('dialogs.manageTransaction.form.createMore.label') }}</span>
+          </label>
+          <HintIcon
+            modal
+            :title="$t('dialogs.manageTransaction.form.createMore.label')"
+            :content="$t('dialogs.manageTransaction.form.createMoreHint')"
           />
-          <span class="leading-none">{{ $t('dialogs.manageTransaction.form.createMore.label') }}</span>
-          <HintIcon :content="$t('dialogs.manageTransaction.form.createMoreHint')" />
-        </label>
+        </div>
         <Button
           v-if="!isReadOnly"
           class="min-w-30"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import HintIcon from '@/components/common/hint-icon.vue';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import ResourceNotFound from '@/components/common/resource-not-found.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import InputField from '@/components/fields/input-field.vue';
@@ -312,27 +313,28 @@ const confirmLeave = () => {
           </label>
         </Card>
 
-        <div
-          v-if="hasSentence"
-          class="border-border bg-card/50 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border border-dashed px-3 py-2.5"
-        >
-          <span class="text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
-            {{ $t('automations.chips.when') }}
-          </span>
-          <AutomationChipTrack
-            :chips="sentenceChips.when"
-            variant="when"
-            density="comfortable"
-            :match="form.conditions.match"
-          />
-          <template v-if="sentenceChips.then.length">
-            <ArrowRightIcon class="text-muted-foreground size-3.5 shrink-0" />
-            <span class="text-primary-text text-[11px] font-bold tracking-wider uppercase">
-              {{ $t('automations.chips.then') }}
+        <LayoutCollapse :open="hasSentence">
+          <div
+            class="border-border bg-card/50 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border border-dashed px-3 py-2.5"
+          >
+            <span class="text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
+              {{ $t('automations.chips.when') }}
             </span>
-            <AutomationChipTrack :chips="sentenceChips.then" variant="then" density="comfortable" />
-          </template>
-        </div>
+            <AutomationChipTrack
+              :chips="sentenceChips.when"
+              variant="when"
+              density="comfortable"
+              :match="form.conditions.match"
+            />
+            <template v-if="sentenceChips.then.length">
+              <ArrowRightIcon class="text-muted-foreground size-3.5 shrink-0" />
+              <span class="text-primary-text text-[11px] font-bold tracking-wider uppercase">
+                {{ $t('automations.chips.then') }}
+              </span>
+              <AutomationChipTrack :chips="sentenceChips.then" variant="then" density="comfortable" />
+            </template>
+          </div>
+        </LayoutCollapse>
 
         <div class="flex flex-col">
           <RailSection :icon="ZapIcon" tone="when" connected>
@@ -376,12 +378,19 @@ const confirmLeave = () => {
           </RailSection>
         </div>
 
-        <p v-if="showErrors && formError" class="text-destructive-text text-sm">{{ formError }}</p>
+        <LayoutCollapse :open="Boolean(showErrors && formError)">
+          <p class="text-destructive-text text-sm" role="alert">{{ formError }}</p>
+        </LayoutCollapse>
       </form>
       <footer
-        class="bg-background/95 border-border flex shrink-0 flex-wrap items-center justify-end gap-2 border-t px-4 pt-3 pb-[max(.75rem,env(safe-area-inset-bottom))] md:px-6"
+        class="bg-background/95 border-border grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-2 border-t px-4 pt-3 pb-[max(.75rem,env(safe-area-inset-bottom))] md:flex md:justify-end md:px-6"
       >
-        <p v-if="!isValid" class="text-muted-foreground mr-auto text-xs">{{ $t('automations.guide.incomplete') }}</p>
+        <p class="text-muted-foreground col-span-2 min-h-4 text-xs md:mr-auto" :class="isValid && 'invisible'">
+          {{ $t('automations.guide.incomplete') }}
+        </p>
+        <Button type="button" variant="outline" class="min-h-11" :disabled="isSaving" @click="goToList">
+          {{ $t('common.actions.cancel') }}
+        </Button>
         <Button
           type="submit"
           :form="formId"

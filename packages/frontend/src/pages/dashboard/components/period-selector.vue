@@ -1,7 +1,7 @@
 <template>
   <div
     data-no-nav-swipe
-    class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-0.5 max-md:touch-pan-y"
+    class="flex min-w-0 items-center justify-center gap-0.5 max-md:touch-pan-y"
     :style="{ '--period-direction': direction }"
     @touchstart.passive="onPeriodTouchStart"
     @touchend="onPeriodTouchEnd"
@@ -27,11 +27,11 @@
         <Button
           variant="ghost"
           size="sm"
-          class="w-full min-w-0 justify-start gap-1.5 px-1.5 font-medium"
+          class="min-w-0 shrink justify-center gap-1.5 px-1 font-medium"
           :aria-label="triggerText"
         >
           <CalendarIcon class="size-3.5 shrink-0" aria-hidden="true" />
-          <span class="grid min-w-0 flex-1 overflow-hidden text-left" aria-hidden="true">
+          <span class="grid min-w-0 overflow-hidden text-center" aria-hidden="true">
             <Transition name="period-label">
               <span :key="triggerText" class="col-start-1 row-start-1 block min-w-0 truncate">{{ triggerText }}</span>
             </Transition>
@@ -52,7 +52,7 @@
     <Button
       size="icon-sm"
       variant="ghost"
-      class="motion-safe:transition-opacity"
+      class="absolute left-3 motion-safe:transition-opacity md:left-6"
       :class="isCurrentPayPeriod(period) && 'pointer-events-none opacity-0'"
       :disabled="isCurrentPayPeriod(period)"
       :aria-hidden="isCurrentPayPeriod(period)"

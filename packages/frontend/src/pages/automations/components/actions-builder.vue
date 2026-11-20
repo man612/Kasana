@@ -22,7 +22,7 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { ACTION_DEFAULTS, ACTION_TYPES, type AutomationActionDraft } from './condition-registry';
-import FieldError from '@/components/fields/components/field-error.vue';
+import AutomationFieldError from './automation-field-error.vue';
 
 const props = defineProps<{ modelValue: AutomationActionDraft[]; errors: (string | null)[] }>();
 const emit = defineEmits<{ 'update:modelValue': [value: AutomationActionDraft[]] }>();
@@ -68,80 +68,89 @@ const addAction = ({ type, close }: { type: AutomationActionType; close: () => v
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
-    <div v-if="modelValue.length" class="border-border divide-border divide-y rounded-lg border">
-      <div v-for="(action, index) in modelValue" :key="action.type" class="@container/action p-3">
-        <div class="flex flex-wrap items-center gap-x-3 gap-y-2 @xl/action:flex-nowrap">
-          <span class="shrink-0 text-sm font-medium">{{ $t(`automations.actions.${action.type}`) }}</span>
+  <div class="flex flex-col">
+    <TransitionGroup name="lajur-flow-row" tag="div">
+      <div v-for="(action, index) in modelValue" :key="action.type" class="lajur-flow-row group/action">
+        <div>
+          <div
+            class="border-border @container/action border-x border-b p-3 group-first/action:rounded-t-lg group-first/action:border-t group-last/action:rounded-b-lg"
+          >
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2 @xl/action:flex-nowrap">
+              <span class="shrink-0 text-sm font-medium">{{ $t(`automations.actions.${action.type}`) }}</span>
 
-          <div :class="['order-last w-full min-w-0 @xl/action:order-0', FIELD_WIDTH[action.type]]">
-            <CategorySelectField
-              v-if="action.type === 'set_category'"
-              :model-value="
-                action.categoryId ? findFormattedCategoryById(formattedCategories, action.categoryId) : null
-              "
-              :values="formattedCategories"
-              :categories-map="categoriesMap"
-              :placeholder="$t('automations.editor.categoryPlaceholder')"
-              @update:model-value="
-                (selected) => replaceAt({ index, action: { ...action, categoryId: selected?.id ?? null } })
-              "
-            />
+              <div :class="['order-last w-full min-w-0 @xl/action:order-0', FIELD_WIDTH[action.type]]">
+                <CategorySelectField
+                  v-if="action.type === 'set_category'"
+                  :model-value="
+                    action.categoryId ? findFormattedCategoryById(formattedCategories, action.categoryId) : null
+                  "
+                  :values="formattedCategories"
+                  :categories-map="categoriesMap"
+                  :placeholder="$t('automations.editor.categoryPlaceholder')"
+                  @update:model-value="
+                    (selected) => replaceAt({ index, action: { ...action, categoryId: selected?.id ?? null } })
+                  "
+                />
 
-            <PayeeSelectField
-              v-else-if="action.type === 'set_payee'"
-              :model-value="action.payeeId"
-              :placeholder="$t('automations.editor.payeePlaceholder')"
-              @update:model-value="
-                (payeeId) => replaceAt({ index, action: { ...action, payeeId: payeeId as RecordId | null } })
-              "
-            />
+                <PayeeSelectField
+                  v-else-if="action.type === 'set_payee'"
+                  :model-value="action.payeeId"
+                  :placeholder="$t('automations.editor.payeePlaceholder')"
+                  @update:model-value="
+                    (payeeId) => replaceAt({ index, action: { ...action, payeeId: payeeId as RecordId | null } })
+                  "
+                />
 
-            <TagSelectField
-              v-else-if="action.type === 'add_tags'"
-              :model-value="action.tagIds"
-              :placeholder="$t('automations.editor.tagsPlaceholder')"
-              @update:model-value="
-                (tagIds) => replaceAt({ index, action: { ...action, tagIds: tagIds as RecordId[] } })
-              "
-            />
+                <TagSelectField
+                  v-else-if="action.type === 'add_tags'"
+                  :model-value="action.tagIds"
+                  :placeholder="$t('automations.editor.tagsPlaceholder')"
+                  @update:model-value="
+                    (tagIds) => replaceAt({ index, action: { ...action, tagIds: tagIds as RecordId[] } })
+                  "
+                />
 
-            <div v-else-if="action.type === 'set_note'" class="flex flex-wrap items-center gap-2">
-              <PillTabs
-                size="sm"
-                :items="noteModeTabs"
-                :model-value="action.mode"
-                @update:model-value="
-                  (mode) => replaceAt({ index, action: { ...action, mode: mode as AutomationNoteMode } })
-                "
-              />
-              <InputField
-                :model-value="action.value"
-                :maxlength="AUTOMATION_LIMITS.maxNoteLength"
-                class="min-w-40 flex-1"
-                :placeholder="$t('automations.editor.notePlaceholder')"
-                @update:model-value="(value) => replaceAt({ index, action: { ...action, value: String(value ?? '') } })"
-              />
+                <div v-else-if="action.type === 'set_note'" class="flex flex-wrap items-center gap-2">
+                  <PillTabs
+                    size="sm"
+                    :items="noteModeTabs"
+                    :model-value="action.mode"
+                    @update:model-value="
+                      (mode) => replaceAt({ index, action: { ...action, mode: mode as AutomationNoteMode } })
+                    "
+                  />
+                  <InputField
+                    :model-value="action.value"
+                    :maxlength="AUTOMATION_LIMITS.maxNoteLength"
+                    class="min-w-40 flex-1"
+                    :placeholder="$t('automations.editor.notePlaceholder')"
+                    @update:model-value="
+                      (value) => replaceAt({ index, action: { ...action, value: String(value ?? '') } })
+                    "
+                  />
+                </div>
+              </div>
+
+              <DesktopOnlyTooltip :content="$t('automations.editor.removeAction')">
+                <Button
+                  type="button"
+                  variant="soft-destructive"
+                  size="icon-sm"
+                  class="ml-auto shrink-0"
+                  :aria-label="$t('automations.editor.removeAction')"
+                  @click="removeAt({ index })"
+                >
+                  <Trash2Icon class="size-3.5" />
+                </Button>
+              </DesktopOnlyTooltip>
             </div>
+
+            <AutomationFieldError :error-message="errors[index]" class="mt-2" />
           </div>
-
-          <DesktopOnlyTooltip :content="$t('automations.editor.removeAction')">
-            <Button
-              type="button"
-              variant="soft-destructive"
-              size="icon-sm"
-              class="ml-auto shrink-0"
-              :aria-label="$t('automations.editor.removeAction')"
-              @click="removeAt({ index })"
-            >
-              <Trash2Icon class="size-3.5" />
-            </Button>
-          </DesktopOnlyTooltip>
+          <div class="hidden h-3 group-last/action:block" aria-hidden="true" />
         </div>
-
-        <FieldError :error-message="errors[index]" class="mt-2" />
       </div>
-    </div>
+    </TransitionGroup>
 
     <ResponsiveMenu v-model:open="isMenuOpen">
       <template #trigger>

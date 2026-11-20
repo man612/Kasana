@@ -52,6 +52,7 @@ export async function syncTransactionGroupQueries({
             id: groupId as RecordId,
             name: group.name,
             icon: group.icon,
+            iconColor: group.iconColor,
             transactionCount: members?.size ?? existing?.transactionCount ?? 0,
           },
           ...otherGroups,
@@ -78,6 +79,7 @@ export async function syncTransactionGroupQueries({
                   name: group.name,
                   note: group.note,
                   icon: group.icon,
+                  iconColor: group.iconColor,
                   transactionCount: members?.size ?? row.transactionCount,
                 }
               : row,

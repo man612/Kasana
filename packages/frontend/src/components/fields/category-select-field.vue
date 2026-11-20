@@ -159,9 +159,6 @@
                 <Dialog.DialogTitle class="text-base font-semibold">
                   {{ $t('fields.categorySelect.selectCategoryLabel') }}
                 </Dialog.DialogTitle>
-                <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
-                  {{ $t('fields.categorySelect.dialogHint') }}
-                </Dialog.DialogDescription>
               </div>
               <div
                 v-if="sharedOwnerHandle"
@@ -268,7 +265,9 @@
         @open-auto-focus.prevent="mobileHeading?.focus({ preventScroll: true })"
         @close-auto-focus="onCategoryCloseAutoFocus"
       >
-        <Drawer.DrawerHeader class="relative min-h-12 justify-center py-0 pr-12 pl-0 text-left">
+        <Drawer.DrawerHeader
+          class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-0 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 text-left"
+        >
           <Drawer.DrawerTitle>
             <span ref="mobileHeading" tabindex="-1" class="outline-none">{{
               $t('fields.categorySelect.selectCategoryLabel')
@@ -279,16 +278,13 @@
               type="button"
               variant="ghost"
               size="icon"
-              class="text-muted-foreground absolute top-1/2 right-0 size-11 -translate-y-1/2"
+              class="text-muted-foreground size-11"
               :aria-label="$t('common.ui.close')"
               @click="handleDrawerOpenChange(false)"
             >
               <XIcon class="size-5" aria-hidden="true" />
             </Button>
           </DesktopOnlyTooltip>
-          <Drawer.DrawerDescription class="sr-only">{{
-            $t('fields.categorySelect.dialogHint')
-          }}</Drawer.DrawerDescription>
         </Drawer.DrawerHeader>
 
         <div

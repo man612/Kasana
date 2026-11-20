@@ -4,6 +4,7 @@ import { VERBOSE_PAYMENT_TYPES } from '@/common/const';
 import ContextualHelp from '@/components/common/contextual-help.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
+import { Button } from '@/components/lib/ui/button';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { PAYMENT_TYPES } from '@bt/shared/types';
 import {
@@ -24,6 +25,7 @@ import {
   RepeatIcon,
   SmartphoneIcon,
   WalletIcon,
+  XIcon,
 } from '@lucide/vue';
 import { computed, ref, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -132,34 +134,52 @@ const pick = (value: VerbosePaymentType | null) => {
         </Dialog.DialogTrigger>
         <Dialog.DialogContent
           blur-overlay
+          custom-close
           class="data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 max-h-[88dvh] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden rounded-2xl p-0 data-[state=open]:duration-250 motion-reduce:animate-none"
           data-testid="payment-method-dialog"
         >
-          <div class="border-border relative border-b px-4 py-4 pr-23">
-            <ContextualHelp
-              :title="t('dialogs.manageTransaction.paymentMethodHelp.title')"
-              :content="t('dialogs.manageTransaction.paymentMethodHelp.longExplanation')"
-            >
-              <template #trigger>
-                <button
+          <div class="border-border grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-b px-4 py-3">
+            <div class="self-center">
+              <Dialog.DialogTitle class="text-base font-semibold">
+                {{ t('dialogs.manageTransaction.paymentMethodHelp.title') }}
+              </Dialog.DialogTitle>
+              <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
+                {{ t('dialogs.manageTransaction.paymentMethodHelp.overview') }}
+              </Dialog.DialogDescription>
+            </div>
+            <div class="flex items-start">
+              <ContextualHelp
+                :title="t('dialogs.manageTransaction.paymentMethodHelp.title')"
+                :content="t('dialogs.manageTransaction.paymentMethodHelp.longExplanation')"
+              >
+                <template #trigger>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    class="text-muted-foreground size-11"
+                    :aria-label="
+                      t('dialogs.manageTransaction.paymentMethodHelp.learnMore', {
+                        name: t('dialogs.manageTransaction.paymentMethodHelp.title'),
+                      })
+                    "
+                  >
+                    <CircleHelpIcon class="size-5" aria-hidden="true" />
+                  </Button>
+                </template>
+              </ContextualHelp>
+              <Dialog.DialogClose as-child>
+                <Button
                   type="button"
-                  class="text-muted-foreground hover:text-foreground hover:bg-muted absolute top-3.5 right-12 flex size-8 items-center justify-center rounded-md"
-                  :aria-label="
-                    t('dialogs.manageTransaction.paymentMethodHelp.learnMore', {
-                      name: t('dialogs.manageTransaction.paymentMethodHelp.title'),
-                    })
-                  "
+                  variant="ghost"
+                  size="icon"
+                  class="text-muted-foreground size-11"
+                  :aria-label="t('common.ui.close')"
                 >
-                  <CircleHelpIcon class="size-4" />
-                </button>
-              </template>
-            </ContextualHelp>
-            <Dialog.DialogTitle class="text-base font-semibold">
-              {{ t('dialogs.manageTransaction.paymentMethodHelp.title') }}
-            </Dialog.DialogTitle>
-            <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
-              {{ t('dialogs.manageTransaction.paymentMethodHelp.overview') }}
-            </Dialog.DialogDescription>
+                  <XIcon class="size-5" aria-hidden="true" />
+                </Button>
+              </Dialog.DialogClose>
+            </div>
           </div>
           <div class="max-h-[min(66dvh,540px)] space-y-1 overflow-y-auto overscroll-contain p-3">
             <div

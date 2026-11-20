@@ -484,6 +484,7 @@
         "incompleteHint": "Lengkapi informasi transaksi terlebih dahulu.",
         "trigger": "Templat",
         "filterPlaceholder": "Cari templat…",
+        "emptyMobile": "Simpan isian yang sering dipakai sebagai templat. Templat hanya mengisi formulir.",
         "emptyState": "Templat menyimpan isian yang sering Anda pakai supaya tidak perlu mengulangnya. Isi transaksi terlebih dahulu, lalu tekan Simpan templat. Templat tidak membuat transaksi otomatis.",
         "noMatches": "Tidak ada templat yang cocok.",
         "loadError": "Tidak dapat memuat templat Anda.",

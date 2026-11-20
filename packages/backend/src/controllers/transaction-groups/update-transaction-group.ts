@@ -25,6 +25,11 @@ const schema = z.object({
       .max(100)
       .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*-filled$/, { error: () => t({ key: 'transactionGroups.invalidIcon' }) })
       .nullish(),
+    iconColor: z
+      .string()
+      .regex(/^#[0-9a-f]{6}$/i)
+      .toLowerCase()
+      .nullish(),
   }),
 });
 
@@ -34,6 +39,7 @@ export default createController(schema, async ({ user, params, body }) => {
     userId: user.id,
     name: body.name,
     icon: body.icon,
+    iconColor: body.iconColor,
     note: body.note,
   });
 

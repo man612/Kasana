@@ -3,13 +3,7 @@ import * as transactionGroupsApi from '@/api/transaction-groups';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import { Button } from '@/components/lib/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/common/dropdown-menu';
+import ResponsiveMenu from '@/components/common/responsive-menu.vue';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import TransactionsList from '@/components/transactions-list/transactions-list.vue';
 import GroupIcon from '@/components/transactions-list/group-icon.vue';
@@ -39,7 +33,7 @@ const { addErrorNotification } = useNotificationCenter();
 const props = defineProps<{
   open?: boolean;
   groupId?: string;
-  preview?: { name: string; icon?: string | null };
+  preview?: { name: string; icon?: string | null; iconColor?: string | null };
 }>();
 
 const emit = defineEmits<{
@@ -64,6 +58,7 @@ const {
 
 // Edit dialog
 const isEditDialogOpen = ref(false);
+const isActionsOpen = ref(false);
 
 const startEdit = () => {
   isEditDialogOpen.value = true;
@@ -160,6 +155,7 @@ watch(
   () => [props.open, props.groupId],
   () => {
     isManaging.value = false;
+    isActionsOpen.value = false;
     isNoteExpanded.value = false;
   },
 );
@@ -215,39 +211,52 @@ const summary = computed(() => {
     <template #description>{{ metaLine }}</template>
     <template #default="{ close }">
       <header class="border-border flex shrink-0 items-center gap-2 border-b px-4 py-3">
-        <GroupIcon :icon="group?.icon ?? preview?.icon" />
+        <GroupIcon :icon="group ? group.icon : preview?.icon" :color="group ? group.iconColor : preview?.iconColor" />
         <div class="min-w-0 flex-1">
           <h2 class="line-clamp-2 text-base font-semibold wrap-anywhere">
             {{ group?.name ?? preview?.name ?? $t('transactionGroups.groupDialog.loadingText') }}
           </h2>
           <p v-if="metaLine" class="text-muted-foreground text-xs">{{ metaLine }}</p>
         </div>
-        <DropdownMenu v-if="group">
-          <DropdownMenuTrigger as-child>
+        <ResponsiveMenu v-if="group" v-model:open="isActionsOpen" dim-backdrop>
+          <template #trigger>
             <Button
+              type="button"
               variant="ghost"
               size="icon"
               class="size-11 shrink-0"
               :aria-label="$t('transactions.transactionGroups.groupsPage.moreActions', { name: group.name })"
             >
-              <EllipsisIcon class="size-4" />
+              <EllipsisIcon class="size-4" aria-hidden="true" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="min-w-44">
-            <DropdownMenuItem @select="startEdit">
-              <PencilIcon class="size-4" />
-              {{ $t('transactionGroups.groupDialog.editAction') }}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              class="text-destructive-text hover:bg-destructive-text/10 focus:bg-destructive-text/10 focus:text-destructive-text"
-              @select="openDeleteConfirm"
+          </template>
+          <template #default="{ close: closeMenu }">
+            <Button
+              type="button"
+              variant="ghost"
+              class="min-h-11 w-full justify-start"
+              @click="
+                closeMenu();
+                startEdit();
+              "
             >
-              <Trash2Icon class="size-4" />
+              <PencilIcon class="size-4" aria-hidden="true" />
+              {{ $t('transactionGroups.groupDialog.editAction') }}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost-destructive"
+              class="min-h-11 w-full justify-start"
+              @click="
+                closeMenu();
+                openDeleteConfirm();
+              "
+            >
+              <Trash2Icon class="size-4" aria-hidden="true" />
               {{ $t('transactionGroups.groupDialog.deleteAction') }}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </Button>
+          </template>
+        </ResponsiveMenu>
         <Button variant="ghost" size="icon" class="size-11 shrink-0" :aria-label="$t('common.ui.close')" @click="close">
           <XIcon class="size-5" />
         </Button>
@@ -320,8 +329,16 @@ const summary = computed(() => {
             <div class="flex items-center justify-between gap-2">
               <h4 class="text-sm font-medium">{{ $t('transactionGroups.groupDialog.transactionsLabel') }}</h4>
               <Button variant="outline" size="sm" :aria-pressed="isManaging" @click="isManaging = !isManaging">
-                <component :is="isManaging ? CheckIcon : PencilIcon" class="size-4" />
-                {{ isManaging ? $t('common.actions.done') : $t('transactionGroups.groupDialog.manageTransactions') }}
+                <span class="grid items-center">
+                  <Transition name="lajur-info-reveal">
+                    <span :key="String(isManaging)" class="col-start-1 row-start-1 flex items-center gap-1.5">
+                      <component :is="isManaging ? CheckIcon : PencilIcon" class="size-4" aria-hidden="true" />
+                      {{
+                        isManaging ? $t('common.actions.done') : $t('transactionGroups.groupDialog.manageTransactions')
+                      }}
+                    </span>
+                  </Transition>
+                </span>
               </Button>
             </div>
             <div class="border-border/70 rounded-lg border px-1">
@@ -333,18 +350,26 @@ const summary = computed(() => {
                 :paginate="false"
                 :transactions="transactions"
               >
-                <template v-if="isManaging" #row-trailing="{ tx }">
-                  <DesktopOnlyTooltip :content="$t('transactionGroups.groupDialog.removeFromGroup')">
-                    <Button
-                      variant="soft-destructive"
-                      size="icon-sm"
-                      class="mr-1 size-9 shrink-0 sm:size-7"
-                      :aria-label="$t('transactionGroups.groupDialog.removeFromGroup')"
-                      @click.stop="handleRemoveTransaction({ transactionId: tx.id })"
-                    >
-                      <XIcon class="size-3.5" />
-                    </Button>
-                  </DesktopOnlyTooltip>
+                <template #row-trailing="{ tx }">
+                  <div
+                    class="grid shrink-0 transition-[grid-template-columns,opacity] duration-220 motion-reduce:transition-none"
+                    :class="isManaging ? 'grid-cols-[1fr] opacity-100' : 'grid-cols-[0fr] opacity-0'"
+                    :inert="!isManaging"
+                  >
+                    <div class="min-w-0 overflow-clip">
+                      <DesktopOnlyTooltip :content="$t('transactionGroups.groupDialog.removeFromGroup')">
+                        <Button
+                          variant="soft-destructive"
+                          size="icon-sm"
+                          class="mr-1 size-9 shrink-0 sm:size-7"
+                          :aria-label="$t('transactionGroups.groupDialog.removeFromGroup')"
+                          @click.stop="handleRemoveTransaction({ transactionId: tx.id })"
+                        >
+                          <XIcon class="size-3.5" />
+                        </Button>
+                      </DesktopOnlyTooltip>
+                    </div>
+                  </div>
                 </template>
               </TransactionsList>
             </div>

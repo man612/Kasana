@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NotificationStruct } from '@/api/notifications';
 import Button from '@/components/lib/ui/button/Button.vue';
-import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
 import {
   useDismissNotification,
   useMarkAllNotificationsAsRead,
@@ -10,8 +10,8 @@ import {
   useUnreadNotificationsCount,
 } from '@/composable/data-queries/notifications';
 import { NOTIFICATION_STATUSES } from '@bt/shared/types';
-import { BellIcon, BellOffIcon, Loader2Icon } from '@lucide/vue';
-import { ref } from 'vue';
+import { BellIcon, BellOffIcon, Loader2Icon, XIcon } from '@lucide/vue';
+import { ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -23,8 +23,10 @@ withDefaults(defineProps<{ sidebar?: boolean }>(), { sidebar: false });
 const { t } = useI18n();
 const router = useRouter();
 const isOpen = ref(false);
+const titleId = useId();
+const heading = ref<HTMLElement | null>(null);
 
-const { data: notifications, isLoading } = useNotifications();
+const { data: notifications, isLoading } = useNotifications({ enabled: isOpen });
 const { data: unreadCount } = useUnreadNotificationsCount();
 
 const markAsReadMutation = useMarkNotificationAsRead();
@@ -57,14 +59,8 @@ const handleDismiss = (id: string) => {
 </script>
 
 <template>
-  <ResponsiveDialog
-    v-model:open="isOpen"
-    raised
-    mobile-presentation="center"
-    intrinsic-height-motion
-    dialog-content-class="max-w-md"
-  >
-    <template #trigger>
+  <Popover v-model:open="isOpen" modal>
+    <PopoverTrigger as-child>
       <!-- Sidebar mode: full-width button with label -->
       <template v-if="sidebar">
         <button
@@ -107,9 +103,31 @@ const handleDismiss = (id: string) => {
           </span>
         </Button>
       </template>
-    </template>
-    <template #title>{{ $t('notifications.title') }}</template>
-    <div>
+    </PopoverTrigger>
+    <PopoverContent
+      dim-backdrop
+      lock-side
+      :align="sidebar ? 'start' : 'end'"
+      :side="sidebar ? 'top' : 'bottom'"
+      :aria-labelledby="titleId"
+      class="w-[min(24rem,calc(100vw-1.5rem))] rounded-xl p-3"
+      @open-auto-focus.prevent="heading?.focus({ preventScroll: true })"
+    >
+      <div class="flex items-center justify-between gap-2">
+        <h2 :id="titleId" ref="heading" tabindex="-1" class="text-base font-semibold outline-none">
+          {{ t('notifications.title') }}
+        </h2>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          class="size-11"
+          :aria-label="t('common.ui.close')"
+          @click="isOpen = false"
+        >
+          <XIcon class="size-4" aria-hidden="true" />
+        </Button>
+      </div>
       <div v-if="unreadCount && unreadCount > 0" class="flex justify-end border-b pb-2">
         <Button
           v-if="unreadCount && unreadCount > 0"
@@ -143,6 +161,6 @@ const handleDismiss = (id: string) => {
           />
         </div>
       </div>
-    </div>
-  </ResponsiveDialog>
+    </PopoverContent>
+  </Popover>
 </template>

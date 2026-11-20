@@ -91,7 +91,9 @@ defineExpose({
             embedded
             :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
             :aria-label="$t('dialogs.manageTransaction.form.amountLabel')"
-            :disabled="disabled || locked || (requireAccountBeforeAmount && !account)"
+            :disabled="disabled || locked"
+            :readonly="requireAccountBeforeAmount && !account"
+            :tabindex="requireAccountBeforeAmount && !account ? -1 : undefined"
             @update:model-value="emit('update:amount', $event)"
             @blur="emit('amount-blur')"
           />

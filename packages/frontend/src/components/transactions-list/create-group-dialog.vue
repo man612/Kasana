@@ -29,6 +29,7 @@ const form = reactive({
   name: '',
   note: '',
   icon: '',
+  iconColor: null as string | null,
 });
 
 const isSubmitting = ref(false);
@@ -41,6 +42,7 @@ watch(
       form.name = '';
       form.note = '';
       form.icon = '';
+      form.iconColor = null;
       error.value = '';
     }
   },
@@ -65,6 +67,7 @@ const handleSubmit = async () => {
       name: form.name.trim(),
       note: form.note.trim() || null,
       icon: form.icon || null,
+      iconColor: form.iconColor,
       transactionIds: props.transactionIds,
     });
 
@@ -106,7 +109,7 @@ const handleSubmit = async () => {
           :placeholder="t('transactions.transactionGroups.createGroupDialog.groupNamePlaceholder')"
           :maxlength="100"
         />
-        <GroupIconField v-model="form.icon" />
+        <GroupIconField v-model="form.icon" v-model:color="form.iconColor" :name="form.name" />
       </div>
       <TextareaField
         v-model="form.note"

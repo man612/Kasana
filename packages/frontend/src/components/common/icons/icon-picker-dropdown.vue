@@ -26,8 +26,15 @@
           >
             <div class="grid grid-cols-7 gap-1 p-1">
               <template v-for="iconName in getIconsForRow(row.index)" :key="iconName" :delay-duration="0">
-                <Button size="icon" variant="ghost" :title="iconName" @click="selectIcon(iconName)">
-                  <Icon :icon="`fluent:${iconName}`" class="size-8" />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  class="h-10 w-full min-w-0"
+                  :aria-pressed="modelValue === iconName"
+                  :title="iconName"
+                  @click="selectIcon(iconName)"
+                >
+                  <Icon :icon="`fluent:${iconName}`" class="size-6" />
                 </Button>
               </template>
             </div>
@@ -53,9 +60,7 @@ import { computed, onMounted, ref } from 'vue';
 const ICONS_PER_ROW = 7;
 const ROW_HEIGHT = 48;
 
-defineProps<{
-  modelValue?: string;
-}>();
+const props = withDefaults(defineProps<{ modelValue?: string; autofocus?: boolean }>(), { autofocus: true });
 
 const emit = defineEmits<{
   'update:modelValue': [value: string];
@@ -107,6 +112,6 @@ const clearIcon = () => {
 };
 
 onMounted(() => {
-  searchInputRef.value?.focus();
+  if (props.autofocus) searchInputRef.value?.focus({ preventScroll: true });
 });
 </script>

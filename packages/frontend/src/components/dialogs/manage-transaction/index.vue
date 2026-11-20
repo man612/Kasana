@@ -91,6 +91,7 @@ const startNextEntry = async ({ prefill }: { prefill: TransactionPrefill }) => {
       <slot />
     </Dialog.DialogTrigger>
     <Dialog.DialogContent
+      intrinsic-height-motion
       custom-close
       @pointer-down-outside="interceptDismiss"
       @escape-key-down="interceptDismiss"
