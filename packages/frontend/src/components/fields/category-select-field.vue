@@ -260,10 +260,21 @@
     <FieldError :error-message="errorMessage" />
 
     <!-- Mobile: Drawer -->
-    <Drawer.Drawer v-if="isMobile" :open="isOpen" @update:open="handleDrawerOpenChange">
-      <Drawer.DrawerContent class="h-[88dvh] max-h-[92dvh] px-4 pb-4">
+    <Drawer.Drawer v-if="isMobile" :open="isOpen" fixed @update:open="handleDrawerOpenChange">
+      <Drawer.DrawerContent
+        class="h-[88dvh] max-h-[92dvh] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] motion-safe:transition-[max-height,bottom] motion-safe:duration-150"
+        :style="keyboardSheetStyle"
+        @open-auto-focus.prevent="mobileHeading?.focus({ preventScroll: true })"
+      >
         <Drawer.DrawerHeader class="px-0 pb-2">
-          <Drawer.DrawerTitle>{{ $t('fields.categorySelect.selectCategoryLabel') }}</Drawer.DrawerTitle>
+          <Drawer.DrawerTitle>
+            <span ref="mobileHeading" tabindex="-1" class="outline-none">{{
+              $t('fields.categorySelect.selectCategoryLabel')
+            }}</span>
+          </Drawer.DrawerTitle>
+          <Drawer.DrawerDescription class="sr-only">{{
+            $t('fields.categorySelect.dialogHint')
+          }}</Drawer.DrawerDescription>
         </Drawer.DrawerHeader>
 
         <div
@@ -281,8 +292,9 @@
 
         <ListboxRoot :model-value="selectedValue" by="id" highlight-on-hover class="flex min-h-0 flex-1 flex-col">
           <div
-            class="border-input bg-input-background mb-3 flex h-10 w-full items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9"
+            class="border-input bg-input-background mb-3 flex h-11 w-full shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-base md:h-9 md:text-sm"
           >
+            <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
             <ListboxFilter
               v-model="searchQuery"
               class="min-w-0 flex-1 bg-transparent outline-none"
@@ -322,6 +334,7 @@ import * as Drawer from '@/components/lib/ui/drawer';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { cn } from '@/lib/utils';
+import { useKeyboardViewport } from '@/composable/use-keyboard-viewport';
 import { CATEGORY_TYPES, type CategoryModel } from '@bt/shared/types';
 import { createReusableTemplate } from '@vueuse/core';
 import { ChevronDownIcon, SearchIcon, XIcon } from '@lucide/vue';
@@ -486,6 +499,16 @@ const shouldShowSeparator = ({ item, index }: { item: FlatCategory; index: numbe
   const prevItem = filteredItems.value[index - 1];
   return prevItem!.rootParentId !== item.rootParentId;
 };
+
+const mobileHeading = ref<HTMLElement | null>(null);
+const keyboard = useKeyboardViewport(computed(() => isMobile.value && isOpen.value));
+const keyboardSheetStyle = computed(
+  () =>
+    keyboard.value && {
+      bottom: `${keyboard.value.bottomInset}px`,
+      maxHeight: `${Math.max(1, keyboard.value.height - 8)}px`,
+    },
+);
 
 const openDropdown = () => {
   isOpen.value = true;

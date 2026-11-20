@@ -609,6 +609,10 @@
     }
   },
   "fields": {
+    "accountSelect": {
+      "empty": "No accounts available",
+      "createHint": "Add an account to keep working on this transaction."
+    },
     "categorySelect": {
       "noCategoriesFound": "No categories found",
       "selectCategoryLabel": "Select category",

@@ -15,32 +15,53 @@ import { buildTestCredentials, signUpAndVerify } from '../../helpers/test-setup'
 // Playwright supports synthetic TouchEvents for legacy touch gesture handlers.
 // Use the real target geometry, so the same sequence works at 320 and 390px.
 async function swipeElement(element: Locator, from: number, to: number) {
-  await element.evaluate((node, { from, to }) => {
-    const rect = node.getBoundingClientRect();
-    const y = rect.top + rect.height / 2;
-    const touch = (x: number) => new Touch({
-      identifier: 1,
-      target: node,
-      clientX: rect.left + rect.width * x,
-      clientY: y,
-    });
-    const initial = touch(from);
-    node.dispatchEvent(new TouchEvent('touchstart', {
-      touches: [initial],
-      targetTouches: [initial],
-      changedTouches: [initial],
-      bubbles: true,
-      cancelable: true,
-    }));
-    const finalTouch = touch(to);
-    node.dispatchEvent(new TouchEvent('touchend', {
-      touches: [],
-      targetTouches: [],
-      changedTouches: [finalTouch],
-      bubbles: true,
-      cancelable: true,
-    }));
-  }, { from, to });
+  await element.evaluate(
+    async (node, { from: start, to: end }) => {
+      const rect = node.getBoundingClientRect();
+      const y = rect.top + rect.height / 2;
+      const touch = (x: number) =>
+        new Touch({
+          identifier: 1,
+          target: node,
+          clientX: rect.left + rect.width * x,
+          clientY: y,
+        });
+      const initial = touch(start);
+      node.dispatchEvent(
+        new TouchEvent('touchstart', {
+          touches: [initial],
+          targetTouches: [initial],
+          changedTouches: [initial],
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+      for (const fraction of [0.3, 0.65, 1]) {
+        const point = touch(start + (end - start) * fraction);
+        node.dispatchEvent(
+          new TouchEvent('touchmove', {
+            touches: [point],
+            targetTouches: [point],
+            changedTouches: [point],
+            bubbles: true,
+            cancelable: true,
+          }),
+        );
+        await new Promise(requestAnimationFrame);
+      }
+      const finalTouch = touch(end);
+      node.dispatchEvent(
+        new TouchEvent('touchend', {
+          touches: [],
+          targetTouches: [],
+          changedTouches: [finalTouch],
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    },
+    { from, to },
+  );
 }
 
 test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', () => {
@@ -117,7 +138,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       const originalDeadline = await page.evaluate(() => localStorage.getItem('kasana.quick-start-hidden-until-v1'));
       await page.reload();
       await expect(quickStart).toBeHidden();
-      expect(await page.evaluate(() => localStorage.getItem('kasana.quick-start-hidden-until-v1'))).toBe(originalDeadline);
+      expect(await page.evaluate(() => localStorage.getItem('kasana.quick-start-hidden-until-v1'))).toBe(
+        originalDeadline,
+      );
       await page.evaluate(() => {
         const key = 'kasana.quick-start-hidden-until-v1';
         const expired = String(Date.now() - 1);
@@ -135,7 +158,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await swipeElement(shell, 0.14, 0.74);
       const sidebarSheet = page.locator('[role="dialog"][data-state="open"]').first();
       await expect(sidebarSheet).toBeVisible();
-      await swipeElement(sidebarSheet.locator(':scope > div.h-full').first(), 0.80, 0.18);
+      await swipeElement(sidebarSheet, 0.8, 0.18);
       await expect(sidebarSheet).toBeHidden();
 
       // Swiping the four-item bottom navbar moves one destination at a time.
@@ -239,7 +262,10 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       for (const label of [/Dasbor|Dashboard/i, /Akun|Accounts/i, /Transaksi|Transactions/i, /Analitik|Analytics/i]) {
         await expect(mobileNav.getByRole('link', { name: label })).toBeVisible();
       }
-      const mobileNewTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();
+      const mobileNewTransaction = page
+        .locator('.shadow-header')
+        .getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i })
+        .first();
       await expect(mobileNewTransaction).toBeVisible();
       await mobileNewTransaction.click();
       const mobileForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
@@ -293,7 +319,10 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       const payeePickerTrigger = mobileForm.locator('[data-test="payee-select-field"]').first();
       await expect(payeePickerTrigger).toBeVisible();
       await payeePickerTrigger.click();
-      const payeePicker = page.getByRole('dialog').filter({ has: page.locator('[data-test="payee-select-search"]') }).last();
+      const payeePicker = page
+        .getByRole('dialog')
+        .filter({ has: page.locator('[data-test="payee-select-search"]') })
+        .last();
       await expect(payeePicker).toBeVisible();
       await payeePicker.locator('[data-test="payee-select-search"]').fill('recipient-that-does-not-exist');
       // A recipient search field can own keyboard handling; exercise the
@@ -309,7 +338,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         height: element.getBoundingClientRect().height,
       }));
       expect(mobileAmountMetrics.fontSize, '320px money input text should remain readable').toBeGreaterThanOrEqual(16);
-      expect(mobileAmountMetrics.height, '320px money input should have a full touch target').toBeGreaterThanOrEqual(43);
+      expect(mobileAmountMetrics.height, '320px money input should have a full touch target').toBeGreaterThanOrEqual(
+        43,
+      );
       const mobileSave = mobileForm.getByRole('button', { name: /Buat transaksi|Create transaction/i });
       await expect(mobileSave).toBeVisible();
       // Vaul animates the bottom sheet into the viewport. A nonzero box and
@@ -335,7 +366,10 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await primaryAmount.fill('1234');
       // On a short mobile viewport, templates must use a centered dialog with
       // reachable bottom actions, not a clipped nested bottom sheet.
-      await mobileForm.getByRole('button', { name: /^Templat|^Template/i }).first().click();
+      await mobileForm
+        .getByRole('button', { name: /^Templat|^Template/i })
+        .first()
+        .click();
       const templateDialog = page.getByRole('dialog', { name: /^Templat|^Template/i });
       await expect(templateDialog).toBeVisible();
       const templateBounds = await templateDialog.boundingBox();
@@ -387,7 +421,10 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await expect(mobileForm).toBeHidden();
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto('/dashboard');
-      const mobileDateTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();
+      const mobileDateTransaction = page
+        .locator('.shadow-header')
+        .getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i })
+        .first();
       await mobileDateTransaction.click();
       const mobileDateForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
       await expect(mobileDateForm).toBeVisible();
@@ -401,7 +438,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(mobilePickerBox!.y).toBeGreaterThanOrEqual(-2);
       expect(mobilePickerBox!.y + mobilePickerBox!.height).toBeLessThanOrEqual(846);
       const mobileUnusedScroll = await mobileDatePicker.evaluate((node) => node.scrollHeight - node.clientHeight);
-      expect(mobileUnusedScroll, '390px mobile date picker should not require needless scrolling').toBeLessThanOrEqual(2);
+      expect(mobileUnusedScroll, '390px mobile date picker should not require needless scrolling').toBeLessThanOrEqual(
+        2,
+      );
       await page.keyboard.press('Escape');
 
       // The accent is independent of light/dark mode and survives navigation

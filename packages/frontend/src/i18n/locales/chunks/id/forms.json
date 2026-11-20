@@ -610,6 +610,10 @@
     }
   },
   "fields": {
+    "accountSelect": {
+      "empty": "Belum ada akun",
+      "createHint": "Tambahkan akun untuk melanjutkan transaksi ini."
+    },
     "categorySelect": {
       "noCategoriesFound": "Tidak ada kategori ditemukan",
       "selectCategoryLabel": "Pilih kategori",

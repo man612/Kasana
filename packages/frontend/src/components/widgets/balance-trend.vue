@@ -3,7 +3,7 @@
     <template #title>
       <div class="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
         <span>{{ $t('dashboard.widgets.balanceTrend.title') }}</span>
-        <div class="w-full min-w-0 touch-pan-x overflow-x-auto overscroll-x-contain pb-0.5 sm:hidden">
+        <div data-no-nav-swipe class="w-full min-w-0 touch-pan-x overflow-x-auto overscroll-x-contain pb-0.5 sm:hidden">
           <div
             ref="filterRow"
             class="relative flex w-max gap-1"
@@ -122,45 +122,47 @@
 
         <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
         <Teleport to="body">
-          <div
-            v-show="tooltip.visible"
-            ref="tooltipRef"
-            class="pointer-events-none fixed isolate z-[100]"
-            :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
-          >
-            <ChartTooltip>
-              <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
+          <Transition name="lajur-chart-tooltip">
+            <div
+              v-show="tooltip.visible && !spikePanel.visible"
+              ref="tooltipRef"
+              class="pointer-events-none fixed isolate z-(--z-chart-floating) max-w-[calc(100vw-1.25rem)] [@media(pointer:coarse)]:motion-safe:transition-[left,top] [@media(pointer:coarse)]:motion-safe:duration-150"
+              :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
+            >
+              <ChartTooltip>
+                <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
 
-              <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
-                <template #value>
-                  {{ formatTooltipMoney(row.value)
-                  }}<span
-                    v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
-                    class="ml-1 text-xs font-medium"
-                    :class="deltaColorClass(row.delta)"
-                    >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
-                  >
-                </template>
-              </ChartTooltipRow>
+                <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
+                  <template #value>
+                    {{ formatTooltipMoney(row.value)
+                    }}<span
+                      v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
+                      class="ml-1 text-xs font-medium"
+                      :class="deltaColorClass(row.delta)"
+                      >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
+                    >
+                  </template>
+                </ChartTooltipRow>
 
-              <ChartTooltipDivider />
+                <ChartTooltipDivider />
 
-              <ChartTooltipRow
-                total
-                :label="$t('dashboard.widgets.balanceTrend.tooltip.total')"
-                :value="formatTooltipMoney(tooltip.totalBalance)"
-              />
+                <ChartTooltipRow
+                  total
+                  :label="$t('dashboard.widgets.balanceTrend.tooltip.total')"
+                  :value="formatTooltipMoney(tooltip.totalBalance)"
+                />
 
-              <div
-                v-if="tooltip.hasDelta"
-                class="mt-1 text-xs font-semibold tabular-nums"
-                :class="deltaColorClass(tooltip.deltaAbsolute)"
-              >
-                {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
-                ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
-              </div>
-            </ChartTooltip>
-          </div>
+                <div
+                  v-if="tooltip.hasDelta"
+                  class="mt-1 text-xs font-semibold tabular-nums"
+                  :class="deltaColorClass(tooltip.deltaAbsolute)"
+                >
+                  {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
+                  ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
+                </div>
+              </ChartTooltip>
+            </div>
+          </Transition>
         </Teleport>
 
         <!-- Spike transactions panel -->
@@ -284,7 +286,7 @@ import { differenceInDays, endOfDay, format, isSameMonth, min, startOfDay, subDa
 import { ChartLineIcon, ChartNoAxesCombinedIcon, ChevronDownIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import type { Ref } from 'vue';
-import { computed, inject, onMounted, onUnmounted, reactive, ref, useId, watch } from 'vue';
+import { computed, inject, nextTick, onMounted, onUnmounted, reactive, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -823,27 +825,20 @@ const { data: spikeTransactions, isLoading: isSpikeTransactionsLoading } = useQu
   staleTime: Infinity,
 });
 
+let spikeAnchor: { clientX: number; clientY: number } | null = null;
+const spikePanelElement = computed(() => spikePanelRef.value?.panelRef ?? null);
+const { updateTooltipPosition: positionSpikePanel } = useChartTooltipPosition({
+  containerRef,
+  tooltipRef: spikePanelElement,
+  tooltip: spikePanel,
+  strategy: 'fixed',
+});
+useResizeObserver(spikePanelElement, () => {
+  if (spikeAnchor && spikePanel.visible) positionSpikePanel(spikeAnchor);
+});
+
 function openSpikePanel({ event, spike }: { event: MouseEvent; spike: SpikePoint }) {
-  const PANEL_WIDTH = 338;
-  const PANEL_HEIGHT_ESTIMATE = 250;
-  const MARGIN = 12;
-
-  let x = event.clientX + MARGIN;
-  let y = event.clientY + MARGIN;
-
-  // Viewport boundary checks
-  if (x + PANEL_WIDTH > window.innerWidth) {
-    x = event.clientX - PANEL_WIDTH - MARGIN;
-  }
-  if (x < MARGIN) x = MARGIN;
-
-  if (y + PANEL_HEIGHT_ESTIMATE > window.innerHeight) {
-    y = event.clientY - PANEL_HEIGHT_ESTIMATE - MARGIN;
-  }
-  if (y < MARGIN) y = MARGIN;
-
-  spikePanel.x = x;
-  spikePanel.y = y;
+  spikeAnchor = { clientX: event.clientX, clientY: event.clientY };
   spikePanel.spikePoint = spike;
 
   // Compute per-component deltas from chartData
@@ -859,6 +854,9 @@ function openSpikePanel({ event, spike }: { event: MouseEvent; spike: SpikePoint
   }
 
   spikePanel.visible = true;
+  void nextTick(() => {
+    if (spikeAnchor && spikePanel.visible) positionSpikePanel(spikeAnchor);
+  });
 
   // Trigger transaction fetch by setting the date
   selectedSpikeDate.value = format(spike.date, 'yyyy-MM-dd');
@@ -866,6 +864,7 @@ function openSpikePanel({ event, spike }: { event: MouseEvent; spike: SpikePoint
 
 function closeSpikePanel() {
   spikePanel.visible = false;
+  spikeAnchor = null;
   spikePanel.spikePoint = null;
   spikePanel.accountsDelta = 0;
   spikePanel.portfoliosDelta = 0;
@@ -884,8 +883,9 @@ function navigateToSpikeTransactions() {
 
 // Close spike panel on click outside
 function handleDocumentClick(event: MouseEvent) {
-  if (!spikePanel.visible) return;
   const target = event.target as Element;
+  if (!svgRef.value?.contains(target)) tooltip.visible = false;
+  if (!spikePanel.visible) return;
   // Ignore clicks on spike markers — they have their own handler
   if (target.classList?.contains('spike-hit-area') || target.classList?.contains('spike-dot')) return;
   const panelEl = spikePanelRef.value?.panelRef;
@@ -895,9 +895,9 @@ function handleDocumentClick(event: MouseEvent) {
 }
 
 function handleEscapeKey(event: KeyboardEvent) {
-  if (event.key === 'Escape' && spikePanel.visible) {
-    closeSpikePanel();
-  }
+  if (event.key !== 'Escape') return;
+  tooltip.visible = false;
+  if (spikePanel.visible) closeSpikePanel();
 }
 
 onMounted(() => {
@@ -1121,7 +1121,9 @@ const renderChart = () => {
       hoverDot.style('opacity', 1);
       hoverLine.style('opacity', 0.5);
     })
-    .on('mousemove', (event: MouseEvent) => {
+    .on('mousemove click', (event: MouseEvent) => {
+      hoverDot.style('opacity', 1);
+      hoverLine.style('opacity', 0.5);
       const [mouseX] = d3.pointer(event);
       const x0 = xScale.invert(mouseX);
       const index = bisect(chartData.value, x0, 1);
@@ -1399,3 +1401,25 @@ watch(
   { flush: 'post' },
 );
 </script>
+
+<style scoped>
+.lajur-chart-tooltip-enter-active,
+.lajur-chart-tooltip-leave-active {
+  transition:
+    opacity 160ms ease,
+    scale 160ms ease;
+}
+
+.lajur-chart-tooltip-enter-from,
+.lajur-chart-tooltip-leave-to {
+  opacity: 0;
+  scale: 0.98;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lajur-chart-tooltip-enter-active,
+  .lajur-chart-tooltip-leave-active {
+    transition: none;
+  }
+}
+</style>

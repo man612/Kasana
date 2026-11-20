@@ -9,6 +9,8 @@ import { type HtmlHTMLAttributes, computed } from 'vue';
 import DrawerIndicator from './DrawerIndicator.vue';
 import DrawerOverlay from './DrawerOverlay.vue';
 
+defineOptions({ inheritAttrs: false });
+
 const props = defineProps<
   DialogContentProps & {
     class?: HtmlHTMLAttributes['class'];
@@ -32,7 +34,7 @@ const describedByAttrs = useDescribedByAttrs();
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerContent
-      v-bind="{ ...forwarded, ...describedByAttrs }"
+      v-bind="{ ...forwarded, ...describedByAttrs, ...$attrs }"
       :class="
         cn(
           'bg-dialog fixed inset-x-0 bottom-0 z-(--z-dialog) mt-24 flex h-auto max-h-[95vh] flex-col rounded-t-[10px] border pb-[env(safe-area-inset-bottom)]',

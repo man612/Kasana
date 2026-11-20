@@ -13,12 +13,14 @@ import {
   useForwardPropsEmits,
 } from 'reka-ui';
 import { type HTMLAttributes, computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 import { type SheetVariants, sheetVariants } from '../sheet';
 
 interface SheetContentProps extends DialogContentProps {
   class?: HTMLAttributes['class'];
   side?: SheetVariants['side'];
+  overlayClass?: HTMLAttributes['class'];
 }
 
 defineOptions({
@@ -31,22 +33,26 @@ const emits = defineEmits<DialogContentEmits>();
 
 const delegatedProps = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { class: _, side, ...delegated } = props;
+  const { class: _, side, overlayClass: _overlayClass, ...delegated } = props;
 
   return delegated;
 });
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 const describedByAttrs = useDescribedByAttrs();
+const { t } = useI18n();
 </script>
 
 <template>
   <DialogPortal>
     <DialogOverlay
-      :class="[
-        'fixed inset-0 z-(--z-dialog) bg-black/80',
-        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
-      ]"
+      :class="
+        cn(
+          'fixed inset-0 z-(--z-dialog) bg-black/80',
+          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+          props.overlayClass,
+        )
+      "
     />
     <DialogContent
       :class="cn(sheetVariants({ side }), props.class)"
@@ -63,7 +69,7 @@ const describedByAttrs = useDescribedByAttrs();
           'data-[state=open]:bg-secondary',
         ]"
       >
-        <Button size="icon" variant="secondary">
+        <Button size="icon" variant="secondary" :aria-label="t('common.ui.close')">
           <XIcon class="size-5" />
         </Button>
       </DialogClose>

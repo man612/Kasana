@@ -372,6 +372,10 @@
     }
   },
   "fields": {
+    "accountSelect": {
+      "empty": "Немає доступних рахунків",
+      "createHint": "Додайте рахунок, щоб продовжити роботу з цією транзакцією."
+    },
     "categorySelect": {
       "noCategoriesFound": "Категорій не знайдено",
       "selectCategoryLabel": "Виберіть категорію",

@@ -25,7 +25,7 @@ import * as validators from '@/js/helpers/validators';
 import { trackAnalyticsEvent } from '@/lib/posthog';
 import { useCurrenciesStore } from '@/stores';
 import { useOnboardingStore } from '@/stores/onboarding';
-import { ACCOUNT_CATEGORIES, isDedicatedFlowAccountCategory } from '@bt/shared/types';
+import { ACCOUNT_CATEGORIES, isDedicatedFlowAccountCategory, type AccountModel } from '@bt/shared/types';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { storeToRefs } from 'pinia';
 import { computed, reactive } from 'vue';
@@ -35,7 +35,7 @@ import { useRoute } from 'vue-router';
 const props = withDefaults(defineProps<{ formId?: string; showSubmitButton?: boolean }>(), {
   showSubmitButton: true,
 });
-const emit = defineEmits(['created']);
+const emit = defineEmits<{ created: [account: AccountModel] }>();
 
 const { t } = useI18n();
 const route = useRoute();
@@ -153,7 +153,7 @@ const submit = async () => {
   if (!canSubmit.value || !isFormValid()) return;
 
   try {
-    await createAccountMutation.mutateAsync({
+    const account = await createAccountMutation.mutateAsync({
       currencyCode: defaultCurrency.value,
       name: form.name.trim(),
       accountCategory: form.accountCategory,
@@ -184,7 +184,7 @@ const submit = async () => {
 
     useOnboardingStore().completeTask('create-account');
 
-    emit('created');
+    emit('created', account);
   } catch (error) {
     addNotification({
       text: error instanceof Error ? error.message : t('forms.createAccount.notifications.error'),

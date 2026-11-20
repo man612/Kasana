@@ -17,10 +17,18 @@
               :aria-required="required"
             >
               <template v-if="selected">
-                <AccountOptionRow :account="selected" :label="getLabel(selected)" variant="trigger" class="min-w-0 flex-1" />
+                <AccountOptionRow
+                  :account="selected"
+                  :label="getLabel(selected)"
+                  variant="trigger"
+                  class="min-w-0 flex-1"
+                />
               </template>
               <span v-else class="text-muted-foreground min-w-0 flex-1 truncate">{{ placeholder || label }}</span>
-              <ChevronDownIcon class="text-muted-foreground size-4 shrink-0 transition-transform duration-200" :class="mobileOpen && 'rotate-180'" />
+              <ChevronDownIcon
+                class="text-muted-foreground size-4 shrink-0 transition-transform duration-200"
+                :class="mobileOpen && 'rotate-180'"
+              />
             </button>
           </Dialog.DialogTrigger>
           <Dialog.DialogContent
@@ -33,7 +41,7 @@
               <Dialog.DialogTitle class="text-base font-semibold">{{ label || placeholder }}</Dialog.DialogTitle>
               <Dialog.DialogDescription class="sr-only">{{ placeholder || label }}</Dialog.DialogDescription>
               <input
-                v-if="withSearch"
+                v-if="withSearch && visibleAccounts.length"
                 v-model="mobileSearch"
                 type="search"
                 data-test="account-select-search"
@@ -54,14 +62,46 @@
                 @click="selectMobile(item)"
               >
                 <AccountOptionRow :account="item" :label="getLabel(item)" />
-                <StarIcon v-if="!item._isOutOfWallet && item.id === defaultAccountId" class="text-primary-text ml-auto size-3.5 shrink-0 fill-current" />
-                <CurrencyChip v-if="!item._isOutOfWallet && item.currencyCode !== 'IDR'" :code="item.currencyCode" class="ml-auto" />
+                <StarIcon
+                  v-if="!item._isOutOfWallet && item.id === defaultAccountId"
+                  class="text-primary-text ml-auto size-3.5 shrink-0 fill-current"
+                />
+                <CurrencyChip
+                  v-if="!item._isOutOfWallet && item.currencyCode !== 'IDR'"
+                  :code="item.currencyCode"
+                  class="ml-auto"
+                />
               </button>
-              <p v-if="!mobileAccounts.length" class="text-muted-foreground p-4 text-center text-sm">{{ $t('fields.select.selectOption') }}</p>
+              <div v-if="!hasSelectableAccounts" class="flex flex-col items-center gap-2 px-4 py-6 text-center">
+                <WalletIcon class="bg-muted text-muted-foreground size-10 rounded-full p-2.5" aria-hidden="true" />
+                <p class="text-sm font-semibold">{{ $t('fields.accountSelect.empty') }}</p>
+                <p v-if="allowCreate" class="text-muted-foreground text-sm">
+                  {{ $t('fields.accountSelect.createHint') }}
+                </p>
+                <Button v-if="allowCreate" class="mt-2 min-h-11" @click="openCreate">
+                  <PlusIcon class="size-4" />
+                  {{ $t('dialogs.manageTransaction.form.addNewAccountButton') }}
+                </Button>
+              </div>
+              <p v-else-if="!mobileAccounts.length" role="status" class="text-muted-foreground p-4 text-center text-sm">
+                {{ $t('fields.comboboxAccounts.noResults') }}
+              </p>
             </div>
-            <div v-if="$slots['select-bottom-content']" class="border-border border-t p-2">
+            <div v-if="hasSelectableAccounts && allowCreate" class="border-border border-t p-2">
+              <Button type="button" class="min-h-11 w-full justify-start" variant="ghost-primary" @click="openCreate">
+                <PlusIcon class="size-4" />
+                {{ $t('dialogs.manageTransaction.form.addNewAccountButton') }}
+              </Button>
+            </div>
+            <div v-else-if="!allowCreate && $slots['select-bottom-content']" class="border-border border-t p-2">
               <slot name="select-bottom-content" />
             </div>
+            <CreateAccountDialog
+              v-if="allowCreate"
+              v-model:open="isCreateOpen"
+              @created="createdAccount = $event"
+              @closed="returnFromCreate"
+            />
           </Dialog.DialogContent>
         </Dialog.Dialog>
         <button
@@ -70,14 +110,17 @@
           class="text-muted-foreground ml-1 flex size-11 shrink-0 items-center justify-center rounded-md"
           :aria-label="$t('common.actions.clear')"
           @click="selectMobile(null)"
-        ><XIcon class="size-4" /></button>
+        >
+          <XIcon class="size-4" />
+        </button>
         <slot name="field-right" />
       </div>
     </FieldLabel>
     <FieldError :error-message="errorMessage" />
   </div>
 
-  <SelectField v-else
+  <SelectField
+    v-else
     ref="selectFieldRef"
     :model-value="selected"
     :values="visibleAccounts"
@@ -140,6 +183,8 @@
 </template>
 
 <script setup lang="ts">
+import CreateAccountDialog from '@/components/dialogs/create-account-dialog.vue';
+import { Button } from '@/components/lib/ui/button';
 import CurrencyChip from '@/components/common/currency-chip.vue';
 import AccountOptionRow from '@/components/dialogs/manage-transaction/components/account-option-row.vue';
 import SelectField from '@/components/fields/select-field.vue';
@@ -150,7 +195,7 @@ import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-br
 import { OUT_OF_WALLET_ACCOUNT_MOCK } from '@/common/const';
 import { getAccountDisplayLabel } from '@/common/utils/account-display';
 import { filterDropdownAccounts, useAccountDropdownPrefs } from '@/composable/use-account-dropdown-prefs';
-import { ChevronDownIcon, StarIcon, XIcon } from '@lucide/vue';
+import { ChevronDownIcon, PlusIcon, StarIcon, WalletIcon, XIcon } from '@lucide/vue';
 import { AccountModel } from '@bt/shared/types';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -174,6 +219,7 @@ const props = withDefaults(
     clearable?: boolean;
     required?: boolean;
     withSearch?: boolean;
+    allowCreate?: boolean;
     optionDisabled?: (account: AccountModel) => boolean;
     /** Borderless trigger for a segment of a wider field; the host shows the currency. */
     embedded?: boolean;
@@ -195,14 +241,36 @@ const { t } = useI18n();
 const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const mobileOpen = ref(false);
 const mobileSearch = ref('');
+const isCreateOpen = ref(false);
+let createdAccount: AccountModel | undefined;
+let createTrigger: HTMLElement | null;
+const openCreate = (event: MouseEvent) => {
+  createTrigger = event.currentTarget as HTMLElement;
+  isCreateOpen.value = true;
+};
+const returnFromCreate = () => {
+  if (createdAccount) {
+    const account = createdAccount;
+    createdAccount = undefined;
+    selectMobile(account);
+  } else if (mobileOpen.value) {
+    createTrigger?.focus({ preventScroll: true });
+  }
+  createTrigger = null;
+};
 // Escape, backdrop taps and the close X should not preserve a stale filter.
 watch(mobileOpen, (open) => {
-  if (!open) mobileSearch.value = '';
+  if (!open) {
+    mobileSearch.value = '';
+    isCreateOpen.value = false;
+  }
 });
 const mobileAccounts = computed(() => {
   const search = mobileSearch.value.trim().toLowerCase();
   return search
-    ? visibleAccounts.value.filter((a) => getLabel(a).toLowerCase().includes(search) || a.currencyCode.toLowerCase().includes(search))
+    ? visibleAccounts.value.filter(
+        (a) => getLabel(a).toLowerCase().includes(search) || a.currencyCode.toLowerCase().includes(search),
+      )
     : visibleAccounts.value;
 });
 const selectMobile = (account: AccountOption | null) => {
@@ -217,10 +285,12 @@ const getLabel = (account: AccountOption) =>
   account._isOutOfWallet ? t(account.name) : getAccountDisplayLabel(account);
 
 const selectFieldRef = ref<{ open: () => void } | null>(null);
-defineExpose({ open: () => {
-  if (isMobile.value) mobileOpen.value = true;
-  else selectFieldRef.value?.open();
-} });
+defineExpose({
+  open: () => {
+    if (isMobile.value) mobileOpen.value = true;
+    else selectFieldRef.value?.open();
+  },
+});
 
 // Widen the selection to the option type so select-field's generic resolves to AccountOption.
 const selected = computed<AccountOption | null>(() => props.modelValue);
@@ -233,4 +303,5 @@ const visibleAccounts = computed<AccountOption[]>(() => {
   });
   return props.includeOutOfWallet ? [OUT_OF_WALLET_ACCOUNT_MOCK, ...accounts] : accounts;
 });
+const hasSelectableAccounts = computed(() => visibleAccounts.value.some((account) => !props.optionDisabled?.(account)));
 </script>

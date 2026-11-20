@@ -205,7 +205,7 @@ const onCloseAutoFocus = (event: Event) => {
           v-for="action in mobileFooterActions"
           :key="action.key"
           :variant="action.variant"
-          class="h-auto min-h-11 w-fit min-w-0 justify-start gap-2 px-3 text-left text-sm font-normal whitespace-normal transition-[opacity,color,background-color] data-[incomplete]:opacity-50"
+          class="h-auto min-h-11 w-fit min-w-0 gap-2 justify-self-end px-3 text-left text-sm font-normal whitespace-normal transition-[opacity,color,background-color] data-[incomplete]:opacity-50"
           :data-incomplete="action.disabled ? '' : undefined"
           :aria-description="action.disabled ? $t('dialogs.manageTransaction.templates.incompleteHint') : undefined"
           @click="chooseFooterAction({ action })"

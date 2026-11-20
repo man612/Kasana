@@ -3,7 +3,17 @@ import type { PickerOption } from '@/components/fields/option-picker-dialog.vue'
 import { VEHICLE_CLASS, VEHICLE_TYPES, type VehicleType } from '@bt/shared/types';
 import {
   AccessibilityIcon,
+  AmbulanceIcon,
   BikeIcon,
+  CarTaxiFrontIcon,
+  ConstructionIcon,
+  FootprintsIcon,
+  GaugeIcon,
+  MotorbikeIcon,
+  OrbitIcon,
+  PlaneTakeoffIcon,
+  RocketIcon,
+  SailboatIcon,
   BusIcon,
   PlaneIcon,
   ShipIcon,
@@ -96,15 +106,41 @@ export function buildVehicleClassOptions(translate: (key: string) => string): Pi
   });
 }
 
-const catalogueIcons = {
-  motorcycles: BikeIcon,
-  cars: CarIcon,
-  commercial: BusIcon,
-  mobility: AccessibilityIcon,
-  watercraft: ShipIcon,
-  aircraft: PlaneIcon,
-  fictional: SparklesIcon,
-  other: CircleEllipsisIcon,
+const catalogueGroups = {
+  motorcycles: { icon: MotorbikeIcon, tint: 'bg-warning/10 text-warning-text' },
+  cars: { icon: CarIcon, tint: 'bg-primary/10 text-primary-text' },
+  commercial: { icon: BusIcon, tint: 'bg-success/10 text-success-text' },
+  mobility: { icon: BikeIcon, tint: 'bg-muted text-foreground' },
+  watercraft: { icon: ShipIcon, tint: 'bg-app-transfer-color/10 text-app-transfer-color' },
+  aircraft: { icon: PlaneIcon, tint: 'bg-app-transfer-color/10 text-app-transfer-color' },
+  fictional: { icon: SparklesIcon, tint: 'bg-primary/10 text-primary-text' },
+  other: { icon: CircleEllipsisIcon, tint: 'bg-muted text-muted-foreground' },
+};
+
+const typeIcons: Partial<Record<VehicleType, Component>> = {
+  electricBike: ZapIcon,
+  ev: ZapIcon,
+  hybrid: ZapIcon,
+  sedan: CarFrontIcon,
+  hatchback: CarFrontIcon,
+  pickup: TruckIcon,
+  van: TruckIcon,
+  sportCar: GaugeIcon,
+  taxi: CarTaxiFrontIcon,
+  truck: TruckIcon,
+  emergency: AmbulanceIcon,
+  heavyEquipment: ConstructionIcon,
+  ebike: ZapIcon,
+  wheelchair: AccessibilityIcon,
+  powerchair: AccessibilityIcon,
+  boat: SailboatIcon,
+  yacht: SailboatIcon,
+  jet: PlaneTakeoffIcon,
+  ufo: OrbitIcon,
+  rocket: RocketIcon,
+  trex: FootprintsIcon,
+  velociraptor: FootprintsIcon,
+  triceratops: FootprintsIcon,
 };
 
 export function buildVehicleTypeOptions({
@@ -132,7 +168,9 @@ export function buildVehicleTypeOptions({
         value,
         label: translate(`forms.createVehicle.types.${value}`),
         group: translate(`forms.createVehicle.typeGroups.${group}`),
-        icon: catalogueIcons[group],
+        icon: typeIcons[value] ?? catalogueGroups[group].icon,
+        groupIcon: catalogueGroups[group].icon,
+        iconClass: catalogueGroups[group].tint,
       };
     }),
   ];

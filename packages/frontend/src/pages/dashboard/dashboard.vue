@@ -10,7 +10,8 @@
         cn([
           'bg-background/95 supports-backdrop-filter:bg-background/80 order-first -mx-6 -mt-1 mb-3 border-b py-2 backdrop-blur',
           'z-(--z-navbar)',
-          isEditMode && 'max-md:hidden',
+          '[overflow-anchor:none] motion-safe:transition-opacity motion-safe:duration-180',
+          isEditMode && 'max-md:pointer-events-none max-md:opacity-0',
           'max-md:px-3',
           'sticky top-(--header-height)',
           'md:order-first md:-mx-6 md:-mt-1 md:mb-2 md:border-b-0 md:px-6 md:py-1',
@@ -18,6 +19,7 @@
             'md:bg-card/95 md:supports-backdrop-filter:bg-card/95 dark:md:bg-background/95 dark:md:supports-backdrop-filter:bg-background/80 md:border-b dark:md:border-b-0',
         ])
       "
+      :inert="isEditMode && isMobileView"
     >
       <div class="grid grid-cols-[1fr_auto_1fr] items-center">
         <div />
@@ -37,18 +39,24 @@
       <DashboardOnboarding />
     </template>
     <template v-else>
-      <DashboardGrid ref="gridRef" class="max-md:mb-4" :current-period="currentPeriod" />
+      <DashboardGrid
+        ref="gridRef"
+        class="max-md:mb-4"
+        :class="isEditMode && 'max-md:pb-16'"
+        :current-period="currentPeriod"
+      />
 
-      <!-- Preserve the widget tree while the mobile editing action bar fades/slides. -->
-      <Transition name="kasana-section">
-        <DashboardEditToolbar
-          v-if="gridRef?.isEditMode"
-          class="bg-background/90 sticky bottom-0 z-(--z-navbar) -mx-6 -mb-8 justify-center border-t px-6 py-3 backdrop-blur-sm md:hidden"
-          :is-edit-mode="true"
-          @save="gridRef?.saveLayout()"
-          @cancel="gridRef?.cancelEdit()"
-        />
-      </Transition>
+      <Teleport to="body">
+        <Transition name="lajur-info-reveal">
+          <DashboardEditToolbar
+            v-if="isEditMode && isMobileView"
+            class="bg-background/95 fixed inset-x-0 bottom-[var(--bottom-navbar-height,4rem)] z-(--z-navbar) justify-center border-t px-6 py-3 backdrop-blur-sm"
+            :is-edit-mode="true"
+            @save="gridRef?.saveLayout()"
+            @cancel="gridRef?.cancelEdit()"
+          />
+        </Transition>
+      </Teleport>
     </template>
   </PageWrapper>
 </template>
@@ -64,6 +72,7 @@ import { getPayPeriod } from '@/composable/use-period-navigation';
 import { cn } from '@/lib/utils';
 import { useAccountsStore } from '@/stores';
 import { useScroll } from '@vueuse/core';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { isSameDay, parseISO } from 'date-fns';
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
@@ -86,6 +95,7 @@ defineOptions({
 
 const gridRef = ref<InstanceType<typeof DashboardGrid> | null>(null);
 const isEditMode = computed(() => gridRef.value?.isEditMode ?? false);
+const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 
 const scrollContainer = useScrollAreaContainer(SCROLL_AREA_IDS.dashboard);
 const { y: scrollY } = useScroll(() => scrollContainer.value?.viewportElement ?? null);

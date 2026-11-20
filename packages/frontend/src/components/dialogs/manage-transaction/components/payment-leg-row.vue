@@ -68,6 +68,7 @@ defineExpose({
       >
         <div class="flex min-w-0 flex-[2] items-center overflow-hidden">
           <AccountSelectField
+            allow-create
             class="min-w-0 flex-1"
             embedded
             :model-value="account"

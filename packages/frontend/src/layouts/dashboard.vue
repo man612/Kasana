@@ -89,21 +89,32 @@ const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile, {
   wait: 50,
 });
 
-const primarySwipeRoutes = [ROUTES_NAMES.home, ROUTES_NAMES.accounts, ROUTES_NAMES.transactions, ROUTES_NAMES.analytics];
+const primarySwipeRoutes = [
+  ROUTES_NAMES.home,
+  ROUTES_NAMES.accounts,
+  ROUTES_NAMES.transactions,
+  ROUTES_NAMES.analytics,
+];
 const scrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
 let dashboardTouch: { x: number; y: number } | null = null;
-const clearDashboardTouch = () => { dashboardTouch = null; };
+const clearDashboardTouch = () => {
+  dashboardTouch = null;
+};
 const onDashboardTouchStart = (event: TouchEvent) => {
-  const isHome = String(route.name ?? '') === ROUTES_NAMES.home;
-  if (!isMobileView.value || (!isHome && !mobilePageSwipeEnabled.value)
-    || isMobileSheetOpen.value || event.touches.length !== 1) return;
+  if (!isMobileView.value || !mobilePageSwipeEnabled.value || isMobileSheetOpen.value || event.touches.length !== 1)
+    return;
   const touch = event.touches[0]!;
   // Avoid the OS back-gesture edge and don't intercept buttons, fields, charts,
   // interactive widgets, or horizontal carousels.
-  if (touch.clientX < 24 || touch.clientX > window.innerWidth - 24) return;
-  if (touch.clientX > 84 && !mobilePageSwipeEnabled.value) return;
+  if (touch.clientX <= 62 || touch.clientX > window.innerWidth - 24) return;
   const target = event.target;
-  if (target instanceof Element && target.closest('button, input, select, textarea, a, nav, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe]')) return;
+  if (
+    target instanceof Element &&
+    target.closest(
+      'button, input, select, textarea, a, nav, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe]',
+    )
+  )
+    return;
   if (document.querySelector('[role="dialog"][data-state="open"], [aria-modal="true"]')) return;
   dashboardTouch = { x: touch.clientX, y: touch.clientY };
 };
@@ -115,11 +126,6 @@ const onDashboardTouchEnd = (event: TouchEvent) => {
   const dx = touch.clientX - start.x;
   const dy = touch.clientY - start.y;
   if (Math.abs(dx) <= 100 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
-  if (dx > 0 && String(route.name ?? '') === ROUTES_NAMES.home) {
-    isMobileSheetOpen.value = true;
-    return;
-  }
-  if (!mobilePageSwipeEnabled.value || start.x <= 84) return;
   const current = primarySwipeRoutes.indexOf(String(route.name) as typeof ROUTES_NAMES.home);
   if (current < 0) return;
   const next = current + (dx < 0 ? 1 : -1);

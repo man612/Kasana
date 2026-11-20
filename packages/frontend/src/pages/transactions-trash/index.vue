@@ -106,7 +106,7 @@ const isRestoreAllOpen = ref(false);
 const isBulkBusy = computed(() => isEmptyingAll.value || restore.isPending.value || remove.isPending.value);
 const restoreAll = () => {
   if (isBulkBusy.value || isDemo.value || !rows.value.length) return;
-  restore.mutate({ all: true });
+  restore.mutate({ all: true }, { onSuccess: () => (isRestoreAllOpen.value = false) });
 };
 
 const restoreSelected = () => {
@@ -230,6 +230,7 @@ const deleteSelected = () => {
       v-model:open="isRestoreAllOpen"
       :confirm-label="$t('transactions.trashPage.restoreAll')"
       :confirm-disabled="isBulkBusy"
+      :confirm-loading="restore.isPending.value"
       @confirm="restoreAll"
     >
       <template #title>{{ $t('transactions.trashPage.restoreAllTitle') }}</template>
@@ -257,7 +258,7 @@ const deleteSelected = () => {
       v-model:open="isDeleteConfirmOpen"
       :confirm-label="$t('transactions.trashPage.deletePermanently')"
       confirm-variant="destructive"
-      :confirm-disabled="remove.isPending.value"
+      :confirm-loading="remove.isPending.value"
       @confirm="deleteSelected"
     >
       <template #title>{{ $t('transactions.trashPage.deleteConfirmTitle') }}</template>
@@ -267,8 +268,7 @@ const deleteSelected = () => {
       v-model:open="isEmptyAllConfirmOpen"
       :confirm-label="$t('transactions.trashPage.emptyAll')"
       confirm-variant="destructive"
-      :confirm-disabled="isEmptyingAll"
-      :backdrop-dismissible="!isEmptyingAll"
+      :confirm-loading="isEmptyingAll"
       @confirm="deleteAll"
     >
       <template #title>{{ $t('transactions.trashPage.emptyAllConfirmTitle') }}</template>

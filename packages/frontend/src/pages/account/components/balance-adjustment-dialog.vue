@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
-import { vAnimateDialogHeight } from '@/composable/animate-dialog-height';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
@@ -136,7 +136,7 @@ watch(mode, (next, previous) => {
   <ResponsiveDialog v-model:open="isOpen" :dismissible="!isPending" @closed="emit('close')">
     <template #title>{{ label('title') }}</template>
 
-    <div v-animate-dialog-height data-state="open" class="grid gap-4 py-2">
+    <div class="grid gap-4 py-2">
       <!-- Shared sliding selection for balance and vehicle value override. -->
       <div
         class="border-border bg-muted/20 relative grid grid-cols-2 gap-1 rounded-lg border p-1"
@@ -145,7 +145,7 @@ watch(mode, (next, previous) => {
       >
         <span
           aria-hidden="true"
-          class="bg-dialog pointer-events-none absolute top-1 bottom-1 left-1 rounded-md shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none"
+          class="bg-dialog pointer-events-none absolute top-1 bottom-1 left-1 rounded-md shadow-sm transition-transform duration-220 ease-out motion-reduce:transition-none"
           style="width: calc(50% - 6px)"
           :style="{ transform: mode === 'adjust-by' ? 'translateX(calc(100% + 4px))' : 'translateX(0)' }"
         />
@@ -180,8 +180,8 @@ watch(mode, (next, previous) => {
       />
 
       <!-- Direction toggle — Income/Expense with color coding -->
-      <Transition name="lajur-form-panel">
-        <div v-if="mode === 'adjust-by'" class="flex gap-1.5" role="group" :aria-label="label('adjustByAmount')">
+      <LayoutCollapse :open="mode === 'adjust-by'" class="-mt-4">
+        <div class="mt-4 flex gap-1.5" role="group" :aria-label="label('adjustByAmount')">
           <button
             type="button"
             :class="
@@ -213,7 +213,7 @@ watch(mode, (next, previous) => {
             {{ label('expense') }}
           </button>
         </div>
-      </Transition>
+      </LayoutCollapse>
 
       <!-- Live preview panel — fixed min-height to prevent layout shift -->
       <div class="border-border bg-muted/20 flex min-h-[calc(2lh+2rem)] flex-col justify-center rounded-lg border p-4">

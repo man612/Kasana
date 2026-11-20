@@ -55,7 +55,7 @@ const lockedPosition = computed(() => (lockedSide.value ? { side: lockedSide.val
       enter-active-class="transition-opacity duration-200 ease-out motion-reduce:transition-none"
       enter-from-class="opacity-0"
       enter-to-class="opacity-100"
-      leave-active-class="transition-opacity duration-150 ease-in motion-reduce:transition-none"
+      leave-active-class="pointer-events-none transition-opacity duration-180 ease-in motion-reduce:transition-none"
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
@@ -73,7 +73,7 @@ const lockedPosition = computed(() => (lockedSide.value ? { side: lockedSide.val
       :style="{ maxHeight: 'min(calc(100dvh - 1.5rem), var(--reka-popover-content-available-height, 100dvh))' }"
       :class="
         cn(
-          'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-(--z-over-dialog) w-72 overflow-y-auto overscroll-contain rounded-md border p-4 shadow-md outline-hidden',
+          'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-(--z-over-dialog) w-72 overflow-y-auto overscroll-contain rounded-md border p-4 shadow-md outline-hidden duration-180 motion-reduce:animate-none!',
           props.class,
         )
       "

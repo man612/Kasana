@@ -35,7 +35,7 @@ import { useExchangeRates } from '@/composable/data-queries/currencies';
 import { useFormValidation } from '@/composable/form-validator';
 import { useCurrencyName, useFormatCurrency } from '@/composable/formatters';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
-import { formatUIAmount, toLocalCurrencyNumber } from '@/js/helpers';
+import { formatUIAmount } from '@/js/helpers';
 import { flattenCategories } from '@/pages/import-export/utils/flatten-categories';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useAccountsStore, useCategoriesStore, useCurrenciesStore, useTagsStore, useUserStore } from '@/stores';
@@ -1592,15 +1592,12 @@ const editableAmountFieldRef = computed(() =>
   isMultiAccount.value ? paymentLegsFieldRef.value : amountFieldRef.value,
 );
 
-const paymentTotalLabel = computed(() =>
-  toLocalCurrencyNumber(
-    sumPaymentRows({
-      mainAmount: form.value.amount,
-      legs: form.value.paymentLegs ?? [],
-      mainCurrencyCode: form.value.account?.currencyCode,
-    }),
-    { currency: currencyCode.value },
-  ),
+const paymentTotalAmount = computed(() =>
+  sumPaymentRows({
+    mainAmount: form.value.amount,
+    legs: form.value.paymentLegs ?? [],
+    mainCurrencyCode: form.value.account?.currencyCode,
+  }),
 );
 const targetAmountFieldRef = ref<InstanceType<typeof FormattedAmountField> | null>(null);
 const categoryFieldRef = ref<InstanceType<typeof CategorySelectField> | null>(null);
@@ -2253,37 +2250,19 @@ onUnmounted(() => {
                  debounced JS mobile flag after a viewport rotation/resize. -->
             <div data-testid="transaction-amount-date-stack" class="max-md:flex max-md:flex-col max-md:gap-y-2">
               <form-row>
-                <DesktopOnlyTooltip
-                  v-if="isMultiAccount"
-                  :content="$t('dialogs.manageTransaction.form.paymentLegs.amountLockedHint')"
-                >
-                  <div class="cursor-not-allowed">
-                    <input-field
-                      trailing-icon-css-class="px-2"
-                      :model-value="currencyCode === 'IDR' ? 'Rp' + paymentTotalLabel : paymentTotalLabel"
-                      :label="$t('dialogs.manageTransaction.form.amountLabel')"
-                      type="text"
-                      readonly
-                      class="[&_input]:bg-muted [&_input]:cursor-default"
-                      tabindex="-1"
-                      :disabled="true"
-                    >
-                      <template #iconTrailing>
-                        <CurrencyChip v-if="currencyCode && currencyCode !== 'IDR'" :code="currencyCode" />
-                      </template>
-                    </input-field>
-                  </div>
-                </DesktopOnlyTooltip>
                 <FormattedAmountField
-                  v-else
                   ref="amountFieldRef"
-                  v-model="form.amount"
+                  :model-value="isMultiAccount ? Number(paymentTotalAmount) : form.amount"
                   :currency-code="currencyCode"
                   :label="$t('dialogs.manageTransaction.form.amountLabel')"
-                  :disabled="isFormFieldsDisabled || isAmountFieldDisabled"
+                  :disabled="isMultiAccount || isFormFieldsDisabled || isAmountFieldDisabled"
                   :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
-                  :error-message="amountErrorMessage"
+                  :error-message="isMultiAccount ? undefined : amountErrorMessage"
                   :autofocus="!hasUsedMultiAccount"
+                  :title="
+                    isMultiAccount ? $t('dialogs.manageTransaction.form.paymentLegs.amountLockedHint') : undefined
+                  "
+                  @update:model-value="form.amount = $event"
                   @blur="onAmountBlur"
                 >
                   <template #iconTrailing>

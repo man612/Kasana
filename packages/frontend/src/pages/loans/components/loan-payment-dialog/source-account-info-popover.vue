@@ -1,22 +1,23 @@
 <script lang="ts" setup>
+import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import { Button } from '@/components/lib/ui/button';
-import * as Popover from '@/components/lib/ui/popover';
+import { ref } from 'vue';
+
+const isOpen = ref(false);
 </script>
 
 <template>
-  <Popover.Popover>
-    <Popover.PopoverTrigger as-child>
-      <Button variant="link" class="text-foreground h-auto gap-1 p-0 font-medium underline decoration-dotted">
+  <ResponsiveDialog v-model:open="isOpen" raised mobile-presentation="center">
+    <template #trigger>
+      <Button variant="link" class="text-foreground h-auto p-0 font-medium underline decoration-dotted">
         {{ $t('dialogs.loanPayment.sourceInfo.trigger') }}
       </Button>
-    </Popover.PopoverTrigger>
-    <Popover.PopoverContent class="w-90 max-w-[calc(100vw-2rem)]" side="top" align="start">
-      <h3 class="mb-2 font-semibold">{{ $t('dialogs.loanPayment.sourceInfo.title') }}</h3>
-      <div class="text-muted-foreground space-y-2 text-sm">
-        <p>{{ $t('dialogs.loanPayment.sourceInfo.manualOnly') }}</p>
-        <p>{{ $t('dialogs.loanPayment.sourceInfo.whySynced') }}</p>
-        <p>{{ $t('dialogs.loanPayment.sourceInfo.howToLink') }}</p>
-      </div>
-    </Popover.PopoverContent>
-  </Popover.Popover>
+    </template>
+    <template #title>{{ $t('dialogs.loanPayment.sourceInfo.title') }}</template>
+    <template #description>{{ $t('dialogs.loanPayment.sourceInfo.manualOnly') }}</template>
+    <div class="text-muted-foreground space-y-2 px-1 text-sm">
+      <p>{{ $t('dialogs.loanPayment.sourceInfo.whySynced') }}</p>
+      <p>{{ $t('dialogs.loanPayment.sourceInfo.howToLink') }}</p>
+    </div>
+  </ResponsiveDialog>
 </template>

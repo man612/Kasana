@@ -270,6 +270,7 @@ const submit = async () => {
       :options="vehicleClassOptions"
       :label="$t('forms.createVehicle.vehicleClassLabel')"
       :placeholder="$t('forms.createVehicle.vehicleClassPlaceholder')"
+      collapsible-groups
       :search-placeholder="$t('forms.createVehicle.searchTypes')"
       :no-results-label="$t('forms.createVehicle.noTypes')"
       @update:model-value="selectVehicleType"

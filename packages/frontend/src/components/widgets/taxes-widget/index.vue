@@ -209,7 +209,7 @@ const averageLineOffset = computed(() => 1 - windowMonths.value / (bars.value.le
             <SettingsIcon class="text-muted-foreground size-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent class="w-64 overflow-hidden p-0" align="end">
+        <PopoverContent dim-backdrop class="w-64 overflow-hidden p-0" align="end">
           <SlidingPanels v-model="settingsView" :panels="['main', 'months']">
             <template #main>
               <div class="flex flex-col">

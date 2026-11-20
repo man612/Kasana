@@ -94,8 +94,10 @@ test('combined category dialog, vehicle picker/disclaimer and fractional IDR cas
     await expect(year).toHaveValue('2021');
     await edit.getByRole('button', { name: /^(Kategori kendaraan|Vehicle (class|category))$/i }).click();
     const classes = page.getByRole('dialog').last();
-    // The vehicle type catalogue is extensible; verify its choices without fixing the old seven-class count.
-    expect(await classes.locator('button[aria-pressed]').count()).toBeGreaterThan(7);
+    const cars = classes.getByRole('button', { name: /^(Mobil|Cars)$/i });
+    await expect(cars).toHaveAttribute('aria-expanded', 'false');
+    await cars.click();
+    await expect(cars).toHaveAttribute('aria-expanded', 'true');
     await expect(classes.getByRole('button', { name: /^SUV$/i })).toBeVisible();
     await classes.getByRole('button', { name: /SUV/i }).click();
     // Wait for the nested picker to unmount before using the parent close action.

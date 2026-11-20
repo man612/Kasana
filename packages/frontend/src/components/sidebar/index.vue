@@ -14,18 +14,21 @@ const { isCollapsed } = useSidebarCollapsed();
 </script>
 
 <template>
-  <component :is="mobileView ? 'div' : Card" class="flex h-full w-75 flex-col rounded-none max-md:w-auto">
-    <CardHeader class="h-16 px-4 py-3">
+  <component :is="mobileView ? 'div' : Card" class="flex h-full w-75 min-w-0 flex-col rounded-none max-md:w-auto">
+    <CardHeader class="h-16 shrink-0 px-4 py-3" :class="mobileView ? 'pr-16' : ''">
       <div class="flex h-full items-center">
         <div class="truncate text-[17px] leading-5 font-semibold tracking-tight">{{ APP_BRAND.name }}</div>
       </div>
     </CardHeader>
-    <CardContent class="flex max-h-[calc(100%-64px)] grow flex-col gap-3 px-3 pt-0 pb-3 sm:p-3 sm:pt-0">
-      <nav class="grid gap-0.5">
+    <CardContent class="flex min-h-0 grow flex-col gap-3 px-3 pt-0 pb-3 sm:p-3 sm:pt-0">
+      <nav
+        class="grid shrink-0 gap-0.5"
+        :class="mobileView ? 'max-h-[35dvh] overflow-y-auto [&_span]:wrap-anywhere [&_span]:whitespace-normal' : ''"
+      >
         <NavigationLinks />
       </nav>
       <div class="bg-border/50 mx-1 h-px" />
-      <AccountsView />
+      <AccountsView :class="mobileView ? 'min-h-0!' : ''" />
       <div v-if="!mobileView" class="bg-border/50 mx-1 h-px" />
       <UserMenu :elevated="mobileView">
         <template #trailing>

@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
+import { Button } from '@/components/lib/ui/button';
+import { createReusableTemplate } from '@vueuse/core';
 import InputField from '@/components/fields/input-field.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import * as Dialog from '@/components/lib/ui/dialog';
-import { CheckIcon, ChevronRightIcon, PencilIcon } from '@lucide/vue';
+import { CheckIcon, ChevronDownIcon, ChevronRightIcon, PencilIcon, SearchIcon } from '@lucide/vue';
 import { computed, ref, watch, type Component } from 'vue';
 
 export interface PickerOption {
@@ -14,6 +17,7 @@ export interface PickerOption {
   group?: string;
   icon?: Component;
   iconClass?: string;
+  groupIcon?: Component;
 }
 
 const props = withDefaults(
@@ -27,6 +31,7 @@ const props = withDefaults(
     required?: boolean;
     iconOnly?: boolean;
     searchPlaceholder?: string;
+    collapsibleGroups?: boolean;
     noResultsLabel?: string;
   }>(),
   { disabled: false, required: false },
@@ -34,9 +39,30 @@ const props = withDefaults(
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>();
 const isOpen = ref(false);
 const query = ref('');
+const expandedGroups = ref<string[]>([]);
+const [DefineOption, ReuseOption] = createReusableTemplate<{ option: PickerOption; showGroup?: boolean }>();
+const groupedOptions = computed(() => {
+  const groups = new Map<string, PickerOption[]>();
+  for (const option of props.options) {
+    const group = option.group ?? '';
+    const options = groups.get(group);
+    if (options) options.push(option);
+    else groups.set(group, [option]);
+  }
+  return [...groups.entries()];
+});
+const showGroups = computed(() => props.collapsibleGroups && !query.value.trim());
+const toggleGroup = (group: string) => {
+  expandedGroups.value = expandedGroups.value.includes(group)
+    ? expandedGroups.value.filter((item) => item !== group)
+    : [...expandedGroups.value, group];
+};
 const heading = ref<HTMLElement | null>(null);
 watch(isOpen, (open) => {
-  if (!open) query.value = '';
+  if (!open) {
+    query.value = '';
+    expandedGroups.value = [];
+  }
 });
 const visibleOptions = computed(() => {
   const term = query.value.trim().toLocaleLowerCase();
@@ -57,6 +83,33 @@ const pick = (value: string) => {
 </script>
 
 <template>
+  <DefineOption v-slot="{ option, showGroup }">
+    <Button
+      variant="ghost"
+      type="button"
+      class="hover:bg-muted/60 focus-visible:ring-ring h-auto min-h-11 w-full justify-start rounded-lg px-3 py-2 text-left whitespace-normal transition-colors focus-visible:ring-2 focus-visible:outline-none"
+      :class="modelValue === option.value && 'bg-primary/10'"
+      :aria-pressed="modelValue === option.value"
+      @click="pick(option.value)"
+    >
+      <span
+        v-if="option.icon"
+        class="flex size-9 shrink-0 items-center justify-center rounded-lg"
+        :class="option.iconClass ?? 'bg-muted text-muted-foreground'"
+      >
+        <component :is="option.icon" class="size-4" />
+      </span>
+      <span class="min-w-0 flex-1">
+        <span class="block text-sm font-medium">{{ option.label }}</span>
+        <span
+          v-if="option.description || (showGroup && option.group)"
+          class="text-muted-foreground mt-0.5 block text-xs leading-relaxed"
+          >{{ showGroup && option.group ? option.group : option.description }}</span
+        >
+      </span>
+      <CheckIcon v-if="modelValue === option.value" class="text-primary-text size-4 shrink-0" />
+    </Button>
+  </DefineOption>
   <FieldLabel :label="iconOnly ? undefined : label" only-template>
     <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
     <template #label-after>
@@ -105,12 +158,12 @@ const pick = (value: string) => {
         @open-auto-focus="onOpenAutoFocus"
         class="data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 grid max-h-[min(85dvh,700px)] w-[calc(100vw-2rem)] max-w-lg grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-2xl p-0 motion-reduce:animate-none"
       >
-        <div ref="heading" tabindex="-1" class="border-border relative border-b px-4 py-4 pr-14 outline-none">
+        <div ref="heading" tabindex="-1" class="border-border relative border-b px-4 py-4 outline-none">
           <div v-if="$slots['header-action']" class="absolute top-3 right-12 z-10">
             <slot name="header-action" />
           </div>
-          <Dialog.DialogTitle class="text-base font-semibold">{{ label }}</Dialog.DialogTitle>
-          <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs">
+          <Dialog.DialogTitle class="pr-14 text-base font-semibold">{{ label }}</Dialog.DialogTitle>
+          <Dialog.DialogDescription class="text-muted-foreground mt-1 pr-14 text-xs">
             {{ placeholder ?? label }}
           </Dialog.DialogDescription>
           <InputField
@@ -119,10 +172,43 @@ const pick = (value: string) => {
             class="mt-2"
             :placeholder="searchPlaceholder"
             :aria-label="searchPlaceholder"
-          />
+            leading-icon-css-class="pointer-events-none px-3"
+          >
+            <template #iconLeading>
+              <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
+            </template>
+          </InputField>
         </div>
         <div class="lajur-dialog-scroll min-h-0 space-y-1 overflow-y-auto overscroll-contain p-3">
-          <TransitionGroup name="lajur-info-reveal">
+          <template v-if="showGroups">
+            <div v-for="[group, options] in groupedOptions" :key="group">
+              <Button
+                v-if="group"
+                variant="ghost"
+                class="h-auto min-h-12 w-full justify-start rounded-lg px-2 text-left whitespace-normal"
+                :aria-expanded="expandedGroups.includes(group)"
+                @click="toggleGroup(group)"
+              >
+                <span
+                  class="grid size-9 shrink-0 place-items-center rounded-lg"
+                  :class="options[0]?.iconClass ?? 'bg-muted text-muted-foreground'"
+                >
+                  <component :is="options[0]?.groupIcon ?? options[0]?.icon" class="size-4" />
+                </span>
+                <span class="min-w-0 flex-1">{{ group }}</span>
+                <ChevronDownIcon
+                  class="text-muted-foreground size-4 shrink-0 motion-safe:transition-transform motion-safe:duration-200"
+                  :class="expandedGroups.includes(group) && 'rotate-180'"
+                />
+              </Button>
+              <LayoutCollapse :open="!group || expandedGroups.includes(group)">
+                <div class="border-border/70 ml-6 border-l pl-2">
+                  <ReuseOption v-for="option in options" :key="option.value" :option="option" />
+                </div>
+              </LayoutCollapse>
+            </div>
+          </template>
+          <TransitionGroup v-else name="lajur-info-reveal">
             <p
               v-if="!visibleOptions.length && noResultsLabel"
               key="empty"
@@ -133,34 +219,17 @@ const pick = (value: string) => {
             </p>
             <div v-for="(option, index) in visibleOptions" :key="option.value">
               <p
-                v-if="option.group && (index === 0 || option.group !== visibleOptions[index - 1]?.group)"
+                v-if="
+                  !collapsibleGroups &&
+                  option.group &&
+                  (index === 0 || option.group !== visibleOptions[index - 1]?.group)
+                "
                 class="text-muted-foreground px-3 pt-3 pb-1 text-[10px] font-semibold tracking-wider uppercase"
                 :class="index === 0 && 'pt-1'"
               >
                 {{ option.group }}
               </p>
-              <button
-                type="button"
-                class="hover:bg-muted/60 focus-visible:ring-ring flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
-                :class="modelValue === option.value && 'bg-primary/10'"
-                :aria-pressed="modelValue === option.value"
-                @click="pick(option.value)"
-              >
-                <span
-                  v-if="option.icon"
-                  class="bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg"
-                  :class="option.iconClass"
-                >
-                  <component :is="option.icon" class="size-4" />
-                </span>
-                <span class="min-w-0 flex-1">
-                  <span class="block text-sm font-medium">{{ option.label }}</span>
-                  <span v-if="option.description" class="text-muted-foreground mt-0.5 block text-xs leading-relaxed">{{
-                    option.description
-                  }}</span>
-                </span>
-                <CheckIcon v-if="modelValue === option.value" class="text-primary size-4 shrink-0" />
-              </button>
+              <ReuseOption :option="option" :show-group="!!collapsibleGroups" />
             </div>
           </TransitionGroup>
         </div>

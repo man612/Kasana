@@ -29,7 +29,12 @@
                 :aria-label="$t('accounts.actionsMenu')"
                 :aria-expanded="isActionsMenuOpen"
               >
-                <PlusIcon :class="['size-4 transition-transform duration-200 motion-reduce:transition-none', isActionsMenuOpen && 'rotate-45']" />
+                <PlusIcon
+                  :class="[
+                    'size-4 transition-transform duration-200 motion-reduce:transition-none',
+                    isActionsMenuOpen && 'rotate-45',
+                  ]"
+                />
               </UiButton>
             </Popover.PopoverTrigger>
             <Popover.PopoverContent
@@ -39,13 +44,21 @@
               class="w-60 space-y-1 rounded-xl p-2"
             >
               <p class="text-muted-foreground px-3 py-1 text-xs font-medium">{{ $t('accounts.actionsMenu') }}</p>
-              <UiButton variant="ghost" class="min-h-11 w-full justify-start gap-3" @click="openMobileCreateAction('vehicle')">
-                <CarIcon class="size-5" />
-                {{ $t('accounts.createVehicle') }}
-              </UiButton>
-              <UiButton variant="ghost" class="min-h-11 w-full justify-start gap-3" @click="openMobileCreateAction('account')">
+              <UiButton
+                variant="ghost"
+                class="min-h-11 w-full justify-start gap-3"
+                @click="openMobileCreateAction('account')"
+              >
                 <PlusIcon class="size-5" />
                 {{ $t('accounts.createAccount') }}
+              </UiButton>
+              <UiButton
+                variant="ghost"
+                class="min-h-11 w-full justify-start gap-3"
+                @click="openMobileCreateAction('vehicle')"
+              >
+                <CarIcon class="size-5" />
+                {{ $t('accounts.createVehicle') }}
               </UiButton>
             </Popover.PopoverContent>
           </Popover.Popover>
@@ -104,7 +117,11 @@
             </div>
           </AccountsSection>
 
-          <AccountsSection v-if="connectionRows.length" :title="$t('accounts.sections.bankConnections')" :count="bankConnectionsCount">
+          <AccountsSection
+            v-if="connectionRows.length"
+            :title="$t('accounts.sections.bankConnections')"
+            :count="bankConnectionsCount"
+          >
             <template #action>
               <UiButton size="sm" @click="openAddIntegrationDialog">
                 <LinkIcon class="size-4" />
@@ -190,14 +207,18 @@
       </template>
 
       <template v-else>
-        <section class="border-border/70 bg-card mx-auto mt-8 max-w-xl rounded-2xl border px-5 py-9 text-center sm:px-10">
-          <div class="bg-primary/10 text-primary-text mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl">
+        <section
+          class="border-border/70 bg-card mx-auto mt-8 max-w-xl rounded-2xl border px-5 py-9 text-center sm:px-10"
+        >
+          <div
+            class="bg-primary/10 text-primary-text mx-auto mb-5 flex size-12 items-center justify-center rounded-2xl"
+          >
             <LandmarkIcon class="size-6" />
           </div>
           <h3 class="text-foreground text-xl font-semibold tracking-tight">Mulai dari rekening pertamamu</h3>
           <p class="text-muted-foreground mx-auto mt-3 max-w-md text-sm leading-relaxed">
-            Catat saldo BCA, BRI, Mandiri, BNI, Jago, DANA, GoPay, atau uang tunai.
-            Semuanya bisa dikelola secara manual dalam Rupiah tanpa menghubungkan akun bank.
+            Catat saldo BCA, BRI, Mandiri, BNI, Jago, DANA, GoPay, atau uang tunai. Semuanya bisa dikelola secara manual
+            dalam Rupiah tanpa menghubungkan akun bank.
           </p>
           <div class="mx-auto mt-7 flex max-w-sm flex-col gap-3">
             <CreateAccountDialog>
@@ -212,7 +233,8 @@
             </UiButton>
           </div>
           <p class="text-muted-foreground mx-auto mt-4 max-w-sm text-xs leading-relaxed">
-            Sinkronisasi otomatis bank Indonesia belum tersedia secara bawaan. Jangan memasukkan PIN atau password m-banking ke penyedia yang tidak mendukung bankmu.
+            Sinkronisasi otomatis bank Indonesia belum tersedia secara bawaan. Jangan memasukkan PIN atau password
+            m-banking ke penyedia yang tidak mendukung bankmu.
           </p>
         </section>
       </template>

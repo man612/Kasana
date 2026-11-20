@@ -1,9 +1,10 @@
 <template>
-  <template v-if="accounts.length || account">
+  <template v-if="accounts.length || account || isMobile">
     <template v-if="isTransferTransaction && !isTransactionLinking">
       <form-row>
         <AccountSelectField
           data-test="account-select-field"
+          allow-create
           :label="$t('dialogs.manageTransaction.form.fromAccountLabel')"
           :placeholder="$t('dialogs.manageTransaction.form.selectAccountPlaceholder')"
           :accounts="accounts"
@@ -52,6 +53,7 @@
             <form-row v-if="destinationType === 'account'" key="account">
               <div class="grid min-w-0 grid-cols-1 items-end gap-2" :class="showTargetAmount && 'sm:grid-cols-2'">
                 <AccountSelectField
+                  allow-create
                   :label="$t('dialogs.manageTransaction.form.toAccountLabel')"
                   :placeholder="$t('dialogs.manageTransaction.form.selectAccountPlaceholder')"
                   :accounts="filteredAccounts"
@@ -127,6 +129,7 @@
       <form-row>
         <AccountSelectField
           data-test="account-select-field"
+          allow-create
           :label="$t('dialogs.manageTransaction.form.accountLabel')"
           :placeholder="$t('dialogs.manageTransaction.form.selectAccountPlaceholder')"
           :accounts="accounts"
@@ -192,6 +195,7 @@
 </template>
 
 <script setup lang="ts">
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import CreateAccountDialog from '@/components/dialogs/create-account-dialog.vue';
 import AccountSelectField from '@/components/fields/account-select-field.vue';
@@ -219,6 +223,8 @@ const DESTINATION_TYPE_META: Record<TransferDestinationType, { labelKey: string;
   portfolio: { labelKey: 'dialogs.manageTransaction.form.destinationTypePortfolio', icon: BriefcaseIcon },
   loan: { labelKey: 'dialogs.manageTransaction.form.destinationTypeLoan', icon: HandCoinsIcon },
 };
+
+const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 
 const props = withDefaults(
   defineProps<{

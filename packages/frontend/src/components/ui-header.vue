@@ -26,26 +26,24 @@
               </Button>
             </Sheet.SheetTrigger>
             <Sheet.SheetContent
+              data-mobile-sidebar
               side="left"
-              :style="sidebarDragStyle"
-              :class="[
-                'xs:w-3/4 w-full overflow-y-auto px-0',
-                'data-[state=closed]:duration-200 data-[state=open]:duration-300',
-                 sidebarGestureClosing && 'data-[state=closed]:!animate-none',
+              :overlay-class="[
+                'lajur-mobile-sidebar-overlay bg-black/60 duration-220 motion-reduce:animate-none!',
+                sidebarGesture && 'animate-none!',
+                skipSidebarOpenAnimation && 'data-[state=open]:animate-none!',
               ]"
+              :class="[
+                'w-[min(82vw,22rem)] max-w-none overflow-hidden px-[env(safe-area-inset-left)] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]',
+                'data-[state=closed]:duration-220 data-[state=open]:duration-220 motion-reduce:animate-none!',
+                sidebarGesture && 'animate-none!',
+                skipSidebarOpenAnimation && 'data-[state=open]:animate-none!',
+              ]"
+              @open-auto-focus="sidebarGesture && $event.preventDefault()"
             >
-              <Sheet.SheetTitle></Sheet.SheetTitle>
-              <Sheet.SheetDescription></Sheet.SheetDescription>
-
-              <div
-                class="h-full"
-                @touchstart.passive="onSidebarTouchStart"
-                @touchmove.passive="onSidebarTouchMove"
-                @touchend="onSidebarTouchEnd"
-                @touchcancel="clearSidebarTouch"
-              >
-                <Sidebar mobile-view />
-              </div>
+              <Sheet.SheetTitle class="sr-only">{{ $t('kasana.navigation.openMenu') }}</Sheet.SheetTitle>
+              <Sheet.SheetDescription class="sr-only">{{ $t('kasana.navigation.openMenu') }}</Sheet.SheetDescription>
+              <Sidebar mobile-view />
             </Sheet.SheetContent>
           </Sheet.Sheet>
         </template>
@@ -175,6 +173,7 @@ import {
   isCreateTransactionDialogOpen,
 } from '@/composable/global-state/create-transaction-dialog';
 import { isMobileSheetOpen } from '@/composable/global-state/mobile-sheet';
+import { useMobileSidebarGesture } from '@/components/sidebar/use-mobile-sidebar-gesture';
 import { useCssVarFromElementSize } from '@/composable/use-css-var-from-element-size';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { ROUTES_NAMES } from '@/routes/constants';
@@ -197,76 +196,6 @@ const AttachInvoiceDialog = defineAsyncComponent(() => import('@/components/dial
 
 const userStore = useUserStore();
 const isAddMenuOpen = ref(false);
-let sidebarTouch: { x: number; y: number } | null = null;
-const sidebarDragX = ref(0);
-const sidebarDragging = ref(false);
-const sidebarReturning = ref(false);
-const sidebarGestureClosing = ref(false);
-let sidebarReturnTimeout: ReturnType<typeof setTimeout> | undefined;
-const sidebarDragStyle = computed(() => {
-  if (!sidebarDragging.value && !sidebarReturning.value) return undefined;
-  return {
-    transform: `translate3d(${sidebarDragX.value}px, 0, 0)`,
-    transition: sidebarDragging.value ? 'none' : 'transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-  };
-});
-const clearSidebarTouch = () => {
-  sidebarTouch = null;
-  sidebarDragX.value = 0;
-  sidebarDragging.value = false;
-  sidebarReturning.value = false;
-  sidebarGestureClosing.value = false;
-  if (sidebarReturnTimeout) clearTimeout(sidebarReturnTimeout);
-};
-const onSidebarTouchStart = (event: TouchEvent) => {
-  if (!isMobileSheetOpen.value || event.touches.length !== 1) return;
-  const touch = event.touches[0]!;
-  sidebarTouch = { x: touch.clientX, y: touch.clientY };
-};
-const onSidebarTouchMove = (event: TouchEvent) => {
-  if (!sidebarTouch || event.touches.length !== 1) return;
-  const touch = event.touches[0]!;
-  const dx = touch.clientX - sidebarTouch.x;
-  const dy = touch.clientY - sidebarTouch.y;
-  if (dx >= -8 || Math.abs(dx) <= Math.abs(dy) * 1.3) return;
-  sidebarReturning.value = false;
-  sidebarDragging.value = true;
-  sidebarDragX.value = Math.max(-window.innerWidth, dx);
-};
-const onSidebarTouchEnd = (event: TouchEvent) => {
-  if (!sidebarTouch || event.changedTouches.length !== 1) return;
-  const start = sidebarTouch;
-  sidebarTouch = null;
-  const touch = event.changedTouches[0]!;
-  const dx = touch.clientX - start.x;
-  const dy = touch.clientY - start.y;
-  if (dx < -85 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-    // Finish the *current* drag directly off-screen. Only then dismiss Reka;
-    // the default sheet exit animation must not restart from x=0.
-    sidebarDragging.value = false;
-    sidebarReturning.value = true;
-    sidebarGestureClosing.value = true;
-    sidebarDragX.value = -window.innerWidth;
-    if (sidebarReturnTimeout) clearTimeout(sidebarReturnTimeout);
-    sidebarReturnTimeout = setTimeout(() => { isMobileSheetOpen.value = false; }, 220);
-    return;
-  }
-  if (sidebarDragging.value) {
-    sidebarDragging.value = false;
-    sidebarReturning.value = true;
-    sidebarDragX.value = 0;
-    if (sidebarReturnTimeout) clearTimeout(sidebarReturnTimeout);
-    sidebarReturnTimeout = setTimeout(() => { sidebarReturning.value = false; }, 220);
-  }
-};
-watch(isMobileSheetOpen, (open) => {
-  if (open) return;
-  if (sidebarGestureClosing.value) {
-    // Leave the off-screen transform in place until the portal unmounts.
-    if (sidebarReturnTimeout) clearTimeout(sidebarReturnTimeout);
-    sidebarReturnTimeout = setTimeout(clearSidebarTouch, 240);
-  } else clearSidebarTouch();
-});
 const isAttachInvoiceMounted = ref(false);
 const isAttachInvoiceOpen = ref(false);
 
@@ -328,6 +257,10 @@ const toggleSettings = () => {
   }
 };
 const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
+const { gesture: sidebarGesture, skipOpenAnimation: skipSidebarOpenAnimation } = useMobileSidebarGesture({
+  enabled: isMobileView,
+  open: isMobileSheetOpen,
+});
 watch(route, () => {
   isMobileSheetOpen.value = false;
 });

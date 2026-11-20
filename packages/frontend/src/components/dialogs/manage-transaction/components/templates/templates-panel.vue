@@ -264,7 +264,7 @@ const onFilterKeydown = (event: KeyboardEvent) => {
             :class="
               cn(
                 'h-auto min-h-9 max-w-full text-left text-sm font-medium whitespace-normal transition-[opacity,color,background-color] data-[incomplete]:opacity-50',
-                action.key === 'new' && 'ml-auto',
+                action.key === 'save-current' && 'order-last ml-auto',
               )
             "
             :data-incomplete="action.disabled ? '' : undefined"
