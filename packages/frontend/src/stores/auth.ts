@@ -3,8 +3,10 @@ import { analyticsPlan } from '@/common/const/billing';
 import type { DemoEndReason } from '@/common/const/demo';
 import { getDeviceName } from '@/common/utils/device-name';
 import { dismissPersistentNotifications } from '@/components/notification-center';
+import { userSettingsQueryOptions } from '@/composable/data-queries/user-settings';
 import { isMobileSheetOpen } from '@/composable/global-state/mobile-sheet';
 import { OAuthProviderNotConfiguredError, UnexpectedError, isApiErrorWithCode } from '@/js/errors';
+import { reportApiAvailability } from '@/lib/api-availability';
 import { authClient, getSession, signIn, signOut, signUp } from '@/lib/auth-client';
 import {
   consumeDemoOriginProperties,
@@ -117,6 +119,8 @@ export const useAuthStore = defineStore('auth', () => {
     const user = await loadUserData();
     await reconcilePersistedQueriesForUser({ userId: user.id });
     userStore.user = user;
+    // Start preferences before dashboard widgets mount so saved layout and filters are ready sooner.
+    void queryClient.prefetchQuery(userSettingsQueryOptions);
     // Sweep abandoned persisted-query rows (see `collectPersistedQueryGarbage`);
     // not awaited – nothing below depends on it.
     void collectPersistedQueryGarbage();
@@ -234,6 +238,9 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const session = await getSession();
 
+      const status = session?.error?.status;
+      if (status && status >= 500) reportApiAvailability(status === 504 ? 'requestTimeout' : 'serverUnavailable');
+      else if (!session?.error) reportApiAvailability(null);
       if (!session?.data?.session) {
         isSessionChecked.value = true;
         return false;
@@ -249,6 +256,8 @@ export const useAuthStore = defineStore('auth', () => {
       isSessionChecked.value = true;
       return true;
     } catch (error) {
+      if (navigator.onLine === false) reportApiAvailability('offline');
+      else if (error instanceof TypeError) reportApiAvailability('unreachable');
       // Server-side failures (incl. a gateway 5xx page) aren't client bugs; any other throw is a
       // network failure or bug. Either way the user lands in an ordinary signed-out state.
       if (!SERVER_FAILURE_CODES.some((code) => isApiErrorWithCode(error, code))) {

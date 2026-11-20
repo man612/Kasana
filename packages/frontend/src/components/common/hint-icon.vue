@@ -3,17 +3,11 @@ import ContextualHelp from '@/components/common/contextual-help.vue';
 import { Button } from '@/components/lib/ui/button';
 import { CircleHelpIcon } from '@lucide/vue';
 
-defineProps<{ content: string; title?: string; example?: string; modal?: boolean }>();
-const SHORT_HELP_LENGTH = 140;
+defineProps<{ content: string; title?: string; example?: string; compact?: boolean }>();
 </script>
 
 <template>
-  <ContextualHelp
-    :content="content"
-    :title="title"
-    :example="example"
-    :compact="!modal && !example && content.length <= SHORT_HELP_LENGTH"
-  >
+  <ContextualHelp :content="content" :title="title" :example="example" :compact="compact">
     <template #trigger>
       <Button
         type="button"

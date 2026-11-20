@@ -1268,6 +1268,11 @@ const isMultiAccountPillDisabled = computed(
     (!isMultiAccount.value &&
       (Boolean(form.value.isPlanned) || hasSplits.value || isRefundLinked.value || isAccountSharedWithCaller.value)),
 );
+const showSplitAccountHeader = computed(
+  () =>
+    !isTransferTx.value &&
+    (isMobileView.value || Boolean(form.value.account) || nonTransferSourceAccounts.value.length > 0),
+);
 const paymentLegsLabel = computed(() =>
   currentTxType.value === FORM_TYPES.income
     ? t('dialogs.manageTransaction.form.paymentLegs.receivedIntoLabel')
@@ -2282,7 +2287,10 @@ onUnmounted(() => {
               {{ $t('dialogs.loanPayment.overdrawWarning', { account: form.account?.name ?? '' }) }}
             </p>
 
-            <div v-if="!isTransferTx" class="-mt-1 flex justify-end">
+            <div v-if="showSplitAccountHeader" class="mb-1 flex min-h-8 items-center justify-between gap-2">
+              <span class="text-muted-foreground text-[13px] font-medium">
+                {{ isMultiAccount ? paymentLegsLabel : $t('dialogs.manageTransaction.form.accountLabel') }}
+              </span>
               <ReuseMultiAccountPill />
             </div>
             <LayoutCollapse v-if="!isTransferTx" :open="isMultiAccount">
@@ -2292,7 +2300,7 @@ onUnmounted(() => {
                 v-model:account="form.account"
                 v-model:amount="form.amount"
                 :legs="form.paymentLegs ?? lastPaymentLegs"
-                :label="paymentLegsLabel"
+                :label="showSplitAccountHeader ? undefined : paymentLegsLabel"
                 :main-accounts="nonTransferSourceAccounts"
                 :leg-accounts="txTargetableSourceAccountsActiveFirst"
                 :currency-code="currencyCode"
@@ -2319,6 +2327,7 @@ onUnmounted(() => {
                 v-model:destination-type="transferDestinationType"
                 :disabled="isFormFieldsDisabled"
                 :is-transfer-transaction="isTransferTx"
+                :hide-account-heading="showSplitAccountHeader"
                 :is-transaction-linking="!!linkedTransaction"
                 :transaction-type="transaction?.transactionType || TRANSACTION_TYPES.expense"
                 :accounts="isTransferTx ? txTargetableSourceAccountsActiveFirst : nonTransferSourceAccounts"
@@ -2703,7 +2712,6 @@ onUnmounted(() => {
             <span class="leading-none">{{ $t('dialogs.manageTransaction.form.createMore.label') }}</span>
           </label>
           <HintIcon
-            modal
             :title="$t('dialogs.manageTransaction.form.createMore.label')"
             :content="$t('dialogs.manageTransaction.form.createMoreHint')"
           />

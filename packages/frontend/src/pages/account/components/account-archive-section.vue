@@ -66,7 +66,7 @@ const unarchiveAccount = async () => {
         <p class="mb-2 font-bold">{{ t('pages.account.archive.title') }}</p>
         <div class="text-muted-foreground text-xs">
           <p>{{ t('pages.account.archive.description') }}</p>
-          <ResponsiveDialog v-model:open="isArchiveHelpOpen">
+          <ResponsiveDialog v-model:open="isArchiveHelpOpen" raised mobile-presentation="center">
             <template #trigger>
               <button
                 type="button"

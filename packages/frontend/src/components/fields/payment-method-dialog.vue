@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VerbosePaymentType } from '@/common/const';
 import { VERBOSE_PAYMENT_TYPES } from '@/common/const';
+import DialogHeaderActions from '@/components/common/dialog-header-actions.vue';
 import ContextualHelp from '@/components/common/contextual-help.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
@@ -25,7 +26,6 @@ import {
   RepeatIcon,
   SmartphoneIcon,
   WalletIcon,
-  XIcon,
 } from '@lucide/vue';
 import { computed, ref, type Component } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -147,7 +147,7 @@ const pick = (value: VerbosePaymentType | null) => {
                 {{ t('dialogs.manageTransaction.paymentMethodHelp.overview') }}
               </Dialog.DialogDescription>
             </div>
-            <div class="flex items-start">
+            <DialogHeaderActions :close="() => (isOpen = false)">
               <ContextualHelp
                 :title="t('dialogs.manageTransaction.paymentMethodHelp.title')"
                 :content="t('dialogs.manageTransaction.paymentMethodHelp.longExplanation')"
@@ -168,18 +168,7 @@ const pick = (value: VerbosePaymentType | null) => {
                   </Button>
                 </template>
               </ContextualHelp>
-              <Dialog.DialogClose as-child>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  class="text-muted-foreground size-11"
-                  :aria-label="t('common.ui.close')"
-                >
-                  <XIcon class="size-5" aria-hidden="true" />
-                </Button>
-              </Dialog.DialogClose>
-            </div>
+            </DialogHeaderActions>
           </div>
           <div class="max-h-[min(66dvh,540px)] space-y-1 overflow-y-auto overscroll-contain p-3">
             <div

@@ -159,6 +159,7 @@ export interface UserSettingsSchema {
   currencyDisplay?: CurrencyDisplayPreference;
   /** Stored per authenticated account, not shared between browser users. */
   accentTheme?: AccentThemePreference;
+  colorTheme?: 'light' | 'dark' | 'system';
   fire?: FireSettings;
   /** Server-written monthly FIRE settings snapshots, read by the pace comparison. */
   fireHistory?: FireSettingsSnapshot[];

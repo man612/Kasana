@@ -246,19 +246,22 @@
     },
     "guide": {
       "title": "How automation works",
-      "intro": "Lajur. can organize new transactions from bank sync or file imports using rules you set up.",
-      "choose": "Choose which transactions to recognize, for example by a word in their note or the account they came from.",
-      "act": "Choose what to update: category, payee, tags, or note.",
-      "check": "Use Preview to check matches. After enabling the rule, open a transaction from your next import or bank sync to see the result.",
+      "intro": "An automation is a rule you write once to organize new transactions from bank sync or file imports. It works without AI.",
+      "choose": "Choose what Lajur. should recognize, such as a word in the note or the account the transaction came from.",
+      "act": "Choose what to change: the category, payee, tags, or note. The amount and account balance stay the same.",
+      "check": "Check the matches in Preview, then save and enable the rule. Eligible new transactions are organized automatically. You only confirm changes when applying a rule to transactions that are already saved.",
       "exampleTitle": "Example: grocery shopping",
-      "example": "If a newly imported transaction note contains “Indomaret”, set its category to Groceries. After importing, open Transactions and check the category on that entry.",
-      "caution": "Rules can replace existing details. Amounts and balances stay the same. Review and select entries before applying a rule to past transactions.",
+      "example": "Create a rule called “Minimarket”. Under conditions, choose Note and add “Indomaret” to Contains. Under actions, choose Set category, then Groceries. Check Preview and save the rule as enabled.",
+      "caution": "Rules can replace details on a match. Transfers, plans, and ordinary manually entered transactions are excluded from automatic application.",
       "advanced": "Advanced AI settings",
       "conditionsTitle": "Which transactions match?",
-      "conditionsHelp": "For example, select Note and enter “Indomaret”. Use “all” when the transaction must meet every condition.",
+      "conditionsHelp": "Choose Note and enter “Indomaret”. Choose “all” when every condition must match.",
       "actionsTitle": "What should Lajur. do?",
       "actionsHelp": "For example, choose Set category, then Groceries. One rule can fill in several details at once.",
-      "incomplete": "Fill in the name, conditions, and actions to save."
+      "incomplete": "Fill in the name, conditions, and actions to save.",
+      "exampleRun": "Import a bank statement containing a purchase with “Indomaret” in its note. In Transactions, open the purchase and check that its category is Groceries. The rule’s match count and last run time appear in Automations.",
+      "noMatch": "If the note does not contain the word, this rule leaves the transaction as it is. If a category used by the rule is deleted, the rule can be paused. Open Automations to review its status and choose a replacement.",
+      "schedule": "For a bill you want recorded on a calendar, use Recurring Payments. Automation rules organize eligible transactions that arrive. They do not create transactions on their own."
     }
   }
 }

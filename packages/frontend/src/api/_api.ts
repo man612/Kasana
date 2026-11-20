@@ -6,6 +6,7 @@ import { useImportBatchDeleteJobStatus } from '@/composable/use-import-batch-del
 import { useRestoreJobStatus } from '@/composable/use-restore-job-status';
 import { getCurrentLocale, i18n } from '@/i18n';
 import * as errors from '@/js/errors';
+import { reportApiAvailability } from '@/lib/api-availability';
 import { router } from '@/routes';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useAuthStore } from '@/stores';
@@ -57,13 +58,6 @@ interface ApiCall {
 
 export { API_HTTP } from './api-base-url';
 const SESSION_ID_KEY = 'session-id';
-
-// Distinguishes the managed cloud deployment from local/self-host setups.
-// We only want to show the verbose "is the backend running / check ALLOWED_ORIGINS"
-// hint to operators – for cloud users a network failure is almost always transient
-// and the technical hint would be more confusing than helpful.
-// Kasana currently has no official cloud service. Always show the self-host troubleshooting hint.
-const isCloudDeployment = (): boolean => false;
 
 /** Translated text with a literal fallback, for the window before the i18n chunk is loaded. */
 const t = (key: string, fallback: string): string => {
@@ -242,8 +236,10 @@ class ApiCaller {
       config.body = JSON.stringify(opts.data);
     }
 
-    if (opts.options?.signal) {
-      config.signal = opts.options.signal;
+    config.signal = opts.options?.signal;
+    if (opts.method === 'GET' && typeof AbortSignal.timeout === 'function' && typeof AbortSignal.any === 'function') {
+      const timeout = AbortSignal.timeout(20_000);
+      config.signal = config.signal ? AbortSignal.any([config.signal, timeout]) : timeout;
     }
 
     let result: Response;
@@ -260,16 +256,17 @@ class ApiCaller {
       if (e instanceof DOMException && e.name === 'AbortError') {
         throw e;
       }
+      if (e instanceof DOMException && e.name === 'TimeoutError') {
+        reportApiAvailability('requestTimeout');
+        throw new errors.NetworkError(t('common.connection.requestTimeout', 'The request timed out. Try again.'));
+      }
       if (e instanceof TypeError && errors.FETCH_NETWORK_FAILURE_MESSAGES.some((msg) => e.message.includes(msg))) {
-        // Self-hosters and local devs are the system operators – give them the
-        // actionable hint (backend not running, CORS misconfigured). Cloud users
-        // can't act on either and should see a generic message.
-        const message = isCloudDeployment()
-          ? t('errors.api.failedToFetch', 'Failed to connect to server')
-          : t(
-              'errors.api.failedToFetchSelfHost',
-              'Cannot reach the server. The backend may still be starting (~30s after startup), or your ALLOWED_ORIGINS env var does not include this URL.',
-            );
+        const offline = navigator.onLine === false;
+        const issue = offline ? 'offline' : 'unreachable';
+        reportApiAvailability(issue);
+        const message = offline
+          ? t('common.connection.offline', 'You are offline. Check your connection and try again.')
+          : t('common.connection.unreachable', 'Could not reach Lajur. Try again in a moment.');
         if (!isSilent) {
           addNotification({
             id: 'api-fetching-error',
@@ -293,6 +290,13 @@ class ApiCaller {
       throw new errors.UnexpectedError(message, {});
     }
 
+    const serverFailure = result.status === 408 || result.status >= 500;
+    const timedOut = result.status === 408 || result.status === 504;
+    const serverMessage = timedOut
+      ? t('common.connection.requestTimeout', 'The request timed out. Try again.')
+      : t('common.connection.serverUnavailable', 'Lajur. is temporarily unavailable. Try again in a moment.');
+    if (serverFailure) reportApiAvailability(timedOut ? 'requestTimeout' : 'serverUnavailable');
+
     const sessionId = result.headers.get(SESSION_ID_HEADER_KEY);
 
     if (sessionId) window.sessionStorage?.setItem(SESSION_ID_KEY, sessionId);
@@ -303,6 +307,7 @@ class ApiCaller {
     // below, whose catch block builds a proper ApiErrorResponseError for
     // bodies that aren't valid JSON.
     if (result.ok && (result.headers.get('content-length') === '0' || result.status === 204)) {
+      reportApiAvailability(null);
       return undefined;
     }
 
@@ -315,6 +320,10 @@ class ApiCaller {
       parsed = await result.json();
     } catch (e) {
       if (e instanceof DOMException && e.name === 'AbortError') throw e;
+      if (e instanceof DOMException && e.name === 'TimeoutError') {
+        reportApiAvailability('requestTimeout');
+        throw new errors.NetworkError(t('common.connection.requestTimeout', 'The request timed out. Try again.'));
+      }
       // Our backend always answers 2xx with JSON, so an unreadable 2xx body was cut off in transit.
       if (result.ok || !(e instanceof SyntaxError)) {
         const message = t('errors.api.failedToFetch', 'Failed to connect to server');
@@ -327,8 +336,9 @@ class ApiCaller {
       const message =
         result.status === 413
           ? t('errors.api.payloadTooLarge', 'The request is too large. Please try importing fewer items at a time')
-          : `${result.status} ${result.statusText}`.trim() ||
-            t('errors.api.unexpectedError', 'An unexpected error occurred');
+          : serverFailure
+            ? serverMessage
+            : t('errors.api.unexpectedError', 'An unexpected error occurred');
 
       throw new errors.ApiErrorResponseError(message, {
         code: result.status === 413 ? API_ERROR_CODES.payloadTooLarge : API_ERROR_CODES.unexpected,
@@ -340,6 +350,7 @@ class ApiCaller {
     const { status, response } = parsed;
 
     if (status === API_RESPONSE_STATUS.success) {
+      reportApiAvailability(null);
       // Long AI calls run as server-side jobs, so a browser or proxy timeout cannot cut them off.
       if (result.status === 202 && response?.backgroundJobId) {
         await new Promise((resolve) => setTimeout(resolve, BACKGROUND_JOB_POLL_MS));
@@ -417,7 +428,12 @@ class ApiCaller {
         });
       }
 
-      throw new errors.ApiErrorResponseError(response.message, response);
+      const publicMessage = serverFailure
+        ? serverMessage
+        : response.code === API_ERROR_CODES.unexpected
+          ? t('errors.api.unexpectedError', 'An unexpected error occurred')
+          : response.message;
+      throw new errors.ApiErrorResponseError(publicMessage, { ...response, message: publicMessage });
     }
 
     return undefined;

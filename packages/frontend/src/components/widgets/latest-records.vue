@@ -187,7 +187,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
     </template>
 
     <template v-if="isInitialLoading">
-      <LoadingState />
+      <LoadingState class="h-[min(55dvh,22rem)] min-h-0" />
     </template>
     <template v-else-if="isDataEmpty">
       <EmptyState>

@@ -1,5 +1,12 @@
 {
   "common": {
+    "connection": {
+      "offline": "Tidak ada koneksi internet. Periksa jaringan dan coba lagi.",
+      "unreachable": "Lajur. belum bisa dihubungi. Coba lagi beberapa saat.",
+      "serverUnavailable": "Layanan sedang mengalami gangguan. Coba lagi beberapa saat.",
+      "requestTimeout": "Permintaan terlalu lama. Coba lagi.",
+      "cachedData": "Informasi yang tampil mungkin belum terbaru."
+    },
     "contextHelp": {
       "title": "Penjelasan",
       "description": "Panduan untuk pengaturan ini.",

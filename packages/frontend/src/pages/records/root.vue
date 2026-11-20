@@ -30,7 +30,12 @@
     </DefineTableSettings>
 
     <DefineTrashLink>
-      <Button variant="secondary" :data-trash-empty="isTrashEmpty ? 'true' : undefined" :class="isTrashEmpty && 'opacity-55'" @click="openTrash">
+      <Button
+        variant="secondary"
+        :data-trash-empty="isTrashEmpty ? 'true' : undefined"
+        :class="isTrashEmpty && 'opacity-55'"
+        @click="openTrash"
+      >
         <Trash2Icon class="size-4" />
         {{ $t('navigation.trash') }}
       </Button>
@@ -104,7 +109,11 @@
                   <Maximize2Icon class="size-4" />
                   {{ $t('transactions.table.fullscreen.enter') }}
                 </DropdownMenuItem>
-                <DropdownMenuItem :data-trash-empty="isTrashEmpty ? 'true' : undefined" :class="isTrashEmpty && 'opacity-55'" @select="openTrash">
+                <DropdownMenuItem
+                  :data-trash-empty="isTrashEmpty ? 'true' : undefined"
+                  :class="isTrashEmpty && 'opacity-55'"
+                  @select="openTrash"
+                >
                   <Trash2Icon class="size-4" />
                   {{ $t('navigation.trash') }}
                 </DropdownMenuItem>
@@ -120,24 +129,20 @@
           <UpcomingSection v-if="showUpcomingSection" @toggle-hide="toggleHideUpcoming" />
 
           <Card class="min-h-0 flex-1 overflow-hidden" style="view-transition-name: lajur-transactions-content">
-            <ScrollArea class="h-full" :scroll-area-id="SCROLL_AREA_IDS.transactionsPage">
-              <!-- No top padding: the list's bulk toolbar is sticky top-0 and must sit flush
-                   with the scroll viewport edge, otherwise rows peek through the gap -->
-              <div v-if="isFetched" class="pb-3 sm:px-3">
-                <TransactionsList
-                  ref="transactionsListRef"
-                  enable-bulk-edit
-                  :content-filters-active="contentFiltersActive"
-                  :transactions="transactionsPages?.pages.flat() ?? []"
-                  :has-next-page="hasNextPage"
-                  :is-fetching-next-page="isFetchingNextPage"
-                  :scroll-area-id="SCROLL_AREA_IDS.transactionsPage"
-                  :selection-scope-key="selectionScopeKey"
-                  :matching="matching"
-                  @fetch-next-page="fetchNextPage"
-                />
-              </div>
-            </ScrollArea>
+            <TransactionsList
+              v-if="isFetched"
+              pin-bulk-toolbar
+              ref="transactionsListRef"
+              enable-bulk-edit
+              :content-filters-active="contentFiltersActive"
+              :transactions="transactionsPages?.pages.flat() ?? []"
+              :has-next-page="hasNextPage"
+              :is-fetching-next-page="isFetchingNextPage"
+              :scroll-area-id="SCROLL_AREA_IDS.transactionsPage"
+              :selection-scope-key="selectionScopeKey"
+              :matching="matching"
+              @fetch-next-page="fetchNextPage"
+            />
           </Card>
         </template>
       </template>
@@ -196,22 +201,20 @@
           <UpcomingSection v-if="showUpcomingSection" @toggle-hide="toggleHideUpcoming" />
 
           <Card class="min-h-0 flex-1 overflow-hidden" style="view-transition-name: lajur-transactions-content">
-            <ScrollArea class="h-full" :scroll-area-id="SCROLL_AREA_IDS.transactionsPage">
-              <div v-if="isFetched" class="px-3 pb-3">
-                <TransactionsList
-                  ref="transactionsListRef"
-                  enable-bulk-edit
-                  :content-filters-active="contentFiltersActive"
-                  :transactions="transactionsPages?.pages.flat() ?? []"
-                  :has-next-page="hasNextPage"
-                  :is-fetching-next-page="isFetchingNextPage"
-                  :scroll-area-id="SCROLL_AREA_IDS.transactionsPage"
-                  :selection-scope-key="selectionScopeKey"
-                  :matching="matching"
-                  @fetch-next-page="fetchNextPage"
-                />
-              </div>
-            </ScrollArea>
+            <TransactionsList
+              v-if="isFetched"
+              pin-bulk-toolbar
+              ref="transactionsListRef"
+              enable-bulk-edit
+              :content-filters-active="contentFiltersActive"
+              :transactions="transactionsPages?.pages.flat() ?? []"
+              :has-next-page="hasNextPage"
+              :is-fetching-next-page="isFetchingNextPage"
+              :scroll-area-id="SCROLL_AREA_IDS.transactionsPage"
+              :selection-scope-key="selectionScopeKey"
+              :matching="matching"
+              @fetch-next-page="fetchNextPage"
+            />
           </Card>
         </div>
       </div>
@@ -350,7 +353,11 @@
                page itself slightly taller than the viewport, so the user can
                swipe up to push the view toggle / filters bar off-screen and
                gain extra rows of table. -->
-          <Card v-show="showTableCard" :class="['overflow-hidden', tableCardSizingClass]" style="view-transition-name: lajur-transactions-content">
+          <Card
+            v-show="showTableCard"
+            :class="['overflow-hidden', tableCardSizingClass]"
+            style="view-transition-name: lajur-transactions-content"
+          >
             <TransactionsTable
               ref="tableRef"
               :transactions="transactionsPages?.pages.flat() ?? []"
@@ -498,9 +505,11 @@ const activeView = computed<TransactionsView>(() => (isMobileMode.value ? mobile
 // Interpolate the named content-card bounds when switching layout;
 // non-supporting browsers and reduced-motion users get an immediate update.
 const animateLayoutChange = (update: () => void) => {
-  const start = (document as Document & {
-    startViewTransition?: (callback: () => Promise<void>) => unknown;
-  }).startViewTransition;
+  const start = (
+    document as Document & {
+      startViewTransition?: (callback: () => Promise<void>) => unknown;
+    }
+  ).startViewTransition;
   if (!start || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     update();
     return;
@@ -556,8 +565,14 @@ const isFullscreenMode = ref(false);
 // `pointer: coarse` flags touch input – used to hide the "Esc" hint on tablets
 // where pressing Esc isn't an option.
 const isTouchPointer = useMediaQuery('(pointer: coarse)');
-const enterFullscreen = () => animateLayoutChange(() => { isFullscreenMode.value = true; });
-const exitFullscreen = () => animateLayoutChange(() => { isFullscreenMode.value = false; });
+const enterFullscreen = () =>
+  animateLayoutChange(() => {
+    isFullscreenMode.value = true;
+  });
+const exitFullscreen = () =>
+  animateLayoutChange(() => {
+    isFullscreenMode.value = false;
+  });
 // An open reka layer (dialog, popover, select) takes Escape first. This listener is registered before any layer's
 // window listener, so the layer is still open here. Tooltip layers use other data-state values and don't block.
 useEventListener('keydown', (event: KeyboardEvent) => {

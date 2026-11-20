@@ -3,9 +3,6 @@
     :data-sidebar-swipe-zone="!isEditMode ? '' : undefined"
     :class="[hasNoAccounts ? 'flex flex-col' : 'flex min-h-full flex-col', !isEditMode && 'max-md:touch-pan-y']"
   >
-    <!-- Recovery method suggestion banner -->
-    <RecoveryMethodBanner />
-
     <!-- Main period selector - floating on mobile, normal flow on desktop -->
     <LayoutCollapse
       v-if="!hasNoAccounts"
@@ -51,6 +48,8 @@
         :aria-busy="isPeriodLoading"
         :current-period="currentPeriod"
       />
+
+      <RecoveryMethodBanner />
 
       <Teleport to="body">
         <Transition name="lajur-info-reveal">

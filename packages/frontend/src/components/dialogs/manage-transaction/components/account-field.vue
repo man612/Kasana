@@ -131,6 +131,7 @@
           data-test="account-select-field"
           allow-create
           :label="$t('dialogs.manageTransaction.form.accountLabel')"
+          :hide-label="hideAccountHeading"
           :placeholder="$t('dialogs.manageTransaction.form.selectAccountPlaceholder')"
           :accounts="accounts"
           :disabled="disabled || fromAccountDisabled"
@@ -185,7 +186,7 @@
       </input-field>
     </form-row>
   </template>
-  <ResponsiveDialog v-model:open="isOutOfWalletHelpOpen" mobile-presentation="center">
+  <ResponsiveDialog v-model:open="isOutOfWalletHelpOpen" raised mobile-presentation="center">
     <template #title>{{ $t('dialogs.manageTransaction.form.outOfWalletHelpTitle') }}</template>
     <template #description>{{ $t('dialogs.manageTransaction.form.outOfWalletHelpDescription') }}</template>
     <p class="text-muted-foreground px-1 pb-2 text-sm leading-relaxed">
@@ -244,6 +245,7 @@ const props = withDefaults(
     /** Locks the destination-type pills while keeping the pickers themselves usable. */
     destinationTypeDisabled?: boolean;
     showTargetAmount?: boolean;
+    hideAccountHeading?: boolean;
     disabled?: boolean;
   }>(),
   {

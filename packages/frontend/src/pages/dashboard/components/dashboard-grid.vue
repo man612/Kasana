@@ -16,6 +16,7 @@ const props = defineProps<{
 const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const {
   isEditMode,
+  layoutReady,
   draftWidgets,
   displayWidgets,
   availableWidgets,
@@ -64,7 +65,7 @@ const addWidgetAnimated = (widgetId: string) => animateLayoutChange(() => addWid
 
 defineExpose({
   isEditMode,
-  enterEditMode: () => (isMobile.value ? enterEditMode() : animateLayoutChange(enterEditMode)),
+  enterEditMode: () => layoutReady.value && (isMobile.value ? enterEditMode() : animateLayoutChange(enterEditMode)),
   saveLayout,
   cancelEdit,
 });
@@ -75,7 +76,10 @@ const GRID_CLASSES =
 
 <template>
   <div>
-    <template v-if="displayWidgets.length === 0">
+    <div v-if="!layoutReady" :class="GRID_CLASSES" aria-busy="true">
+      <div v-for="index in 3" :key="index" class="bg-muted/60 h-64 rounded-xl border motion-safe:animate-pulse" />
+    </div>
+    <template v-else-if="displayWidgets.length === 0">
       <div class="text-muted-foreground flex flex-col items-center justify-center gap-3 py-20">
         <LayoutGridIcon class="size-12 opacity-50" />
         <p class="text-sm">{{ $t('dashboard.editMode.emptyState') }}</p>

@@ -4,6 +4,7 @@ interface OnboardingState {
   completedTasks: string[];
   isDismissed: boolean;
   dismissedAt: string | null;
+  hiddenUntil?: number;
 }
 
 export const getOnboardingState = async (): Promise<OnboardingState> => {

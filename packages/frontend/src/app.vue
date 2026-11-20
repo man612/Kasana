@@ -10,11 +10,14 @@
     <restore-in-progress-overlay />
     <import-batch-delete-overlay />
     <notification-toaster />
+    <ConnectionStatus />
     <update-available-banner />
   </main>
 </template>
 
 <script setup lang="ts">
+import { closeContextualHelp } from '@/components/common/contextual-help.vue';
+import ConnectionStatus from '@/components/banners/connection-status.vue';
 import BaseCurrencyChangeOverlay from '@/components/common/base-currency-change-overlay.vue';
 import ImportBatchDeleteOverlay from '@/components/common/import-batch-delete-overlay.vue';
 import RestoreInProgressOverlay from '@/components/common/restore-in-progress-overlay.vue';
@@ -27,12 +30,15 @@ import { useSSE } from '@/composable/use-sse';
 import { currencyDisplayPreference } from '@/js/helpers';
 import { ROUTES_NAMES } from '@/routes';
 import { useAuthStore, useCurrenciesStore, useRootStore, useUserStore } from '@/stores';
+import { identifyColorThemeForUser } from '@/common/utils/color-theme';
 import { identifyAccentThemeForUser } from '@/common/utils/accent-theme';
 import { storeToRefs } from 'pinia';
 import { watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
+watch(() => route.path, closeContextualHelp);
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const rootStore = useRootStore();
@@ -54,6 +60,14 @@ watch(
       userId: loggedIn && id !== undefined ? id : null,
       serverPreference: loggedIn && id !== undefined ? serverPreference : undefined,
     });
+  },
+  { immediate: true },
+);
+watch(
+  [() => userStore.user?.id, isLoggedIn, () => userSettings.value?.colorTheme],
+  ([id, loggedIn, serverPreference], previous) => {
+    if (loggedIn && id !== undefined) identifyColorThemeForUser({ userId: id, serverPreference });
+    else if (previous?.[1]) identifyColorThemeForUser({ userId: null });
   },
   { immediate: true },
 );

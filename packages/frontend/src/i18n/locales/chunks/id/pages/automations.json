@@ -246,19 +246,22 @@
     },
     "guide": {
       "title": "Cara kerja otomatisasi",
-      "intro": "Lajur. bisa merapikan transaksi baru dari impor file atau sinkronisasi bank berdasarkan aturan yang Anda buat.",
-      "choose": "Tentukan transaksi yang ingin dikenali, misalnya dari kata tertentu di catatan atau dari rekening tertentu.",
-      "act": "Pilih apa yang akan diubah: kategori, penerima, tag, atau catatan.",
-      "check": "Periksa transaksi yang cocok lewat Pratinjau. Setelah diaktifkan, buka transaksi dari impor atau sinkronisasi berikutnya untuk melihat hasilnya.",
+      "intro": "Otomatisasi adalah aturan yang kamu buat sekali agar Lajur. bisa merapikan transaksi baru dari sinkronisasi bank atau impor file. Aturan ini berjalan tanpa AI.",
+      "choose": "Tentukan transaksi mana yang ingin dikenali, misalnya lewat kata tertentu di catatan atau rekening asalnya.",
+      "act": "Pilih rincian yang ingin diubah: kategori, penerima, tag, atau catatan. Nominal dan saldo tetap sama.",
+      "check": "Lihat transaksi yang cocok lewat Pratinjau, lalu simpan dan aktifkan aturan. Lajur. menjalankannya otomatis pada transaksi baru yang memenuhi syarat. Kamu hanya perlu mengonfirmasi jika ingin menerapkan aturan ke transaksi yang sudah tercatat.",
       "exampleTitle": "Contoh belanja minimarket",
-      "example": "Jika catatan transaksi yang baru diimpor memuat “Indomaret”, pilih kategori Belanja Harian. Setelah impor, buka daftar Transaksi dan periksa kategori pada transaksi tersebut.",
-      "caution": "Aturan dapat mengganti rincian transaksi. Nominal dan saldo tetap sama. Untuk transaksi lama, tinjau dan pilih transaksi sebelum menerapkan aturan.",
+      "example": "Buat aturan bernama “Belanja minimarket”. Pada syarat, pilih Catatan, lalu isi “Indomaret” pada Memuat. Pada tindakan, pilih Atur kategori, lalu pilih Belanja Harian. Periksa Pratinjau dan simpan aturan dalam keadaan aktif.",
+      "caution": "Aturan dapat mengganti rincian pada transaksi yang cocok. Transfer, transaksi terencana, dan transaksi manual biasa tidak diproses otomatis.",
       "advanced": "Pengaturan lanjutan untuk AI",
       "conditionsTitle": "Transaksi mana yang cocok?",
-      "conditionsHelp": "Contohnya, pilih Catatan lalu masukkan “Indomaret”. Gunakan “semua” jika transaksi harus memenuhi setiap syarat.",
+      "conditionsHelp": "Pilih Catatan lalu masukkan “Indomaret”. Pilih “semua” jika setiap syarat harus terpenuhi.",
       "actionsTitle": "Apa yang dilakukan Lajur.?",
       "actionsHelp": "Contohnya, pilih Atur kategori lalu pilih Belanja Harian. Satu aturan bisa mengisi beberapa rincian sekaligus.",
-      "incomplete": "Isi nama, syarat, dan tindakan agar bisa disimpan."
+      "incomplete": "Isi nama, syarat, dan tindakan agar bisa disimpan.",
+      "exampleRun": "Pada impor berikutnya, masukkan mutasi yang berisi belanja dengan catatan “Indomaret”. Buka transaksi itu dan periksa bahwa kategorinya Belanja Harian. Jumlah transaksi yang cocok dan waktu pemakaian terakhir terlihat di daftar Otomatisasi.",
+      "noMatch": "Kalau catatan tidak memuat kata tersebut, transaksi tidak diubah oleh aturan ini. Jika kategori yang dipakai aturan dihapus, aturan bisa dijeda. Buka Otomatisasi untuk melihat statusnya dan memilih kategori pengganti.",
+      "schedule": "Kalau kamu ingin mencatat tagihan sesuai jadwal, gunakan Pembayaran Berulang. Aturan Otomatisasi bekerja pada transaksi yang masuk dan memenuhi syarat. Aturan ini tidak membuat transaksi baru."
     }
   }
 }

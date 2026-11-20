@@ -29,13 +29,20 @@ const resolveAppVersion = () => {
 // detect a fresh deploy. Pairs with __APP_VERSION__ injected into the bundle
 // via Vite's `define`; mismatch between the two triggers a reload prompt.
 const versionJsonPlugin = ({ version }) => ({
-  name: 'app-version-json',
+  name: 'lajur-release-assets',
   apply: 'build',
   generateBundle() {
     this.emitFile({
       type: 'asset',
       fileName: 'version.json',
       source: `${JSON.stringify({ version, builtAt: new Date().toISOString() })}\n`,
+    });
+    this.emitFile({
+      type: 'asset',
+      fileName: 'service-worker.js',
+      source: fs
+        .readFileSync(path.join(__dirname, 'src/lib/service-worker.js'), 'utf8')
+        .replace("'__LAJUR_CACHE_VERSION__'", JSON.stringify(version)),
     });
   },
 });

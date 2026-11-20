@@ -161,6 +161,24 @@ describe('Patch user settings', () => {
     expect((await helpers.getUserSettings({ raw: true })).accentTheme).toBe('green');
   });
 
+  it('persists the color theme and Quick Start expiry while independent preferences are saved', async () => {
+    const hiddenUntil = Date.now() + 60 * 60 * 1000;
+    await Promise.all([
+      helpers.patchUserSettings({ raw: true, patch: { colorTheme: 'dark', accentTheme: 'green' } }),
+      helpers.updateOnboarding({ raw: true, onboardingState: { hiddenUntil } }),
+    ]);
+
+    expect(await helpers.getUserSettings({ raw: true })).toMatchObject({ colorTheme: 'dark', accentTheme: 'green' });
+    expect((await helpers.getOnboarding({ raw: true })).hiddenUntil).toBe(hiddenUntil);
+    await helpers.updateOnboarding({ raw: true, onboardingState: { hiddenUntil: 0 } });
+    expect((await helpers.getOnboarding({ raw: true })).hiddenUntil).toBe(0);
+
+    const invalidTheme = await helpers.patchUserSettings({ patch: { colorTheme: 'night' } });
+    expect(invalidTheme.statusCode).toBe(ERROR_CODES.ValidationError);
+    const invalidDeadline = await helpers.updateOnboarding({ onboardingState: { hiddenUntil: -1 } });
+    expect(invalidDeadline.statusCode).toBe(ERROR_CODES.ValidationError);
+  });
+
   it('persists currencyDisplay in both directions and keeps it through a rejected patch', async () => {
     const patched = await helpers.patchUserSettings({ raw: true, patch: { currencyDisplay: 'narrowSymbol' } });
     expect(patched.currencyDisplay).toBe('narrowSymbol');

@@ -37,23 +37,33 @@ const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen" dialog-content-class="sm:max-w-2xl">
+  <ResponsiveDialog v-model:open="isOpen" show-drawer-close-with-footer dialog-content-class="sm:max-w-2xl">
     <template #trigger>
       <slot />
     </template>
 
-    <template #header-actions><FormFieldHelp topic="loanOverview" /></template>
+    <template #header-actions><FormFieldHelp topic="loanOverview" header /></template>
     <template #title>{{ $t('loans.dialog.createTitle') }}</template>
     <template #description>{{ $t('loans.dialog.createDescription') }}</template>
 
-    <LoanForm ref="loanFormRef" :form-id="FORM_ID" :submitting="createLoanMutation.isPending.value" @submit="handleSubmit" />
+    <LoanForm
+      ref="loanFormRef"
+      :form-id="FORM_ID"
+      :submitting="createLoanMutation.isPending.value"
+      @submit="handleSubmit"
+    />
 
     <template #footer="{ close }">
       <UiButton type="button" variant="outline" class="min-h-11 min-w-0 flex-1" @click="close()">
         {{ $t('common.actions.cancel') }}
       </UiButton>
       <div class="flex min-w-0 flex-1 justify-end">
-        <UiButton type="submit" :form="FORM_ID" class="min-h-11 w-full min-w-0"  :disabled="loanFormRef?.isSubmitDisabled !== false">
+        <UiButton
+          type="submit"
+          :form="FORM_ID"
+          class="min-h-11 w-full min-w-0"
+          :disabled="loanFormRef?.isSubmitDisabled !== false"
+        >
           {{
             createLoanMutation.isPending.value ? $t('forms.loan.submitButtonLoading') : $t('forms.loan.submitButton')
           }}

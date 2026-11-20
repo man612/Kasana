@@ -8,7 +8,7 @@ import { useI18n } from 'vue-i18n';
 export const userSettingsQueryOptions = {
   queryKey: VUE_QUERY_CACHE_KEYS.userSettings,
   queryFn: getUserSettings,
-  staleTime: Infinity,
+  staleTime: 60_000,
 };
 
 export const useUserSettings = (
@@ -44,6 +44,7 @@ export const useUserSettings = (
   // overwrite each other. The response is the full merged settings.
   const patchMutation = useMutation({
     mutationFn: patchUserSettings,
+    onMutate: () => queryClient.cancelQueries({ queryKey: queryArray, exact: true }),
     onSuccess: (data) => queryClient.setQueryData(queryArray, () => data),
     onError: () => {
       addErrorNotification(t('common.errors.settingsSaveFailed'));

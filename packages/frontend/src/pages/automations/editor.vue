@@ -383,14 +383,11 @@ const confirmLeave = () => {
         </LayoutCollapse>
       </form>
       <footer
-        class="bg-background/95 border-border grid shrink-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-2 border-t px-4 pt-3 pb-[max(.75rem,env(safe-area-inset-bottom))] md:flex md:justify-end md:px-6"
+        class="bg-background/95 border-border grid shrink-0 grid-cols-1 items-center gap-2 border-t px-4 pt-3 pb-[max(.75rem,env(safe-area-inset-bottom))] md:flex md:justify-end md:px-6"
       >
-        <p class="text-muted-foreground col-span-2 min-h-4 text-xs md:mr-auto" :class="isValid && 'invisible'">
+        <p class="text-muted-foreground min-h-4 text-xs md:mr-auto" :class="isValid && 'invisible'">
           {{ $t('automations.guide.incomplete') }}
         </p>
-        <Button type="button" variant="outline" class="min-h-11" :disabled="isSaving" @click="goToList">
-          {{ $t('common.actions.cancel') }}
-        </Button>
         <Button
           type="submit"
           :form="formId"

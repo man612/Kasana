@@ -2,6 +2,9 @@
 import { shallowRef } from 'vue';
 
 const activeHelp = shallowRef<string>();
+export const closeContextualHelp = () => {
+  activeHelp.value = undefined;
+};
 </script>
 
 <script setup lang="ts">

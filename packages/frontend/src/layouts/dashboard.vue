@@ -20,7 +20,7 @@
       <ui-header class="bg-card dark:bg-background sticky top-0 z-30" />
 
       <template v-if="isAppInitialized">
-        <div class="max-md:pb-4">
+        <div :class="route.name !== ROUTES_NAMES.transactions && 'max-md:pb-4'">
           <router-view v-slot="{ Component, route }">
             <Transition name="kasana-page" mode="out-in">
               <component :is="Component" :key="route.matched[1]?.path ?? route.path" />

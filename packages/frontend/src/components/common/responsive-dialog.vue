@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import DialogHeaderActions from '@/components/common/dialog-header-actions.vue';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { Button } from '@/components/lib/ui/button';
 import { XIcon } from '@lucide/vue';
@@ -9,9 +10,10 @@ import { useCloseDialogWhen } from '@/composable/use-close-dialog-when';
 import { useKeyboardViewport } from '@/composable/use-keyboard-viewport';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { createReusableTemplate, useVModel } from '@vueuse/core';
-import { computed, type HTMLAttributes } from 'vue';
+import { computed, useSlots, type HTMLAttributes } from 'vue';
 
 const { t } = useI18n();
+const slots = useSlots();
 const [UseTemplate, SlotContent] = createReusableTemplate();
 const [UseFooterTemplate, FooterSlotContent] = createReusableTemplate();
 const [UseScrollArea, ScrollAreaContent] = createReusableTemplate();
@@ -70,6 +72,12 @@ const setOpen = (open: boolean) => {
 };
 
 const close = () => setOpen(false);
+const hasDrawerClose = computed(
+  () =>
+    props.dismissible &&
+    !props.customClose &&
+    (!slots.footer || props.hideDrawerFooter || props.showDrawerCloseWithFooter),
+);
 const onCloseAutoFocus = (event: Event) => {
   emit('close-auto-focus', event);
   if (!isOpen.value) emit('closed');
@@ -102,6 +110,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
 
       <Drawer.DrawerContent
         :custom-indicator="props.drawerCustomIndicator"
+        :dim-backdrop="props.raised"
         :style="drawerKeyboardStyle"
         :class="[
           !props.noInternalScroll && 'grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden',
@@ -112,11 +121,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
         <Button
-          v-if="
-            props.dismissible &&
-            !props.customClose &&
-            (!$slots.footer || hideDrawerFooter || props.showDrawerCloseWithFooter)
-          "
+          v-if="hasDrawerClose && !$slots['header-actions']"
           type="button"
           variant="ghost"
           size="icon"
@@ -126,19 +131,6 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         >
           <XIcon class="size-5" />
         </Button>
-        <div
-          v-if="$slots['header-actions']"
-          class="absolute top-3 z-20 flex min-h-10 items-center"
-          :class="
-            props.dismissible &&
-            !props.customClose &&
-            (!$slots.footer || hideDrawerFooter || props.showDrawerCloseWithFooter)
-              ? 'right-14'
-              : 'right-3'
-          "
-        >
-          <slot name="header-actions" />
-        </div>
         <template v-if="props.srOnlyHeader">
           <Drawer.DrawerTitle class="sr-only">
             <slot name="title" />
@@ -150,14 +142,20 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         <component
           :is="$slots.title || $slots.description ? Drawer.DrawerHeader : 'div'"
           v-else
-          class="mb-2 px-0 pt-6 pb-0 text-center"
+          class="mb-2 px-0 pb-0"
+          :class="
+            $slots['header-actions']
+              ? 'grid grid-cols-[minmax(0,1fr)_auto] items-start pt-2 text-left'
+              : 'pt-6 text-center'
+          "
         >
-          <Drawer.DrawerTitle>
-            <slot name="title" />
-          </Drawer.DrawerTitle>
-          <Drawer.DrawerDescription>
-            <slot name="description" />
-          </Drawer.DrawerDescription>
+          <div :class="$slots['header-actions'] ? 'min-w-0' : 'contents'">
+            <Drawer.DrawerTitle><slot name="title" /></Drawer.DrawerTitle>
+            <Drawer.DrawerDescription><slot name="description" /></Drawer.DrawerDescription>
+          </div>
+          <DialogHeaderActions v-if="$slots['header-actions']" :close="hasDrawerClose ? close : undefined">
+            <slot name="header-actions" />
+          </DialogHeaderActions>
         </component>
 
         <ScrollAreaContent />
@@ -185,14 +183,11 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
           isMobile && 'max-h-[88dvh] w-[calc(100vw-2rem)] max-w-md rounded-2xl',
         ]"
         :blur-overlay="isMobile || props.raised"
-        :custom-close="customClose"
+        :custom-close="Boolean(customClose || $slots['header-actions'])"
         :raised="props.raised"
         @close-auto-focus="onCloseAutoFocus"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
-        <div v-if="$slots['header-actions']" class="absolute top-3 right-14 z-20 flex items-center">
-          <slot name="header-actions" />
-        </div>
         <template v-if="props.srOnlyHeader">
           <Dialog.DialogTitle class="sr-only">
             <slot name="title" />
@@ -202,13 +197,20 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
           </Dialog.DialogDescription>
         </template>
         <template v-else-if="$slots.title || $slots.description">
-          <Dialog.DialogHeader class="mb-4 text-left">
-            <Dialog.DialogTitle>
-              <slot name="title" />
-            </Dialog.DialogTitle>
-            <Dialog.DialogDescription>
-              <slot name="description" />
-            </Dialog.DialogDescription>
+          <Dialog.DialogHeader
+            class="mb-4 text-left"
+            :class="$slots['header-actions'] && 'grid grid-cols-[minmax(0,1fr)_auto] items-start'"
+          >
+            <div :class="$slots['header-actions'] ? 'min-w-0' : 'contents'">
+              <Dialog.DialogTitle><slot name="title" /></Dialog.DialogTitle>
+              <Dialog.DialogDescription><slot name="description" /></Dialog.DialogDescription>
+            </div>
+            <DialogHeaderActions
+              v-if="$slots['header-actions']"
+              :close="!customClose && dismissible ? close : undefined"
+            >
+              <slot name="header-actions" />
+            </DialogHeaderActions>
           </Dialog.DialogHeader>
         </template>
 

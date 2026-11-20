@@ -199,6 +199,7 @@
         "loadFailed": "Gagal memuat grup."
       },
       "icon": {
+        "default": "Ikon bawaan",
         "label": "Pilih ikon grup"
       },
       "inline": {

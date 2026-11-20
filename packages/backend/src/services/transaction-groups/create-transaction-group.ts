@@ -37,7 +37,7 @@ export const createTransactionGroup = withTransaction(async (payload: CreateTran
     name,
     note: note ?? null,
     icon: icon ?? null,
-    iconColor: icon ? (iconColor ?? null) : null,
+    iconColor: iconColor ?? null,
   });
 
   const items = expandedIds.map((transactionId) => ({

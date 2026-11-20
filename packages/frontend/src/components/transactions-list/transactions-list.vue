@@ -9,6 +9,7 @@ import { createReusableTemplate } from '@vueuse/core';
 import { computed, defineAsyncComponent, reactive, ref, watch, watchEffect, type ComponentPublicInstance } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { SCROLL_AREA_IDS } from '../lib/ui/scroll-area/types';
 import BulkActionDialogs from './bulk-action-dialogs.vue';
 import BulkEditToolbar from './bulk-edit-toolbar.vue';
@@ -41,6 +42,7 @@ const props = withDefaults(
     rawList?: boolean; // whenever we don't need to show anything except actual records
     maxDisplay?: number; // maximum number of items to display after deduplication
     enableBulkEdit?: boolean;
+    pinBulkToolbar?: boolean;
     expandGroups?: boolean;
     groupPreviewLimit?: number;
     /** When true, content filters are active — groups dissolve and individual transactions show */
@@ -107,19 +109,29 @@ const {
 } = useManageTransactionDialog();
 
 // Scroll / virtualizer setup
-const scrollContainer = useScrollAreaContainer(props.scrollAreaId);
+const inheritedScrollContainer = useScrollAreaContainer(props.scrollAreaId);
+const ownScrollArea = ref<InstanceType<typeof ScrollArea> | null>(null);
+const scrollElement = computed(() =>
+  props.pinBulkToolbar
+    ? ownScrollArea.value?.viewportRef?.viewportElement
+    : inheritedScrollContainer.value?.viewportElement,
+);
+const [DefineRows, UseRows] = createReusableTemplate();
 
 const listContainerRef = ref<HTMLElement | null>(null);
 const scrollMargin = ref(0);
 
 // Measure distance from scroll element top to list container top.
 // TanStack Virtual needs this when the list is offset within the scroll element.
-watch(listContainerRef, (el) => {
-  const scrollEl = scrollContainer?.value?.viewportElement;
-  if (el && scrollEl) {
-    scrollMargin.value = el.getBoundingClientRect().top - scrollEl.getBoundingClientRect().top + scrollEl.scrollTop;
-  }
-});
+watch(
+  [listContainerRef, scrollElement],
+  ([el, scrollEl]) => {
+    if (el && scrollEl) {
+      scrollMargin.value = el.getBoundingClientRect().top - scrollEl.getBoundingClientRect().top + scrollEl.scrollTop;
+    }
+  },
+  { flush: 'post' },
+);
 
 // Selection, eligibility, bulk mutations and dialog state — shared with the table view.
 const bulkActions = useBulkTransactionActions({
@@ -171,7 +183,7 @@ watch(
 const virtualizer = useVirtualizer(
   computed(() => ({
     count: rows.value.length + (props.hasNextPage ? 1 : 0),
-    getScrollElement: () => scrollContainer?.value?.viewportElement,
+    getScrollElement: () => scrollElement.value,
     estimateSize: () => 52 + 8,
     getItemKey: ((currentRows) => (index) => {
       const row = currentRows[index];
@@ -179,7 +191,7 @@ const virtualizer = useVirtualizer(
     })(rows.value),
     overscan: 10,
     scrollMargin: scrollMargin.value,
-    enabled: props.paginate && !!scrollContainer?.value?.viewportElement,
+    enabled: props.paginate && !!scrollElement.value,
   })),
 );
 
@@ -200,7 +212,7 @@ const virtualRows = computed(() => virtualizer.value.getVirtualItems());
 const totalSize = computed(() => virtualizer.value.getTotalSize());
 
 watchEffect(() => {
-  const [lastItem] = [...virtualRows.value].reverse();
+  const lastItem = virtualRows.value.at(-1);
 
   if (!lastItem) return;
 
@@ -211,10 +223,11 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div>
+  <div :class="pinBulkToolbar && 'flex h-full min-h-0 flex-col overflow-hidden'">
     <!-- Bulk edit toolbar -->
     <BulkEditToolbar
       v-if="enableBulkEdit && displayTransactions.length > 0"
+      :class="pinBulkToolbar && 'static shrink-0'"
       :selected-count="selectedCount"
       :is-all-selected="isAllSelected"
       :is-loading="isBulkLoading"
@@ -275,47 +288,57 @@ watchEffect(() => {
       </div>
     </DefineRowTemplate>
 
-    <template v-if="paginate">
-      <div ref="listContainerRef" class="relative">
-        <div v-bind="$attrs" v-if="transactions" class="w-full">
-          <div :style="{ height: `${totalSize}px` }" class="relative">
-            <div
-              v-for="virtualRow in virtualRows"
-              :key="rowKey(virtualRow.index)"
-              :data-index="virtualRow.index"
-              :ref="(element) => measureGroupRow({ element, index: virtualRow.index })"
-              :style="{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${virtualRow.start - scrollMargin}px)`,
-              }"
-            >
-              <UseRowTemplate v-if="rows[virtualRow.index]" :item="rows[virtualRow.index]!" :index="virtualRow.index" />
+    <DefineRows>
+      <template v-if="paginate">
+        <div ref="listContainerRef" class="relative">
+          <div v-bind="$attrs" v-if="transactions" class="w-full">
+            <div :style="{ height: `${totalSize}px` }" class="relative">
+              <div
+                v-for="virtualRow in virtualRows"
+                :key="rowKey(virtualRow.index)"
+                :data-index="virtualRow.index"
+                :ref="(element) => measureGroupRow({ element, index: virtualRow.index })"
+                :style="{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  transform: `translateY(${virtualRow.start - scrollMargin}px)`,
+                }"
+              >
+                <UseRowTemplate
+                  v-if="rows[virtualRow.index]"
+                  :item="rows[virtualRow.index]!"
+                  :index="virtualRow.index"
+                />
+              </div>
+            </div>
+
+            <div v-if="!rawList" class="flex h-10 items-center justify-center">
+              <template v-if="!hasNextPage">{{ t('transactions.list.noMoreData') }}</template>
             </div>
           </div>
 
-          <div v-if="!rawList" class="flex h-10 items-center justify-center">
-            <template v-if="!hasNextPage">{{ t('transactions.list.noMoreData') }}</template>
+          <div
+            v-if="!rawList"
+            class="absolute right-0 bottom-0 left-0 flex h-10 items-center justify-center bg-white/5 empty:hidden"
+          >
+            <template v-if="isFetchingNextPage">{{ t('transactions.list.loadingMore') }}</template>
           </div>
         </div>
-
-        <div
-          v-if="!rawList"
-          class="absolute right-0 bottom-0 left-0 flex h-10 items-center justify-center bg-white/5 empty:hidden"
-        >
-          <template v-if="isFetchingNextPage">{{ t('transactions.list.loadingMore') }}</template>
+      </template>
+      <template v-else>
+        <div v-bind="$attrs" :class="['grid grid-cols-1 gap-2', expandGroups && 'px-2']">
+          <template v-for="(item, index) in rows" :key="rowKey(index)">
+            <UseRowTemplate :item="item" :index="index" />
+          </template>
         </div>
-      </div>
-    </template>
-    <template v-else>
-      <div v-bind="$attrs" class="grid grid-cols-1 gap-2">
-        <template v-for="(item, index) in rows" :key="rowKey(index)">
-          <UseRowTemplate :item="item" :index="index" />
-        </template>
-      </div>
-    </template>
+      </template>
+    </DefineRows>
+    <ScrollArea v-if="pinBulkToolbar" ref="ownScrollArea" class="min-h-0 flex-1" viewport-class="overscroll-contain">
+      <div class="px-2 pt-1 pb-3 sm:px-3"><UseRows /></div>
+    </ScrollArea>
+    <UseRows v-else />
 
     <TransactionDetailsModal v-model:open="isDialogVisible" :mobile="isMobile" :is-compact="isCompactDialog">
       <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" @request-close="closeDialog" />

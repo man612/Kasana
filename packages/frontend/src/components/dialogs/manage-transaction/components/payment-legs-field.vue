@@ -29,7 +29,7 @@ import LinkPaymentTransactionsDialog from './link-payment-transactions-dialog.vu
 import PaymentLegRow from './payment-leg-row.vue';
 
 const props = defineProps<{
-  label: string;
+  label?: string;
   /** Options for the main row. */
   mainAccounts: AccountModel[];
   /** Options for the other rows. */

@@ -5,7 +5,7 @@ import { CircleHelpIcon } from '@lucide/vue';
 import { useI18n } from 'vue-i18n';
 
 /** Clickable explanation using the app's existing dialog/drawer pattern. */
-defineProps<{ topic: string }>();
+defineProps<{ topic: string; header?: boolean }>();
 
 const { t } = useI18n();
 </script>
@@ -17,11 +17,12 @@ const { t } = useI18n();
         type="button"
         variant="ghost"
         size="icon-sm"
-        class="text-muted-foreground hover:text-foreground size-8 shrink-0 rounded-lg"
+        class="text-muted-foreground hover:text-foreground shrink-0 rounded-lg"
+        :class="header ? 'size-11' : 'size-8'"
         :aria-label="t('forms.fieldHelp.open', { field: t(`forms.fieldHelp.${topic}.title`) })"
         :title="t(`forms.fieldHelp.${topic}.title`)"
       >
-        <CircleHelpIcon class="size-4" />
+        <CircleHelpIcon :class="header ? 'size-5' : 'size-4'" aria-hidden="true" />
       </Button>
     </template>
     <div class="space-y-3">

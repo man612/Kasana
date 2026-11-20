@@ -3,7 +3,7 @@ import * as transactionGroupsApi from '@/api/transaction-groups';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import { Button } from '@/components/lib/ui/button';
-import ResponsiveMenu from '@/components/common/responsive-menu.vue';
+import TransactionGroupActions from '@/components/transactions-list/transaction-group-actions.vue';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import TransactionsList from '@/components/transactions-list/transactions-list.vue';
 import GroupIcon from '@/components/transactions-list/group-icon.vue';
@@ -11,7 +11,7 @@ import { syncTransactionGroupQueries, transactionGroupDetailQuery } from '@/comp
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import { format, getTime } from 'date-fns';
 import { TRANSACTION_TYPES } from '@bt/shared/types';
-import { CheckIcon, EllipsisIcon, PencilIcon, Trash2Icon, XIcon } from '@lucide/vue';
+import { CheckIcon, PencilIcon, XIcon } from '@lucide/vue';
 import { useResizeObserver } from '@vueuse/core';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -19,7 +19,6 @@ import { useFormatCurrency } from '@/composable/formatters';
 import { useNotificationCenter } from '@/components/notification-center';
 import { extractApiErrorMessage } from '@/js/errors';
 import { cn } from '@/lib/utils';
-import EditGroupDialog from './edit-group-dialog.vue';
 
 const SUMMARY_CELL =
   'flex items-baseline justify-between gap-3 px-3 py-2 @md/summary:grid @md/summary:justify-start @md/summary:gap-0.5 @md/summary:px-4 @md/summary:py-2.5';
@@ -56,38 +55,8 @@ const {
   })),
 );
 
-// Edit dialog
-const isEditDialogOpen = ref(false);
-const isActionsOpen = ref(false);
-
-const startEdit = () => {
-  isEditDialogOpen.value = true;
-};
-
-const handleEditSaved = () => {
-  emit('updated');
-};
-
-// Delete group
-const isDeleteConfirmOpen = ref(false);
-
-const openDeleteConfirm = () => {
-  isDeleteConfirmOpen.value = true;
-};
-
-const handleDelete = async () => {
-  const groupId = props.groupId;
-  if (!groupId) return;
-  try {
-    await transactionGroupsApi.deleteTransactionGroup({ id: groupId });
-  } catch (error) {
-    addErrorNotification(extractApiErrorMessage(error) || t('transactions.transactionGroups.groupsPage.deleteError'));
-    return;
-  } finally {
-    isDeleteConfirmOpen.value = false;
-  }
+const handleGroupDeleted = () => {
   emit('update:open', false);
-  await syncTransactionGroupQueries({ queryClient, groupId, group: null });
   emit('deleted');
 };
 
@@ -155,7 +124,6 @@ watch(
   () => [props.open, props.groupId],
   () => {
     isManaging.value = false;
-    isActionsOpen.value = false;
     isNoteExpanded.value = false;
   },
 );
@@ -218,45 +186,13 @@ const summary = computed(() => {
           </h2>
           <p v-if="metaLine" class="text-muted-foreground text-xs">{{ metaLine }}</p>
         </div>
-        <ResponsiveMenu v-if="group" v-model:open="isActionsOpen" dim-backdrop>
-          <template #trigger>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              class="size-11 shrink-0"
-              :aria-label="$t('transactions.transactionGroups.groupsPage.moreActions', { name: group.name })"
-            >
-              <EllipsisIcon class="size-4" aria-hidden="true" />
-            </Button>
-          </template>
-          <template #default="{ close: closeMenu }">
-            <Button
-              type="button"
-              variant="ghost"
-              class="min-h-11 w-full justify-start"
-              @click="
-                closeMenu();
-                startEdit();
-              "
-            >
-              <PencilIcon class="size-4" aria-hidden="true" />
-              {{ $t('transactionGroups.groupDialog.editAction') }}
-            </Button>
-            <Button
-              type="button"
-              variant="ghost-destructive"
-              class="min-h-11 w-full justify-start"
-              @click="
-                closeMenu();
-                openDeleteConfirm();
-              "
-            >
-              <Trash2Icon class="size-4" aria-hidden="true" />
-              {{ $t('transactionGroups.groupDialog.deleteAction') }}
-            </Button>
-          </template>
-        </ResponsiveMenu>
+        <TransactionGroupActions
+          v-if="group"
+          :group-id="group.id"
+          :name="group.name"
+          @deleted="handleGroupDeleted"
+          @saved="emit('updated')"
+        />
         <Button variant="ghost" size="icon" class="size-11 shrink-0" :aria-label="$t('common.ui.close')" @click="close">
           <XIcon class="size-5" />
         </Button>
@@ -378,21 +314,6 @@ const summary = computed(() => {
       </div>
     </template>
   </ResponsiveDialog>
-
-  <EditGroupDialog v-model:open="isEditDialogOpen" :group="group ?? null" @saved="handleEditSaved" />
-
-  <!-- Delete group confirmation -->
-  <ResponsiveAlertDialog
-    v-model:open="isDeleteConfirmOpen"
-    :confirm-label="$t('common.actions.delete')"
-    confirm-variant="destructive"
-    @confirm="handleDelete"
-  >
-    <template #title>{{ $t('transactionGroups.groupDialog.deleteGroupTitle') }}</template>
-    <template #description>
-      {{ $t('transactionGroups.groupDialog.deleteGroupDescription', { groupName: group?.name }) }}
-    </template>
-  </ResponsiveAlertDialog>
 
   <!-- Remove transaction confirmation -->
   <ResponsiveAlertDialog

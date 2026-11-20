@@ -199,6 +199,7 @@
         "loadFailed": "Could not load the group."
       },
       "icon": {
+        "default": "Default icon",
         "label": "Choose a group icon"
       },
       "inline": {

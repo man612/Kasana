@@ -26,7 +26,7 @@ export const updateTransactionGroup = withTransaction(async (payload: UpdateTran
     ...(name !== undefined && { name }),
     ...(note !== undefined && { note }),
     ...(icon !== undefined && { icon }),
-    ...(icon === null ? { iconColor: null } : iconColor !== undefined && { iconColor }),
+    ...(iconColor !== undefined ? { iconColor } : icon === null && { iconColor: null }),
   });
 
   return group;

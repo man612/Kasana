@@ -29,7 +29,10 @@ defineProps<{ compactTrigger?: boolean }>();
     <div class="border-primary/45 bg-muted/40 space-y-1 border-l-2 p-3">
       <p class="font-semibold">{{ $t('automations.guide.exampleTitle') }}</p>
       <p>{{ $t('automations.guide.example') }}</p>
+      <p>{{ $t('automations.guide.exampleRun') }}</p>
     </div>
+    <p>{{ $t('automations.guide.noMatch') }}</p>
+    <p>{{ $t('automations.guide.schedule') }}</p>
     <p class="text-muted-foreground">{{ $t('automations.guide.caution') }}</p>
     <slot />
   </ContextualHelp>

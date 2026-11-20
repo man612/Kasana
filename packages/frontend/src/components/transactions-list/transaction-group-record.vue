@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { computed, ref, useId, watch } from 'vue';
 
 import GroupIcon from './group-icon.vue';
+import TransactionGroupActions from './transaction-group-actions.vue';
 import TransactionRecord from './transaction-record.vue';
 
 export interface GroupRowData {
@@ -73,7 +74,7 @@ const dateRange = computed(() => {
 
 <template>
   <div class="bg-primary/5 border-primary/20 rounded-lg border">
-    <div class="flex min-w-0 items-center gap-1">
+    <div class="flex min-w-0 items-center">
       <Button
         type="button"
         variant="ghost"
@@ -89,6 +90,7 @@ const dateRange = computed(() => {
           </span>
         </span>
       </Button>
+      <TransactionGroupActions :group-id="group.groupId" :name="group.groupName" />
       <Button
         v-if="expandable"
         type="button"
@@ -116,7 +118,7 @@ const dateRange = computed(() => {
     <LayoutCollapse v-if="expandable" :id="membersId" :open="Boolean(expanded)">
       <div
         v-if="hasExpanded"
-        class="border-border/60 mx-2 mb-2 grid gap-1 border-t pt-2"
+        class="border-border/60 mx-2 mb-2 grid gap-1 border-t pt-2 pl-2"
         :aria-busy="detail.isFetching.value"
       >
         <TransactionRecord

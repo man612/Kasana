@@ -11,9 +11,9 @@ import {
 } from '@/composable/data-queries/notifications';
 import { NOTIFICATION_STATUSES } from '@bt/shared/types';
 import { BellIcon, BellOffIcon, Loader2Icon, XIcon } from '@lucide/vue';
-import { ref, useId } from 'vue';
+import { ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { buildNotificationRoute } from './build-notification-route';
 import NotificationItem from './notification-item.vue';
@@ -22,11 +22,18 @@ withDefaults(defineProps<{ sidebar?: boolean }>(), { sidebar: false });
 
 const { t } = useI18n();
 const router = useRouter();
+const route = useRoute();
 const isOpen = ref(false);
 const titleId = useId();
 const heading = ref<HTMLElement | null>(null);
+watch(
+  () => route.fullPath,
+  () => {
+    isOpen.value = false;
+  },
+);
 
-const { data: notifications, isLoading } = useNotifications({ enabled: isOpen });
+const { data: notifications, isPending } = useNotifications({ enabled: isOpen });
 const { data: unreadCount } = useUnreadNotificationsCount();
 
 const markAsReadMutation = useMarkNotificationAsRead();
@@ -141,7 +148,7 @@ const handleDismiss = (id: string) => {
         </Button>
       </div>
 
-      <div v-if="isLoading" class="flex items-center justify-center py-8">
+      <div v-if="isPending" class="flex items-center justify-center py-8">
         <Loader2Icon class="text-muted-foreground size-6 animate-spin" />
       </div>
 

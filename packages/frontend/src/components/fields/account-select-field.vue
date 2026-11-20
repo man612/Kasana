@@ -2,7 +2,7 @@
   <!-- Primary transaction account picker: a centered, touch-friendly dialog
        on phones; retain the original Reka Select and keyboard behavior on desktop. -->
   <div v-if="isMobile" class="w-full min-w-0" v-bind="$attrs">
-    <FieldLabel :label="label" only-template>
+    <FieldLabel :label="hideLabel ? undefined : label" only-template>
       <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
       <div class="flex min-w-0 items-stretch">
         <Dialog.Dialog v-model:open="mobileOpen">
@@ -213,6 +213,7 @@ const props = withDefaults(
     /** Offer archived accounts regardless of the global dropdown preference. */
     includeArchived?: boolean;
     label?: string;
+    hideLabel?: boolean;
     placeholder?: string;
     errorMessage?: string;
     disabled?: boolean;

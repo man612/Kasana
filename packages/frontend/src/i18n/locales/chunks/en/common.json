@@ -1,5 +1,12 @@
 {
   "common": {
+    "connection": {
+      "offline": "No internet connection. Check your network and try again.",
+      "unreachable": "Could not reach Lajur. Try again in a moment.",
+      "serverUnavailable": "Lajur. is temporarily unavailable. Try again in a moment.",
+      "requestTimeout": "The request took too long. Try again.",
+      "cachedData": "Information already on screen may be out of date."
+    },
     "contextHelp": {
       "title": "More information",
       "description": "Guidance for this setting.",
