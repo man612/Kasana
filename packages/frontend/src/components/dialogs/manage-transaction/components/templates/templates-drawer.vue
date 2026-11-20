@@ -133,7 +133,15 @@ const onCloseAutoFocus = (event: Event) => {
         {{ $t('dialogs.manageTransaction.templates.tapHint') }}
       </Dialog.DialogDescription>
 
-      <div class="h-[min(10rem,30dvh)] min-h-0 overflow-hidden">
+      <div class="flex h-[min(10rem,30dvh)] min-h-0 flex-col gap-2 overflow-hidden">
+        <InputField
+          v-if="isFilterVisible"
+          v-model="query"
+          class="shrink-0"
+          :placeholder="$t('dialogs.manageTransaction.templates.filterPlaceholder')"
+          :aria-label="$t('dialogs.manageTransaction.templates.filterPlaceholder')"
+        />
+
         <div v-if="isLoading" aria-busy="true" class="flex flex-col gap-2 pb-3">
           <div v-for="index in 3" :key="index" class="bg-muted h-11 animate-pulse rounded-md" />
         </div>
@@ -145,7 +153,10 @@ const onCloseAutoFocus = (event: Event) => {
           <Button variant="outline" size="sm" @click="emit('retry')">{{ $t('common.actions.retry') }}</Button>
         </div>
 
-        <p v-else-if="!templates.length" class="text-muted-foreground px-1 pb-3 text-xs leading-relaxed">
+        <p
+          v-else-if="!templates.length"
+          class="text-muted-foreground flex flex-1 items-center px-1 text-xs leading-relaxed"
+        >
           {{ $t('dialogs.manageTransaction.templates.emptyState') }}
         </p>
 
@@ -153,7 +164,7 @@ const onCloseAutoFocus = (event: Event) => {
           {{ $t('dialogs.manageTransaction.templates.noMatches') }}
         </p>
 
-        <ScrollArea v-else class="h-full min-h-0 overflow-hidden">
+        <ScrollArea v-else class="min-h-0 flex-1 overflow-hidden">
           <div class="flex flex-col">
             <div
               v-for="template in filtered"
@@ -200,15 +211,6 @@ const onCloseAutoFocus = (event: Event) => {
             </div>
           </div>
         </ScrollArea>
-      </div>
-
-      <div class="mt-3">
-        <InputField
-          v-show="isFilterVisible"
-          v-model="query"
-          :placeholder="$t('dialogs.manageTransaction.templates.filterPlaceholder')"
-          :aria-label="$t('dialogs.manageTransaction.templates.filterPlaceholder')"
-        />
       </div>
 
       <div class="border-border mt-3 grid grid-cols-1 gap-2 border-t pt-3">
