@@ -62,6 +62,8 @@ watch(
       {{ t('pages.account.excludeFromStats.label') }}
 
       <HintIcon
+        :title="$t('pages.account.excludeFromStats.label')"
+        :example="isOwner ? $t('pages.account.excludeFromStats.example') : undefined"
         :content="
           isOwner ? t('pages.account.excludeFromStats.tooltip') : t('pages.account.excludeFromStats.recipientTooltip')
         "

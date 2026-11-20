@@ -198,7 +198,7 @@ const route = useRoute();
 const { t } = useI18n();
 watch(() => route.path, closeModal);
 
-const { currenciesMap, systemCurrencies } = storeToRefs(useCurrenciesStore());
+const { baseCurrency, currenciesMap, systemCurrencies } = storeToRefs(useCurrenciesStore());
 const {
   accounts: allAccounts,
   accountsRecord,
@@ -829,13 +829,7 @@ const isCurrenciesDifferent = computed(() => {
   return form.value.account.currencyCode !== form.value.toAccount.currencyCode;
 });
 
-const currencyCode = computed(() => {
-  const accountCurrencyCode = form.value.account?.currencyCode;
-  if (accountCurrencyCode) {
-    return currenciesMap.value[accountCurrencyCode]?.currency?.code;
-  }
-  return undefined;
-});
+const currencyCode = computed(() => form.value.account?.currencyCode ?? baseCurrency.value?.currencyCode);
 
 const { formatAmountByCurrencyCode } = useFormatCurrency();
 const { convert: convertCurrency, data: exchangeRates } = useExchangeRates();

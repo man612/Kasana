@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { LayoutGridIcon } from '@lucide/vue';
 import { computed, nextTick, provide, ref, watch } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
@@ -12,6 +13,7 @@ const props = defineProps<{
   currentPeriod: Period;
 }>();
 
+const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const gridRoot = ref<HTMLElement | null>(null);
 // Animate the existing grid instead of remounting widgets on each month change.
 // Remounting would discard local widget state and interfere with draggable layouts.
@@ -82,7 +84,7 @@ const addWidgetAnimated = (widgetId: string) => animateLayoutChange(() => addWid
 
 defineExpose({
   isEditMode,
-  enterEditMode: () => animateLayoutChange(enterEditMode),
+  enterEditMode: () => (isMobile.value ? enterEditMode() : animateLayoutChange(enterEditMode)),
   saveLayout,
   cancelEdit,
 });
@@ -108,7 +110,10 @@ const GRID_CLASSES =
       handle=".drag-handle"
       :disabled="!isEditMode"
       :animation="200"
-      :class="[GRID_CLASSES, isEditMode ? 'kasana-dashboard-edit-enter' : 'kasana-dashboard-edit-return']"
+      :class="[
+        GRID_CLASSES,
+        !isMobile && (isEditMode ? 'kasana-dashboard-edit-enter' : 'kasana-dashboard-edit-return'),
+      ]"
     >
       <DashboardWidgetSlot
         v-for="widget in displayWidgets"

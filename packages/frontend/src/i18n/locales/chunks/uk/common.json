@@ -1,5 +1,10 @@
 {
   "common": {
+    "contextHelp": {
+      "title": "Докладніше",
+      "description": "Пояснення цього налаштування.",
+      "example": "Приклад"
+    },
     "loading": "Завантаження...",
     "new": "Нове",
     "actions": {

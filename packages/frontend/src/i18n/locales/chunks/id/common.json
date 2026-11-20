@@ -1,5 +1,10 @@
 {
   "common": {
+    "contextHelp": {
+      "title": "Penjelasan",
+      "description": "Panduan untuk pengaturan ini.",
+      "example": "Contoh"
+    },
     "loading": "Memuat...",
     "new": "Baru",
     "actions": {

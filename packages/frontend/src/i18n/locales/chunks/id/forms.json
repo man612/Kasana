@@ -495,8 +495,8 @@
       },
       "vehicleDepreciation": {
         "title": "Pola penurunan nilai kendaraan",
-        "meaning": "Penyusutan adalah perkiraan berkurangnya harga kendaraan dari waktu ke waktu. Pola bawaan memakai kurva per kategori, Lambat berarti persentase tahunan 30% lebih kecil, Cepat 30% lebih besar, dan Tentukan sendiri memakai persentase tetap setiap tahun. Nilai ini estimasi matematis, bukan harga jual pasar yang terverifikasi.",
-        "example": "Untuk sedan contoh Rp200.000.000, pola bawaan menurunkan nilai 20% pada tahun pertama menjadi Rp160.000.000, lalu 15% dari sisanya pada tahun kedua menjadi Rp136.000.000. Ini contoh rumus aplikasi, bukan patokan harga mobil bekas Indonesia.",
+        "meaning": "Penyusutan adalah perkiraan penurunan nilai kendaraan. Perubahan nilai aset memengaruhi kekayaan bersih dan tidak membuat transaksi pembayaran.",
+        "example": "Jika kendaraan seharga Rp 100 juta diperkirakan bernilai Rp 90 juta, nilai aset yang dihitung menjadi Rp 90 juta. Saldo rekening bank tetap sama.",
         "important": "Kurva bawaan berasal dari referensi pasar luar negeri. Kondisi, pajak, lokasi, permintaan pasar, bekas banjir, riwayat servis, serta odometer tidak otomatis masuk rumus. Bandingkan dengan harga kendaraan bekas lokal dan gunakan pengaturan nilai manual jika diperlukan."
       },
       "vehicleCustomRate": {
@@ -627,8 +627,8 @@
       "sharedOwnerCategoriesLoadError": "Tidak dapat memuat kategori untuk akun bersama. Silakan coba lagi.",
       "dialogHint": "Pilih kategori utama atau subkategori agar laporan lebih teratur.",
       "groupHint": "Kategori & subkategori",
-      "collapseAll": "Ringkas semua",
-      "expandAll": "Tampilkan semua",
+      "collapseAll": "Tutup semua",
+      "expandAll": "Buka semua",
       "collapseGroup": "Ringkas {name}",
       "expandGroup": "Tampilkan subkategori {name}"
     },

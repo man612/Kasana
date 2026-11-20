@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import ContextualHelp from '@/components/common/contextual-help.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Callout } from '@/components/lib/ui/callout';
 import { PillTabs } from '@/components/lib/ui/pill-tabs';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
 import { ROUTES_NAMES } from '@/routes';
 import { TRACKER_LIMIT_KINDS } from '@bt/shared/types';
 import { ArrowDownIcon, ArrowUpIcon, ArrowUpToLineIcon, CircleHelpIcon } from '@lucide/vue';
@@ -27,15 +27,14 @@ const items = computed(() => kinds.map((value) => ({ value, label: t(`budgets.li
   <div class="grid gap-2">
     <div class="flex items-center justify-between gap-2">
       <span class="text-sm font-medium">{{ $t('budgets.limitKind.label') }}</span>
-      <Popover>
-        <PopoverTrigger as-child>
+      <ContextualHelp :title="$t('budgets.limitKind.guideTitle')">
+        <template #trigger>
           <Button type="button" variant="ghost-primary" size="sm" class="gap-1.5">
             <CircleHelpIcon class="size-4" />
             {{ $t('budgets.limitKind.whatToChoose') }}
           </Button>
-        </PopoverTrigger>
-        <PopoverContent align="end" class="grid w-96 max-w-[calc(100vw-2rem)] gap-4">
-          <p class="font-semibold">{{ $t('budgets.limitKind.guideTitle') }}</p>
+        </template>
+        <div class="grid gap-4">
           <div v-for="value in kinds" :key="value" class="flex gap-3">
             <span :class="['flex size-7 shrink-0 items-center justify-center rounded-md', KIND_ICONS[value].class]">
               <component :is="KIND_ICONS[value].icon" class="size-4" />
@@ -55,8 +54,8 @@ const items = computed(() => kinds.map((value) => ({ value, label: t(`budgets.li
               </RouterLink>
             </template>
           </i18n-t>
-        </PopoverContent>
-      </Popover>
+        </div>
+      </ContextualHelp>
     </div>
     <PillTabs
       :model-value="kind"

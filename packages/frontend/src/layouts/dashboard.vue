@@ -133,7 +133,7 @@ const onDashboardTouchEnd = (event: TouchEvent) => {
 };
 
 watch(
-  () => route.fullPath,
+  () => route.path,
   () => {
     if (scrollAreaRef.value?.viewportRef?.viewportElement) {
       scrollAreaRef.value.viewportRef.viewportElement.scrollTop = 0;

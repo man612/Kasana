@@ -4,7 +4,7 @@
     class="bg-background/95 border-border/70 sticky right-0 bottom-0 left-0 z-(--z-navbar) border-t px-2 pt-1 pb-[max(0.35rem,env(safe-area-inset-bottom))] backdrop-blur-sm md:px-4"
   >
     <nav
-      class="mx-auto grid max-w-150 grid-cols-4 gap-1"
+      class="mx-auto max-w-150 touch-pan-y"
       aria-label="Navigasi utama"
       @touchstart.passive="onNavTouchStart"
       @touchend="onNavTouchEnd"
@@ -26,7 +26,9 @@ const router = useRouter();
 const route = useRoute();
 const primaryNavRoutes = [ROUTES_NAMES.home, ROUTES_NAMES.accounts, ROUTES_NAMES.transactions, ROUTES_NAMES.analytics];
 let navTouch: { x: number; y: number } | null = null;
-const clearNavTouch = () => { navTouch = null; };
+const clearNavTouch = () => {
+  navTouch = null;
+};
 const onNavTouchStart = (event: TouchEvent) => {
   if (event.touches.length !== 1) return;
   navTouch = { x: event.touches[0]!.clientX, y: event.touches[0]!.clientY };

@@ -8,6 +8,7 @@ import {
   CarTaxiFrontIcon,
   ConstructionIcon,
   FootprintsIcon,
+  MountainIcon,
   GaugeIcon,
   MotorbikeIcon,
   OrbitIcon,
@@ -118,6 +119,8 @@ const catalogueGroups = {
 };
 
 const typeIcons: Partial<Record<VehicleType, Component>> = {
+  sportBike: GaugeIcon,
+  trail: MountainIcon,
   electricBike: ZapIcon,
   ev: ZapIcon,
   hybrid: ZapIcon,

@@ -1,5 +1,10 @@
 {
   "common": {
+    "contextHelp": {
+      "title": "More information",
+      "description": "Guidance for this setting.",
+      "example": "Example"
+    },
     "loading": "Loading...",
     "new": "New",
     "actions": {

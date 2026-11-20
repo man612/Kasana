@@ -1,6 +1,7 @@
 import type { DashboardWidgetConfig } from '@/api/user-settings';
 import { DEFAULT_DASHBOARD_LAYOUT, WIDGET_REGISTRY } from '@/components/widgets/widget-registry';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { trackAnalyticsEvent } from '@/lib/posthog';
 import { useLocalStorage } from '@vueuse/core';
 import { cloneDeep } from 'lodash-es';
@@ -12,6 +13,7 @@ export function useDashboardLayout() {
   const cachedLayout = useLocalStorage<DashboardWidgetConfig[]>('dashboard-layout', DEFAULT_DASHBOARD_LAYOUT);
 
   const isEditMode = ref(false);
+  const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
   const draftWidgets = ref<DashboardWidgetConfig[]>([]);
 
   const activeWidgets = computed<DashboardWidgetConfig[]>(() => {
@@ -56,7 +58,7 @@ export function useDashboardLayout() {
     const transitionHost = document as Document & {
       startViewTransition?: (callback: () => Promise<void>) => unknown;
     };
-    if (reducedMotion || typeof transitionHost.startViewTransition !== 'function') {
+    if (isMobile.value || reducedMotion || typeof transitionHost.startViewTransition !== 'function') {
       exit();
       return;
     }

@@ -1,7 +1,7 @@
 import { useEventListener, usePreferredReducedMotion } from '@vueuse/core';
 import { nextTick, onScopeDispose, ref, watch, type Ref } from 'vue';
 
-const EDGE_START = 22;
+const EDGE_START = 12;
 const EDGE_END = 62;
 const DRAG_SLOP = 9;
 const SETTLE_MS = 220;
@@ -36,13 +36,23 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
     velocity: number;
     /** Drawer offset when this touch began, including interrupted settle motion. */
     originPosition: number;
+    claimed: boolean;
   } | null = null;
   let position = 0;
   let settling = false;
+  let frame = 0;
+  let drawerElement: HTMLElement | null;
+  let overlayElement: HTMLElement | null;
   let settleTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const panel = () => document.querySelector<HTMLElement>('[data-mobile-sidebar]');
-  const backdrop = () => document.querySelector<HTMLElement>('.lajur-mobile-sidebar-overlay');
+  const panel = () => {
+    if (!drawerElement?.isConnected) drawerElement = document.querySelector('[data-mobile-sidebar]');
+    return drawerElement;
+  };
+  const backdrop = () => {
+    if (!overlayElement?.isConnected) overlayElement = document.querySelector('.lajur-mobile-sidebar-overlay');
+    return overlayElement;
+  };
 
   const setPosition = ({ x, width, duration = 0 }: { x: number; width: number; duration?: number }) => {
     position = Math.min(0, Math.max(-width, x));
@@ -62,7 +72,9 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
 
   const clear = () => {
     clearTimeout(settleTimer);
-    touch = null;
+    stopTracking();
+    cancelAnimationFrame(frame);
+    frame = 0;
     settling = false;
     gesture.value = false;
     if (!open.value) skipOpenAnimation.value = false;
@@ -74,6 +86,8 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
 
   const settle = async (stayOpen: boolean, width: number) => {
     settling = true;
+    cancelAnimationFrame(frame);
+    frame = 0;
     await nextTick();
     if (!settling) return;
     const duration = reducedMotion.value === 'reduce' ? 0 : SETTLE_MS;
@@ -94,7 +108,9 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
     const target = event.target;
     if (!(target instanceof Element)) return;
     if (open.value) {
-      if (!target.closest('[data-mobile-sidebar]') || target.closest('input, textarea, [data-no-nav-swipe]')) return;
+      const startedOnPanel = Boolean(target.closest('[data-mobile-sidebar]'));
+      const canTakeOver = settling && point.clientX >= EDGE_START && point.clientX <= EDGE_END;
+      if ((!startedOnPanel && !canTakeOver) || target.closest('input, textarea, [data-no-nav-swipe]')) return;
     } else {
       if (point.clientX < EDGE_START || point.clientX > EDGE_END) return;
       if (target.closest('input, select, textarea, nav, svg, canvas, [role="slider"], [data-no-nav-swipe]')) return;
@@ -102,27 +118,19 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
     }
     const drawer = panel();
     const width = drawer?.offsetWidth || Math.min(window.innerWidth * 0.82, MAX_DRAWER_WIDTH);
-    // A fast reverse swipe must take over an in-flight settle. Otherwise the
-    // user can touch the visible drawer while settling=true and nothing happens.
-    // Freeze at the *rendered* offset, not the transition target, so the panel
-    // follows the next finger without snapping to its final position.
-    const originPosition = open.value ? (settling ? (drawer?.getBoundingClientRect().left ?? position) : 0) : -width;
-    if (settling) {
-      clearTimeout(settleTimer);
-      settling = false;
-      setPosition({ x: originPosition, width });
-    }
     touch = {
       id: point.identifier,
       x: point.clientX,
       y: point.clientY,
       wasOpen: open.value,
       width,
-      originPosition,
+      originPosition: open.value ? 0 : -width,
+      claimed: false,
       lastX: point.clientX,
       lastTime: event.timeStamp,
       velocity: 0,
     };
+    window.addEventListener('touchmove', move, { capture: true, passive: false });
   };
 
   const move = (event: TouchEvent) => {
@@ -130,13 +138,24 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
     const point = event.touches[0]!;
     if (point.identifier !== touch.id) return;
     const movement = point.clientX - touch.x;
-    if (!gesture.value) {
+    if (!touch.claimed) {
       const vertical = Math.abs(point.clientY - touch.y);
       if (Math.max(Math.abs(movement), vertical) < DRAG_SLOP) return;
-      if (!event.cancelable || vertical * 1.35 >= Math.abs(movement) || (touch.wasOpen ? movement > 0 : movement < 0)) {
-        touch = null;
+      if (
+        !event.cancelable ||
+        vertical * 1.35 >= Math.abs(movement) ||
+        (!settling && (touch.wasOpen ? movement > 0 : movement < 0))
+      ) {
+        stopTracking();
         return;
       }
+      if (settling) {
+        // Take over at the rendered offset only after a horizontal gesture has won.
+        touch.originPosition = panel()?.getBoundingClientRect().left ?? position;
+        clearTimeout(settleTimer);
+        settling = false;
+      }
+      touch.claimed = true;
       gesture.value = true;
       skipOpenAnimation.value = true;
       open.value = true;
@@ -150,14 +169,20 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
     if (elapsed > 0) touch.velocity = (point.clientX - touch.lastX) / elapsed;
     touch.lastX = point.clientX;
     touch.lastTime = event.timeStamp;
-    setPosition({ x: touch.originPosition + movement, width: touch.width });
+    position = Math.min(0, Math.max(-touch.width, touch.originPosition + movement));
+    if (!frame) {
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        if (touch?.claimed) setPosition({ x: position, width: touch.width });
+      });
+    }
   };
 
   const end = (event: TouchEvent) => {
     const current = touch;
     if (!current || !Array.from(event.changedTouches).some((point) => point.identifier === current.id)) return;
-    touch = null;
-    if (!gesture.value) return;
+    stopTracking();
+    if (!current.claimed) return;
 
     const stayOpen =
       event.type === 'touchcancel'
@@ -171,7 +196,10 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
   };
 
   useEventListener(window, 'touchstart', start, { capture: true, passive: true });
-  useEventListener(window, 'touchmove', move, { capture: true, passive: false });
+  const stopTracking = () => {
+    touch = null;
+    window.removeEventListener('touchmove', move, true);
+  };
   useEventListener(window, ['touchend', 'touchcancel'], end, { capture: true, passive: true });
   watch(open, (value) => {
     if (!value && !settling) void nextTick(clear);

@@ -6,7 +6,6 @@ import InputField from '@/components/fields/input-field.vue';
 import FormFieldHelp from '@/components/common/form-field-help.vue';
 import OptionPickerDialog from '@/components/fields/option-picker-dialog.vue';
 import SelectField from '@/components/fields/select-field.vue';
-import UiButton from '@/components/lib/ui/button/Button.vue';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
 import { useFormValidation } from '@/composable/form-validator';
 import { captureException } from '@/lib/sentry';
@@ -26,7 +25,7 @@ import { useI18n } from 'vue-i18n';
 
 import { allowedVehiclePresets, hasVehicleAnnualRate } from './vehicle-valuation-options';
 
-const props = defineProps<{ vehicle: VehicleModel }>();
+const props = defineProps<{ vehicle: VehicleModel; formId?: string }>();
 const emit = defineEmits<{ updated: [] }>();
 
 const { t } = useI18n();
@@ -186,6 +185,8 @@ const isSubmitDisabled = computed(
 );
 
 const updateMutation = useMutation({ mutationFn: updateVehicle });
+const isSaving = updateMutation.isPending;
+defineExpose({ isSubmitDisabled, isSaving });
 
 const submit = async () => {
   if (updateMutation.isPending.value || isSubmitDisabled.value) return;
@@ -221,7 +222,7 @@ const submit = async () => {
 </script>
 
 <template>
-  <form class="grid gap-6" @submit.prevent="submit">
+  <form :id="formId" class="grid gap-6" @submit.prevent="submit">
     <input-field
       v-model="form.name"
       :label="$t('forms.createVehicle.nameLabel')"
@@ -283,7 +284,9 @@ const submit = async () => {
       value-key="value"
       :label="$t('forms.createVehicle.depreciationPresetLabel')"
       @update:model-value="(v) => v && (form.depreciationPreset = v.value)"
-    />
+    >
+      <template #label-right><FormFieldHelp topic="vehicleDepreciation" /></template>
+    </SelectField>
     <p class="text-muted-foreground -mt-2 text-sm">
       {{
         $t(
@@ -322,15 +325,5 @@ const submit = async () => {
       :error-message="getFieldErrorMessage('form.currentMileage')"
       @blur="touchField('form.currentMileage')"
     />
-
-    <div class="flex">
-      <ui-button type="submit" class="ml-auto min-w-30" :disabled="isSubmitDisabled || updateMutation.isPending.value">
-        {{
-          updateMutation.isPending.value
-            ? $t('forms.editVehicle.submitButtonLoading')
-            : $t('forms.editVehicle.submitButton')
-        }}
-      </ui-button>
-    </div>
   </form>
 </template>

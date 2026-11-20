@@ -6,7 +6,7 @@ import InputField from '@/components/fields/input-field.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import * as Dialog from '@/components/lib/ui/dialog';
-import { CheckIcon, ChevronDownIcon, ChevronRightIcon, PencilIcon, SearchIcon } from '@lucide/vue';
+import { CheckIcon, ChevronDownIcon, ChevronRightIcon, ChevronsUpDownIcon, PencilIcon, SearchIcon } from '@lucide/vue';
 import { computed, ref, watch, type Component } from 'vue';
 
 export interface PickerOption {
@@ -52,6 +52,11 @@ const groupedOptions = computed(() => {
   return [...groups.entries()];
 });
 const showGroups = computed(() => props.collapsibleGroups && !query.value.trim());
+const groupNames = computed(() => groupedOptions.value.map(([group]) => group).filter(Boolean));
+const allGroupsExpanded = computed(() => groupNames.value.every((group) => expandedGroups.value.includes(group)));
+const toggleAllGroups = () => {
+  expandedGroups.value = allGroupsExpanded.value ? [] : groupNames.value;
+};
 const toggleGroup = (group: string) => {
   expandedGroups.value = expandedGroups.value.includes(group)
     ? expandedGroups.value.filter((item) => item !== group)
@@ -94,8 +99,12 @@ const pick = (value: string) => {
     >
       <span
         v-if="option.icon"
-        class="flex size-9 shrink-0 items-center justify-center rounded-lg"
-        :class="option.iconClass ?? 'bg-muted text-muted-foreground'"
+        class="flex shrink-0 items-center justify-center"
+        :class="
+          collapsibleGroups
+            ? 'bg-muted/55 text-muted-foreground size-8 rounded-md'
+            : ['size-9 rounded-lg', option.iconClass ?? 'bg-muted text-muted-foreground']
+        "
       >
         <component :is="option.icon" class="size-4" />
       </span>
@@ -155,6 +164,7 @@ const pick = (value: string) => {
       </Dialog.DialogTrigger>
       <Dialog.DialogContent
         blur-overlay
+        :intrinsic-height-motion="collapsibleGroups"
         @open-auto-focus="onOpenAutoFocus"
         class="data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 grid max-h-[min(85dvh,700px)] w-[calc(100vw-2rem)] max-w-lg grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-2xl p-0 motion-reduce:animate-none"
       >
@@ -181,6 +191,12 @@ const pick = (value: string) => {
         </div>
         <div class="lajur-dialog-scroll min-h-0 space-y-1 overflow-y-auto overscroll-contain p-3">
           <template v-if="showGroups">
+            <div v-if="groupNames.length" class="bg-dialog sticky top-0 z-1 flex justify-end pb-1">
+              <Button type="button" variant="ghost" size="sm" class="min-h-10" @click="toggleAllGroups">
+                <ChevronsUpDownIcon class="size-4" aria-hidden="true" />
+                {{ $t(allGroupsExpanded ? 'fields.categorySelect.collapseAll' : 'fields.categorySelect.expandAll') }}
+              </Button>
+            </div>
             <div v-for="[group, options] in groupedOptions" :key="group">
               <Button
                 v-if="group"

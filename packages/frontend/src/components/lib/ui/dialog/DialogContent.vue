@@ -31,13 +31,22 @@ const props = defineProps<
     /** Softly blur the content behind the overlay. */
     blurOverlay?: boolean;
     raised?: boolean;
+    /** Child layout transitions already drive the content's intrinsic height. */
+    intrinsicHeightMotion?: boolean;
   }
 >();
 const emits = defineEmits<DialogContentEmits>();
 
 const delegatedProps = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { class: _, customClose: _customClose, blurOverlay: _blurOverlay, raised: _raised, ...delegated } = props;
+  const {
+    class: _,
+    customClose: _customClose,
+    blurOverlay: _blurOverlay,
+    raised: _raised,
+    intrinsicHeightMotion: _intrinsicHeightMotion,
+    ...delegated
+  } = props;
 
   return delegated;
 });
@@ -67,7 +76,7 @@ const keyboardViewportStyle = computed(() => {
       ]"
     />
     <DialogContent
-      v-animate-dialog-height
+      v-animate-dialog-height="!intrinsicHeightMotion"
       :style="keyboardViewportStyle"
       v-bind="{ ...forwarded, ...describedByAttrs, ...$attrs }"
       :class="

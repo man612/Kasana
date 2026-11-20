@@ -26,8 +26,8 @@ export function useKeyboardViewport(enabled: Ref<boolean>) {
     });
   };
 
-  useEventListener(viewport, 'resize', update, { passive: true });
-  useEventListener(viewport, 'scroll', update, { passive: true });
+  useEventListener(() => (enabled.value ? viewport : null), 'resize', update, { passive: true });
+  useEventListener(() => (enabled.value ? viewport : null), 'scroll', update, { passive: true });
   watch(enabled, update, { immediate: true });
   onScopeDispose(() => cancelAnimationFrame(frame));
 

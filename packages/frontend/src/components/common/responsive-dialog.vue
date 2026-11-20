@@ -6,9 +6,10 @@ import { useI18n } from 'vue-i18n';
 import * as Drawer from '@/components/lib/ui/drawer';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { useCloseDialogWhen } from '@/composable/use-close-dialog-when';
+import { useKeyboardViewport } from '@/composable/use-keyboard-viewport';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { createReusableTemplate, useVModel } from '@vueuse/core';
-import type { HTMLAttributes } from 'vue';
+import { computed, type HTMLAttributes } from 'vue';
 
 const { t } = useI18n();
 const [UseTemplate, SlotContent] = createReusableTemplate();
@@ -24,6 +25,7 @@ const props = withDefaults(
     dialogContentClass?: HTMLAttributes['class'];
     drawerContentClass?: HTMLAttributes['class'];
     customClose?: boolean;
+    fitKeyboard?: boolean;
     raised?: boolean;
     /** Closes the dialog the moment this turns true, e.g. `useIsAiUsageExitPage()` for dialogs linking to AI or billing settings. */
     closeWhen?: boolean;
@@ -49,9 +51,17 @@ const props = withDefaults(
   { dismissible: true, mobilePresentation: 'drawer' },
 );
 
-const emit = defineEmits(['update:open', 'open-auto-focus', 'closed']);
+const emit = defineEmits(['update:open', 'open-auto-focus', 'close-auto-focus', 'closed']);
 
 const isOpen = useVModel(props, 'open', emit, { passive: true });
+const keyboard = useKeyboardViewport(
+  computed(() => Boolean(props.fitKeyboard && isOpen.value && isMobile.value && props.mobilePresentation === 'drawer')),
+);
+const drawerKeyboardStyle = computed(() =>
+  isOpen.value && keyboard.value
+    ? { bottom: `${keyboard.value.bottomInset}px`, maxHeight: `${Math.max(1, keyboard.value.height - 8)}px` }
+    : undefined,
+);
 
 const setOpen = (open: boolean) => {
   if (!open && !props.dismissible) return;
@@ -59,7 +69,8 @@ const setOpen = (open: boolean) => {
 };
 
 const close = () => setOpen(false);
-const onCloseAutoFocus = () => {
+const onCloseAutoFocus = (event: Event) => {
+  emit('close-auto-focus', event);
   if (!isOpen.value) emit('closed');
 };
 
@@ -83,13 +94,14 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
   </UseScrollArea>
 
   <template v-if="isMobile && props.mobilePresentation === 'drawer'">
-    <Drawer.Drawer :open="isOpen" :dismissible="props.dismissible" @update:open="setOpen">
+    <Drawer.Drawer :open="isOpen" :fixed="props.fitKeyboard" :dismissible="props.dismissible" @update:open="setOpen">
       <Drawer.DrawerTrigger v-if="$slots.trigger" as-child>
         <slot name="trigger" />
       </Drawer.DrawerTrigger>
 
       <Drawer.DrawerContent
         :custom-indicator="props.drawerCustomIndicator"
+        :style="drawerKeyboardStyle"
         :class="[
           !props.noInternalScroll && 'grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden',
           'px-4 pb-[max(1rem,env(safe-area-inset-bottom))]',

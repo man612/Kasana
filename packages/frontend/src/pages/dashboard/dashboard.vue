@@ -4,36 +4,28 @@
     <RecoveryMethodBanner />
 
     <!-- Main period selector - floating on mobile, normal flow on desktop -->
-    <div
+    <LayoutCollapse
       v-if="!hasNoAccounts"
-      :class="
-        cn([
-          'bg-background/95 supports-backdrop-filter:bg-background/80 order-first -mx-6 -mt-1 mb-3 border-b py-2 backdrop-blur',
-          'z-(--z-navbar)',
-          '[overflow-anchor:none] motion-safe:transition-opacity motion-safe:duration-180',
-          isEditMode && 'max-md:pointer-events-none max-md:opacity-0',
-          'max-md:px-3',
-          'sticky top-(--header-height)',
-          'md:order-first md:-mx-6 md:-mt-1 md:mb-2 md:border-b-0 md:px-6 md:py-1',
-          isScrolled &&
-            'md:bg-card/95 md:supports-backdrop-filter:bg-card/95 dark:md:bg-background/95 dark:md:supports-backdrop-filter:bg-background/80 md:border-b dark:md:border-b-0',
-        ])
-      "
-      :inert="isEditMode && isMobileView"
+      :open="!(isEditMode && isMobileView)"
+      class="sticky top-(--header-height) z-(--z-navbar) order-first -mx-6 -mt-1 [overflow-anchor:none]"
     >
-      <div class="grid grid-cols-[1fr_auto_1fr] items-center">
+      <div
+        class="bg-background/95 supports-backdrop-filter:bg-background/80 mb-3 grid grid-cols-[1fr_auto_1fr] items-center border-b px-3 py-2 backdrop-blur md:mb-2 md:border-b-0 md:px-6 md:py-1"
+        :class="isScrolled && 'md:bg-card/95 dark:md:bg-background/95 md:border-b dark:md:border-b-0'"
+        data-testid="dashboard-period-bar"
+      >
         <div />
         <PeriodSelector v-model="currentPeriod" :payday="payday" />
         <DashboardEditToolbar
           class="justify-self-end"
           compact-mobile
-          :is-edit-mode="isEditMode"
+          :is-edit-mode="isEditMode && !isMobileView"
           @enter="gridRef?.enterEditMode()"
           @save="gridRef?.saveLayout()"
           @cancel="gridRef?.cancelEdit()"
         />
       </div>
-    </div>
+    </LayoutCollapse>
 
     <template v-if="hasNoAccounts">
       <DashboardOnboarding />
@@ -51,6 +43,7 @@
           <DashboardEditToolbar
             v-if="isEditMode && isMobileView"
             class="bg-background/95 fixed inset-x-0 bottom-[var(--bottom-navbar-height,4rem)] z-(--z-navbar) justify-center border-t px-6 py-3 backdrop-blur-sm"
+            data-testid="dashboard-mobile-edit-toolbar"
             :is-edit-mode="true"
             @save="gridRef?.saveLayout()"
             @cancel="gridRef?.cancelEdit()"
@@ -63,13 +56,13 @@
 
 <script lang="ts" setup>
 import RecoveryMethodBanner from '@/components/banners/recovery-method-banner.vue';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import PageWrapper from '@/components/common/page-wrapper.vue';
 import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import DashboardOnboarding from '@/components/widgets/dashboard-onboarding.vue';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { useScrollAreaContainer } from '@/composable/scroll-area-container';
 import { getPayPeriod } from '@/composable/use-period-navigation';
-import { cn } from '@/lib/utils';
 import { useAccountsStore } from '@/stores';
 import { useScroll } from '@vueuse/core';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';

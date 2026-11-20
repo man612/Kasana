@@ -53,8 +53,9 @@ export function observeDialogHeight(element: HTMLElement): () => void {
   };
 }
 
-export const vAnimateDialogHeight: Directive<HTMLElement> = {
-  mounted(element) {
+export const vAnimateDialogHeight: Directive<HTMLElement, boolean | undefined> = {
+  mounted(element, { value }) {
+    if (value === false) return;
     observers.set(element, observeDialogHeight(element));
   },
   unmounted(element) {

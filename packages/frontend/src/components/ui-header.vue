@@ -99,24 +99,18 @@
             </Popover.PopoverContent>
           </Popover.Popover>
 
-          <Popover.Popover>
-            <Popover.PopoverTrigger as-child>
+          <ContextualHelp :title="$t('header.moreActionsHelpTitle')">
+            <template #trigger>
               <Button
                 variant="ghost"
                 size="icon-sm"
                 class="text-muted-foreground ml-1 shrink-0"
                 :aria-label="$t('header.moreActionsHelpTitle')"
-                :title="$t('header.moreActionsHelpTitle')"
               >
                 <CircleHelpIcon class="size-4" />
               </Button>
-            </Popover.PopoverTrigger>
-            <Popover.PopoverContent
-              dim-backdrop
-              align="start"
-              class="w-80 max-w-[calc(100vw-2rem)] space-y-3 p-4 text-sm leading-relaxed"
-            >
-              <p class="font-semibold">{{ $t('header.moreActionsHelpTitle') }}</p>
+            </template>
+            <div class="space-y-3">
               <p class="text-muted-foreground">{{ $t('header.moreActionsHelpIntro') }}</p>
               <div class="border-border bg-muted/25 space-y-1 rounded-lg border px-3 py-2.5">
                 <p class="font-semibold">{{ $t('header.importData') }}</p>
@@ -126,8 +120,8 @@
                 <p class="font-semibold">{{ $t('header.attachInvoice') }}</p>
                 <p class="text-muted-foreground">{{ $t('header.moreActionsHelpInvoice') }}</p>
               </div>
-            </Popover.PopoverContent>
-          </Popover.Popover>
+            </div>
+          </ContextualHelp>
         </div>
 
         <AttachInvoiceDialog v-if="isAttachInvoiceMounted" v-model:open="isAttachInvoiceOpen" />
@@ -160,6 +154,7 @@
 
 <script setup lang="ts">
 import TrialBanner from '@/components/billing/trial-banner.vue';
+import ContextualHelp from '@/components/common/contextual-help.vue';
 import DemoBanner from '@/components/demo/demo-banner.vue';
 import ManageTransactionDialog from '@/components/dialogs/manage-transaction/index.vue';
 import Button from '@/components/lib/ui/button/Button.vue';

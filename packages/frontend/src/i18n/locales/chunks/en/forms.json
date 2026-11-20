@@ -494,8 +494,8 @@
       },
       "vehicleDepreciation": {
         "title": "Depreciation pattern",
-        "meaning": "Class default uses a yearly value-loss curve; Slow is 30% lower rates, Fast 30% higher, and Custom applies a single annual rate.",
-        "example": "For a sample sedan purchased for 200,000,000: first-year value 160,000,000, second-year value 136,000,000 under the existing formula.",
+        "meaning": "Depreciation estimates how a vehicle loses value over time. A new estimate changes net worth and does not create a payment.",
+        "example": "A Rp 100 million vehicle estimated at Rp 90 million counts at the new value. Your bank balance stays the same.",
         "important": "These curves rely on foreign-market assumptions; condition, mileage and Indonesian resale market prices are not modeled."
       },
       "vehicleCustomRate": {

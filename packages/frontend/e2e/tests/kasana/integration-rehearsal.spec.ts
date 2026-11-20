@@ -96,13 +96,17 @@ test('combined category dialog, vehicle picker/disclaimer and fractional IDR cas
     const classes = page.getByRole('dialog').last();
     const cars = classes.getByRole('button', { name: /^(Mobil|Cars)$/i });
     await expect(cars).toHaveAttribute('aria-expanded', 'false');
+    await classes.getByRole('button', { name: /^(Buka semua|Expand all)$/i }).click();
+    await expect(cars).toHaveAttribute('aria-expanded', 'true');
+    await classes.getByRole('button', { name: /^(Tutup semua|Collapse all)$/i }).click();
+    await expect(cars).toHaveAttribute('aria-expanded', 'false');
     await cars.click();
     await expect(cars).toHaveAttribute('aria-expanded', 'true');
     await expect(classes.getByRole('button', { name: /^SUV$/i })).toBeVisible();
     await classes.getByRole('button', { name: /SUV/i }).click();
     // Wait for the nested picker to unmount before using the parent close action.
     await expect(page.locator('[role="dialog"]')).toHaveCount(1);
-    await edit.getByRole('button', { name: /^(Tutup|Close)$/i }).click();
+    await edit.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByText('2020 Toyota Corolla', { exact: true })).toBeVisible();
     await expect(disclaimer).toBeVisible();

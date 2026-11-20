@@ -265,13 +265,26 @@
         class="h-[88dvh] max-h-[92dvh] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] motion-safe:transition-[max-height,bottom] motion-safe:duration-150"
         :style="keyboardSheetStyle"
         @open-auto-focus.prevent="mobileHeading?.focus({ preventScroll: true })"
+        @close-auto-focus="onCategoryCloseAutoFocus"
       >
-        <Drawer.DrawerHeader class="px-0 pb-2">
+        <Drawer.DrawerHeader class="relative min-h-12 justify-center py-0 pr-12 pl-0 text-left">
           <Drawer.DrawerTitle>
             <span ref="mobileHeading" tabindex="-1" class="outline-none">{{
               $t('fields.categorySelect.selectCategoryLabel')
             }}</span>
           </Drawer.DrawerTitle>
+          <DesktopOnlyTooltip :content="$t('common.ui.close')">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              class="text-muted-foreground absolute top-1/2 right-0 size-11 -translate-y-1/2"
+              :aria-label="$t('common.ui.close')"
+              @click="handleDrawerOpenChange(false)"
+            >
+              <XIcon class="size-5" aria-hidden="true" />
+            </Button>
+          </DesktopOnlyTooltip>
           <Drawer.DrawerDescription class="sr-only">{{
             $t('fields.categorySelect.dialogHint')
           }}</Drawer.DrawerDescription>
@@ -324,6 +337,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/lib/ui/button';
+import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import HintIcon from '@/components/common/hint-icon.vue';
 import { type FormattedCategory } from '@/common/types';
 import { truncateOwnerUsername } from '@/common/utils/account-display';
@@ -502,30 +517,44 @@ const shouldShowSeparator = ({ item, index }: { item: FlatCategory; index: numbe
 
 const mobileHeading = ref<HTMLElement | null>(null);
 const keyboard = useKeyboardViewport(computed(() => isMobile.value && isOpen.value));
+const closingKeyboardStyle = ref<{ bottom: string; maxHeight: string }>();
 const keyboardSheetStyle = computed(
   () =>
-    keyboard.value && {
+    closingKeyboardStyle.value ??
+    (keyboard.value && {
       bottom: `${keyboard.value.bottomInset}px`,
       maxHeight: `${Math.max(1, keyboard.value.height - 8)}px`,
-    },
+    }),
 );
 
 const openDropdown = () => {
+  closingKeyboardStyle.value = undefined;
   isOpen.value = true;
   searchQuery.value = '';
 };
 
 const handleDrawerOpenChange = (open: boolean) => {
-  isOpen.value = open;
-  if (!open) {
-    searchQuery.value = '';
+  if (!open && isOpen.value) {
+    closingKeyboardStyle.value = keyboardSheetStyle.value;
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement && mobileHeading.value?.closest('[role="dialog"]')?.contains(focused)) {
+      focused.blur();
+    }
   }
+  isOpen.value = open;
+};
+const onCategoryCloseAutoFocus = (event: Event) => {
+  if (isOpen.value) return;
+  closingKeyboardStyle.value = undefined;
+  event.preventDefault();
+  triggerRef.value?.focus({ preventScroll: true });
 };
 
 const selectItem = (item: FlatCategory) => {
   selectedValue.value = item;
   emit('update:model-value', item);
-  isOpen.value = false;
+  if (isMobile.value) handleDrawerOpenChange(false);
+  else isOpen.value = false;
   searchQuery.value = '';
 };
 

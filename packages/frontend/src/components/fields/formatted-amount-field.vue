@@ -8,7 +8,8 @@
         <span
           v-if="currencyCode === 'IDR' && !embedded"
           aria-hidden="true"
-          class="text-muted-foreground pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-semibold"
+          :class="disabled ? 'text-muted-foreground' : 'text-foreground'"
+          class="pointer-events-none absolute inset-y-0 left-3 z-1 flex items-center text-sm font-semibold motion-safe:transition-colors motion-safe:duration-180"
         >
           Rp
         </span>
@@ -26,7 +27,7 @@
           spellcheck="false"
           :class="
             cn(
-              'border-input bg-input-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-11 w-full rounded-md border px-3 py-2 text-base tabular-nums focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 md:h-9 md:text-sm',
+              'border-input bg-input-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring disabled:bg-muted/55 disabled:text-muted-foreground flex h-11 w-full rounded-md border px-3 py-2 text-base tabular-nums focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed motion-safe:transition-colors motion-safe:duration-180 md:h-9 md:text-sm',
               errorMessage && 'border-destructive',
               embedded &&
                 'h-full border-0 bg-transparent px-2 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-full',
