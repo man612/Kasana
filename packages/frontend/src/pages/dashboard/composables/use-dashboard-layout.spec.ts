@@ -1,5 +1,6 @@
 import type { DashboardWidgetConfig } from '@/api/user-settings';
 import { DEFAULT_DASHBOARD_LAYOUT } from '@/components/widgets/widget-registry';
+import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
 
@@ -7,7 +8,7 @@ const settings = ref<{ dashboard?: { widgets: DashboardWidgetConfig[] } } | null
 const patchAsync = vi.fn();
 
 vi.mock('@/composable/data-queries/user-settings', () => ({
-  useUserSettings: () => ({ data: settings, patchAsync }),
+  useUserSettings: () => ({ data: settings, isPending: ref(false), patchAsync }),
 }));
 
 vi.mock('@/lib/posthog', () => ({ trackAnalyticsEvent: vi.fn() }));
@@ -16,6 +17,7 @@ import { useDashboardLayout } from './use-dashboard-layout';
 
 describe('useDashboardLayout.saveWidgetConfigDirect', () => {
   beforeEach(() => {
+    setActivePinia(createPinia());
     patchAsync.mockReset();
   });
 

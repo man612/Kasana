@@ -22,12 +22,12 @@ withDefaults(defineProps<{ sidebar?: boolean }>(), { sidebar: false });
 
 const { t } = useI18n();
 const router = useRouter();
-const route = useRoute();
+const currentRoute = useRoute();
 const isOpen = ref(false);
 const titleId = useId();
 const heading = ref<HTMLElement | null>(null);
 watch(
-  () => route.fullPath,
+  () => currentRoute.fullPath,
   () => {
     isOpen.value = false;
   },

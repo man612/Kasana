@@ -58,7 +58,38 @@ Median dari tiga putaran. Kandidat untuk profil frontend adalah implementasi ini
 
 CLS turun ke bawah 0,1 pada seluruh putaran kandidat. Geser tersisa sekitar 0,058 muncul saat beberapa baris Transaksi Terbaru terpasang. LCP cold membaik, sementara data Transaksi Terbaru muncul lebih lambat. Angka transfer pada navigasi dengan worker tidak mengukur seluruh trafik yang mungkin dikerjakan di dalam worker.
 
-Sampel Akun, Transaksi, dan kembali ke Dashboard memberi median tepat setelah ketukan sebesar 271, 382, dan 790 ms pada baseline, serta 468, 882, dan 1.431 ms pada kandidat. Median Event Timing klik 72 → 224 ms. Sembilan ketukan di setiap sisi belum cukup untuk mengisolasi pengaruh worker, cache browser, dan biaya render rute. Navigasi dan kemunculan data perlu pengukuran dan optimasi lanjutan. Untuk putaran berikutnya, rekam subfase input, kerja JavaScript, dan paint dengan worker aktif dan nonaktif pada build serta perangkat yang sama. Ulangi juga pengukuran frame di perangkat fisik.
+Pada profil awal, sampel Akun, Transaksi, dan kembali ke Dashboard memberi median dari perintah ketuk hingga perubahan URL sebesar 271, 382, dan 790 ms pada baseline, serta 468, 882, dan 1.431 ms pada kandidat. Median Event Timing klik 72 → 224 ms. Sampel ini menggabungkan pengaruh worker, cache browser, dan biaya render rute.
+
+### Pengaruh service worker
+
+Tiga putaran tambahan bergantian mengizinkan dan memblokir worker pada build yang sama. Keduanya memakai sesi browser baru pada cold load dan profil CPU yang sama. Pengukuran di bawah ini menguji worker awal yang mengambil alih halaman ketika aktif.
+
+| Durasi median                             |    Worker diblokir |       Worker aktif |
+| ----------------------------------------- | -----------------: | -----------------: |
+| Baris Transaksi Terbaru terlihat, cold    |           5.717 ms |           7.310 ms |
+| Baris Transaksi Terbaru terlihat, refresh |           4.401 ms |           5.329 ms |
+| LCP cold                                  |           3.864 ms |           5.828 ms |
+| LCP refresh                               |           2.700 ms |           3.604 ms |
+| Navigasi Akun / Transaksi / Dashboard     | 246 / 423 / 855 ms | 329 / 492 / 928 ms |
+| Event Timing klik                         |             128 ms |              80 ms |
+
+Kontrol worker menambah waktu startup pada sampel ini. Metrik interaksi memberi hasil campuran. Waktu perubahan URL bertambah sementara Event Timing klik turun. Keduanya mengukur bagian interaksi yang berbeda.
+
+Worker kemudian diubah supaya kunjungan pertama meneruskan pemuatan lewat cache HTTP biasa. Worker menyiapkan fallback saat instalasi, mulai mengendalikan pemuatan pada navigasi berikutnya, dan memakai navigation preload ketika tersedia supaya permintaan dokumen dapat dimulai sebelum worker selesai bangun. Aset disimpan setelah navigasi terkendali. Uji offline berhasil segera setelah instalasi, termasuk sebelum refresh pertama dan setelah cache aset terisi.
+
+Pengujian tiga putaran berikut memakai bundle aplikasi yang identik. Hanya file worker yang berubah. Setiap versi dimuat pertama kali dalam sesi browser baru dan segera di-refresh pada sesi yang sama. Worker baru mengambil alih pada ketiga refresh.
+
+| Metrik median                             |        Worker awal |        Worker baru |
+| ----------------------------------------- | -----------------: | -----------------: |
+| LCP cold                                  |           8.372 ms |           5.392 ms |
+| Baris Transaksi Terbaru terlihat, cold    |          11.768 ms |           7.285 ms |
+| Baris Transaksi Terbaru terlihat, refresh |           6.178 ms |           6.197 ms |
+| CLS cold / refresh                        |    0,0637 / 0,0787 |    0,0827 / 0,0628 |
+| Long task cold                            |                 31 |                 20 |
+| Navigasi Akun / Transaksi / Dashboard     | 499 / 745 / 716 ms | 398 / 799 / 810 ms |
+| Event Timing klik                         |             304 ms |             136 ms |
+
+Pemuatan pertama dan jumlah long task membaik pada rangkaian ini. Refresh untuk data terbaru berubah 19 ms. Navigasi memberi hasil campuran, dan sampel klik tetap terlalu kecil untuk menyimpulkan INP lapangan. Profil frame, perangkat fisik, dan lalu lintas produksi masih diperlukan.
 
 ### API, database, dan resource lab
 
@@ -85,7 +116,7 @@ Payload daftar 40 transaksi sekitar 36,5 kB, ringkasan 101 B, detail grup 4,6 kB
 - Chromium standalone di 412 px memverifikasi menu grup, tata letak split pada Pengeluaran dan Pemasukan, penyembunyian toggle untuk Transfer, header Pinjaman, panduan Otomatisasi, dan exit Notifikasi. Exit masih terpasang pada DOM dan memakai animasi menuju lonceng setelah state ditutup.
 - Navigasi offline menampilkan halaman Lajur. dan Coba Lagi memulihkan Dashboard setelah jaringan kembali. Cache uji memuat 192 aset dan satu fallback publik. API dan dokumen privat tidak muncul pada daftar entri cache.
 - HTTP 503 dan 504 menampilkan penjelasan yang berbeda. Nama grup yang belum disimpan tetap tersedia dan berhasil disimpan setelah API kembali normal. Browser baru memulihkan tema gelap dan waktu Mulai Cepat dari server.
-- Pengujian kode mencatat 54 tes integrasi API Grup dan Pengaturan lulus serta 133 unit test frontend terarah lulus. Pemeriksaan Compose memakai konfigurasi sintetis.
+- Pengujian kode mencatat 54 tes integrasi API Grup dan Pengaturan lulus. Suite unit frontend penuh mencatat 4.391 lulus dan 34 terlewati. Pemeriksaan Compose memakai konfigurasi sintetis.
 - Fixture Otomatisasi menguji kembali tanpa perubahan, peringatan saat draft telah diisi, serta pemulihan input ketika memilih untuk tetap mengedit. Contoh panduan memakai aturan untuk transaksi hasil impor. Pengaturan prosesor aturan dan sistem pembayaran rutin tetap terpisah.
 
 - [Panduan Web Vitals](https://web.dev/articles/vitals)

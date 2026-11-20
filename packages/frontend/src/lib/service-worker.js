@@ -16,13 +16,15 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// An initial visit already fetching its chunks keeps the HTTP path until its next navigation.
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
+      // Let the browser request the next document while it wakes the worker.
+      await self.registration.navigationPreload?.enable().catch(() => {});
       for (const name of await caches.keys()) {
         if (name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME) await caches.delete(name);
       }
-      await self.clients.claim();
     })(),
   );
 });
@@ -57,10 +59,11 @@ const looksLikeAsset = (response) => {
   );
 };
 
-const networkNavigation = async (request) => {
+const networkNavigation = async (event) => {
   let originResponse;
   try {
-    originResponse = await fetch(request);
+    const preloaded = await event.preloadResponse?.catch(() => undefined);
+    originResponse = preloaded ?? (await fetch(event.request));
     if (originResponse.status < 500) return originResponse;
   } catch {
     // Navigations use the same offline page even when the server cannot answer.
@@ -86,7 +89,7 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     // Leave API, operator tools and authentication callbacks entirely on the network.
     if (/^\/(?:api|helper|oauth|\.well-known)(?:\/|$)/.test(url.pathname)) return;
-    event.respondWith(networkNavigation(request));
+    event.respondWith(networkNavigation(event));
     return;
   }
 

@@ -107,47 +107,48 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       // The generic onboarding fixture deliberately permanently dismisses the guide.
       // Reopen it for this isolated timer check, then restore the fixture's original
       // dismissed state before continuing the other interaction smoke assertions.
+      const onboardingPath = '/api/v1/user/settings/onboarding';
+      const shortHideMs = 30_000;
+      const shortDeadline = Date.now() + shortHideMs;
       await apiPut({
         request: api,
-        path: '/api/v1/user/settings/onboarding',
-        data: { isDismissed: false, dismissedAt: null },
+        path: onboardingPath,
+        data: { isDismissed: false, dismissedAt: null, hiddenUntil: shortDeadline },
       });
-      // A short, cross-tab Quick Start hide must expire without reloading.
-      // The timer is owned by the Pinia store even when the floating button is hidden.
+      // The countdown uses the absolute expiry returned by the account API.
+      await page.clock.install();
+      const waitForOnboarding = (method: 'GET' | 'PUT') =>
+        page.waitForResponse(
+          (response) => new URL(response.url()).pathname === onboardingPath && response.request().method() === method,
+          { timeout: 25_000 },
+        );
+      const initialOnboarding = waitForOnboarding('GET');
       await page.goto('/dashboard');
+      expect((await (await initialOnboarding).json()).response.hiddenUntil).toBe(shortDeadline);
+      await expect(page.getByTestId('dashboard-period-bar')).toBeVisible();
       const quickStart = page.locator('button.fixed:has(svg.lucide-rocket)');
-      await expect(quickStart).toBeVisible({ timeout: 20_000 });
-      await page.evaluate(() => {
-        const key = 'kasana.quick-start-hidden-until-v1';
-        const hiddenUntil = String(Date.now() + 2_500);
-        localStorage.setItem(key, hiddenUntil);
-        window.dispatchEvent(new StorageEvent('storage', { key, newValue: hiddenUntil }));
-      });
       await expect(quickStart).toBeHidden();
+      await page.clock.fastForward(shortHideMs + 1_000);
       await expect(quickStart).toBeVisible({ timeout: 8_000 });
 
-      // UX11 #1: a one-hour hide survives reload with exactly the original
-      // absolute expiry; reloads must never restart the countdown.
-      await page.evaluate(() => {
-        const key = 'kasana.quick-start-hidden-until-v1';
-        const deadline = String(Date.now() + 60 * 60_000);
-        localStorage.setItem(key, deadline);
-        window.dispatchEvent(new StorageEvent('storage', { key, newValue: deadline }));
-      });
+      // A one-hour hide saved from the UI survives reload with the original expiry.
+      await quickStart.click();
+      await page.getByRole('button', { name: /^(Sembunyikan|Hide)$/ }).click();
+      const savedOnboarding = waitForOnboarding('PUT');
+      const oneHour = 60 * 60_000;
+      const beforeSave = await page.evaluate(() => Date.now());
+      await page.getByRole('menuitem', { name: /^(Selama 1 jam|For 1 hour)$/ }).click();
+      const { hiddenUntil: originalDeadline } = (await (await savedOnboarding).json()).response;
+      expect(originalDeadline).toBeGreaterThanOrEqual(beforeSave + oneHour);
+      expect(originalDeadline).toBeLessThanOrEqual((await page.evaluate(() => Date.now())) + oneHour);
       await expect(quickStart).toBeHidden();
-      const originalDeadline = await page.evaluate(() => localStorage.getItem('kasana.quick-start-hidden-until-v1'));
+      const reloadedOnboarding = waitForOnboarding('GET');
       await page.reload();
+      await expect(page.getByTestId('dashboard-period-bar')).toBeVisible();
+      // On reload the layout waits for idle before asking for Quick Start again.
+      await page.clock.fastForward(2_100);
+      expect((await (await reloadedOnboarding).json()).response.hiddenUntil).toBe(originalDeadline);
       await expect(quickStart).toBeHidden();
-      expect(await page.evaluate(() => localStorage.getItem('kasana.quick-start-hidden-until-v1'))).toBe(
-        originalDeadline,
-      );
-      await page.evaluate(() => {
-        const key = 'kasana.quick-start-hidden-until-v1';
-        const expired = String(Date.now() - 1);
-        localStorage.setItem(key, expired);
-        window.dispatchEvent(new StorageEvent('storage', { key, newValue: expired }));
-      });
-      await expect(quickStart).toBeVisible({ timeout: 8_000 });
 
       await dismissOnboarding({ request: api });
       await page.reload();
