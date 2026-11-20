@@ -90,15 +90,15 @@
         </div>
 
         <div v-if="isOwner" class="flex flex-wrap items-center gap-2">
-          <UiButton class="min-h-11" @click="isOverrideOpen = true">{{
+          <UiButton class="min-h-[44px] min-w-0 max-w-full whitespace-normal break-words text-center" @click="isOverrideOpen = true">{{
             $t('pages.vehicleDetails.overrideValueButton')
           }}</UiButton>
-          <UiButton variant="outline" class="min-h-11" @click="isEditOpen = true">{{
+          <UiButton variant="outline" class="min-h-[44px] min-w-0 max-w-full whitespace-normal break-words text-center" @click="isEditOpen = true">{{
             $t('pages.vehicleDetails.editButton')
           }}</UiButton>
           <Popover v-model:open="isMoreOpen" modal>
             <PopoverTrigger as-child>
-              <UiButton variant="ghost" class="min-h-11">
+              <UiButton variant="ghost" class="min-h-[44px] min-w-0 max-w-full whitespace-normal break-words text-center">
                 <EllipsisIcon class="size-4" aria-hidden="true" />
                 {{ $t('common.actions.more') }}
               </UiButton>
@@ -139,6 +139,7 @@
                 {{ $t('pages.vehicleDetails.purchasePrice') }}
               </div>
               <VehicleAmount
+                data-testid="vehicle-kpi-money"
                 :formatted="formatAmountByCurrencyCode(vehicle.purchasePrice, currencyCode)"
                 class="mt-1 block text-lg font-semibold tabular-nums"
               />
@@ -154,10 +155,11 @@
               </div>
               <div class="mt-1 flex flex-wrap items-baseline gap-2 text-lg font-semibold tabular-nums">
                 <VehicleAmount
+                  data-testid="vehicle-kpi-money"
                   :formatted="formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode)"
                   :class="depreciationDirection === 'down' ? 'text-app-expense-color' : 'text-app-income-color'"
                 />
-                <span class="text-muted-foreground text-sm font-normal whitespace-nowrap">
+                <span data-testid="vehicle-kpi-percentage" class="text-muted-foreground text-sm font-normal whitespace-nowrap">
                   {{ Math.abs(depreciationPercent).toFixed(1) }}%
                 </span>
               </div>
@@ -177,6 +179,7 @@
                 {{ $t('pages.vehicleDetails.projectedFiveYear') }}
               </div>
               <VehicleAmount
+                data-testid="vehicle-kpi-money"
                 :formatted="formatAmountByCurrencyCode(projectedFiveYearValue, currencyCode)"
                 class="mt-1 block text-lg font-semibold tabular-nums"
               />
