@@ -34,6 +34,8 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
     lastX: number;
     lastTime: number;
     velocity: number;
+    /** Drawer offset when this touch began, including interrupted settle motion. */
+    originPosition: number;
   } | null = null;
   let position = 0;
   let settling = false;
@@ -87,7 +89,7 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
   };
 
   const start = (event: TouchEvent) => {
-    if (!enabled.value || touch || settling || event.touches.length !== 1) return;
+    if (!enabled.value || touch || event.touches.length !== 1) return;
     const point = event.touches[0]!;
     const target = event.target;
     if (!(target instanceof Element)) return;
@@ -98,12 +100,25 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
       if (target.closest('input, select, textarea, nav, svg, canvas, [role="slider"], [data-no-nav-swipe]')) return;
       if (document.querySelector('[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]')) return;
     }
+    const drawer = panel();
+    const width = drawer?.offsetWidth || Math.min(window.innerWidth * 0.82, MAX_DRAWER_WIDTH);
+    // A fast reverse swipe must take over an in-flight settle. Otherwise the
+    // user can touch the visible drawer while settling=true and nothing happens.
+    // Freeze at the *rendered* offset, not the transition target, so the panel
+    // follows the next finger without snapping to its final position.
+    const originPosition = open.value ? (settling ? (drawer?.getBoundingClientRect().left ?? position) : 0) : -width;
+    if (settling) {
+      clearTimeout(settleTimer);
+      settling = false;
+      setPosition({ x: originPosition, width });
+    }
     touch = {
       id: point.identifier,
       x: point.clientX,
       y: point.clientY,
       wasOpen: open.value,
-      width: panel()?.offsetWidth || Math.min(window.innerWidth * 0.82, MAX_DRAWER_WIDTH),
+      width,
+      originPosition,
       lastX: point.clientX,
       lastTime: event.timeStamp,
       velocity: 0,
@@ -135,7 +150,7 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
     if (elapsed > 0) touch.velocity = (point.clientX - touch.lastX) / elapsed;
     touch.lastX = point.clientX;
     touch.lastTime = event.timeStamp;
-    setPosition({ x: (touch.wasOpen ? 0 : -touch.width) + movement, width: touch.width });
+    setPosition({ x: touch.originPosition + movement, width: touch.width });
   };
 
   const end = (event: TouchEvent) => {
