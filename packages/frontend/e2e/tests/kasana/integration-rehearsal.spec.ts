@@ -69,15 +69,23 @@ test('combined category dialog, vehicle picker/disclaimer and fractional IDR cas
     await page.keyboard.press('Escape');
 
     await page.goto('/accounts/vehicles/' + vehicleId);
+    // The valuation caveat now lives in an accessible contextual-help dialog.
+    // Verify that the explanation remains available rather than requiring
+    // it to occupy the vehicle page's permanent layout.
+    const valuationHelp = page.getByRole('button', {
+      name: /Estimasi nilai saat ini|Estimated current value/i,
+    });
     const disclaimer = page
-      .locator('p')
-      .filter({ hasText: /bukan harga jual pasar terkini|not a live market quote/i })
-      .first();
+      .getByRole('dialog')
+      .filter({ hasText: /Ini bukan harga jual pasar terkini|This is not a live resale price/i });
+    await valuationHelp.click();
     await expect(disclaimer).toBeVisible();
     await page.screenshot({ path: test.info().outputPath('vehicle-disclaimer-desktop.png'), fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
     await expect(page.getByRole('button', { name: /Buka menu navigasi|Open navigation menu/i })).toBeVisible();
+    await valuationHelp.click();
+    await expect(disclaimer).toBeVisible();
     await expect(disclaimer).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(2);
     await page.screenshot({ path: test.info().outputPath('vehicle-disclaimer-mobile.png'), fullPage: true });
@@ -109,7 +117,10 @@ test('combined category dialog, vehicle picker/disclaimer and fractional IDR cas
     await edit.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByText('2020 Toyota Corolla', { exact: true })).toBeVisible();
+    await valuationHelp.click();
     await expect(disclaimer).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(disclaimer).toBeHidden();
 
     await page.goto('/portfolios/' + portfolioId);
     await page.getByRole('button', { name: /Tambah transaksi|Add transaction/i }).click();
