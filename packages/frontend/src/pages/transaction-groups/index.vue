@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/common/dropdown-menu';
+import TransactionGroupIcon from '@/components/transactions-list/group-icon.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Card } from '@/components/lib/ui/card';
 import InputField from '@/components/fields/input-field.vue';
@@ -15,7 +16,10 @@ import SelectField from '@/components/fields/select-field.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import ErrorState from '@/components/widgets/components/error-state.vue';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
-import { invalidateTransactionGroupQueries } from '@/composable/data-queries/transaction-groups';
+import {
+  invalidateTransactionGroupQueries,
+  syncTransactionGroupQueries,
+} from '@/composable/data-queries/transaction-groups';
 import { useFormatCurrency } from '@/composable/formatters';
 import { useNotificationCenter } from '@/components/notification-center';
 import { extractApiErrorMessage } from '@/js/errors';
@@ -129,13 +133,11 @@ const invalidateGroups = () => invalidateTransactionGroupQueries({ queryClient }
 // Dialog state
 const dialogState = reactive({
   isOpen: false,
-  key: 0,
-  groupId: undefined as string | undefined,
+  group: undefined as TransactionGroupResponse | undefined,
 });
 
-const openGroupDialog = ({ groupId }: { groupId: string }) => {
-  dialogState.groupId = groupId;
-  dialogState.key++;
+const openGroupDialog = ({ group }: { group: TransactionGroupResponse }) => {
+  dialogState.group = group;
   dialogState.isOpen = true;
 };
 
@@ -163,16 +165,17 @@ const confirmDelete = ({ group }: { group: TransactionGroupResponse }) => {
 };
 
 const handleDelete = async () => {
-  if (!deleteState.groupId) return;
+  const groupId = deleteState.groupId;
+  if (!groupId) return;
   try {
     await transactionGroupsApi.deleteTransactionGroup({
-      id: deleteState.groupId,
+      id: groupId,
     });
+    await syncTransactionGroupQueries({ queryClient, groupId, group: null });
   } catch (error) {
     addErrorNotification(extractApiErrorMessage(error) || t('transactions.transactionGroups.groupsPage.deleteError'));
   } finally {
     deleteState.isOpen = false;
-    invalidateGroups();
   }
 };
 
@@ -323,8 +326,9 @@ const formatPhoneCaption = ({ group }: { group: TransactionGroupResponse }) =>
                 <Button
                   variant="link"
                   class="text-foreground h-auto min-w-[min(50%,max-content)] shrink justify-start p-0 text-base font-medium after:absolute after:inset-0 hover:no-underline"
-                  @click="openGroupDialog({ groupId: group.id })"
+                  @click="openGroupDialog({ group })"
                 >
+                  <TransactionGroupIcon :icon="group.icon" />
                   <span class="truncate">{{ group.name }}</span>
                 </Button>
                 <span
@@ -403,8 +407,8 @@ const formatPhoneCaption = ({ group }: { group: TransactionGroupResponse }) =>
 
     <TransactionGroupDialog
       v-model:open="dialogState.isOpen"
-      :key="dialogState.key"
-      :group-id="dialogState.groupId"
+      :group-id="dialogState.group?.id"
+      :preview="dialogState.group"
       @deleted="invalidateGroups"
       @updated="invalidateGroups"
     />
@@ -413,7 +417,7 @@ const formatPhoneCaption = ({ group }: { group: TransactionGroupResponse }) =>
 
     <ResponsiveAlertDialog
       v-model:open="deleteState.isOpen"
-      confirm-label="Delete"
+      :confirm-label="$t('common.actions.delete')"
       confirm-variant="destructive"
       @confirm="handleDelete"
     >

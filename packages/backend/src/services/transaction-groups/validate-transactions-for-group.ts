@@ -1,3 +1,4 @@
+import { t } from '@i18n/index';
 import { ConflictError, ValidationError } from '@js/errors';
 import TransactionGroupItems from '@models/transaction-group-items.model';
 import { countTransactions } from '@models/transactions-query';
@@ -31,7 +32,7 @@ export async function validateTransactionsForGroup({
 
   if (matchingCount !== transactionIds.length) {
     throw new ValidationError({
-      message: 'Some transaction IDs are invalid or do not belong to you.',
+      message: t({ key: 'transactionGroups.invalidTransactions' }),
     });
   }
 
@@ -44,7 +45,7 @@ export async function validateTransactionsForGroup({
 
   if (existingGroupItems.length > 0) {
     throw new ConflictError({
-      message: 'Some transactions already belong to a group.',
+      message: t({ key: 'transactionGroups.alreadyGrouped' }),
       details: {
         transactionIds: existingGroupItems.map((item) => item.transactionId),
       },

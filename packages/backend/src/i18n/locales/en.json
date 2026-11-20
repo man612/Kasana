@@ -894,5 +894,18 @@
   },
   "backgroundJobs": {
     "notFound": "This task is no longer running – the server may have restarted. Please try again."
+  },
+  "transactionGroups": {
+    "notFound": "Transaction group not found.",
+    "nameRequired": "Enter a group name.",
+    "nameTooLong": "A group name can have at most 100 characters.",
+    "noteTooLong": "A note can have at most 500 characters.",
+    "invalidIcon": "Choose an icon from the icon picker.",
+    "size": "A group must contain between {{min}} and {{max}} transactions.",
+    "addLimit": "A group can contain at most {{max}} transactions.",
+    "invalidTransactions": "Some transactions are invalid or do not belong to you.",
+    "alreadyGrouped": "Some transactions already belong to a group.",
+    "notMembers": "Some transactions are not in this group.",
+    "dissolve": "Removing these transactions leaves {{count}} in the group. The group will be dissolved."
   }
 }

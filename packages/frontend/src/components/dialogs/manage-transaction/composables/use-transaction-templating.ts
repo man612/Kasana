@@ -5,7 +5,7 @@ import { trackAnalyticsEvent } from '@/lib/posthog';
 import { useCurrenciesStore, useTagsStore } from '@/stores';
 import type { AccountModel, RecordId, TransactionTemplateModel, CreateTransactionTemplateBody } from '@bt/shared/types';
 import { storeToRefs } from 'pinia';
-import { type MaybeRefOrGetter, computed, nextTick, ref, toValue } from 'vue';
+import { type MaybeRefOrGetter, computed, nextTick, ref, toValue, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { buildFormattedCategoriesMap } from '../helpers';
@@ -79,6 +79,9 @@ export const useTransactionTemplating = ({
   const isVisible = computed(
     () => toValue(isFormCreation) && !toValue(isReadOnly) && form.value.type !== FORM_TYPES.transfer,
   );
+  watch(isVisible, (visible) => {
+    if (!visible) isOpen.value = false;
+  });
 
   // Applying before the pickers resolve would drop the template's account, category, tags or currency.
   const isDisabled = computed(

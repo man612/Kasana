@@ -262,6 +262,7 @@
     <!-- Mobile: Drawer -->
     <Drawer.Drawer v-if="isMobile" :open="isOpen" fixed @update:open="handleDrawerOpenChange">
       <Drawer.DrawerContent
+        custom-indicator
         class="h-[88dvh] max-h-[92dvh] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] motion-safe:transition-[max-height,bottom] motion-safe:duration-150"
         :style="keyboardSheetStyle"
         @open-auto-focus.prevent="mobileHeading?.focus({ preventScroll: true })"

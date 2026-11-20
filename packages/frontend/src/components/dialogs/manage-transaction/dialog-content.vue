@@ -2163,7 +2163,7 @@ onUnmounted(() => {
       ]"
     />
     <div class="mb-2 flex items-center justify-between px-6 py-2.5">
-      <div class="flex min-w-0 items-center gap-2">
+      <div class="flex min-w-0 items-center">
         <DialogTitle class="shrink-0">
           <span class="text-xl">
             {{
@@ -2176,10 +2176,21 @@ onUnmounted(() => {
           </span>
         </DialogTitle>
 
-        <template v-if="templating.isVisible.value">
-          <TemplatesDrawer v-if="isMobileView" v-bind="templating.listProps.value" v-on="templating.listHandlers" />
-          <TemplatesPanel v-else v-bind="templating.listProps.value" v-on="templating.listHandlers" />
-        </template>
+        <div
+          v-if="isFormCreation && !isReadOnly"
+          class="grid min-w-0 transition-[grid-template-columns,opacity,translate] duration-200 ease-out motion-reduce:transition-none"
+          data-testid="transaction-templates-control"
+          :class="templating.isVisible.value ? 'grid-cols-[1fr]' : '-translate-x-1 grid-cols-[0fr] opacity-0'"
+          :inert="!templating.isVisible.value"
+          :aria-hidden="!templating.isVisible.value || undefined"
+        >
+          <div class="min-w-0 overflow-hidden">
+            <div class="pl-2">
+              <TemplatesDrawer v-if="isMobileView" v-bind="templating.listProps.value" v-on="templating.listHandlers" />
+              <TemplatesPanel v-else v-bind="templating.listProps.value" v-on="templating.listHandlers" />
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Explicit close works in both Reka Dialog and Vaul Drawer. A DialogClose

@@ -444,7 +444,10 @@
         "lastYear": "Останні 12 місяців",
         "thisYear": "Цей рік",
         "previousYear": "Минулий рік"
-      }
+      },
+      "previousPeriod": "Попередній період",
+      "nextPeriod": "Наступний період",
+      "loadingPeriod": "Завантажуємо дані за цей період"
     }
   },
   "widgets": {

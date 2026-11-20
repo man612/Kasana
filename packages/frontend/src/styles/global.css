@@ -462,22 +462,6 @@
   transform: scale(0.84);
 }
 
-/* Period text moves gently while the dashboard's data refreshes. */
-.kasana-period-enter-active,
-.kasana-period-leave-active {
-  transition:
-    opacity var(--kasana-motion-normal) var(--kasana-motion-ease),
-    transform var(--kasana-motion-normal) var(--kasana-motion-ease);
-}
-.kasana-period-enter-from {
-  opacity: 0;
-  transform: translateX(6px);
-}
-.kasana-period-leave-to {
-  opacity: 0;
-  transform: translateX(-6px);
-}
-
 /* Animate natural-height optional form panels where the browser supports it.
    Keep graceful fade/slide fallback in older browsers and respect reduced motion. */
 @supports (interpolate-size: allow-keywords) {

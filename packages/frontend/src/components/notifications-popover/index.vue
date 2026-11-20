@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NotificationStruct } from '@/api/notifications';
 import Button from '@/components/lib/ui/button/Button.vue';
-import * as Popover from '@/components/lib/ui/popover';
+import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import {
   useDismissNotification,
   useMarkAllNotificationsAsRead,
@@ -57,8 +57,14 @@ const handleDismiss = (id: string) => {
 </script>
 
 <template>
-  <Popover.Popover v-model:open="isOpen">
-    <Popover.PopoverTrigger as-child>
+  <ResponsiveDialog
+    v-model:open="isOpen"
+    raised
+    mobile-presentation="center"
+    intrinsic-height-motion
+    dialog-content-class="max-w-md"
+  >
+    <template #trigger>
       <!-- Sidebar mode: full-width button with label -->
       <template v-if="sidebar">
         <button
@@ -101,14 +107,10 @@ const handleDismiss = (id: string) => {
           </span>
         </Button>
       </template>
-    </Popover.PopoverTrigger>
-    <Popover.PopoverContent
-      class="w-[min(22.5rem,calc(100vw-1rem))] overflow-hidden p-0"
-      :align="sidebar ? 'start' : 'end'"
-      :side="sidebar ? 'top' : 'bottom'"
-    >
-      <div class="border-border flex items-center justify-between border-b px-4 py-3">
-        <h3 class="text-sm font-semibold">{{ $t('notifications.title') }}</h3>
+    </template>
+    <template #title>{{ $t('notifications.title') }}</template>
+    <div>
+      <div v-if="unreadCount && unreadCount > 0" class="flex justify-end border-b pb-2">
         <Button
           v-if="unreadCount && unreadCount > 0"
           variant="ghost"
@@ -130,7 +132,7 @@ const handleDismiss = (id: string) => {
         <p class="text-muted-foreground text-sm">{{ $t('notifications.empty') }}</p>
       </div>
 
-      <div v-else class="lajur-dialog-scroll max-h-[min(22rem,65dvh)] overflow-y-auto overscroll-contain">
+      <div v-else class="divide-border">
         <div class="divide-border divide-y">
           <NotificationItem
             v-for="notification in notifications"
@@ -141,6 +143,6 @@ const handleDismiss = (id: string) => {
           />
         </div>
       </div>
-    </Popover.PopoverContent>
-  </Popover.Popover>
+    </div>
+  </ResponsiveDialog>
 </template>

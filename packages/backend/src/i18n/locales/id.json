@@ -894,5 +894,18 @@
   },
   "backgroundJobs": {
     "notFound": "This task is no longer running – the server may have restarted. Please try again."
+  },
+  "transactionGroups": {
+    "notFound": "Grup transaksi tidak ditemukan.",
+    "nameRequired": "Masukkan nama grup.",
+    "nameTooLong": "Nama grup maksimal 100 karakter.",
+    "noteTooLong": "Catatan maksimal 500 karakter.",
+    "invalidIcon": "Pilih ikon dari daftar ikon.",
+    "size": "Grup harus berisi {{min}} sampai {{max}} transaksi.",
+    "addLimit": "Satu grup dapat berisi maksimal {{max}} transaksi.",
+    "invalidTransactions": "Beberapa transaksi tidak valid atau bukan milik Anda.",
+    "alreadyGrouped": "Beberapa transaksi sudah ada di grup.",
+    "notMembers": "Beberapa transaksi tidak ada di grup ini.",
+    "dissolve": "Jika transaksi ini dikeluarkan, tersisa {{count}} transaksi dan grup akan dibubarkan."
   }
 }

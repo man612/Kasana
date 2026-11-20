@@ -28,6 +28,21 @@
           </router-view>
         </div>
       </template>
+      <div v-else-if="initializationFailed" class="grid justify-items-start gap-3 p-6">
+        <p role="status">{{ $t('common.errors.initializationFailed') }}</p>
+        <Button type="button" variant="outline" @click="rootStore.fetchInitialData">{{
+          $t('common.actions.retry')
+        }}</Button>
+      </div>
+      <div v-else class="mx-auto grid w-full max-w-5xl gap-3 p-4" aria-busy="true" data-testid="dashboard-startup">
+        <div class="bg-muted h-10 rounded-lg motion-safe:animate-pulse" aria-hidden="true" />
+        <div
+          v-for="index in 3"
+          :key="index"
+          class="bg-muted/75 h-32 rounded-xl border motion-safe:animate-pulse"
+          aria-hidden="true"
+        />
+      </div>
     </ScrollArea>
 
     <template v-if="isMobileView">
@@ -55,6 +70,7 @@
 import { useHead } from '@unhead/vue';
 import BottomNavbar from '@/components/bottom-navbar.vue';
 import ShareInvitationDialog from '@/components/dialogs/share-invitation-dialog.vue';
+import { Button } from '@/components/lib/ui/button';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import { QuickStartPanel, QuickStartSidebar, QuickStartTrigger } from '@/components/quick-start';
@@ -122,6 +138,7 @@ const onDashboardTouchEnd = (event: TouchEvent) => {
   if (!dashboardTouch || event.changedTouches.length !== 1) return;
   const start = dashboardTouch;
   dashboardTouch = null;
+  if (isMobileSheetOpen.value) return;
   const touch = event.changedTouches[0]!;
   const dx = touch.clientX - start.x;
   const dy = touch.clientY - start.y;
@@ -141,7 +158,7 @@ watch(
   },
 );
 
-const { isAppInitialized } = storeToRefs(rootStore);
+const { isAppInitialized, initializationFailed } = storeToRefs(rootStore);
 const { isBaseCurrencyExists } = storeToRefs(userCurrenciesStore);
 
 // The base-currency guard must run the instant the app is ready — it decides

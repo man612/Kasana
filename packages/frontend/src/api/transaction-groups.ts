@@ -5,6 +5,7 @@ export interface TransactionGroupResponse {
   id: string;
   name: string;
   note: string | null;
+  icon?: string | null;
   createdAt: string;
   updatedAt: string;
   transactionCount?: number;
@@ -31,13 +32,15 @@ export const loadTransactionGroupById = async ({ id }: { id: string }): Promise<
 export const createTransactionGroup = async ({
   name,
   note,
+  icon,
   transactionIds,
 }: {
   name: string;
   note?: string | null;
+  icon?: string | null;
   transactionIds: string[];
 }): Promise<TransactionGroupResponse> => {
-  return api.post('/transaction-groups', { name, note, transactionIds });
+  return api.post('/transaction-groups', { name, note, icon, transactionIds });
 };
 
 export const updateTransactionGroup = async ({
@@ -45,7 +48,7 @@ export const updateTransactionGroup = async ({
   payload,
 }: {
   id: string;
-  payload: { name?: string; note?: string | null };
+  payload: { name?: string; note?: string | null; icon?: string | null };
 }): Promise<TransactionGroupResponse> => {
   return api.put(`/transaction-groups/${id}`, payload);
 };

@@ -88,15 +88,13 @@ watch(
   async (value) => {
     if (value) {
       await rootStore.fetchInitialData();
-
-      // Initialize SSE for real-time updates (AI categorization, etc.)
-      initializeAiCategorizationEvents();
     }
   },
   { immediate: true },
 );
 
 watch(isAppInitialized, (value) => {
+  if (value) initializeAiCategorizationEvents();
   if (value && !isBaseCurrencyExists.value) {
     router.push({ name: ROUTES_NAMES.welcome });
   }

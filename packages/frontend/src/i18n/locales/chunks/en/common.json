@@ -61,6 +61,7 @@
       }
     },
     "errors": {
+      "initializationFailed": "App data could not load. Check your connection.",
       "copyToClipboardFailed": "Failed to copy to clipboard",
       "settingsSaveFailed": "Couldn't save your settings. Please try again."
     },

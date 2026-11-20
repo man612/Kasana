@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { LayoutGridIcon } from '@lucide/vue';
-import { computed, nextTick, provide, ref, watch } from 'vue';
+import { computed, nextTick, provide } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
 
 import { useDashboardLayout } from '../composables/use-dashboard-layout';
@@ -14,26 +14,6 @@ const props = defineProps<{
 }>();
 
 const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
-const gridRoot = ref<HTMLElement | null>(null);
-// Animate the existing grid instead of remounting widgets on each month change.
-// Remounting would discard local widget state and interfere with draggable layouts.
-watch(
-  () => [props.currentPeriod.from.getTime(), props.currentPeriod.to.getTime()].join(':'),
-  () => {
-    const element = gridRoot.value;
-    if (!element || typeof element.animate !== 'function') return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    element.animate(
-      [
-        { opacity: 0.74, transform: 'translateY(6px)' },
-        { opacity: 1, transform: 'translateY(0)' },
-      ],
-      { duration: 210, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-    );
-  },
-  { flush: 'post' },
-);
-
 const {
   isEditMode,
   draftWidgets,
@@ -94,7 +74,7 @@ const GRID_CLASSES =
 </script>
 
 <template>
-  <div ref="gridRoot">
+  <div>
     <template v-if="displayWidgets.length === 0">
       <div class="text-muted-foreground flex flex-col items-center justify-center gap-3 py-20">
         <LayoutGridIcon class="size-12 opacity-50" />

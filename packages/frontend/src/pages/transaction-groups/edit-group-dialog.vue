@@ -3,14 +3,18 @@ import * as transactionGroupsApi from '@/api/transaction-groups';
 import type { TransactionGroupResponse } from '@/api/transaction-groups';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import { Button } from '@/components/lib/ui/button';
+import GroupIconField from '@/components/transactions-list/group-icon-field.vue';
 import InputField from '@/components/fields/input-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
 import { useNotificationCenter } from '@/components/notification-center';
+import { syncTransactionGroupQueries } from '@/composable/data-queries/transaction-groups';
+import { useQueryClient } from '@tanstack/vue-query';
 import { extractApiErrorMessage } from '@/js/errors';
 import { reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
+const queryClient = useQueryClient();
 
 const props = defineProps<{
   open?: boolean;
@@ -24,7 +28,7 @@ const emit = defineEmits<{
 
 const { addErrorNotification } = useNotificationCenter();
 
-const form = reactive({ name: '', note: '' as string | undefined });
+const form = reactive({ name: '', note: '' as string | undefined, icon: '' });
 
 watch(
   () => props.open,
@@ -32,6 +36,7 @@ watch(
     if (isOpen && props.group) {
       form.name = props.group.name;
       form.note = props.group.note ?? '';
+      form.icon = props.group.icon ?? '';
     }
   },
 );
@@ -39,16 +44,18 @@ watch(
 const isSaving = ref(false);
 
 const save = async () => {
-  if (!props.group || !form.name.trim()) return;
+  if (isSaving.value || !props.group || !form.name.trim()) return;
   isSaving.value = true;
   try {
-    await transactionGroupsApi.updateTransactionGroup({
+    const group = await transactionGroupsApi.updateTransactionGroup({
       id: props.group.id,
       payload: {
         name: form.name.trim(),
         note: form.note?.trim() || null,
+        icon: form.icon || null,
       },
     });
+    await syncTransactionGroupQueries({ queryClient, groupId: group.id, group });
     emit('update:open', false);
     emit('saved');
   } catch (error) {
@@ -65,7 +72,16 @@ const save = async () => {
     <template #description />
 
     <div class="space-y-3 py-2">
-      <InputField v-model="form.name" :label="t('transactionGroups.groupDialog.nameLabel')" />
+      <div class="flex items-end gap-2">
+        <InputField
+          v-model="form.name"
+          class="min-w-0 flex-1"
+          :label="$t('transactionGroups.groupDialog.nameLabel')"
+          :placeholder="$t('transactions.transactionGroups.createGroupDialog.groupNamePlaceholder')"
+          :maxlength="100"
+        />
+        <GroupIconField v-model="form.icon" />
+      </div>
       <TextareaField
         v-model="form.note"
         :label="t('transactionGroups.groupDialog.noteLabel')"

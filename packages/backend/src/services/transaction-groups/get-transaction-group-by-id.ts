@@ -1,4 +1,5 @@
 import { findOrThrowNotFound } from '@common/utils/find-or-throw-not-found';
+import { t } from '@i18n/index';
 import TransactionGroups from '@models/transaction-groups.model';
 
 import { INCLUDE_GROUP_TRANSACTIONS } from './constants';
@@ -14,7 +15,7 @@ export const getTransactionGroupById = async ({ id, userId }: GetTransactionGrou
       where: { id, userId },
       include: [INCLUDE_GROUP_TRANSACTIONS],
     }),
-    message: 'Transaction group not found.',
+    message: t({ key: 'transactionGroups.notFound' }),
   });
 
   // Sort transactions by time DESC in JS to avoid Sequelize ordering issues with BelongsToMany

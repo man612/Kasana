@@ -23,6 +23,9 @@ export function observeDialogHeight(element: HTMLElement): () => void {
     const startHeight = previousHeight;
     previousHeight = height;
     if (startHeight === undefined || element.dataset.state !== 'open') return;
+    // The entrance keyframe and the resize animation both affect the rendered
+    // surface. Establish its natural baseline until the entrance has finished.
+    if (element.getAnimations?.().some((effect) => 'animationName' in effect && effect.playState === 'running')) return;
     const difference = Math.abs(height - startHeight);
     if (difference < MIN_CHANGE_PX || difference > MAX_CHANGE_PX) return;
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;

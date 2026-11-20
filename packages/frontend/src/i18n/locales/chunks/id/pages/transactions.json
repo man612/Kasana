@@ -88,6 +88,7 @@
       "detailsDescription": "Lihat dan edit transaksi"
     },
     "bulkEdit": {
+      "actions": "Tindakan transaksi",
       "selectAll": "Pilih semua",
       "selectAllShort": "Semua",
       "selectBeforeAction": "Pilih transaksi dahulu untuk menggunakan tindakan ini.",
@@ -146,32 +147,33 @@
         "noGroupsMessage": "Belum ada grup. Buat satu terlebih dahulu.",
         "noSearchResultsMessage": "Tidak ada grup yang cocok dengan pencarian Anda.",
         "addingText": "Menambahkan...",
-        "buttonLabel": "Tambahkan ke Grup",
+        "buttonLabel": "Tambahkan ke grup",
         "cancelButton": "Batal",
         "transactionCountLabel": "transaksi"
       },
       "createGroupDialog": {
-        "title": "Buat Grup Transaksi",
+        "title": "Buat grup transaksi",
         "descriptionPrefix": "Grup",
-        "groupNameLabel": "Nama",
+        "groupNameLabel": "Nama grup",
         "groupNamePlaceholder": "mis. Transfer gaji Mei",
         "noteLabel": "Catatan (opsional)",
-        "notePlaceholder": "Deskripsi opsional...",
+        "notePlaceholder": "Tambahkan catatan bila perlu",
         "creatingText": "Membuat...",
-        "buttonLabel": "Buat Grup",
-        "cancelButton": "Batal"
+        "buttonLabel": "Buat grup",
+        "cancelButton": "Batal",
+        "selected": "{count} transaksi dipilih."
       },
       "groupsPage": {
-        "title": "Grup Transaksi",
+        "title": "Grup transaksi",
         "searchPlaceholder": "Cari grup...",
         "noGroupsMessage": "Belum ada grup transaksi.",
-        "emptyStateHint": "Pilih transaksi di halaman Transaksi dan klik \"Buat Grup\" untuk memulai.",
+        "emptyStateHint": "Pilih beberapa transaksi di daftar Transaksi, lalu pilih Buat grup.",
         "transactionCountLabel": "transaksi",
         "deleteError": "Gagal menghapus grup. Silakan coba lagi.",
-        "loadError": "Couldn't load transaction groups",
-        "description": "Bundle related transactions, like a trip or a transfer chain, and see them together.",
-        "noMatchTitle": "No groups match your search",
-        "moreActions": "More actions for {name}",
+        "loadError": "Gagal memuat grup transaksi",
+        "description": "Satukan transaksi yang berkaitan, misalnya biaya satu perjalanan, agar mudah dilihat bersama.",
+        "noMatchTitle": "Tidak ada grup yang cocok",
+        "moreActions": "Tindakan lain untuk {name}",
         "columns": {
           "name": "Nama",
           "transactions": "Transaksi",
@@ -179,13 +181,13 @@
           "net": "Bersih"
         },
         "sort": {
-          "label": "Sort groups",
-          "dateDesc": "Newest first",
-          "dateAsc": "Oldest first",
-          "nameAsc": "Name A–Z",
-          "nameDesc": "Name Z–A",
-          "amountDesc": "Net: high to low",
-          "amountAsc": "Net: low to high"
+          "label": "Urutkan grup",
+          "dateDesc": "Terbaru dahulu",
+          "dateAsc": "Terlama dahulu",
+          "nameAsc": "Nama A–Z",
+          "nameDesc": "Nama Z–A",
+          "amountDesc": "Total bersih tertinggi",
+          "amountAsc": "Total bersih terendah"
         }
       },
       "errors": {
@@ -193,7 +195,15 @@
         "minTransactions": "Pilih setidaknya {min} transaksi",
         "alreadyInGroup": "Beberapa transaksi yang dipilih sudah termasuk dalam grup",
         "createFailed": "Gagal membuat grup",
-        "addFailed": "Gagal menambahkan transaksi ke grup"
+        "addFailed": "Gagal menambahkan transaksi ke grup",
+        "loadFailed": "Gagal memuat grup."
+      },
+      "icon": {
+        "label": "Pilih ikon grup"
+      },
+      "inline": {
+        "expand": "Buka transaksi di {name}",
+        "collapse": "Tutup transaksi di {name}"
       }
     },
     "planned": {
@@ -341,7 +351,7 @@
         "links": {
           "refund": "Refund link with \"{name}\"",
           "tracker": "Tracker \"{name}\"",
-          "group": "Group \"{name}\"",
+          "group": "Grup “{name}”",
           "subscription": "Subscription \"{name}\"",
           "subscriptionPeriod": "Subscription payment due {name}",
           "unnamed": "Tanpa Judul"

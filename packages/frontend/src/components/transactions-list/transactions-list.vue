@@ -6,7 +6,7 @@ import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-br
 import { TransactionModel } from '@bt/shared/types';
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import { createReusableTemplate } from '@vueuse/core';
-import { computed, defineAsyncComponent, ref, watch, watchEffect } from 'vue';
+import { computed, defineAsyncComponent, reactive, ref, watch, watchEffect, type ComponentPublicInstance } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { SCROLL_AREA_IDS } from '../lib/ui/scroll-area/types';
@@ -147,25 +147,46 @@ const {
 
 // Group detail dialog
 const isGroupDialogOpen = ref(false);
-const groupDialogKey = ref(0);
-const groupDialogId = ref<string | undefined>();
+const expandedGroups = reactive(new Set<string>());
+const groupDialogPreview = ref<GroupRowData>();
 
 const handleGroupRowClick = (groupId: string) => {
-  groupDialogId.value = groupId;
-  groupDialogKey.value++;
+  groupDialogPreview.value = displayTransactions.value.find(
+    (row): row is GroupRowData => isGroupRow(row) && row.groupId === groupId,
+  );
   isGroupDialogOpen.value = true;
 };
+
+const toggleGroup = (id: string) => {
+  if (expandedGroups.has(id)) expandedGroups.delete(id);
+  else expandedGroups.add(id);
+};
+watch(
+  () => props.selectionScopeKey,
+  () => expandedGroups.clear(),
+);
 
 const virtualizer = useVirtualizer(
   computed(() => ({
     count: rows.value.length + (props.hasNextPage ? 1 : 0),
     getScrollElement: () => scrollContainer?.value?.viewportElement,
     estimateSize: () => 52 + 8,
+    getItemKey: ((currentRows) => (index) => {
+      const row = currentRows[index];
+      return row === PLANNED_HEADER ? 'planned-header' : getDisplayItemKey(row, index);
+    })(rows.value),
     overscan: 10,
     scrollMargin: scrollMargin.value,
     enabled: props.paginate && !!scrollContainer?.value?.viewportElement,
   })),
 );
+
+const measureGroupRow = ({ element, index }: { element: Element | ComponentPublicInstance | null; index: number }) => {
+  const row = rows.value[index];
+  if (element instanceof HTMLElement && row && row !== PLANNED_HEADER && isGroupRow(row)) {
+    virtualizer.value.measureElement(element);
+  }
+};
 
 defineExpose({
   virtualizer,
@@ -218,7 +239,15 @@ watchEffect(() => {
         :count="plannedCount"
         class="h-13 w-full rounded-md"
       />
-      <TransactionGroupRecord v-else-if="isGroupRow(item)" :group="item" @click="handleGroupRowClick" />
+      <TransactionGroupRecord
+        v-else-if="isGroupRow(item)"
+        :group="item"
+        :expandable="enableBulkEdit"
+        :expanded="expandedGroups.has(item.groupId)"
+        @click="handleGroupRowClick"
+        @toggle="toggleGroup"
+        @record-click="handleRecordClick"
+      />
 
       <div v-else class="flex items-center gap-1">
         <slot name="row-leading" :tx="item as TransactionModel" />
@@ -250,6 +279,8 @@ watchEffect(() => {
             <div
               v-for="virtualRow in virtualRows"
               :key="rowKey(virtualRow.index)"
+              :data-index="virtualRow.index"
+              :ref="(element) => measureGroupRow({ element, index: virtualRow.index })"
               :style="{
                 position: 'absolute',
                 top: 0,
@@ -288,7 +319,11 @@ watchEffect(() => {
     </TransactionDetailsModal>
 
     <!-- Group detail dialog -->
-    <TransactionGroupDialog v-model:open="isGroupDialogOpen" :key="groupDialogKey" :group-id="groupDialogId" />
+    <TransactionGroupDialog
+      v-model:open="isGroupDialogOpen"
+      :group-id="groupDialogPreview?.groupId"
+      :preview="groupDialogPreview && { name: groupDialogPreview.groupName, icon: groupDialogPreview.icon }"
+    />
 
     <!-- Dedicated loan-payment dialog: opens for transfer_to_loan rows -->
     <LoanPaymentDialog

@@ -126,6 +126,7 @@ const groupsInclude = (): Includeable => ({
   attributes: [
     'id',
     'name',
+    'icon',
     [
       literal(`(
         SELECT COUNT(*)::int

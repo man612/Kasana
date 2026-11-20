@@ -85,4 +85,21 @@ describe('dialog height transitions', () => {
     expect(animate).not.toHaveBeenCalled();
     cleanup();
   });
+
+  it('uses sizes seen during the entrance as the baseline without starting a resize animation', () => {
+    const { el, animate, cleanup } = mountDialog();
+    const getAnimations = vi.fn().mockReturnValue([{ animationName: 'enter', playState: 'running' }]);
+    Object.defineProperty(el, 'getAnimations', { value: getAnimations });
+    notify(240);
+    notify(330);
+    expect(animate).not.toHaveBeenCalled();
+
+    getAnimations.mockReturnValue([]);
+    notify(390);
+    expect(animate).toHaveBeenCalledWith(
+      [{ height: '330px' }, { height: '390px' }],
+      expect.objectContaining({ duration: 190 }),
+    );
+    cleanup();
+  });
 });

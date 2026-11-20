@@ -1,12 +1,18 @@
 <template>
   <div
     data-no-nav-swipe
-    class="flex min-w-0 items-center justify-center gap-0.5 max-md:touch-pan-y"
+    class="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-0.5 max-md:touch-pan-y"
+    :style="{ '--period-direction': direction }"
     @touchstart.passive="onPeriodTouchStart"
     @touchend="onPeriodTouchEnd"
     @touchcancel="clearPeriodTouch"
   >
-    <Button size="icon-sm" variant="ghost" @click="selectPrevPeriod">
+    <Button
+      size="icon-sm"
+      variant="ghost"
+      :aria-label="$t('dashboard.periodSelector.previousPeriod')"
+      @click="selectPrevPeriod"
+    >
       <ChevronLeft :size="16" />
     </Button>
 
@@ -18,36 +24,44 @@
       popover-class-name="md:min-w-[600px]"
     >
       <template #trigger="{ triggerText }">
-        <Button variant="ghost" size="sm" class="min-w-0 px-2 font-medium sm:min-w-40">
-          <CalendarIcon class="mr-1.5 size-3.5 shrink-0" />
-          <Transition name="kasana-period" mode="out-in">
-            <span :key="triggerText" class="inline-block min-w-0 truncate whitespace-nowrap">{{ triggerText }}</span>
-          </Transition>
+        <Button
+          variant="ghost"
+          size="sm"
+          class="w-full min-w-0 justify-start gap-1.5 px-1.5 font-medium"
+          :aria-label="triggerText"
+        >
+          <CalendarIcon class="size-3.5 shrink-0" aria-hidden="true" />
+          <span class="grid min-w-0 flex-1 overflow-hidden text-left" aria-hidden="true">
+            <Transition name="period-label">
+              <span :key="triggerText" class="col-start-1 row-start-1 block min-w-0 truncate">{{ triggerText }}</span>
+            </Transition>
+          </span>
         </Button>
       </template>
     </DateSelector>
 
-    <Button size="icon-sm" variant="ghost" :disabled="isNextDisabled" @click="selectNextPeriod">
+    <Button
+      size="icon-sm"
+      variant="ghost"
+      :disabled="isNextDisabled"
+      :aria-label="$t('dashboard.periodSelector.nextPeriod')"
+      @click="selectNextPeriod"
+    >
       <ChevronRight :size="16" />
     </Button>
-    <Transition
-      enter-active-class="transition-all duration-200 ease-out"
-      enter-from-class="opacity-0 -translate-x-2 scale-95"
-      enter-to-class="opacity-100 translate-x-0 scale-100"
-      leave-active-class="transition-all duration-150 ease-in"
-      leave-from-class="opacity-100 translate-x-0 scale-100"
-      leave-to-class="opacity-0 -translate-x-2 scale-95"
+    <Button
+      size="icon-sm"
+      variant="ghost"
+      class="motion-safe:transition-opacity"
+      :class="isCurrentPayPeriod(period) && 'pointer-events-none opacity-0'"
+      :disabled="isCurrentPayPeriod(period)"
+      :aria-hidden="isCurrentPayPeriod(period)"
+      :aria-label="$t('dashboard.periodSelector.backToCurrent')"
+      :title="$t('dashboard.periodSelector.backToCurrent')"
+      @click="period = getCurrentPayPeriod()"
     >
-      <Button
-        v-if="!isCurrentPayPeriod(period)"
-        size="sm"
-        variant="ghost"
-        class="ml-1 shrink-0 px-2 text-xs"
-        @click="period = getCurrentPayPeriod()"
-      >
-        {{ t('dashboard.periodSelector.backToCurrent') }}
-      </Button>
-    </Transition>
+      <RotateCcwIcon class="size-3.5" aria-hidden="true" />
+    </Button>
   </div>
 </template>
 
@@ -57,8 +71,8 @@ import { DateSelector, type DateSelectorPreset } from '@/components/lib/ui/date-
 import { useEarliestTransactionDate } from '@/composable/data-queries/earliest-transaction-date';
 import { getPayPeriod, usePeriodNavigation } from '@/composable/use-period-navigation';
 import { format as dateFnsFormat, endOfYear, isBefore, isSameDay, startOfYear, subMonths, subYears } from 'date-fns';
-import { CalendarIcon, ChevronLeft, ChevronRight } from '@lucide/vue';
-import { computed, watch } from 'vue';
+import { CalendarIcon, ChevronLeft, ChevronRight, RotateCcwIcon } from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { type Period } from '../types';
@@ -107,6 +121,15 @@ const period = computed({
   set: (value: Period) => emit('update:modelValue', value),
 });
 
+const direction = ref(1);
+watch(
+  () => props.modelValue,
+  (next, previous) => {
+    direction.value = isBefore(next.from, previous.from) ? -1 : 1;
+  },
+  { flush: 'sync' },
+);
+
 const { prevPeriod, nextPeriod } = usePeriodNavigation({
   period: () => props.modelValue,
   payday: () => props.payday,
@@ -143,7 +166,8 @@ watch(
     const url = new URL(window.location.href);
 
     if (isCurrentPayPeriod(p)) {
-      url.search = '';
+      url.searchParams.delete('from');
+      url.searchParams.delete('to');
     } else {
       url.searchParams.set('from', dateFnsFormat(p.from, 'yyyy-MM-dd'));
       url.searchParams.set('to', dateFnsFormat(p.to, 'yyyy-MM-dd'));
@@ -196,3 +220,25 @@ const quickPresets = computed<DateSelectorPreset[]>(() => [
   },
 ]);
 </script>
+
+<style scoped>
+@media (prefers-reduced-motion: no-preference) {
+  .period-label-enter-active,
+  .period-label-leave-active {
+    transition:
+      opacity 170ms ease-out,
+      transform 170ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .period-label-enter-from {
+    opacity: 0;
+    transform: translateX(calc(var(--period-direction) * 9px));
+  }
+  .period-label-leave-to {
+    opacity: 0;
+    transform: translateX(calc(var(--period-direction) * -9px));
+  }
+  .period-label-leave-active:not(:nth-last-child(2)) {
+    visibility: hidden;
+  }
+}
+</style>

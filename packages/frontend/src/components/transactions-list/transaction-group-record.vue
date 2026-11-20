@@ -1,27 +1,56 @@
-<script lang="ts" setup>
+<script setup lang="ts">
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
+import { Button } from '@/components/lib/ui/button';
+import { transactionGroupDetailQuery } from '@/composable/data-queries/transaction-groups';
+import { type TransactionModel, dedupeTransferLegs } from '@bt/shared/types';
+import { ChevronDownIcon } from '@lucide/vue';
+import { useQuery } from '@tanstack/vue-query';
 import { format } from 'date-fns';
-import { GroupIcon } from '@lucide/vue';
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { computed, ref, watch } from 'vue';
 
-const { t } = useI18n();
+import GroupIcon from './group-icon.vue';
+import TransactionRecord from './transaction-record.vue';
 
 export interface GroupRowData {
   type: 'group';
   groupId: string;
   groupName: string;
+  icon?: string | null;
   transactionCount: number;
   dateFrom: Date;
   dateTo: Date;
+  members: TransactionModel[];
 }
 
 const props = defineProps<{
   group: GroupRowData;
+  expanded?: boolean;
+  expandable?: boolean;
 }>();
 
 const emit = defineEmits<{
   click: [groupId: string];
+  toggle: [groupId: string];
+  'record-click': [[transaction: TransactionModel, opposite: TransactionModel | undefined]];
 }>();
+
+const hasExpanded = ref(Boolean(props.expanded));
+watch(
+  () => props.expanded,
+  (expanded) => {
+    if (expanded) hasExpanded.value = true;
+  },
+);
+
+const detail = useQuery(
+  computed(() => ({
+    ...transactionGroupDetailQuery({ id: props.group.groupId }),
+    enabled: Boolean(props.expanded) && props.expandable,
+  })),
+);
+const members = computed(() =>
+  detail.data.value?.transactions ? dedupeTransferLegs(detail.data.value.transactions) : props.group.members,
+);
 
 const dateRange = computed(() => {
   const from = format(props.group.dateFrom, 'd MMM');
@@ -33,24 +62,64 @@ const dateRange = computed(() => {
 </script>
 
 <template>
-  <div
-    class="bg-primary/5 border-primary/20 hover:bg-primary/10 grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_max-content] items-center gap-2 rounded-md border border-dashed px-2 py-2 transition-colors"
-    @click="emit('click', group.groupId)"
-  >
-    <div class="flex items-center gap-2 overflow-hidden">
-      <div class="bg-primary/10 flex size-8 shrink-0 items-center justify-center rounded-full">
-        <GroupIcon class="text-primary-text size-4" />
-      </div>
-      <div class="min-w-0 text-left">
-        <p class="truncate text-sm font-medium">{{ group.groupName }}</p>
-        <p class="text-muted-foreground text-xs">
-          {{ group.transactionCount }}
-          {{ t('transactionGroups.transactionGroupRecord.transactionCountLabel') }}
-        </p>
-      </div>
+  <div class="bg-primary/5 border-primary/20 rounded-lg border">
+    <div class="flex min-w-0 items-center gap-1">
+      <Button
+        type="button"
+        variant="ghost"
+        class="h-auto min-h-13 min-w-0 flex-1 justify-start gap-2 px-2 py-1 text-left"
+        @click="emit('click', group.groupId)"
+      >
+        <GroupIcon :icon="group.icon" />
+        <span class="min-w-0 flex-1">
+          <span class="block truncate font-semibold">{{ group.groupName }}</span>
+          <span class="text-muted-foreground block truncate text-xs font-normal">
+            {{ group.transactionCount }} {{ $t('transactionGroups.transactionGroupRecord.transactionCountLabel') }} ·
+            {{ dateRange }}
+          </span>
+        </span>
+      </Button>
+      <Button
+        v-if="expandable"
+        type="button"
+        variant="ghost"
+        size="icon"
+        class="text-muted-foreground size-11 shrink-0"
+        :aria-expanded="Boolean(expanded)"
+        :aria-controls="`group-members-${group.groupId}`"
+        :aria-label="
+          $t(
+            expanded
+              ? 'transactions.transactionGroups.inline.collapse'
+              : 'transactions.transactionGroups.inline.expand',
+            { name: group.groupName },
+          )
+        "
+        @click="emit('toggle', group.groupId)"
+      >
+        <ChevronDownIcon
+          class="size-4 motion-safe:transition-transform motion-safe:duration-200"
+          :class="expanded && 'rotate-180'"
+        />
+      </Button>
     </div>
-    <div class="text-muted-foreground text-right text-xs whitespace-nowrap">
-      {{ dateRange }}
-    </div>
+    <LayoutCollapse v-if="expandable" :id="`group-members-${group.groupId}`" :open="Boolean(expanded)">
+      <div
+        v-if="hasExpanded"
+        class="border-border/60 mx-2 mb-2 grid gap-1 border-t pt-2"
+        :aria-busy="detail.isFetching.value"
+      >
+        <TransactionRecord
+          v-for="(member, index) in members"
+          :key="member.id"
+          :tx="member"
+          :index="index"
+          @record-click="emit('record-click', $event)"
+        />
+        <Button v-if="detail.isError.value" type="button" variant="outline" size="sm" @click="detail.refetch()">
+          {{ $t('common.actions.retry') }}
+        </Button>
+      </div>
+    </LayoutCollapse>
   </div>
 </template>

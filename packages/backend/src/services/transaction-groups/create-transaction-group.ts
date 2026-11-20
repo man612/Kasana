@@ -1,4 +1,5 @@
 import type { RecordId } from '@bt/shared/types';
+import { t } from '@i18n/index';
 import { ValidationError } from '@js/errors';
 import TransactionGroupItems from '@models/transaction-group-items.model';
 import TransactionGroups from '@models/transaction-groups.model';
@@ -12,18 +13,19 @@ interface CreateTransactionGroupPayload {
   userId: number;
   name: string;
   note?: string | null;
+  icon?: string | null;
   transactionIds: RecordId[];
 }
 
 export const createTransactionGroup = withTransaction(async (payload: CreateTransactionGroupPayload) => {
-  const { userId, name, note, transactionIds } = payload;
+  const { userId, name, note, icon, transactionIds } = payload;
 
   // Auto-include opposite sides of transfer pairs
   const expandedIds = await resolveTransferPairs({ transactionIds, userId });
 
   if (expandedIds.length < MIN_GROUP_SIZE || expandedIds.length > MAX_GROUP_SIZE) {
     throw new ValidationError({
-      message: `A group must contain between ${MIN_GROUP_SIZE} and ${MAX_GROUP_SIZE} transactions.`,
+      message: t({ key: 'transactionGroups.size', variables: { min: MIN_GROUP_SIZE, max: MAX_GROUP_SIZE } }),
     });
   }
 
@@ -33,6 +35,7 @@ export const createTransactionGroup = withTransaction(async (payload: CreateTran
     userId,
     name,
     note: note ?? null,
+    icon: icon ?? null,
   });
 
   const items = expandedIds.map((transactionId) => ({

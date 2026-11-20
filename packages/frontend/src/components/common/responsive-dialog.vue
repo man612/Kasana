@@ -26,6 +26,7 @@ const props = withDefaults(
     drawerContentClass?: HTMLAttributes['class'];
     customClose?: boolean;
     fitKeyboard?: boolean;
+    intrinsicHeightMotion?: boolean;
     raised?: boolean;
     /** Closes the dialog the moment this turns true, e.g. `useIsAiUsageExitPage()` for dialogs linking to AI or billing settings. */
     closeWhen?: boolean;
@@ -177,6 +178,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
       </Dialog.DialogTrigger>
 
       <Dialog.DialogContent
+        :intrinsic-height-motion="props.intrinsicHeightMotion"
         :class="[
           !props.noInternalScroll && 'grid grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden',
           dialogContentClass,

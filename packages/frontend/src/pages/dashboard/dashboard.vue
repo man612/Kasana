@@ -1,5 +1,8 @@
 <template>
-  <PageWrapper :class="hasNoAccounts ? 'flex flex-col' : 'flex min-h-full flex-col'">
+  <PageWrapper
+    :data-sidebar-swipe-zone="!isEditMode ? '' : undefined"
+    :class="[hasNoAccounts ? 'flex flex-col' : 'flex min-h-full flex-col', !isEditMode && 'max-md:touch-pan-y']"
+  >
     <!-- Recovery method suggestion banner -->
     <RecoveryMethodBanner />
 
@@ -10,11 +13,11 @@
       class="sticky top-(--header-height) z-(--z-navbar) order-first -mx-6 -mt-1 [overflow-anchor:none]"
     >
       <div
-        class="bg-background/95 supports-backdrop-filter:bg-background/80 mb-3 grid grid-cols-[1fr_auto_1fr] items-center border-b px-3 py-2 backdrop-blur md:mb-2 md:border-b-0 md:px-6 md:py-1"
+        class="bg-background/95 supports-backdrop-filter:bg-background/80 relative mb-5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1 border-b px-3 py-2 backdrop-blur md:grid-cols-[minmax(0,1fr)_minmax(0,26rem)_minmax(0,1fr)] md:border-b-0 md:px-6 md:py-1"
         :class="isScrolled && 'md:bg-card/95 dark:md:bg-background/95 md:border-b dark:md:border-b-0'"
         data-testid="dashboard-period-bar"
       >
-        <div />
+        <div class="hidden md:block" />
         <PeriodSelector v-model="currentPeriod" :payday="payday" />
         <DashboardEditToolbar
           class="justify-self-end"
@@ -24,6 +27,16 @@
           @save="gridRef?.saveLayout()"
           @cancel="gridRef?.cancelEdit()"
         />
+        <Transition name="lajur-info-reveal">
+          <div v-if="isPeriodLoading" role="status" class="pointer-events-none absolute inset-x-0 bottom-0">
+            <span class="bg-primary/70 block h-0.5 motion-safe:animate-pulse" />
+            <span
+              class="bg-card text-muted-foreground absolute top-full right-2 rounded-b-md border-x border-b px-2 py-0.5 text-xs"
+            >
+              {{ $t('dashboard.periodSelector.loadingPeriod') }}
+            </span>
+          </div>
+        </Transition>
       </div>
     </LayoutCollapse>
 
@@ -35,6 +48,7 @@
         ref="gridRef"
         class="max-md:mb-4"
         :class="isEditMode && 'max-md:pb-16'"
+        :aria-busy="isPeriodLoading"
         :current-period="currentPeriod"
       />
 
@@ -64,6 +78,7 @@ import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { useScrollAreaContainer } from '@/composable/scroll-area-container';
 import { getPayPeriod } from '@/composable/use-period-navigation';
 import { useAccountsStore } from '@/stores';
+import { useIsFetching } from '@tanstack/vue-query';
 import { useScroll } from '@vueuse/core';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { isSameDay, parseISO } from 'date-fns';
@@ -110,6 +125,11 @@ const getInitialPeriod = (): Period => {
 };
 
 const currentPeriod = ref<Period>(getInitialPeriod());
+const pendingWidgets = useIsFetching({
+  predicate: (query) =>
+    query.isActive() && query.queryKey.some((key) => typeof key === 'string' && key.startsWith('widget-')),
+});
+const isPeriodLoading = computed(() => pendingWidgets.value > 0);
 
 // Settings can arrive after mount; move the period only if it is still the old default.
 watch(payday, (newPayday, oldPayday) => {

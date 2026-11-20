@@ -458,7 +458,10 @@
         "thisYear": "Tahun Ini",
         "previousYear": "Tahun Sebelumnya"
       },
-      "backToCurrent": "Periode ini"
+      "backToCurrent": "Periode ini",
+      "previousPeriod": "Periode sebelumnya",
+      "nextPeriod": "Periode berikutnya",
+      "loadingPeriod": "Memuat data periode ini"
     }
   },
   "widgets": {

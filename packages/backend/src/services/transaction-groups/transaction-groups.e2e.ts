@@ -61,6 +61,7 @@ describe('Transaction Groups API', () => {
         payload: helpers.buildTransactionGroupPayload({
           name: 'Salary Transfer',
           note: 'Monthly salary chain',
+          icon: 'cart-20-filled',
           transactionIds: txs.map((t) => t.id),
         }),
         raw: true,
@@ -70,6 +71,13 @@ describe('Transaction Groups API', () => {
       expect(group.name).toBe('Salary Transfer');
       expect(group.note).toBe('Monthly salary chain');
       expect(group.transactions).toHaveLength(2);
+      expect(group.icon).toBe('cart-20-filled');
+      const loaded = await helpers.getTransactionGroupById({ id: group.id, raw: true });
+      expect(loaded.icon).toBe('cart-20-filled');
+      const updated = await helpers.updateTransactionGroup({ id: group.id, payload: { name: 'New name' }, raw: true });
+      expect(updated.icon).toBe('cart-20-filled');
+      const cleared = await helpers.updateTransactionGroup({ id: group.id, payload: { icon: null }, raw: true });
+      expect(cleared.icon).toBeNull();
     });
 
     it('rejects fewer than 2 transactions, malformed ids and an empty name', async () => {

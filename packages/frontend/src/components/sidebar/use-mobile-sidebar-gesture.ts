@@ -1,12 +1,15 @@
 import { useEventListener, usePreferredReducedMotion } from '@vueuse/core';
 import { nextTick, onScopeDispose, ref, watch, type Ref } from 'vue';
 
-const EDGE_START = 12;
+const EDGE_START = 20;
 const EDGE_END = 62;
 const DRAG_SLOP = 9;
+const DASHBOARD_DRAG_SLOP = 16;
 const SETTLE_MS = 220;
 const MAX_DRAWER_WIDTH = 352;
 const FLICK_SPEED = 0.45;
+const PROTECTED_SURFACE =
+  'button, a, input, select, textarea, nav, svg, canvas, [role="slider"], [role="tablist"], [contenteditable], [data-no-nav-swipe]';
 
 export function shouldOpenMobileSidebar({
   progress,
@@ -37,6 +40,7 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
     /** Drawer offset when this touch began, including interrupted settle motion. */
     originPosition: number;
     claimed: boolean;
+    slop: number;
   } | null = null;
   let position = 0;
   let settling = false;
@@ -105,15 +109,23 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
   const start = (event: TouchEvent) => {
     if (!enabled.value || touch || event.touches.length !== 1) return;
     const point = event.touches[0]!;
-    const target = event.target;
-    if (!(target instanceof Element)) return;
+    const eventTarget = event.target;
+    if (!(eventTarget instanceof Element)) return;
+    // Mobile hit testing can snap a touch beside a control to that control.
+    // Use the point itself to identify the safe surface on Dashboard.
+    const target =
+      eventTarget.closest('[data-sidebar-swipe-zone]') && eventTarget.closest(PROTECTED_SURFACE)
+        ? (document.elementFromPoint(point.clientX, point.clientY) ?? eventTarget)
+        : eventTarget;
+    const insideDashboard = Boolean(target.closest('[data-sidebar-swipe-zone]'));
+    const atSidebarEdge = point.clientX >= EDGE_START && point.clientX <= EDGE_END;
     if (open.value) {
       const startedOnPanel = Boolean(target.closest('[data-mobile-sidebar]'));
-      const canTakeOver = settling && point.clientX >= EDGE_START && point.clientX <= EDGE_END;
+      const canTakeOver = settling && (atSidebarEdge || insideDashboard);
       if ((!startedOnPanel && !canTakeOver) || target.closest('input, textarea, [data-no-nav-swipe]')) return;
     } else {
-      if (point.clientX < EDGE_START || point.clientX > EDGE_END) return;
-      if (target.closest('input, select, textarea, nav, svg, canvas, [role="slider"], [data-no-nav-swipe]')) return;
+      if (point.clientX < EDGE_START || (!atSidebarEdge && !insideDashboard)) return;
+      if (target.closest(PROTECTED_SURFACE)) return;
       if (document.querySelector('[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]')) return;
     }
     const drawer = panel();
@@ -126,6 +138,7 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
       width,
       originPosition: open.value ? 0 : -width,
       claimed: false,
+      slop: !atSidebarEdge && !open.value ? DASHBOARD_DRAG_SLOP : DRAG_SLOP,
       lastX: point.clientX,
       lastTime: event.timeStamp,
       velocity: 0,
@@ -140,7 +153,7 @@ export function useMobileSidebarGesture({ enabled, open }: { enabled: Ref<boolea
     const movement = point.clientX - touch.x;
     if (!touch.claimed) {
       const vertical = Math.abs(point.clientY - touch.y);
-      if (Math.max(Math.abs(movement), vertical) < DRAG_SLOP) return;
+      if (Math.max(Math.abs(movement), vertical) < touch.slop) return;
       if (
         !event.cancelable ||
         vertical * 1.35 >= Math.abs(movement) ||

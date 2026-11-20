@@ -58,7 +58,13 @@ export const useCreateAutomation = () => {
 
   return useMutation({
     mutationFn: createTransactionAutomation,
-    onSuccess: () => invalidateAutomationsScope({ queryClient }),
+    onMutate: () => queryClient.cancelQueries({ queryKey: listKey }),
+    onSuccess: (created) => {
+      queryClient.setQueryData<TransactionAutomationModel[]>(listKey, (old) =>
+        [...(old ?? []).filter(({ id }) => id !== created.id), created].sort((a, b) => a.position - b.position),
+      );
+      void invalidateAutomationsScope({ queryClient });
+    },
   });
 };
 

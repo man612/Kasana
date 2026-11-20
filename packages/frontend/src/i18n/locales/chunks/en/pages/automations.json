@@ -243,6 +243,22 @@
       "successWithSkipped": "Applied to {applied} transactions, {skipped} skipped",
       "nothingApplied": "Nothing was applied. {skipped} transactions were skipped.",
       "applyError": "Couldn't apply the rule to past transactions."
+    },
+    "guide": {
+      "title": "How automation works",
+      "intro": "Lajur. can organize new transactions from bank sync or file imports using rules you set up.",
+      "choose": "Choose which transactions to recognize, for example by a word in their note or the account they came from.",
+      "act": "Choose what to update: category, payee, tags, or note.",
+      "check": "Use Preview to check matches. After enabling the rule, open a transaction from your next import or bank sync to see the result.",
+      "exampleTitle": "Example: grocery shopping",
+      "example": "If a newly imported transaction note contains “Indomaret”, set its category to Groceries. After importing, open Transactions and check the category on that entry.",
+      "caution": "Rules can replace existing details. Amounts and balances stay the same. Review and select entries before applying a rule to past transactions.",
+      "advanced": "Advanced AI settings",
+      "conditionsTitle": "Which transactions match?",
+      "conditionsHelp": "For example, select Note and enter “Indomaret”. Use “all” when the transaction must meet every condition.",
+      "actionsTitle": "What should Lajur. do?",
+      "actionsHelp": "For example, choose Set category, then Groceries. One rule can fill in several details at once.",
+      "incomplete": "Fill in the name, conditions, and actions to save."
     }
   }
 }

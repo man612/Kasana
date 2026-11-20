@@ -85,6 +85,8 @@ const onCloseAutoFocus = (event: Event) => {
           variant="secondary"
           size="sm"
           :disabled="disabled"
+          @pointerenter="emit('prefetch')"
+          @focus="emit('prefetch')"
           :class="
             cn(
               'min-w-0 gap-1.5 font-normal',
@@ -117,83 +119,92 @@ const onCloseAutoFocus = (event: Event) => {
 
     <Dialog.DialogContent
       blur-overlay
+      intrinsic-height-motion
       class="max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-2xl p-5 duration-200 ease-out motion-reduce:transition-none"
       @close-auto-focus="onCloseAutoFocus"
     >
       <Dialog.DialogTitle class="pr-14 text-base font-semibold">
         {{ $t('dialogs.manageTransaction.templates.trigger') }}
       </Dialog.DialogTitle>
-      <p v-if="templates.length" class="text-muted-foreground mt-1 pb-3 text-xs">
+      <Dialog.DialogDescription
+        class="text-muted-foreground mt-1 pb-3 text-xs"
+        :class="!isLoading && !templates.length && 'invisible'"
+      >
         {{ $t('dialogs.manageTransaction.templates.tapHint') }}
-      </p>
+      </Dialog.DialogDescription>
 
-      <div v-if="isLoading" aria-busy="true" class="flex flex-col gap-2 pb-3">
-        <div v-for="index in 3" :key="index" class="bg-muted h-11 animate-pulse rounded-md" />
-      </div>
-
-      <div v-else-if="isError && !templates.length" class="flex flex-col items-start gap-2 px-1 pb-3">
-        <p class="text-muted-foreground text-xs leading-relaxed">
-          {{ $t('dialogs.manageTransaction.templates.loadError') }}
-        </p>
-        <Button variant="outline" size="sm" @click="emit('retry')">{{ $t('common.actions.retry') }}</Button>
-      </div>
-
-      <p v-else-if="!templates.length" class="text-muted-foreground px-1 pb-3 text-xs leading-relaxed">
-        {{ $t('dialogs.manageTransaction.templates.emptyState') }}
-      </p>
-
-      <p v-else-if="!filtered.length" class="text-muted-foreground px-1 pb-3 text-xs leading-relaxed">
-        {{ $t('dialogs.manageTransaction.templates.noMatches') }}
-      </p>
-
-      <ScrollArea v-else class="min-h-0 flex-1 overflow-hidden" viewport-class="max-h-[40dvh]">
-        <div class="flex flex-col">
-          <div
-            v-for="template in filtered"
-            :key="template.id"
-            :ref="(el) => (el ? rowEls.set(template.id, el as HTMLElement) : rowEls.delete(template.id))"
-            class="border-border border-b last:border-b-0"
-          >
-            <div class="flex items-stretch">
-              <Button
-                variant="ghost"
-                class="h-auto min-h-12 min-w-0 flex-1 justify-start rounded-none px-0 py-2 text-left font-normal"
-                @click="applyTemplate({ template })"
-              >
-                <TemplateRowContent
-                  :template="template"
-                  :amount-label="amountLabelOf({ template })"
-                  :stale-reason="staleReasonOf({ template })"
-                />
-              </Button>
-
-              <Button
-                variant="ghost"
-                class="text-muted-foreground -mr-2 h-auto w-14 shrink-0 rounded-none px-0"
-                :aria-expanded="expandedId === template.id"
-                :aria-label="$t('dialogs.manageTransaction.templates.toggleDetails')"
-                @click="toggleRow({ template })"
-              >
-                <ChevronDownIcon
-                  :class="cn('size-4 transition-transform', expandedId === template.id && 'text-foreground rotate-180')"
-                />
-              </Button>
-            </div>
-
-            <TemplatePreview
-              v-if="expandedId === template.id"
-              :template="template"
-              :sources="sources"
-              :stale-reason="staleReasonOf({ template })"
-              class="mb-2.5"
-              @edit="openEditor({ template })"
-            />
-          </div>
+      <div class="h-[min(10rem,30dvh)] min-h-0 overflow-hidden">
+        <div v-if="isLoading" aria-busy="true" class="flex flex-col gap-2 pb-3">
+          <div v-for="index in 3" :key="index" class="bg-muted h-11 animate-pulse rounded-md" />
         </div>
-      </ScrollArea>
 
-      <div v-if="isFilterVisible" class="mt-3">
+        <div v-else-if="isError && !templates.length" class="flex flex-col items-start gap-2 px-1 pb-3">
+          <p class="text-muted-foreground text-xs leading-relaxed">
+            {{ $t('dialogs.manageTransaction.templates.loadError') }}
+          </p>
+          <Button variant="outline" size="sm" @click="emit('retry')">{{ $t('common.actions.retry') }}</Button>
+        </div>
+
+        <p v-else-if="!templates.length" class="text-muted-foreground px-1 pb-3 text-xs leading-relaxed">
+          {{ $t('dialogs.manageTransaction.templates.emptyState') }}
+        </p>
+
+        <p v-else-if="!filtered.length" class="text-muted-foreground px-1 pb-3 text-xs leading-relaxed">
+          {{ $t('dialogs.manageTransaction.templates.noMatches') }}
+        </p>
+
+        <ScrollArea v-else class="h-full min-h-0 overflow-hidden">
+          <div class="flex flex-col">
+            <div
+              v-for="template in filtered"
+              :key="template.id"
+              :ref="(el) => (el ? rowEls.set(template.id, el as HTMLElement) : rowEls.delete(template.id))"
+              class="border-border border-b last:border-b-0"
+            >
+              <div class="flex items-stretch">
+                <Button
+                  variant="ghost"
+                  class="h-auto min-h-12 min-w-0 flex-1 justify-start rounded-none px-0 py-2 text-left font-normal"
+                  @click="applyTemplate({ template })"
+                >
+                  <TemplateRowContent
+                    :template="template"
+                    :amount-label="amountLabelOf({ template })"
+                    :stale-reason="staleReasonOf({ template })"
+                  />
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  class="text-muted-foreground -mr-2 h-auto w-14 shrink-0 rounded-none px-0"
+                  :aria-expanded="expandedId === template.id"
+                  :aria-label="$t('dialogs.manageTransaction.templates.toggleDetails')"
+                  @click="toggleRow({ template })"
+                >
+                  <ChevronDownIcon
+                    :class="
+                      cn('size-4 transition-transform', expandedId === template.id && 'text-foreground rotate-180')
+                    "
+                  />
+                </Button>
+              </div>
+
+              <TemplatePreview
+                v-if="expandedId === template.id"
+                :template="template"
+                :sources="sources"
+                :stale-reason="staleReasonOf({ template })"
+                class="mb-2.5"
+                @edit="openEditor({ template })"
+              />
+            </div>
+          </div>
+        </ScrollArea>
+      </div>
+
+      <div class="mt-3">
         <InputField
+          v-show="isFilterVisible"
           v-model="query"
           :placeholder="$t('dialogs.manageTransaction.templates.filterPlaceholder')"
           :aria-label="$t('dialogs.manageTransaction.templates.filterPlaceholder')"

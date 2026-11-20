@@ -205,7 +205,12 @@ onScopeDispose(() => {
         class="bottom-indicator bg-primary/10 pointer-events-none absolute inset-y-0 left-0 -z-10 rounded-xl motion-safe:transition-[transform,opacity] motion-safe:duration-220 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)]"
         :class="activeColumn < 0 && 'opacity-0'"
         :style="{ '--nav-active-column': Math.max(0, activeColumn) }"
-      />
+      >
+        <span
+          class="bg-primary-text absolute top-0.5 left-1/2 h-0.75 w-6 -translate-x-1/2 rounded-full"
+          data-nav-active-rail
+        />
+      </span>
       <RouteLink v-for="item in primary" :key="item.name" v-bind="item" :active="item.active.value" />
     </template>
     <template v-else>

@@ -61,6 +61,7 @@
       }
     },
     "errors": {
+      "initializationFailed": "Data aplikasi belum dapat dimuat. Periksa koneksi Anda.",
       "copyToClipboardFailed": "Gagal menyalin ke papan klip",
       "settingsSaveFailed": "Pengaturan gagal disimpan. Silakan coba lagi."
     },
@@ -589,7 +590,7 @@
   },
   "transactionGroups": {
     "groupDialog": {
-      "editTitle": "Sunting Grup",
+      "editTitle": "Sunting grup",
       "nameLabel": "Nama",
       "noteLabel": "Catatan (opsional)",
       "notePlaceholder": "Catatan opsional...",
@@ -597,7 +598,7 @@
       "savingAction": "Simpan",
       "cancelButton": "Batal",
       "editAction": "Sunting",
-      "deleteAction": "Hapus Grup",
+      "deleteAction": "Hapus grup",
       "transactionsLabel": "Transaksi",
       "deleteGroupTitle": "Hapus grup",
       "deleteGroupDescription": "Apakah Anda yakin ingin menghapus \"{groupName}\"? Transaksinya tidak akan dihapus.",
@@ -605,16 +606,16 @@
       "removeTransactionDescription": "Ini akan menyisakan kurang dari 2 transaksi dalam grup, sehingga grup akan dihapus. Lanjutkan?",
       "removeTransactionDescriptionNormal": "Apakah Anda yakin ingin mengeluarkan transaksi ini dari grup?",
       "removeButtonText": "Keluarkan",
-      "removeAndDeleteButtonText": "Keluarkan & Hapus Grup",
-      "removeFromGroup": "Hapus dari grup",
-      "saveError": "Couldn't save the group",
-      "removeError": "Couldn't remove the transaction from the group",
+      "removeAndDeleteButtonText": "Keluarkan dan hapus grup",
+      "removeFromGroup": "Keluarkan dari grup",
+      "saveError": "Gagal menyimpan grup.",
+      "removeError": "Gagal mengeluarkan transaksi dari grup.",
       "manageTransactions": "Kelola",
-      "showMoreNote": "Show more",
-      "showLessNote": "Tampilkan lebih sedikit",
+      "showMoreNote": "Lihat catatan lengkap",
+      "showLessNote": "Ringkas catatan",
       "summary": {
         "transactions": "Transaksi",
-        "net": "Bersih",
+        "net": "Total bersih",
         "moneyIn": "Uang masuk",
         "moneyOut": "Uang keluar"
       }

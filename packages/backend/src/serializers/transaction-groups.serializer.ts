@@ -8,6 +8,7 @@ export interface TransactionGroupApiResponse {
   id: string;
   name: string;
   note: string | null;
+  icon: string | null;
   createdAt: Date;
   updatedAt: Date;
   transactionCount?: number;
@@ -21,6 +22,7 @@ interface TransactionGroupInput {
   id: string;
   name: string;
   note: string | null;
+  icon: string | null;
   createdAt: Date;
   updatedAt: Date;
   transactions?: Transactions[];
@@ -35,6 +37,7 @@ export function serializeTransactionGroup(group: TransactionGroupInput): Transac
     id: group.id,
     name: group.name,
     note: group.note,
+    icon: group.icon,
     createdAt: group.createdAt,
     updatedAt: group.updatedAt,
     ...(group.transactionCount !== undefined && { transactionCount: group.transactionCount }),

@@ -88,6 +88,7 @@
       "detailsDescription": "View and edit transaction"
     },
     "bulkEdit": {
+      "actions": "Transaction actions",
       "selectAll": "Select all",
       "selectAllShort": "All",
       "selectBeforeAction": "Select at least one transaction to use these actions.",
@@ -159,7 +160,8 @@
         "notePlaceholder": "Optional description...",
         "creatingText": "Creating...",
         "buttonLabel": "Create group",
-        "cancelButton": "Cancel"
+        "cancelButton": "Cancel",
+        "selected": "{count} transactions selected."
       },
       "groupsPage": {
         "title": "Transaction groups",
@@ -193,7 +195,15 @@
         "minTransactions": "Select at least {min} transactions",
         "alreadyInGroup": "Some selected transactions already belong to a group",
         "createFailed": "Failed to create group",
-        "addFailed": "Failed to add transactions to group"
+        "addFailed": "Failed to add transactions to group",
+        "loadFailed": "Could not load the group."
+      },
+      "icon": {
+        "label": "Choose a group icon"
+      },
+      "inline": {
+        "expand": "Expand transactions in {name}",
+        "collapse": "Collapse transactions in {name}"
       }
     },
     "planned": {

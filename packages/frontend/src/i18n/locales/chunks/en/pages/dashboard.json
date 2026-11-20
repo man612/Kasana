@@ -14,7 +14,11 @@
       },
       "balanceTrend": {
         "title": "Balance trend",
-        "table": { "toggle": "View balance by date", "date": "Date", "amount": "Balance" },
+        "table": {
+          "toggle": "View balance by date",
+          "date": "Date",
+          "amount": "Balance"
+        },
         "balanceTypes": {
           "total": "Total",
           "accounts": "Accounts",
@@ -454,7 +458,10 @@
         "thisYear": "This year",
         "previousYear": "Previous year"
       },
-      "backToCurrent": "Current period"
+      "backToCurrent": "Current period",
+      "previousPeriod": "Previous period",
+      "nextPeriod": "Next period",
+      "loadingPeriod": "Loading data for this period"
     }
   },
   "widgets": {

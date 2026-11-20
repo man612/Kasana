@@ -25,6 +25,9 @@ export default class TransactionGroups extends Model {
   @Column({ allowNull: true, type: DataType.STRING(500) })
   note!: string | null;
 
+  @Column({ allowNull: true, type: DataType.STRING(100) })
+  declare icon: string | null;
+
   declare createdAt: Date;
   declare updatedAt: Date;
 
