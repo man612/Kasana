@@ -47,56 +47,17 @@ PY
 
 mkdir -p "$BASE" /data/lajur-preview-backups
 
-echo 'Mengambil frontend terbaru langsung dari GitHub ...'
-python3 - "$REPO" "$ARTIFACT" "$BASE" <<'PY'
-import getpass,pathlib,sys,urllib.request,urllib.error,zipfile,shutil
-repo,aid,base=sys.argv[1:]
-base=pathlib.Path(base)
-required=['lajur-instabox-frontend.tar.gz','lajur-instabox-frontend.tar.gz.sha256','lajur-instabox-frontend-info.txt']
-if all((base/f).is_file() for f in required):
- print('File sudah ada; akan tetap diverifikasi SHA-256.')
-else:
- class NoRedirect(urllib.request.HTTPRedirectHandler):
-  def redirect_request(self,*args,**kwargs): return None
- opener=urllib.request.build_opener(NoRedirect)
- url=f'https://api.github.com/repos/{repo}/actions/artifacts/{aid}/zip'
- def redirect(auth=None):
-  headers={'Accept':'application/vnd.github+json','User-Agent':'Lajur-InstaBox-QA'}
-  if auth: headers['Authorization']=f'Bearer {auth}'
-  try: opener.open(urllib.request.Request(url,headers=headers),timeout=30)
-  except urllib.error.HTTPError as e:
-   if e.code in (301,302,303,307,308): return e.headers.get('Location')
-   if e.code in (401,403,404): return None
-   raise
-  return None
- link=redirect()
- if link is None:
-  print('GitHub meminta token Actions: Read-only.')
-  token=getpass.getpass('Tempel token GitHub lalu Enter (tidak terlihat): ').strip()
-  if not token: raise RuntimeError('Token kosong.')
-  link=redirect(token)
-  del token
- if not link or not link.startswith('https://'): raise RuntimeError('GitHub menolak unduhan artifact.')
- tmp=base/'artifact.zip.part'
- try:
-  with urllib.request.urlopen(urllib.request.Request(link,headers={'User-Agent':'Lajur-InstaBox-QA'}),timeout=90) as src, open(tmp,'wb') as out:
-   size=0
-   while True:
-    chunk=src.read(512*1024)
-    if not chunk: break
-    size+=len(chunk)
-    if size>100*1024*1024: raise RuntimeError('ZIP frontend lebih besar dari batas yang diharapkan.')
-    out.write(chunk)
-  with zipfile.ZipFile(tmp) as z:
-   members={i.filename.lstrip('./'):i for i in z.infolist() if not i.is_dir()}
-   if not set(required).issubset(members): raise RuntimeError('Isi ZIP frontend tidak lengkap.')
-   for f in required:
-    if members[f].file_size>250*1024*1024: raise RuntimeError('Ukuran file ZIP tidak wajar.')
-    with z.open(members[f]) as src,open(base/f,'wb') as out: shutil.copyfileobj(src,out)
- finally:
-  tmp.unlink(missing_ok=True)
- print('Frontend diterima dari CI.')
-PY
+echo 'Mengambil frontend dengan GitHub CLI yang sudah login ...'
+command -v gh >/dev/null 2>&1 || fail 'GitHub CLI (gh) tidak ditemukan.'
+gh auth status --hostname github.com >/dev/null 2>&1 ||
+  fail 'gh belum login atau sesi kedaluwarsa. Jangan buat token baru tanpa perlu.'
+if [[ -s "$BASE/lajur-instabox-frontend.tar.gz" && -s "$BASE/lajur-instabox-frontend.tar.gz.sha256" && -s "$BASE/lajur-instabox-frontend-info.txt" ]]; then
+  echo 'Paket frontend sebelumnya ada; akan diverifikasi ulang.'
+else
+  gh run download "$RUN" --repo "$REPO" --name "lajur-instabox-frontend-$HEAD" --dir "$BASE" ||
+    fail 'Gagal download lewat gh. Cek autentikasi dan artifact CI.'
+  echo 'Artifact frontend berhasil diunduh via login GitHub yang sudah ada.'
+fi
 
 (
   cd "$BASE"
