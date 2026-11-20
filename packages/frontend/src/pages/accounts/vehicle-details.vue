@@ -46,7 +46,11 @@
                 <AccountLogo v-else-if="linkedAccount" :account="linkedAccount" class="size-9 shrink-0" />
                 <div class="grid min-w-0 gap-0.5 wrap-anywhere">
                   <div class="text-muted-foreground text-xs tracking-wider uppercase">
-                    {{ $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass]) }}
+                    {{
+                      vehicle.vehicleType
+                        ? $t(`forms.createVehicle.types.${vehicle.vehicleType}`)
+                        : $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass])
+                    }}
                   </div>
                   <h1 class="text-2xl leading-tight font-semibold tracking-tight @2xl/vehicle:text-3xl">
                     {{ vehicle.account?.name || `${vehicle.make} ${vehicle.model}` }}
@@ -120,7 +124,15 @@
                 {{ $t('pages.vehicleDetails.sinceAcquired', { date: formatDisplayDate(vehicle.purchaseDate) }) }}
               </span>
               <p class="text-muted-foreground max-w-lg text-xs leading-relaxed">
-                {{ $t('pages.vehicleDetails.estimateDisclaimer') }}
+                {{
+                  $t(
+                    vehicle.depreciationPreset === DEPRECIATION_PRESET.manual
+                      ? 'forms.createVehicle.manualHint'
+                      : vehicle.depreciationPreset === DEPRECIATION_PRESET.straightLine
+                        ? 'forms.createVehicle.accountingHint'
+                        : 'pages.vehicleDetails.estimateDisclaimer',
+                  )
+                }}
               </p>
             </div>
           </div>
@@ -165,7 +177,10 @@
           </div>
         </div>
 
-        <div class="bg-card rounded-2xl border p-5 shadow-xs">
+        <div
+          v-if="vehicle.depreciationPreset !== DEPRECIATION_PRESET.manual"
+          class="bg-card rounded-2xl border p-5 shadow-xs"
+        >
           <div class="text-muted-foreground text-xs tracking-wider uppercase">
             {{ $t('pages.vehicleDetails.projectedFiveYear') }}
           </div>
@@ -187,7 +202,10 @@
       </section>
 
       <!-- Depreciation chart -->
-      <section class="bg-card @container/chart-card rounded-2xl border p-5 shadow-xs @md/vehicle:p-6">
+      <section
+        v-if="vehicle.depreciationPreset !== DEPRECIATION_PRESET.manual || vehicle.valuationSegments?.length"
+        class="bg-card @container/chart-card rounded-2xl border p-5 shadow-xs @md/vehicle:p-6"
+      >
         <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
             <h3 class="text-base font-semibold tracking-tight">{{ $t('pages.vehicleDetails.chart.title') }}</h3>
@@ -208,9 +226,16 @@
       <section class="grid gap-4 @lg/vehicle:grid-cols-2">
         <DetailsCard :title="$t('pages.vehicleDetails.sections.vehicle')" :icon="CarIcon">
           <DetailRow :label="$t('pages.vehicleDetails.vehicleClass')">
-            {{ $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass]) }}
+            {{
+              vehicle.vehicleType
+                ? $t(`forms.createVehicle.types.${vehicle.vehicleType}`)
+                : $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass])
+            }}
           </DetailRow>
           <DetailRow :label="$t('pages.vehicleDetails.year')">{{ vehicle.year }}</DetailRow>
+          <DetailRow v-if="isOwner && vehicle.licensePlate" :label="$t('forms.createVehicle.plateLabel')">{{
+            vehicle.licensePlate
+          }}</DetailRow>
           <DetailRow v-if="vehicle.trim" :label="$t('pages.vehicleDetails.trim')">{{ vehicle.trim }}</DetailRow>
           <DetailRow v-if="vehicle.currentMileage !== null" :label="$t('pages.vehicleDetails.currentMileage')">
             {{ vehicle.currentMileage.toLocaleString() }}
@@ -224,7 +249,10 @@
           <DetailRow v-if="vehicle.customAnnualRatePct !== null" :label="$t('pages.vehicleDetails.customAnnualRate')">
             {{ vehicle.customAnnualRatePct }}%
           </DetailRow>
-          <DetailRow :label="$t('pages.vehicleDetails.salvageFloor')">
+          <DetailRow
+            v-if="vehicle.depreciationPreset !== DEPRECIATION_PRESET.manual"
+            :label="$t('pages.vehicleDetails.salvageFloor')"
+          >
             <span class="tabular-nums">{{ vehicle.salvageFloorPct }}%</span>
             <span class="text-muted-foreground ml-2 text-xs">
               ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(salvageFloorValue, currencyCode)" />
@@ -301,6 +329,7 @@ import VehicleAmount from '@/pages/accounts/components/vehicle-details/vehicle-a
 import { buildDepreciationTimeline, getSalvageFloorValue } from '@/pages/accounts/utils/depreciation-math';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useAccountsStore, useCurrenciesStore } from '@/stores';
+import { DEPRECIATION_PRESET } from '@bt/shared/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { ArrowDownRightIcon, ArrowUpRightIcon, CarIcon, Trash2Icon, TrendingDownIcon } from '@lucide/vue';
 import { addMonths, differenceInCalendarDays, format, parseISO } from 'date-fns';
@@ -394,7 +423,7 @@ const overrideAnchor = computed<{ value: number; date: Date } | null>(() => {
 const salvageFloorValue = computed(() =>
   vehicle.value
     ? getSalvageFloorValue({
-        anchorValue: vehicle.value.purchasePrice,
+        anchorValue: vehicle.value.valuationSegments?.at(-1)?.value ?? vehicle.value.purchasePrice,
         salvageFloorPct: vehicle.value.salvageFloorPct,
       })
     : 0,
@@ -410,6 +439,7 @@ const depreciationTimeline = computed(() => {
     customAnnualRatePct: vehicle.value.customAnnualRatePct,
     salvageFloorPct: vehicle.value.salvageFloorPct,
     monthsHorizon: PROJECTION_HORIZON_MONTHS,
+    valuationSegments: vehicle.value.valuationSegments,
   });
 });
 

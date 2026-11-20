@@ -78,7 +78,6 @@ const sourceCurrency = computed(() => {
   return code ? currenciesMap.value[code]?.currency?.code : undefined;
 });
 const loanCurrency = computed(() => currenciesMap.value[props.loanAccount.currencyCode]?.currency?.code);
-const loanCurrencyLabel = computed(() => (props.loanAccount.currencyCode === 'IDR' ? 'Rp' : loanCurrency.value));
 
 const isCurrenciesDifferent = computed(
   () => !!form.value.account && form.value.account.currencyCode !== props.loanAccount.currencyCode,
@@ -329,7 +328,6 @@ const unlinkPayment = () => {
           <div class="text-muted-foreground text-xs">{{ $t('dialogs.loanPayment.payingTo') }}</div>
           <div class="truncate text-sm font-medium">{{ loanAccount.name }}</div>
         </div>
-        <div class="text-muted-foreground shrink-0 text-xs">{{ loanCurrencyLabel }}</div>
       </div>
 
       <FormRow>

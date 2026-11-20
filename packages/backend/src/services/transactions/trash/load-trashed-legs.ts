@@ -5,6 +5,7 @@ import { findTransactions, type FindTransactionsOptions } from '@models/transact
 import { trashedWhere } from '@models/transactions-query/deletion-where';
 import type Transactions from '@models/transactions.model';
 import { canUserAccessResource } from '@services/sharing/auth/can-user-access-resource.service';
+import { getAccessibleAccountIdsForUser } from '@services/sharing/auth/get-accessible-account-ids.service';
 import { assertPlannedWriteAllowed } from '@services/transactions/planned-matching/assert-planned-invariants';
 import { Op } from 'sequelize';
 
@@ -63,26 +64,33 @@ export const filterActionableTrashed = async ({ userId, rows }: { userId: number
   return actionable;
 };
 
-/**
- * Locks and authorizes the trashed rows the caller asked for, then adds their trashed
- * transfer twins; twins follow without a separate check, as delete does.
- */
-export const loadTrashedLegs = async ({
-  userId,
-  transactionIds,
-}: {
-  userId: number;
-  transactionIds: string[];
-}): Promise<Transactions[]> => {
-  const rows = await filterActionableTrashed({
+export const findActionableTrashed = async ({ userId, lock }: { userId: number; lock?: boolean }) => {
+  const accountIds = await getAccessibleAccountIdsForUser({ userId });
+  if (!accountIds.length) return [];
+  return filterActionableTrashed({
     userId,
-    rows: await findTrashed({ where: { id: { [Op.in]: transactionIds } }, planned: 'include', lock: true }),
+    rows: await findTrashed({ where: { accountId: { [Op.in]: accountIds } }, planned: { visibleTo: userId }, lock }),
   });
-  if (rows.length !== transactionIds.length) {
+};
+
+/** Lock and authorize the requested entries, then expand the transfer pairs. */
+export const loadTrashedLegs = async (
+  params: { userId: number } & ({ transactionIds: string[] } | { all: true }),
+): Promise<Transactions[]> => {
+  const { userId } = params;
+  const ids = 'transactionIds' in params ? params.transactionIds : null;
+  const rows = ids
+    ? await filterActionableTrashed({
+        userId,
+        rows: await findTrashed({ where: { id: { [Op.in]: ids } }, planned: 'include', lock: true }),
+      })
+    : await findActionableTrashed({ userId, lock: true });
+
+  if (ids && rows.length !== ids.length) {
     const foundIds = new Set<string>(rows.map((row) => row.id));
     throw new NotFoundError({
       message: t({ key: 'transactions.notFound' }),
-      details: { transactionIds: transactionIds.filter((id) => !foundIds.has(id)) },
+      details: { transactionIds: ids.filter((id) => !foundIds.has(id)) },
     });
   }
 

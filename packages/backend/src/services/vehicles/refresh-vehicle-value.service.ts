@@ -8,9 +8,9 @@ import { calculateRefAmount } from '@services/calculate-ref-amount.service';
 import { withTransaction } from '@services/common/with-transaction';
 import { isBaseCurrencyChangeLocked } from '@services/currencies/base-currency-lock';
 import { getAccessibleAccountIdsForUser } from '@services/sharing/auth/get-accessible-account-ids.service';
-import { parseISO } from 'date-fns';
 
-import { computeVehicleValue } from './compute-vehicle-value';
+import { getVehicleValuationAnchor } from './reconstruct-vehicle-anchor';
+import { computeFromAnchor } from './valuation-timeline';
 
 const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -40,13 +40,14 @@ const refreshVehicleValueIfStaleImpl = async ({
   force = false,
   asOf,
 }: RefreshSingleParams): Promise<RefreshSingleResult> => {
-  const vehicle = await Vehicles.findByPk(vehicleId, { include: [{ model: Accounts }] });
+  // Use the same account-before-vehicle lock order as edits and manual adjustments.
+  const initial = await Vehicles.findByPk(vehicleId, { attributes: ['accountId'] });
+  const account = initial && (await Accounts.findByPk(initial.accountId, { lock: true }));
+  const vehicle = account && (await Vehicles.findByPk(vehicleId));
 
-  if (!vehicle) {
+  if (!vehicle || !account) {
     throw new NotFoundError({ message: 'Vehicle not found' });
   }
-
-  const account = vehicle.account;
   const now = asOf ?? new Date();
 
   // While a base-currency recalculation holds the user's lock it is rewriting
@@ -75,20 +76,8 @@ const refreshVehicleValueIfStaleImpl = async ({
     };
   }
 
-  const hasAnchor = vehicle.valueAnchor !== null && vehicle.valueAnchorDate !== null;
-  const anchorValue = hasAnchor ? vehicle.valueAnchor! : vehicle.purchasePrice;
-  const anchorDateString = hasAnchor ? vehicle.valueAnchorDate! : vehicle.purchaseDate;
-  const anchorDate = parseISO(anchorDateString);
-
-  const newValue = computeVehicleValue({
-    anchorValue,
-    anchorDate,
-    asOf: now,
-    vehicleClass: vehicle.vehicleClass,
-    preset: vehicle.depreciationPreset,
-    customAnnualRatePct: vehicle.customAnnualRatePct ? Number(vehicle.customAnnualRatePct) : null,
-    salvageFloorPct: Number(vehicle.salvageFloorPct),
-  });
+  const anchor = await getVehicleValuationAnchor({ vehicle, asOf: now });
+  const newValue = computeFromAnchor(anchor, now);
 
   const newRefValue = await calculateRefAmount({
     userId: vehicle.userId,

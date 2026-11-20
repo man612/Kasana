@@ -161,8 +161,13 @@
     </form>
 
     <template #footer="{ close }">
-      <Button variant="ghost" @click="close">{{ $t('common.actions.cancel') }}</Button>
-      <Button :disabled="!viewName.trim() || isPatching" :loading="isPatching" @click="submitName">
+      <Button variant="outline" class="min-h-11" @click="close">{{ $t('common.actions.cancel') }}</Button>
+      <Button
+        class="min-h-11 transition-[background-color,opacity]"
+        :disabled="!viewName.trim() || isPatching"
+        :loading="isPatching"
+        @click="submitName"
+      >
         {{ $t('common.actions.save') }}
       </Button>
     </template>

@@ -302,6 +302,9 @@
       "filtersCount": "{count} filter | {count} filters"
     },
     "trashPage": {
+      "restoreAll": "Restore all",
+      "restoreAllTitle": "Restore all transactions?",
+      "restoreAllDescription": "Transactions will return to the list and count toward balances and statistics again.",
       "title": "Trash",
       "description": "Newest deletions first. Each is removed for good after {days} days. Pick one to see what comes back with it.",
       "expiringBanner": "{count} will be deleted permanently within {days}.",

@@ -72,11 +72,15 @@ export function computeVehicleValue({
   salvageFloorPct,
 }: ComputeVehicleValueParams): Money {
   const daysElapsed = differenceInCalendarDays(asOf, anchorDate);
-  if (daysElapsed <= 0) {
+  if (daysElapsed <= 0 || preset === DEPRECIATION_PRESET.manual) {
     return anchorValue;
   }
 
   const floor = anchorValue.multiply(salvageFloorPct / 100);
+
+  const straightLine = preset === DEPRECIATION_PRESET.straightLine;
+  const annualFraction = (customAnnualRatePct ?? 0) / 100;
+  if (straightLine && annualFraction === 0) return anchorValue;
 
   let value = anchorValue;
   let cursor = anchorDate;
@@ -86,7 +90,9 @@ export function computeVehicleValue({
     const nextAnniversary = addYears(cursor, 1);
     if (asOf >= nextAnniversary) {
       const rate = resolveAnnualRate({ vehicleClass, preset, customAnnualRatePct, yearIndex });
-      value = value.multiply(1 - rate);
+      value = straightLine
+        ? anchorValue.multiply(Math.max(0, 1 - annualFraction * (yearIndex + 1)))
+        : value.multiply(1 - rate);
       if (value.lessThan(floor)) {
         return floor;
       }
@@ -101,7 +107,9 @@ export function computeVehicleValue({
     if (partialDays > 0 && daysInYear > 0) {
       const rate = resolveAnnualRate({ vehicleClass, preset, customAnnualRatePct, yearIndex });
       const proratedRate = rate * (partialDays / daysInYear);
-      value = value.multiply(1 - proratedRate);
+      value = straightLine
+        ? anchorValue.multiply(Math.max(0, 1 - annualFraction * (yearIndex + partialDays / daysInYear)))
+        : value.multiply(1 - proratedRate);
       if (value.lessThan(floor)) {
         return floor;
       }

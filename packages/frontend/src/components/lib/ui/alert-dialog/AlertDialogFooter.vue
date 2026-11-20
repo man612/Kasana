@@ -10,7 +10,14 @@ const props = defineProps({
 </script>
 
 <template>
-  <div :class="cn('mt-3.5 flex flex-col space-y-2 sm:flex-row sm:justify-end sm:space-y-0 sm:space-x-2', props.class)">
+  <div
+    :class="
+      cn(
+        'mt-3.5 flex items-stretch justify-end gap-2 [&>button]:h-auto [&>button]:min-h-11 [&>button]:min-w-0 [&>button]:wrap-anywhere [&>button]:whitespace-normal max-sm:[&>button]:flex-1',
+        props.class,
+      )
+    "
+  >
     <slot />
   </div>
 </template>

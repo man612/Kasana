@@ -19,6 +19,7 @@ import PayeeSelectField from '@/components/fields/payee-select-field.vue';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import PaymentMethodDialog from '@/components/fields/payment-method-dialog.vue';
 import TagSelectField from '@/components/fields/tag-select-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
@@ -71,7 +72,7 @@ import {
 } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { DialogTitle } from 'reka-ui';
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, inject, nextTick, onScopeDispose, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 
@@ -109,6 +110,7 @@ import {
   useTransferFormLogic,
   useUnlinkTransactions,
 } from './composables';
+import { TRANSACTION_DIALOG_CLOSE } from './composables/transaction-dialog-close';
 import type { TransferDestinationType } from './composables/transfer-form';
 import { useDefaultPaymentType } from './composables/use-default-payment-type';
 import { useFieldReveal, type MountableField } from './composables/use-field-reveal';
@@ -178,7 +180,11 @@ const emit = defineEmits<{
 const closeModal = () => {
   emit('close-modal');
 };
-const requestCloseModal = () => emit('request-close');
+const dialogClose = inject(TRANSACTION_DIALOG_CLOSE, undefined);
+const requestCloseModal = () => {
+  if (dialogClose) dialogClose.requestClose();
+  else emit('request-close');
+};
 
 const isPortfolioLinkedView = computed(
   () => !!props.transaction && props.transaction.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_portfolio,
@@ -381,22 +387,31 @@ watch(
   },
   { flush: 'post' },
 );
-const setFormPanelHeight = (element: Element) => {
-  const node = element as HTMLElement;
-  node.style.setProperty('--lajur-panel-height', String(node.scrollHeight + 12) + 'px');
-};
 const isMultiAccount = computed(() => form.value.paymentLegs !== undefined);
+const lastPaymentLegs = ref<FormPaymentLeg[]>([]);
+watch(
+  () => form.value.paymentLegs,
+  (legs) => {
+    if (legs) lastPaymentLegs.value = legs;
+  },
+  { flush: 'sync', immediate: true },
+);
 const hasUsedMultiAccount = ref(false);
 // Do not autofocus the numeric input when a previously visible multi-account
 // editor is removed; on phones this would reopen the virtual keyboard.
-watch(isMultiAccount, (active) => {
-  if (active) hasUsedMultiAccount.value = true;
-}, { immediate: true });
+watch(
+  isMultiAccount,
+  (active) => {
+    if (active) hasUsedMultiAccount.value = true;
+  },
+  { immediate: true },
+);
 const isSavedMultiAccount = computed(() => hasPaymentParts({ transaction: transaction.value }));
 const hasLinkedPaymentLegs = computed(() => Boolean(form.value.paymentLegs?.some((leg) => leg.isLinked)));
 const showLegErrors = ref(false);
 const confirmDisableMultiAccountOpen = ref(false);
 const setPaymentLegs = (legs: FormPaymentLeg[]) => {
+  if (!isMultiAccount.value) return;
   form.value.paymentLegs = legs.length ? legs : undefined;
 };
 const disableMultiAccount = () => {
@@ -1281,11 +1296,17 @@ const deleteTransactionHandler = () => {
 };
 
 const selectTransactionType = (type: FORM_TYPES, disabled = false) => {
-  if (disabled) return;
+  if (disabled || type === form.value.type) return;
+  const pristineCreation = isFormCreation.value && initialFormFingerprint.value === trackedFormFingerprint();
   // A template pins a type, so a type change drops the pill but keeps what the user is
   // looking at: restoring the snapshot would undo the fields they came here to edit.
   if (templating.applied.value && type !== form.value.type) templating.detach();
   form.value.type = type;
+  if (pristineCreation) {
+    void nextTick(() => {
+      initialFormFingerprint.value = trackedFormFingerprint();
+    });
+  }
 };
 
 // Stores element that was focused before modal was opened, to then focus it back
@@ -1684,8 +1705,20 @@ const trackedFormFingerprint = () =>
     longitude: form.value.longitude,
     payeeId: form.value.payeeId,
     isPlanned: form.value.isPlanned,
-    tagIds: form.value.tagIds ?? [],
-    legs: form.value.paymentLegs ?? null,
+    tagIds: [...(form.value.tagIds ?? [])].sort(),
+    originalAmount: form.value.originalAmount ?? null,
+    originalCurrency: form.value.originalCurrency?.code,
+    splits: form.value.splits?.map((split) => [split.category?.id, split.amount, split.note]) ?? [],
+    refunds: [form.value.refundsTx, form.value.refundedByTxs].map(
+      (links) => links?.map(({ transaction: linked, splitId, amount }) => [linked.id, splitId, amount]) ?? [],
+    ),
+    destinationType: transferDestinationType.value,
+    linkedId: linkedTransaction.value?.id,
+    legs:
+      form.value.paymentLegs?.map(({ account, isPaymentAmountEdited: _edited, ...leg }) => ({
+        ...leg,
+        accountId: account?.id ?? leg.accountId,
+      })) ?? null,
     pendingAttachments: pendingAttachments.value.map((file) => file.name + ':' + file.size),
   });
 const initialFormFingerprint = ref('');
@@ -1702,11 +1735,19 @@ watch(
   { immediate: true },
 );
 const isEditUnchanged = computed(
-  () => !isFormCreation.value && Boolean(initialFormFingerprint.value) && trackedFormFingerprint() === initialFormFingerprint.value,
+  () =>
+    !isFormCreation.value &&
+    Boolean(initialFormFingerprint.value) &&
+    trackedFormFingerprint() === initialFormFingerprint.value,
 );
+const hasUnsavedChanges = () =>
+  !isReadOnly.value &&
+  Boolean(initialFormFingerprint.value) &&
+  trackedFormFingerprint() !== initialFormFingerprint.value;
+if (dialogClose) onScopeDispose(dialogClose.register(hasUnsavedChanges));
 defineExpose({
   focusAmount: () => (isAmountFieldDisabled.value ? targetAmountFieldRef.value : editableAmountFieldRef.value)?.focus(),
-  hasUnsavedChanges: () => Boolean(initialFormFingerprint.value) && trackedFormFingerprint() !== initialFormFingerprint.value,
+  hasUnsavedChanges,
 });
 
 onUnmounted(() => {
@@ -2257,13 +2298,16 @@ onUnmounted(() => {
               {{ $t('dialogs.loanPayment.overdrawWarning', { account: form.account?.name ?? '' }) }}
             </p>
 
-            <Transition name="lajur-form-panel" @enter="setFormPanelHeight" @before-leave="setFormPanelHeight">
+            <div v-if="!isTransferTx" class="mb-1 flex justify-end">
+              <ReuseMultiAccountPill />
+            </div>
+            <LayoutCollapse v-if="!isTransferTx" :open="isMultiAccount">
               <PaymentLegsField
-                v-if="isMultiAccount && !isTransferTx"
+                v-if="hasUsedMultiAccount || isMultiAccount"
                 ref="paymentLegsFieldRef"
                 v-model:account="form.account"
                 v-model:amount="form.amount"
-                :legs="form.paymentLegs ?? []"
+                :legs="form.paymentLegs ?? lastPaymentLegs"
                 :label="paymentLegsLabel"
                 :main-accounts="nonTransferSourceAccounts"
                 :leg-accounts="txTargetableSourceAccountsActiveFirst"
@@ -2280,14 +2324,11 @@ onUnmounted(() => {
                 :show-leg-errors="showLegErrors"
                 @update:legs="setPaymentLegs"
                 @main-amount-blur="onAmountBlur"
-              >
-                <template #label-right>
-                  <ReuseMultiAccountPill />
-                </template>
-              </PaymentLegsField>
+              />
+            </LayoutCollapse>
 
+            <LayoutCollapse :open="!isMultiAccount || isTransferTx">
               <account-field
-                v-else
                 v-model:account="form.account"
                 v-model:to-account="form.toAccount"
                 v-model:to-portfolio="form.toPortfolio"
@@ -2327,10 +2368,6 @@ onUnmounted(() => {
                     :tooltip-override="isPlannedBadgeVisible ? undefined : plannedTooltipOverride"
                     @update:model-value="setPlannedMode"
                   />
-                </template>
-
-                <template v-if="!isTransferTx" #account-label-pill>
-                  <ReuseMultiAccountPill />
                 </template>
 
                 <template #account-hint>
@@ -2429,7 +2466,7 @@ onUnmounted(() => {
                   />
                 </template>
               </account-field>
-            </Transition>
+            </LayoutCollapse>
 
             <!-- Picking a transaction to link collapses account-field to its single-account
                branch (no destination panel), so the pending linked leg gets its own panel. -->
@@ -2548,7 +2585,13 @@ onUnmounted(() => {
 
             <ReuseDateField v-if="!isMobileView" />
 
-            <div :class="isMobileView && !isTransferTx && 'grid grid-cols-2 gap-x-3'">
+            <div
+              :class="
+                isMobileView &&
+                !isTransferTx &&
+                'grid grid-cols-2 gap-x-3 [&_.field-label>div:first-child]:min-h-[2.6em] [&_.field-label>div:first-child]:items-end'
+              "
+            >
               <form-row v-if="!isTransferTx">
                 <payee-select-field
                   v-model="form.payeeId"
@@ -2686,7 +2729,7 @@ onUnmounted(() => {
           "
           :disabled="isFormFieldsDisabled || isSubmitBlocked || isEditUnchanged"
           :aria-disabled="hasRequiredMissing ? 'true' : undefined"
-           :class="(hasRequiredMissing || isEditUnchanged) && 'opacity-55 saturate-40 hover:opacity-80'"
+          :class="(hasRequiredMissing || isEditUnchanged) && 'opacity-55 saturate-40 hover:opacity-80'"
           :title="hasRequiredMissing ? $t('dialogs.manageTransaction.form.requiredSubmitHelp') : undefined"
           @click="submit()"
         >

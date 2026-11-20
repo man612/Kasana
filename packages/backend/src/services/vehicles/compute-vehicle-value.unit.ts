@@ -20,6 +20,32 @@ describe('computeVehicleValue', () => {
   const anchorValue = Money.fromDecimal(30000);
   const salvageFloorPct = 10;
 
+  it('reduces the anchor by a fixed amount each year for straight-line accounting', () => {
+    const profile = {
+      anchorValue,
+      anchorDate,
+      vehicleClass: VEHICLE_CLASS.sedan,
+      preset: DEPRECIATION_PRESET.straightLine,
+      customAnnualRatePct: 20,
+      salvageFloorPct,
+    };
+    expect(computeVehicleValue({ ...profile, asOf: new Date('2025-01-01T00:00:00Z') }).toNumber()).toBe(18000);
+    expect(computeVehicleValue({ ...profile, asOf: new Date('2032-01-01T00:00:00Z') }).toNumber()).toBe(3000);
+  });
+
+  it('keeps a manual value flat regardless of vehicle class, age, or the salvage floor', () => {
+    expect(
+      computeVehicleValue({
+        anchorValue,
+        anchorDate,
+        asOf: new Date('2030-01-01T00:00:00Z'),
+        vehicleClass: VEHICLE_CLASS.ev,
+        preset: DEPRECIATION_PRESET.manual,
+        salvageFloorPct,
+      }).toNumber(),
+    ).toBe(30000);
+  });
+
   describe('boundary dates', () => {
     it('returns anchor value unchanged when asOf is before anchorDate', () => {
       const result = computeVehicleValue({

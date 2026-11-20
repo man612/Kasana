@@ -34,7 +34,6 @@ watch(
 
 const {
   isEditMode,
-  activeWidgets,
   draftWidgets,
   displayWidgets,
   availableWidgets,
@@ -67,7 +66,7 @@ const animateLayoutChange = (change: () => void) => {
       startViewTransition?: (callback: () => Promise<void>) => unknown;
     }
   ).startViewTransition;
-  if (!isEditMode.value || !startViewTransition || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+  if (!startViewTransition || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
     change();
     return;
   }
@@ -83,7 +82,7 @@ const addWidgetAnimated = (widgetId: string) => animateLayoutChange(() => addWid
 
 defineExpose({
   isEditMode,
-  enterEditMode,
+  enterEditMode: () => animateLayoutChange(enterEditMode),
   saveLayout,
   cancelEdit,
 });
@@ -124,8 +123,10 @@ const GRID_CLASSES =
       />
     </VueDraggable>
 
-    <div v-if="isEditMode" class="mt-6">
-      <DashboardAddWidgetPanel :available-widgets="availableWidgets" @add="addWidgetAnimated" />
-    </div>
+    <Transition name="lajur-form-panel">
+      <div v-if="isEditMode" class="mt-6">
+        <DashboardAddWidgetPanel :available-widgets="availableWidgets" @add="addWidgetAnimated" />
+      </div>
+    </Transition>
   </div>
 </template>

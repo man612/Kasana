@@ -109,7 +109,7 @@
         "payeeLabel": "Penerima",
         "expensePayeeLabel": "Dibayar kepada (opsional)",
         "incomePayeeLabel": "Diterima dari / pengirim (opsional)",
-        "paymentReceiveLabel": "Diterima melalui (opsional)",
+        "paymentReceiveLabel": "Diterima melalui",
         "createMoreHint": "Setelah transaksi berhasil disimpan, formulir tetap terbuka untuk mencatat transaksi berikutnya.",
         "addFieldsHint": "Detail tambahan, hanya pilih yang dibutuhkan.",
         "outOfWalletDocsLink": "Apa itu di luar rekening?",
@@ -481,6 +481,7 @@
         "openVehicle": "Buka {name}"
       },
       "templates": {
+        "incompleteHint": "Lengkapi informasi transaksi terlebih dahulu.",
         "trigger": "Templat",
         "filterPlaceholder": "Cari templat…",
         "emptyState": "Templat menyimpan isian yang sering Anda pakai supaya tidak perlu mengulangnya. Isi transaksi terlebih dahulu, lalu tekan Simpan templat. Templat tidak membuat transaksi otomatis.",

@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import InputField from '@/components/fields/input-field.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { CheckIcon, ChevronRightIcon, PencilIcon } from '@lucide/vue';
-import { computed, ref, type Component } from 'vue';
+import { computed, ref, watch, type Component } from 'vue';
 
 export interface PickerOption {
   value: string;
@@ -25,11 +26,29 @@ const props = withDefaults(
     errorMessage?: string;
     required?: boolean;
     iconOnly?: boolean;
+    searchPlaceholder?: string;
+    noResultsLabel?: string;
   }>(),
   { disabled: false, required: false },
 );
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>();
 const isOpen = ref(false);
+const query = ref('');
+const heading = ref<HTMLElement | null>(null);
+watch(isOpen, (open) => {
+  if (!open) query.value = '';
+});
+const visibleOptions = computed(() => {
+  const term = query.value.trim().toLocaleLowerCase();
+  return term
+    ? props.options.filter(({ label, group }) => `${label} ${group ?? ''}`.toLocaleLowerCase().includes(term))
+    : props.options;
+});
+const onOpenAutoFocus = (event: Event) => {
+  if (!props.searchPlaceholder) return;
+  event.preventDefault();
+  heading.value?.focus({ preventScroll: true });
+};
 const selected = computed(() => props.options.find((option) => option.value === props.modelValue));
 const pick = (value: string) => {
   emit('update:modelValue', value);
@@ -66,10 +85,7 @@ const pick = (value: string) => {
           :class="errorMessage && 'border-destructive'"
         >
           <Transition name="lajur-info-reveal" mode="out-in">
-            <span
-              :key="selected?.value ?? 'empty-option'"
-              class="flex min-w-0 flex-1 items-center gap-2"
-            >
+            <span :key="selected?.value ?? 'empty-option'" class="flex min-w-0 flex-1 items-center gap-2">
               <component
                 :is="selected.icon"
                 v-if="selected?.icon"
@@ -86,9 +102,10 @@ const pick = (value: string) => {
       </Dialog.DialogTrigger>
       <Dialog.DialogContent
         blur-overlay
-        class="grid max-h-[min(85dvh,700px)] w-[calc(100vw-2rem)] max-w-lg grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-2xl p-0 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 motion-reduce:animate-none"
+        @open-auto-focus="onOpenAutoFocus"
+        class="data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 grid max-h-[min(85dvh,700px)] w-[calc(100vw-2rem)] max-w-lg grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-2xl p-0 motion-reduce:animate-none"
       >
-        <div class="border-border relative border-b px-4 py-4 pr-14">
+        <div ref="heading" tabindex="-1" class="border-border relative border-b px-4 py-4 pr-14 outline-none">
           <div v-if="$slots['header-action']" class="absolute top-3 right-12 z-10">
             <slot name="header-action" />
           </div>
@@ -96,39 +113,56 @@ const pick = (value: string) => {
           <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs">
             {{ placeholder ?? label }}
           </Dialog.DialogDescription>
+          <InputField
+            v-if="searchPlaceholder"
+            v-model="query"
+            class="mt-2"
+            :placeholder="searchPlaceholder"
+            :aria-label="searchPlaceholder"
+          />
         </div>
         <div class="lajur-dialog-scroll min-h-0 space-y-1 overflow-y-auto overscroll-contain p-3">
-          <div v-for="(option, index) in options" :key="option.value">
+          <TransitionGroup name="lajur-info-reveal">
             <p
-              v-if="option.group && (index === 0 || option.group !== options[index - 1]?.group)"
-              class="text-muted-foreground px-3 pt-3 pb-1 text-[10px] font-semibold tracking-wider uppercase"
-              :class="index === 0 && 'pt-1'"
+              v-if="!visibleOptions.length && noResultsLabel"
+              key="empty"
+              role="status"
+              class="text-muted-foreground px-3 py-4 text-sm"
             >
-              {{ option.group }}
+              {{ noResultsLabel }}
             </p>
-            <button
-              type="button"
-              class="hover:bg-muted/60 focus-visible:ring-ring flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
-              :class="modelValue === option.value && 'bg-primary/10'"
-              :aria-pressed="modelValue === option.value"
-              @click="pick(option.value)"
-            >
-              <span
-                v-if="option.icon"
-                class="bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg"
-                :class="option.iconClass"
+            <div v-for="(option, index) in visibleOptions" :key="option.value">
+              <p
+                v-if="option.group && (index === 0 || option.group !== visibleOptions[index - 1]?.group)"
+                class="text-muted-foreground px-3 pt-3 pb-1 text-[10px] font-semibold tracking-wider uppercase"
+                :class="index === 0 && 'pt-1'"
               >
-                <component :is="option.icon" class="size-4" />
-              </span>
-              <span class="min-w-0 flex-1">
-                <span class="block text-sm font-medium">{{ option.label }}</span>
-                <span v-if="option.description" class="text-muted-foreground mt-0.5 block text-xs leading-relaxed">{{
-                  option.description
-                }}</span>
-              </span>
-              <CheckIcon v-if="modelValue === option.value" class="text-primary size-4 shrink-0" />
-            </button>
-          </div>
+                {{ option.group }}
+              </p>
+              <button
+                type="button"
+                class="hover:bg-muted/60 focus-visible:ring-ring flex min-h-11 w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                :class="modelValue === option.value && 'bg-primary/10'"
+                :aria-pressed="modelValue === option.value"
+                @click="pick(option.value)"
+              >
+                <span
+                  v-if="option.icon"
+                  class="bg-muted flex size-9 shrink-0 items-center justify-center rounded-lg"
+                  :class="option.iconClass"
+                >
+                  <component :is="option.icon" class="size-4" />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block text-sm font-medium">{{ option.label }}</span>
+                  <span v-if="option.description" class="text-muted-foreground mt-0.5 block text-xs leading-relaxed">{{
+                    option.description
+                  }}</span>
+                </span>
+                <CheckIcon v-if="modelValue === option.value" class="text-primary size-4 shrink-0" />
+              </button>
+            </div>
+          </TransitionGroup>
         </div>
       </Dialog.DialogContent>
     </Dialog.Dialog>

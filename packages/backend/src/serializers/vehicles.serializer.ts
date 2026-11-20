@@ -6,7 +6,13 @@
  * value all come from Accounts; metadata + depreciation params come from
  * Vehicles).
  */
-import { DEPRECIATION_PRESET, type RecordId, VEHICLE_CLASS } from '@bt/shared/types';
+import {
+  DEPRECIATION_PRESET,
+  type RecordId,
+  VEHICLE_CLASS,
+  type VehicleType,
+  type VehicleValuationSegment,
+} from '@bt/shared/types';
 import { centsToApiDecimal, centsToApiDecimalOrNull } from '@common/types/money';
 import type Vehicles from '@models/vehicles.model';
 import { serializeAccount, type AccountApiResponse } from '@root/serializers/accounts.serializer';
@@ -20,6 +26,9 @@ export interface VehicleApiResponse {
   trim: string | null;
   year: number;
   vehicleClass: VEHICLE_CLASS;
+  vehicleType: VehicleType | null;
+  licensePlate?: string | null;
+  valuationSegments?: VehicleValuationSegment[];
   purchasePrice: number;
   purchaseDate: string;
   valueAnchor: number | null;
@@ -34,7 +43,7 @@ export interface VehicleApiResponse {
   account: AccountApiResponse | null;
 }
 
-export function serializeVehicle(vehicle: Vehicles): VehicleApiResponse {
+export function serializeVehicle(vehicle: Vehicles, { userId }: { userId?: number } = {}): VehicleApiResponse {
   return {
     id: vehicle.id,
     accountId: vehicle.accountId,
@@ -44,6 +53,8 @@ export function serializeVehicle(vehicle: Vehicles): VehicleApiResponse {
     trim: vehicle.trim,
     year: vehicle.year,
     vehicleClass: vehicle.vehicleClass,
+    vehicleType: vehicle.vehicleType,
+    ...(userId === vehicle.userId && { licensePlate: vehicle.licensePlate }),
     purchasePrice: centsToApiDecimal(vehicle.purchasePrice),
     purchaseDate: vehicle.purchaseDate,
     valueAnchor: centsToApiDecimalOrNull(vehicle.valueAnchor),
@@ -60,5 +71,5 @@ export function serializeVehicle(vehicle: Vehicles): VehicleApiResponse {
 }
 
 export function serializeVehicles(vehicles: Vehicles[]): VehicleApiResponse[] {
-  return vehicles.map(serializeVehicle);
+  return vehicles.map((vehicle) => serializeVehicle(vehicle));
 }

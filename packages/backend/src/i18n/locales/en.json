@@ -810,6 +810,8 @@
     "eventNotFound": "Venture event not found"
   },
   "vehicles": {
+    "annualRateRequired": "Enter an annual rate for this depreciation method.",
+    "valuationMethodUnavailable": "Use a manual value or an explicit accounting rate for this vehicle type.",
     "notFound": "Vehicle not found"
   },
   "stats": {

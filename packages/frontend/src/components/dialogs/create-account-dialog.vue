@@ -50,7 +50,7 @@ const onAccountCreation = () => {
       <UiButton type="button" variant="outline" class="min-h-11 min-w-0" @click="close()">
         {{ $t('common.actions.cancel') }}
       </UiButton>
-      <UiButton type="submit" :form="formId" class="min-h-11 min-w-0" :disabled="formRef?.isSubmitting">
+      <UiButton type="submit" :form="formId" class="min-h-11 min-w-0" :disabled="!formRef?.canSubmit">
         {{
           formRef?.isSubmitting ? $t('forms.createAccount.submitButtonLoading') : $t('forms.createAccount.submitButton')
         }}

@@ -125,7 +125,7 @@ const pick = (value: VerbosePaymentType | null) => {
             :aria-required="required"
             :aria-invalid="Boolean(errorMessage)"
             :class="errorMessage && 'border-destructive'"
-            class="border-input bg-input-background hover:bg-muted/60 focus-visible:ring-ring flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border px-3 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            class="border-input bg-input-background hover:bg-muted/60 focus-visible:ring-ring flex h-10 min-w-0 flex-1 items-center gap-2 rounded-md border px-3 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-9"
             data-testid="payment-method-dialog-trigger"
           >
             <component :is="selectedIcon" v-if="selectedIcon" class="text-muted-foreground size-4 shrink-0" />
@@ -137,7 +137,7 @@ const pick = (value: VerbosePaymentType | null) => {
         </Dialog.DialogTrigger>
         <Dialog.DialogContent
           blur-overlay
-          class="max-h-[88dvh] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden rounded-2xl p-0 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 data-[state=open]:duration-250 motion-reduce:animate-none"
+          class="data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 max-h-[88dvh] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden rounded-2xl p-0 data-[state=open]:duration-250 motion-reduce:animate-none"
           data-testid="payment-method-dialog"
         >
           <div class="border-border relative border-b px-4 py-4 pr-23">

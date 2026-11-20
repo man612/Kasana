@@ -4,8 +4,9 @@ import {
   PRESET_MULTIPLIERS,
   TAIL_RATE_PCT,
   VEHICLE_CLASS,
+  type VehicleValuationSegment,
 } from '@bt/shared/types';
-import { addMonths, addYears, differenceInCalendarDays } from 'date-fns';
+import { addMonths, addYears, differenceInCalendarDays, parseISO } from 'date-fns';
 
 interface ResolveRateParams {
   vehicleClass: VEHICLE_CLASS;
@@ -71,10 +72,13 @@ function sampleValueAt({
   floor,
 }: SampleAtParams): number {
   const daysElapsed = differenceInCalendarDays(asOf, anchorDate);
-  if (daysElapsed <= 0) {
+  if (daysElapsed <= 0 || preset === DEPRECIATION_PRESET.manual) {
     return anchorValue;
   }
 
+  const straightLine = preset === DEPRECIATION_PRESET.straightLine;
+  const annualFraction = (customAnnualRatePct ?? 0) / 100;
+  if (straightLine && annualFraction === 0) return anchorValue;
   let value = anchorValue;
   let cursor = anchorDate;
   let yearIndex = 0;
@@ -83,7 +87,7 @@ function sampleValueAt({
     const nextAnniversary = addYears(cursor, 1);
     if (asOf >= nextAnniversary) {
       const rate = resolveAnnualRate({ vehicleClass, preset, customAnnualRatePct, yearIndex });
-      value = value * (1 - rate);
+      value = straightLine ? anchorValue * Math.max(0, 1 - annualFraction * (yearIndex + 1)) : value * (1 - rate);
       if (value < floor) return floor;
       cursor = nextAnniversary;
       yearIndex += 1;
@@ -95,7 +99,9 @@ function sampleValueAt({
     if (partialDays > 0 && daysInYear > 0) {
       const rate = resolveAnnualRate({ vehicleClass, preset, customAnnualRatePct, yearIndex });
       const proratedRate = rate * (partialDays / daysInYear);
-      value = value * (1 - proratedRate);
+      value = straightLine
+        ? anchorValue * Math.max(0, 1 - annualFraction * (yearIndex + partialDays / daysInYear))
+        : value * (1 - proratedRate);
       if (value < floor) return floor;
     }
     return value;
@@ -154,6 +160,7 @@ interface BuildTimelineParams extends CurveParams {
   override?: { value: number; date: Date } | null;
   /** How far past the latest anchor (override or purchase) to project. */
   monthsHorizon: number;
+  valuationSegments?: VehicleValuationSegment[];
 }
 
 /**
@@ -175,8 +182,25 @@ export function buildDepreciationTimeline({
   purchase,
   override,
   monthsHorizon,
+  valuationSegments,
   ...curveParams
 }: BuildTimelineParams): DepreciationPoint[] {
+  if (valuationSegments?.length) {
+    return valuationSegments.flatMap(({ date, value, ...profile }, index) => {
+      const anchorDate = parseISO(date);
+      const next = valuationSegments[index + 1];
+      const endDate = next ? parseISO(next.date) : addMonths(anchorDate, monthsHorizon);
+      const floor = value * (profile.salvageFloorPct / 100);
+      const points = buildSegment({ ...profile, anchorValue: value, anchorDate, endDate, floor });
+      if (points.at(-1)?.date.getTime() !== endDate.getTime()) {
+        points.push({
+          date: endDate,
+          value: sampleValueAt({ ...profile, anchorValue: value, anchorDate, asOf: endDate, floor }),
+        });
+      }
+      return points;
+    });
+  }
   const floor = purchase.value * (curveParams.salvageFloorPct / 100);
   const hasOverride = override != null && override.date.getTime() > purchase.date.getTime();
 

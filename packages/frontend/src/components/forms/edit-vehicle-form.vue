@@ -10,12 +10,21 @@ import UiButton from '@/components/lib/ui/button/Button.vue';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
 import { useFormValidation } from '@/composable/form-validator';
 import { captureException } from '@/lib/sentry';
-import { DEPRECIATION_PRESET, VEHICLE_CLASS } from '@bt/shared/types';
+import {
+  DEPRECIATION_PRESET,
+  VEHICLE_CLASS,
+  VEHICLE_TYPES,
+  normalizeVehiclePlate,
+  VEHICLE_PLATE_MAX_LENGTH,
+  type VehicleType,
+} from '@bt/shared/types';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { between, helpers, integer, maxValue, minValue, required, requiredIf } from '@vuelidate/validators';
 import { computed, reactive } from 'vue';
-import { buildVehicleClassOptions } from './vehicle-class-options';
+import { buildVehicleTypeOptions } from './vehicle-class-options';
 import { useI18n } from 'vue-i18n';
+
+import { allowedVehiclePresets, hasVehicleAnnualRate } from './vehicle-valuation-options';
 
 const props = defineProps<{ vehicle: VehicleModel }>();
 const emit = defineEmits<{ updated: [] }>();
@@ -31,6 +40,8 @@ interface FormState {
   trim: string;
   year: number | null;
   vehicleClass: VEHICLE_CLASS;
+  vehicleType: VehicleType | null;
+  licensePlate: string;
   depreciationPreset: DEPRECIATION_PRESET;
   customAnnualRatePct: number | null;
   salvageFloorPct: number;
@@ -44,26 +55,40 @@ const form = reactive<FormState>({
   trim: props.vehicle.trim ?? '',
   year: props.vehicle.year,
   vehicleClass: props.vehicle.vehicleClass,
+  vehicleType: props.vehicle.vehicleType ?? null,
+  licensePlate: props.vehicle.licensePlate ?? '',
   depreciationPreset: props.vehicle.depreciationPreset,
   customAnnualRatePct: props.vehicle.customAnnualRatePct,
   salvageFloorPct: props.vehicle.salvageFloorPct,
   currentMileage: props.vehicle.currentMileage,
 });
 
-const vehicleClassOptions = computed(() => buildVehicleClassOptions((key) => t(key)));
+const vehicleClassOptions = computed(() =>
+  buildVehicleTypeOptions({
+    translate: t,
+    legacyClass: props.vehicle.vehicleType ? undefined : props.vehicle.vehicleClass,
+  }),
+);
 
+const allowedPresets = computed(() => allowedVehiclePresets(form.vehicleType));
+const effectivePreset = computed(() =>
+  allowedPresets.value.includes(form.depreciationPreset) ? form.depreciationPreset : DEPRECIATION_PRESET.manual,
+);
 const depreciationPresetOptions = computed(() =>
-  Object.values(DEPRECIATION_PRESET).map((value) => ({
+  allowedPresets.value.map((value) => ({
     label: t(DEPRECIATION_PRESET_TRANSLATION_KEYS[value]),
     value,
   })),
 );
-
 const selectedDepreciationPreset = computed(
-  () => depreciationPresetOptions.value.find((o) => o.value === form.depreciationPreset) ?? null,
+  () => depreciationPresetOptions.value.find(({ value }) => effectivePreset.value === value) ?? null,
 );
-
-const showCustomRate = computed(() => form.depreciationPreset === DEPRECIATION_PRESET.custom);
+const showCustomRate = computed(() => hasVehicleAnnualRate(effectivePreset.value));
+const isManual = computed(() => effectivePreset.value === DEPRECIATION_PRESET.manual);
+const selectVehicleType = (value: string) => {
+  if (Object.hasOwn(VEHICLE_TYPES, value)) form.vehicleType = value as VehicleType;
+  else if (value === 'legacy') form.vehicleType = null;
+};
 
 const MIN_YEAR = 1900;
 const MAX_YEAR = new Date().getFullYear() + 1;
@@ -91,13 +116,13 @@ const validationRules = {
       between(MIN_YEAR, MAX_YEAR),
     ),
   },
-  vehicleClass: { required },
+
   salvageFloorPct: {
     required,
     between: helpers.withMessage(() => t('forms.createVehicle.errors.percentRange'), between(0, 100)),
   },
   customAnnualRatePct: {
-    requiredIfCustom: requiredIf(() => form.depreciationPreset === DEPRECIATION_PRESET.custom),
+    requiredIfCustom: requiredIf(() => showCustomRate.value),
     between: helpers.withMessage(() => t('forms.createVehicle.errors.percentRange'), between(0, 100)),
   },
   currentMileage: {
@@ -126,8 +151,25 @@ const { isFormValid, getFieldErrorMessage, touchField } = useFormValidation(
   },
 );
 
+const buildPayload = () => ({
+  name: form.name.trim(),
+  make: form.make.trim(),
+  model: form.model.trim(),
+  trim: form.trim.trim() || null,
+  year: form.year!,
+  vehicleClass: form.vehicleClass,
+  vehicleType: form.vehicleType,
+  licensePlate: normalizeVehiclePlate(form.licensePlate) || null,
+  depreciationPreset: effectivePreset.value,
+  customAnnualRatePct: showCustomRate.value ? form.customAnnualRatePct : null,
+  salvageFloorPct: form.salvageFloorPct,
+  currentMileage: form.currentMileage,
+});
+const initialPayload = JSON.stringify(buildPayload());
+
 const isSubmitDisabled = computed(
   () =>
+    JSON.stringify(buildPayload()) === initialPayload ||
     !form.name.trim() ||
     !form.make.trim() ||
     !form.model.trim() ||
@@ -137,7 +179,7 @@ const isSubmitDisabled = computed(
     !Number.isFinite(form.salvageFloorPct) ||
     form.salvageFloorPct < 0 ||
     form.salvageFloorPct > 100 ||
-    (form.depreciationPreset === DEPRECIATION_PRESET.custom &&
+    (showCustomRate.value &&
       (form.customAnnualRatePct === null || form.customAnnualRatePct < 0 || form.customAnnualRatePct > 100)) ||
     (form.currentMileage !== null &&
       (!Number.isInteger(form.currentMileage) || form.currentMileage < 0 || form.currentMileage > MAX_MILEAGE)),
@@ -146,25 +188,14 @@ const isSubmitDisabled = computed(
 const updateMutation = useMutation({ mutationFn: updateVehicle });
 
 const submit = async () => {
-  if (updateMutation.isPending.value) return;
+  if (updateMutation.isPending.value || isSubmitDisabled.value) return;
 
   if (!isFormValid()) return;
 
   try {
     await updateMutation.mutateAsync({
       id: props.vehicle.id,
-      payload: {
-        name: form.name,
-        make: form.make,
-        model: form.model,
-        trim: form.trim || null,
-        year: form.year!,
-        vehicleClass: form.vehicleClass,
-        depreciationPreset: form.depreciationPreset,
-        customAnnualRatePct: form.depreciationPreset === DEPRECIATION_PRESET.custom ? form.customAnnualRatePct : null,
-        salvageFloorPct: form.salvageFloorPct,
-        currentMileage: form.currentMileage,
-      },
+      payload: buildPayload(),
     });
 
     addNotification({
@@ -227,25 +258,22 @@ const submit = async () => {
       />
     </div>
 
+    <InputField
+      v-model="form.licensePlate"
+      :maxlength="VEHICLE_PLATE_MAX_LENGTH"
+      :label="$t('forms.createVehicle.plateLabel')"
+      :placeholder="$t('forms.createVehicle.platePlaceholder')"
+      @blur="form.licensePlate = normalizeVehiclePlate(form.licensePlate)"
+    />
     <OptionPickerDialog
-      :model-value="form.vehicleClass"
+      :model-value="form.vehicleType ?? (vehicle.vehicleType ? null : 'legacy')"
       :options="vehicleClassOptions"
       :label="$t('forms.createVehicle.vehicleClassLabel')"
       :placeholder="$t('forms.createVehicle.vehicleClassPlaceholder')"
-      :error-message="getFieldErrorMessage('form.vehicleClass')"
-      required
-      @update:model-value="
-        (v) => {
-          form.vehicleClass = v as VEHICLE_CLASS;
-          touchField('form.vehicleClass');
-        }
-      "
-    >
-      <template #label-right><FormFieldHelp topic="vehicleClass" /></template>
-    </OptionPickerDialog>
-    <p class="text-muted-foreground -mt-3 text-xs leading-relaxed">
-      {{ $t('forms.createVehicle.vehicleClassHint') }}
-    </p>
+      :search-placeholder="$t('forms.createVehicle.searchTypes')"
+      :no-results-label="$t('forms.createVehicle.noTypes')"
+      @update:model-value="selectVehicleType"
+    />
 
     <SelectField
       :model-value="selectedDepreciationPreset"
@@ -255,6 +283,17 @@ const submit = async () => {
       :label="$t('forms.createVehicle.depreciationPresetLabel')"
       @update:model-value="(v) => v && (form.depreciationPreset = v.value)"
     />
+    <p class="text-muted-foreground -mt-2 text-sm">
+      {{
+        $t(
+          isManual
+            ? 'forms.createVehicle.manualHint'
+            : effectivePreset === DEPRECIATION_PRESET.straightLine
+              ? 'forms.createVehicle.accountingHint'
+              : 'forms.createVehicle.estimateHint',
+        )
+      }}
+    </p>
 
     <input-field
       v-if="showCustomRate"
@@ -266,6 +305,7 @@ const submit = async () => {
     />
 
     <input-field
+      v-if="!isManual"
       v-model="form.salvageFloorPct"
       type="number"
       :label="$t('forms.createVehicle.salvageFloorPctLabel')"

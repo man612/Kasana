@@ -13,7 +13,7 @@ import {
   type TransactionModel,
   type TrashEntry,
 } from '@bt/shared/types';
-import { useQuery } from '@tanstack/vue-query';
+import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
@@ -27,6 +27,7 @@ export const useTransactionsTrash = () =>
 
 export const useTrashActions = () => {
   const { t } = useI18n();
+  const queryClient = useQueryClient();
   const { addSuccessNotification, addWarningNotification } = useNotificationCenter();
 
   const restore = useInvalidatingMutation({
@@ -34,7 +35,11 @@ export const useTrashActions = () => {
     invalidateKeys: TRASH_INVALIDATE_KEYS,
     invalidateOnSettleKeys: TRASH_INVALIDATE_ON_SETTLE_KEYS,
     errorKey: 'transactions.trashPage.notifications.restoreError',
-    onSuccess: ({ droppedRefundLinks }) => {
+    onSuccess: ({ restoredIds, droppedRefundLinks }) => {
+      const ids = new Set(restoredIds);
+      queryClient.setQueryData<TrashEntry[]>(VUE_QUERY_CACHE_KEYS.transactionsTrash, (entries) =>
+        entries?.filter(({ id }) => !ids.has(id)),
+      );
       if (droppedRefundLinks > 0) {
         addWarningNotification(
           t(

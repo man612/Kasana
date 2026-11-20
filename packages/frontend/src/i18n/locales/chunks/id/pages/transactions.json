@@ -302,6 +302,9 @@
       "filtersCount": "{count} filter"
     },
     "trashPage": {
+      "restoreAll": "Pulihkan semua",
+      "restoreAllTitle": "Pulihkan semua transaksi?",
+      "restoreAllDescription": "Transaksi akan kembali ke daftar dan diperhitungkan lagi dalam saldo dan statistik.",
       "title": "Tempat Sampah",
       "description": "Transaksi yang baru dihapus ditampilkan lebih dulu. Setelah {days} hari, transaksi dihapus permanen.",
       "expiringBanner": "{count} akan dihapus permanen dalam {days}.",

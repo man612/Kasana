@@ -46,19 +46,23 @@ export function useDashboardLayout() {
     trackAnalyticsEvent({ event: 'dashboard_edit_opened' });
   };
 
-  const exitEditMode = () => {
+  const exitEditMode = ({ resetDraft = false }: { resetDraft?: boolean } = {}) => {
+    const exit = () => {
+      isEditMode.value = false;
+      if (resetDraft) draftWidgets.value = [];
+    };
     const reducedMotion =
       typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const transitionHost = document as Document & {
       startViewTransition?: (callback: () => Promise<void>) => unknown;
     };
     if (reducedMotion || typeof transitionHost.startViewTransition !== 'function') {
-      isEditMode.value = false;
+      exit();
       return;
     }
     // Capture both layouts after Vue paints to avoid abrupt widget flicker.
     transitionHost.startViewTransition(async () => {
-      isEditMode.value = false;
+      exit();
       await nextTick();
     });
   };
@@ -73,8 +77,7 @@ export function useDashboardLayout() {
   };
 
   const cancelEdit = () => {
-    draftWidgets.value = [];
-    isEditMode.value = false;
+    exitEditMode({ resetDraft: true });
   };
 
   const removeWidget = ({ widgetId }: { widgetId: string }) => {

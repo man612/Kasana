@@ -109,7 +109,7 @@
         "payeeLabel": "Payee",
         "expensePayeeLabel": "Paid to (optional)",
         "incomePayeeLabel": "Received from / sender (optional)",
-        "paymentReceiveLabel": "Received via (optional)",
+        "paymentReceiveLabel": "Received via",
         "createMoreHint": "After saving, keep this form open to enter another transaction.",
         "addFieldsHint": "Extra details — only add what you need.",
         "outOfWalletDocsLink": "What is out of wallet?",
@@ -481,6 +481,7 @@
         "openVehicle": "Open {name}"
       },
       "templates": {
+        "incompleteHint": "Fill in the transaction details first.",
         "trigger": "Templates",
         "filterPlaceholder": "Find a template…",
         "emptyState": "Templates fill this form with details you enter often — amount, account, category, payee, tags, note. They never add anything on their own; for something that repeats on a schedule use Recurring Payments.",

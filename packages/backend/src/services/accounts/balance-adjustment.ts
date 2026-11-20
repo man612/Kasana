@@ -9,12 +9,15 @@ import { Money } from '@common/types/money';
 import { t } from '@i18n/index';
 import { NotFoundError, ValidationError } from '@js/errors';
 import { getAccountById } from '@models/accounts.model';
+import Accounts from '@models/accounts.model';
 import type Transactions from '@models/transactions.model';
 import { getUserDefaultCategory } from '@models/users.model';
 import Vehicles from '@models/vehicles.model';
 import { withTransaction } from '@services/common/with-transaction';
 import { createTransaction } from '@services/transactions/create-transaction';
+import { getVehicleValuationAnchor } from '@services/vehicles/reconstruct-vehicle-anchor';
 import { refreshVehicleValueIfStale } from '@services/vehicles/refresh-vehicle-value.service';
+import { computeFromAnchor } from '@services/vehicles/valuation-timeline';
 import { format } from 'date-fns';
 
 interface AdjustAccountBalanceParams {
@@ -94,8 +97,18 @@ export const adjustAccountBalance = withTransaction(
       });
     }
 
-    const previousBalance = account.currentBalance;
-    const diff = targetBalance.subtract(previousBalance);
+    const effectiveTime = time ?? new Date();
+    const vehicleAccount =
+      account.accountCategory === ACCOUNT_CATEGORIES.vehicle
+        ? await Accounts.findByPk(accountId, { lock: true })
+        : null;
+    const previousBalance = vehicleAccount?.currentBalance ?? account.currentBalance;
+    const vehicle =
+      account.accountCategory === ACCOUNT_CATEGORIES.vehicle ? await Vehicles.findOne({ where: { accountId } }) : null;
+    const effectiveBalance = vehicle?.valuationRevisions?.length
+      ? computeFromAnchor(await getVehicleValuationAnchor({ vehicle, asOf: effectiveTime }), effectiveTime)
+      : previousBalance;
+    const diff = targetBalance.subtract(effectiveBalance);
 
     if (diff.isZero()) {
       return {
@@ -104,8 +117,6 @@ export const adjustAccountBalance = withTransaction(
         newBalance: previousBalance,
       };
     }
-
-    const effectiveTime = time ?? new Date();
 
     const transaction = await createBalanceAdjustmentTransaction({
       userId,
@@ -122,27 +133,24 @@ export const adjustAccountBalance = withTransaction(
     // the next stale-cache refresh would recompute from the original purchase
     // and silently overwrite the user's adjustment.
     let newBalance = targetBalance;
-    if (account.accountCategory === ACCOUNT_CATEGORIES.vehicle) {
-      const vehicle = await Vehicles.findOne({ where: { accountId } });
-      if (vehicle) {
-        await vehicle.update({
-          valueAnchor: targetBalance,
-          valueAnchorDate: format(effectiveTime, 'yyyy-MM-dd'),
-          // Null out the cache so the refresh below recomputes from the new
-          // (anchor, anchorDate) instead of returning a stale cached balance.
-          valueLastComputedAt: null,
-        });
+    if (vehicle) {
+      await vehicle.update({
+        valueAnchor: targetBalance,
+        valueAnchorDate: format(effectiveTime, 'yyyy-MM-dd'),
+        // Null out the cache so the refresh below recomputes from the new
+        // (anchor, anchorDate) instead of returning a stale cached balance.
+        valueLastComputedAt: null,
+      });
 
-        // If the override is backdated, today's depreciated value is BELOW the
-        // target the user typed (which was the value at `effectiveTime`).
-        // Force-refresh so Account.currentBalance reflects the depreciated
-        // value as of now — otherwise the page header reads stale.
-        const refreshed = await refreshVehicleValueIfStale({
-          vehicleId: vehicle.id,
-          force: true,
-        });
-        newBalance = refreshed.value;
-      }
+      // If the override is backdated, today's depreciated value is BELOW the
+      // target the user typed (which was the value at `effectiveTime`).
+      // Force-refresh so Account.currentBalance reflects the depreciated
+      // value as of now — otherwise the page header reads stale.
+      const refreshed = await refreshVehicleValueIfStale({
+        vehicleId: vehicle.id,
+        force: true,
+      });
+      newBalance = refreshed.value;
     }
 
     return {

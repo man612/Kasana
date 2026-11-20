@@ -24,6 +24,7 @@ const props = withDefaults(
     dialogContentClass?: HTMLAttributes['class'];
     drawerContentClass?: HTMLAttributes['class'];
     customClose?: boolean;
+    raised?: boolean;
     /** Closes the dialog the moment this turns true, e.g. `useIsAiUsageExitPage()` for dialogs linking to AI or billing settings. */
     closeWhen?: boolean;
     /** When true, disables the internal scroll wrapper (display: contents).
@@ -48,7 +49,7 @@ const props = withDefaults(
   { dismissible: true, mobilePresentation: 'drawer' },
 );
 
-const emit = defineEmits(['update:open', 'open-auto-focus']);
+const emit = defineEmits(['update:open', 'open-auto-focus', 'closed']);
 
 const isOpen = useVModel(props, 'open', emit, { passive: true });
 
@@ -58,6 +59,9 @@ const setOpen = (open: boolean) => {
 };
 
 const close = () => setOpen(false);
+const onCloseAutoFocus = () => {
+  if (!isOpen.value) emit('closed');
+};
 
 useCloseDialogWhen({ when: () => !!props.closeWhen, close });
 </script>
@@ -88,13 +92,18 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         :custom-indicator="props.drawerCustomIndicator"
         :class="[
           !props.noInternalScroll && 'grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden',
-          'px-4 pb-4',
+          'px-4 pb-[max(1rem,env(safe-area-inset-bottom))]',
           drawerContentClass,
         ]"
+        @close-auto-focus="onCloseAutoFocus"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
         <Button
-          v-if="props.dismissible && !props.customClose && (!$slots.footer || hideDrawerFooter || props.showDrawerCloseWithFooter)"
+          v-if="
+            props.dismissible &&
+            !props.customClose &&
+            (!$slots.footer || hideDrawerFooter || props.showDrawerCloseWithFooter)
+          "
           type="button"
           variant="ghost"
           size="icon"
@@ -107,7 +116,13 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         <div
           v-if="$slots['header-actions']"
           class="absolute top-3 z-20 flex min-h-10 items-center"
-          :class="props.dismissible && !props.customClose && (!$slots.footer || hideDrawerFooter || props.showDrawerCloseWithFooter) ? 'right-14' : 'right-3'"
+          :class="
+            props.dismissible &&
+            !props.customClose &&
+            (!$slots.footer || hideDrawerFooter || props.showDrawerCloseWithFooter)
+              ? 'right-14'
+              : 'right-3'
+          "
         >
           <slot name="header-actions" />
         </div>
@@ -155,8 +170,10 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
           dialogContentClass,
           isMobile && 'max-h-[88dvh] w-[calc(100vw-2rem)] max-w-md rounded-2xl',
         ]"
-        :blur-overlay="isMobile"
+        :blur-overlay="isMobile || props.raised"
         :custom-close="customClose"
+        :raised="props.raised"
+        @close-auto-focus="onCloseAutoFocus"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
         <div v-if="$slots['header-actions']" class="absolute top-3 right-14 z-20 flex items-center">

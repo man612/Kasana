@@ -118,6 +118,8 @@
       "other": "Інше"
     },
     "depreciationPresets": {
+      "straightLine": "Прямолінійна амортизація",
+      "manual": "Ручна оцінка",
       "classDefault": "За замовчуванням",
       "slow": "Повільна",
       "average": "Середня",

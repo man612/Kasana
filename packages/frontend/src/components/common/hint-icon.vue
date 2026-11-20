@@ -11,7 +11,7 @@ const isOpen = ref(false);
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen" mobile-presentation="center">
+  <ResponsiveDialog v-model:open="isOpen" mobile-presentation="center" raised>
     <template #trigger>
       <button
         type="button"

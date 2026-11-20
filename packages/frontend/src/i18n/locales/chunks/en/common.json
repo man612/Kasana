@@ -125,6 +125,8 @@
       "other": "Other"
     },
     "depreciationPresets": {
+      "straightLine": "Straight-line accounting",
+      "manual": "Manual value",
       "classDefault": "Class default",
       "slow": "Slow",
       "average": "Average",

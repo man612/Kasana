@@ -3,21 +3,32 @@
     <template #title>
       <div class="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
         <span>{{ $t('dashboard.widgets.balanceTrend.title') }}</span>
-        <!-- Mobile: visible segmented choices avoid a tall select + floating menu.
-             Additional sections scroll horizontally without changing the chart. -->
-        <div class="flex w-full min-w-0 gap-1 overflow-x-auto overscroll-x-contain pb-0.5 touch-pan-x sm:hidden" role="group" :aria-label="$t('dashboard.widgets.balanceTrend.title')">
-          <button
-            v-for="option in balanceTypeOptions"
-            :key="option.value"
-            type="button"
-            class="min-h-9 shrink-0 whitespace-nowrap rounded-lg px-2.5 text-xs font-medium transition-[background-color,color,transform] duration-180 active:scale-[0.97] motion-reduce:transition-none"
-            :class="selectedBalanceType.value === option.value ? 'bg-primary text-primary-foreground' : 'bg-muted/60 text-muted-foreground hover:text-foreground'"
-            :aria-pressed="selectedBalanceType.value === option.value"
-            :disabled="isWidgetDataFetching"
-            @click="selectedBalanceType = option"
+        <div class="w-full min-w-0 touch-pan-x overflow-x-auto overscroll-x-contain pb-0.5 sm:hidden">
+          <div
+            ref="filterRow"
+            class="relative flex w-max gap-1"
+            role="group"
+            :aria-label="$t('dashboard.widgets.balanceTrend.title')"
           >
-            {{ option.label }}
-          </button>
+            <span
+              v-if="indicator.width"
+              aria-hidden="true"
+              class="bg-primary pointer-events-none absolute inset-y-0 left-0 rounded-lg motion-safe:transition-[transform,width] motion-safe:duration-200"
+              :style="{ width: `${indicator.width}px`, transform: `translateX(${indicator.left}px)` }"
+            />
+            <Button
+              v-for="option in balanceTypeOptions"
+              :key="option.value"
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="text-muted-foreground aria-pressed:text-primary-foreground relative shrink-0 rounded-lg px-2.5 text-xs aria-pressed:hover:bg-transparent"
+              :aria-pressed="selectedBalanceType.value === option.value"
+              @click="selectedBalanceType = option"
+            >
+              {{ option.label }}
+            </Button>
+          </div>
         </div>
         <SelectField
           v-model="selectedBalanceType"
@@ -42,7 +53,7 @@
     </template>
     <template v-else>
       <!-- Stats row - two columns with space between -->
-      <div class="max-xs:px-1 mb-2 flex flex-wrap items-start justify-between gap-2 sm:mb-4 sm:gap-4">
+      <div ref="statsRow" class="max-xs:px-1 mb-2 flex flex-wrap items-start justify-between gap-2 sm:mb-4 sm:gap-4">
         <!-- Left: Primary value -->
         <div>
           <div class="text-xl font-bold tracking-tight tabular-nums sm:text-2xl">
@@ -101,80 +112,78 @@
         <template #date>{{ projectionThroughDate }}</template>
       </i18n-t>
 
-      <Transition name="chart-fade" mode="out-in">
-        <div :key="chartKey" ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative min-h-32 w-full flex-1 sm:min-h-44">
-          <svg
-            ref="svgRef"
-            class="h-full w-full"
-            role="group"
-            :aria-label="$t('dashboard.widgets.balanceTrend.title')"
-          ></svg>
+      <div ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative min-h-32 w-full flex-1 sm:min-h-44">
+        <svg
+          ref="svgRef"
+          class="h-full w-full"
+          role="group"
+          :aria-label="$t('dashboard.widgets.balanceTrend.title')"
+        ></svg>
 
-          <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
-          <Teleport to="body">
-            <div
-              v-show="tooltip.visible"
-              ref="tooltipRef"
-              class="pointer-events-none fixed isolate z-[100]"
-              :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
-            >
-              <ChartTooltip>
-                <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
+        <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
+        <Teleport to="body">
+          <div
+            v-show="tooltip.visible"
+            ref="tooltipRef"
+            class="pointer-events-none fixed isolate z-[100]"
+            :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
+          >
+            <ChartTooltip>
+              <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
 
-                <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
-                  <template #value>
-                    {{ formatTooltipMoney(row.value)
-                    }}<span
-                      v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
-                      class="ml-1 text-xs font-medium"
-                      :class="deltaColorClass(row.delta)"
-                      >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
-                    >
-                  </template>
-                </ChartTooltipRow>
+              <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
+                <template #value>
+                  {{ formatTooltipMoney(row.value)
+                  }}<span
+                    v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
+                    class="ml-1 text-xs font-medium"
+                    :class="deltaColorClass(row.delta)"
+                    >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
+                  >
+                </template>
+              </ChartTooltipRow>
 
-                <ChartTooltipDivider />
+              <ChartTooltipDivider />
 
-                <ChartTooltipRow
-                  total
-                  :label="$t('dashboard.widgets.balanceTrend.tooltip.total')"
-                  :value="formatTooltipMoney(tooltip.totalBalance)"
-                />
+              <ChartTooltipRow
+                total
+                :label="$t('dashboard.widgets.balanceTrend.tooltip.total')"
+                :value="formatTooltipMoney(tooltip.totalBalance)"
+              />
 
-                <div
-                  v-if="tooltip.hasDelta"
-                  class="mt-1 text-xs font-semibold tabular-nums"
-                  :class="deltaColorClass(tooltip.deltaAbsolute)"
-                >
-                  {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
-                  ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
-                </div>
-              </ChartTooltip>
-            </div>
-          </Teleport>
+              <div
+                v-if="tooltip.hasDelta"
+                class="mt-1 text-xs font-semibold tabular-nums"
+                :class="deltaColorClass(tooltip.deltaAbsolute)"
+              >
+                {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
+                ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
+              </div>
+            </ChartTooltip>
+          </div>
+        </Teleport>
 
-          <!-- Spike transactions panel -->
-          <SpikeTransactionsPanel
-            ref="spikePanelRef"
-            :visible="spikePanel.visible"
-            :x="spikePanel.x"
-            :y="spikePanel.y"
-            :spike-date="spikeDateLabel"
-            :delta-absolute="spikePanel.spikePoint?.deltaAbsolute ?? 0"
-            :delta-percent="spikePanel.spikePoint?.deltaPercent ?? 0"
-            :is-positive="spikePanel.spikePoint?.isPositive ?? true"
-            :transactions="spikeTransactions ?? []"
-            :is-loading="isSpikeTransactionsLoading"
-            :is-portfolio-mode="isPortfolioMode"
-            :accounts-delta="spikePanel.accountsDelta"
-            :portfolios-delta="spikePanel.portfoliosDelta"
-            :selected-balance-type="selectedBalanceType.value"
-            :currency-code="baseCurrency?.currency?.code"
-            @close="closeSpikePanel"
-            @see-all="navigateToSpikeTransactions"
-          />
-        </div>
-      </Transition>
+        <!-- Spike transactions panel -->
+        <SpikeTransactionsPanel
+          ref="spikePanelRef"
+          :visible="spikePanel.visible"
+          :x="spikePanel.x"
+          :y="spikePanel.y"
+          :spike-date="spikeDateLabel"
+          :delta-absolute="spikePanel.spikePoint?.deltaAbsolute ?? 0"
+          :delta-percent="spikePanel.spikePoint?.deltaPercent ?? 0"
+          :is-positive="spikePanel.spikePoint?.isPositive ?? true"
+          :transactions="spikeTransactions ?? []"
+          :is-loading="isSpikeTransactionsLoading"
+          :is-portfolio-mode="isPortfolioMode"
+          :accounts-delta="spikePanel.accountsDelta"
+          :portfolios-delta="spikePanel.portfoliosDelta"
+          :selected-balance-type="selectedBalanceType.value"
+          :currency-code="baseCurrency?.currency?.code"
+          @close="closeSpikePanel"
+          @see-all="navigateToSpikeTransactions"
+        />
+      </div>
       <!-- Accessible numerical alternative to hovering the SVG. Sampled evenly,
            always including the first and latest real balance observations. -->
       <section class="border-border/60 mt-3 border-t pt-2 text-xs">
@@ -248,6 +257,7 @@ import {
   ChartTooltipRow,
 } from '@/components/common/charts/chart-tooltip';
 import FitAmount from '@/components/common/fit-amount.vue';
+import { Button } from '@/components/lib/ui/button';
 import SelectField from '@/components/fields/select-field.vue';
 import { useFormatCurrency } from '@/composable';
 import { getChartColors } from '@/composable/charts/chart-colors';
@@ -268,13 +278,13 @@ import { loadCombinedBalanceTrendData } from '@/services/stats';
 import { useAccountsStore, useCurrenciesStore } from '@/stores';
 import { SORT_DIRECTIONS } from '@bt/shared/types';
 import { useQuery } from '@tanstack/vue-query';
-import { useResizeObserver } from '@vueuse/core';
+import { usePreferredReducedMotion, useResizeObserver } from '@vueuse/core';
 import * as d3 from 'd3';
 import { differenceInDays, endOfDay, format, isSameMonth, min, startOfDay, subDays } from 'date-fns';
 import { ChartLineIcon, ChartNoAxesCombinedIcon, ChevronDownIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import type { Ref } from 'vue';
-import { computed, inject, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { computed, inject, onMounted, onUnmounted, reactive, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -770,7 +780,7 @@ const chartXAxisEnd = computed(() => {
 });
 
 // Key for the chart component - changes when period changes to trigger CSS transition
-const chartKey = computed(() => `${actualDataPeriod.value.from.getTime()}-${chartXAxisEnd.value.getTime()}`);
+const gradientId = `balance-trend-${useId()}`;
 
 const isPortfolioMode = computed(() => selectedBalanceType.value.value === 'portfolios');
 
@@ -986,7 +996,6 @@ const renderChart = () => {
     });
 
   // Create gradient for area fill
-  const gradientId = `area-gradient-${chartKey.value}`;
   const defs = svg.append('defs');
   const gradient = defs
     .append('linearGradient')
@@ -1353,32 +1362,40 @@ const balancesDiff = computed(() => balanceComparison.value.percent);
 const balancesDiffAbsolute = computed(() => balanceComparison.value.absolute);
 const comparisonTone = computed(() => Math.sign(balancesDiffAbsolute.value ?? 0));
 
-useResizeObserver(containerRef, renderChart);
+const filterRow = ref<HTMLElement | null>(null);
+const statsRow = ref<HTMLElement | null>(null);
+const indicator = reactive({ left: 0, width: 0 });
+const motion = usePreferredReducedMotion();
+const measureIndicator = () => {
+  const button = filterRow.value?.querySelector<HTMLElement>('[aria-pressed="true"]');
+  if (!button) return;
+  indicator.left = button.offsetLeft;
+  indicator.width = button.offsetWidth;
+};
+useResizeObserver(filterRow, measureIndicator);
+watch([selectedBalanceType, balanceTypeOptions], measureIndicator, { flush: 'post' });
 
-// flush: 'post' so the watcher runs after Vue has applied DOM updates from the
-// new data, then renderChart can read the correct container dimensions.
+useResizeObserver(containerRef, renderChart);
 watch(
-  [chartData, () => actualDataPeriod.value, currentTheme],
+  [chartData, actualDataPeriod, currentTheme, spikePoints, chartXAxisEnd, projection],
   () => {
     closeSpikePanel();
+    tooltip.visible = false;
     renderChart();
   },
   { deep: true, flush: 'post' },
 );
 
-watch([spikePoints, chartXAxisEnd, projection], () => {
-  renderChart();
-});
+let filterAnimations: Animation[] = [];
+watch(
+  () => selectedBalanceType.value.value,
+  () => {
+    filterAnimations.forEach((animation) => animation.cancel());
+    if (motion.value === 'reduce') return;
+    filterAnimations = [svgRef.value, statsRow.value].flatMap((node) =>
+      node?.animate ? [node.animate([{ opacity: 0.6 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' })] : [],
+    );
+  },
+  { flush: 'post' },
+);
 </script>
-
-<style scoped>
-.chart-fade-enter-active,
-.chart-fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.chart-fade-enter-from,
-.chart-fade-leave-to {
-  opacity: 0;
-}
-</style>

@@ -1,7 +1,20 @@
 import { VEHICLE_CLASS_TRANSLATION_KEYS } from '@/common/const/vehicle-classes-verbose';
 import type { PickerOption } from '@/components/fields/option-picker-dialog.vue';
-import { VEHICLE_CLASS } from '@bt/shared/types';
-import { BikeIcon, CarFrontIcon, CarIcon, CircleEllipsisIcon, CrownIcon, TruckIcon, ZapIcon } from '@lucide/vue';
+import { VEHICLE_CLASS, VEHICLE_TYPES, type VehicleType } from '@bt/shared/types';
+import {
+  AccessibilityIcon,
+  BikeIcon,
+  BusIcon,
+  PlaneIcon,
+  ShipIcon,
+  SparklesIcon,
+  CarFrontIcon,
+  CarIcon,
+  CircleEllipsisIcon,
+  CrownIcon,
+  TruckIcon,
+  ZapIcon,
+} from '@lucide/vue';
 import type { Component } from 'vue';
 
 type VehicleClassPresentation = {
@@ -81,4 +94,46 @@ export function buildVehicleClassOptions(translate: (key: string) => string): Pi
       iconClass: presentation.iconClass,
     };
   });
+}
+
+const catalogueIcons = {
+  motorcycles: BikeIcon,
+  cars: CarIcon,
+  commercial: BusIcon,
+  mobility: AccessibilityIcon,
+  watercraft: ShipIcon,
+  aircraft: PlaneIcon,
+  fictional: SparklesIcon,
+  other: CircleEllipsisIcon,
+};
+
+export function buildVehicleTypeOptions({
+  translate,
+  legacyClass,
+}: {
+  translate: (key: string) => string;
+  legacyClass?: VEHICLE_CLASS;
+}): PickerOption[] {
+  const legacyOption = legacyClass
+    ? [
+        {
+          value: 'legacy',
+          label: translate(VEHICLE_CLASS_TRANSLATION_KEYS[legacyClass]),
+          group: translate('forms.createVehicle.legacyType'),
+          icon: PRESENTATION[legacyClass].icon,
+        },
+      ]
+    : [];
+  return [
+    ...legacyOption,
+    ...(Object.keys(VEHICLE_TYPES) as VehicleType[]).map((value) => {
+      const { group } = VEHICLE_TYPES[value];
+      return {
+        value,
+        label: translate(`forms.createVehicle.types.${value}`),
+        group: translate(`forms.createVehicle.typeGroups.${group}`),
+        icon: catalogueIcons[group],
+      };
+    }),
+  ];
 }

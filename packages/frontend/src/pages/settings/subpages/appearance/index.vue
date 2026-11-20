@@ -75,10 +75,17 @@
         <div class="flex items-center justify-between gap-4">
           <span class="text-sm">{{ $t('settings.appearance.interactionSound.toggle') }}</span>
           <div class="flex shrink-0 items-center gap-2">
-            <Button data-interaction-sound-preview variant="outline" size="sm" @click="previewInteractionSound">
+            <Button
+              data-interaction-sound-preview
+              :disabled="!interactionSoundEnabled"
+              variant="outline"
+              size="sm"
+              @click="previewInteractionSound"
+            >
               {{ $t('settings.appearance.interactionSound.preview') }}
             </Button>
             <Switch
+              data-interaction-sound-toggle
               :model-value="interactionSoundEnabled"
               :aria-label="$t('settings.appearance.interactionSound.toggle')"
               @update:model-value="(v) => updateInteractionSound(!!v)"

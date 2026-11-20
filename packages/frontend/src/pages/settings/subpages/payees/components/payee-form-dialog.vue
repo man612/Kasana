@@ -1,27 +1,24 @@
 <template>
-  <ResponsiveDialog v-model:open="isOpen">
+  <ResponsiveDialog v-model:open="isOpen" custom-close :dismissible="!isPending">
+    <template #title>{{ isEdit ? $t('payees.actions.rename') : $t('payees.newPayeeButton') }}</template>
     <template #default>
       <div class="flex flex-col gap-4">
-        <h3 class="text-lg font-semibold">
-          {{ isEdit ? $t('payees.actions.rename') : $t('payees.newPayeeButton') }}
-        </h3>
-
         <InputField
           v-model="form.name"
           :label="$t('payees.columns.name')"
           :placeholder="$t('payees.form.namePlaceholder')"
           :error-message="nameError ?? undefined"
-        />
-
-        <!-- Logo picker: create-only. Renaming an existing payee uses the
-             dedicated payee-logo-picker dialog instead. -->
-        <div v-if="!isEdit" class="flex flex-col gap-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-sm font-medium">{{ $t('payees.logo.fieldLabel') }}</span>
-            <HintIcon :content="$t('payees.logo.domainHint')" />
-          </div>
-          <LogoField v-model="form.logo" :name-for-search="form.name" />
-        </div>
+          :maxlength="200"
+        >
+          <template v-if="!isEdit" #field-right>
+            <LogoSquareField
+              v-model="form.logo"
+              :name-for-search="form.name"
+              size-class="size-11 rounded-lg md:size-9"
+              :disabled="isPending"
+            />
+          </template>
+        </InputField>
 
         <CategorySelectField
           v-model="form.category"
@@ -46,16 +43,11 @@
         <p class="text-muted-foreground -mt-2 text-xs">
           {{ activeModeHint }}
         </p>
-
-        <div class="flex justify-end gap-2 pt-2">
-          <Button variant="ghost" :disabled="isPending" @click="isOpen = false">
-            {{ $t('common.actions.cancel') }}
-          </Button>
-          <Button variant="default" :disabled="!form.name || isPending" @click="handleSave">
-            {{ $t('common.actions.save') }}
-          </Button>
-        </div>
       </div>
+    </template>
+    <template #footer="{ close }">
+      <Button variant="outline" :disabled="isPending" @click="close">{{ $t('common.actions.cancel') }}</Button>
+      <Button :disabled="!canSave" @click="handleSave">{{ $t('common.actions.save') }}</Button>
     </template>
   </ResponsiveDialog>
 </template>
@@ -67,7 +59,6 @@ import { useNotificationCenter } from '@/components/notification-center';
 import { useCategoriesStore } from '@/stores';
 import type { FormattedCategory } from '@/common/types';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
-import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import CategorySelectField from '@/components/fields/category-select-field.vue';
 import InputField from '@/components/fields/input-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
@@ -80,7 +71,7 @@ import { storeToRefs } from 'pinia';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import LogoField from '@/components/common/logo-field.vue';
+import LogoSquareField from '@/components/common/logo-square-field.vue';
 import { type LogoSelection, toOptionalLogoPayload } from '@/components/common/logo-selection';
 
 interface Props {
@@ -191,7 +182,10 @@ const createMut = useCreatePayee();
 const updateMut = useUpdatePayee();
 const isPending = computed(() => createMut.isPending.value || updateMut.isPending.value);
 
+const canSave = computed(() => !!form.name.trim() && form.name.trim().length <= 200 && !isPending.value);
+
 async function handleSave() {
+  if (!canSave.value) return;
   nameError.value = null;
   try {
     let saved: PayeeModel;
@@ -199,7 +193,7 @@ async function handleSave() {
       saved = await updateMut.mutateAsync({
         id: props.payee.id,
         payload: {
-          name: form.name,
+          name: form.name.trim(),
           defaultCategoryId: form.category?.id ?? null,
           categorizationMode: form.categorizationMode.value,
         },
@@ -207,7 +201,7 @@ async function handleSave() {
       addSuccessNotification(t('payees.toasts.updated'));
     } else {
       saved = await createMut.mutateAsync({
-        name: form.name,
+        name: form.name.trim(),
         defaultCategoryId: form.category?.id ?? null,
         categorizationMode: form.categorizationMode.value,
         // No selection omits the logo keys so the new payee keeps auto-resolving.

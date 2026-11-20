@@ -810,6 +810,8 @@
     "eventNotFound": "Event venture tidak ditemukan"
   },
   "vehicles": {
+    "annualRateRequired": "Masukkan tarif tahunan untuk metode penyusutan ini.",
+    "valuationMethodUnavailable": "Gunakan nilai manual atau tarif akuntansi yang ditentukan sendiri untuk jenis kendaraan ini.",
     "notFound": "Kendaraan tidak ditemukan"
   },
   "stats": {

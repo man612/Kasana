@@ -125,6 +125,8 @@
       "other": "Lainnya"
     },
     "depreciationPresets": {
+      "straightLine": "Akuntansi garis lurus",
+      "manual": "Nilai manual",
       "classDefault": "Default kelas",
       "slow": "Lambat",
       "average": "Rata-rata",
