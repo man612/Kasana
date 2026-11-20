@@ -126,7 +126,7 @@ jobs:
       # not need to compile the 6 GiB-heap Vue frontend on its tight root disk.
       # Only same-repo integration PRs, no fork-supplied workflow artifacts.
       - name: Export disposable InstaBox frontend image
-        if: ${{ github.event_name == 'pull_request' && (startsWith(github.head_ref, 'integration/lajur-instabox-') || github.head_ref == 'fix/lajur-mobile-ux-audit-20261118' || github.head_ref == 'fix/lajur-mobile-ux-feedback3-20261118') && github.event.pull_request.head.repo.full_name == github.repository }}
+        if: ${{ github.event_name == 'pull_request' && (startsWith(github.head_ref, 'integration/lajur-instabox-') || github.head_ref == 'fix/lajur-mobile-ux-audit-20261118' || github.head_ref == 'fix/lajur-mobile-ux-feedback3-20261118' || (github.head_ref == 'lajur-mobile-audit-pr64' && github.event.pull_request.number == 65)) && github.event.pull_request.head.repo.full_name == github.repository }}
         shell: bash
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -145,7 +145,7 @@ jobs:
             > "${RUNNER_TEMP}/lajur-instabox-frontend-info.txt"
 
       - name: Upload short-lived disposable InstaBox image
-        if: ${{ github.event_name == 'pull_request' && (startsWith(github.head_ref, 'integration/lajur-instabox-') || github.head_ref == 'fix/lajur-mobile-ux-audit-20261118' || github.head_ref == 'fix/lajur-mobile-ux-feedback3-20261118') && github.event.pull_request.head.repo.full_name == github.repository }}
+        if: ${{ github.event_name == 'pull_request' && (startsWith(github.head_ref, 'integration/lajur-instabox-') || github.head_ref == 'fix/lajur-mobile-ux-audit-20261118' || github.head_ref == 'fix/lajur-mobile-ux-feedback3-20261118' || (github.head_ref == 'lajur-mobile-audit-pr64' && github.event.pull_request.number == 65)) && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: lajur-instabox-frontend-${{ github.event.pull_request.head.sha }}
@@ -408,3 +408,37 @@ jobs:
         run: docker run --rm --network none --entrypoint node local/budget-tracker-be:latest /app/scripts/check-provider-runtime.cjs
       - name: Image digest
         run: echo ${{ steps.backend-docker-build.outputs.docker-build-digest }}
+
+      # This self-hosted preview needs the backend as well as the frontend:
+      # PR #65 adds additive vehicle fields and new trash behavior. Export only
+      # this same-repository QA branch, never untrusted fork contributions.
+      - name: Export disposable InstaBox backend image for PR 65
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 65 && github.head_ref == 'lajur-mobile-audit-pr64' && github.event.pull_request.head.repo.full_name == github.repository }}
+        shell: bash
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          short="${PR_HEAD_SHA:0:12}"
+          preview_image="lajur-instabox-backend:preview-${short}"
+          docker tag local/budget-tracker-be:latest "${preview_image}"
+          docker save "${preview_image}" | gzip -1 > "${RUNNER_TEMP}/lajur-instabox-backend.tar.gz"
+          (
+            cd "${RUNNER_TEMP}"
+            sha256sum lajur-instabox-backend.tar.gz > lajur-instabox-backend.tar.gz.sha256
+          )
+          printf 'PR_HEAD_SHA=%s\nCHECKOUT_SHA=%s\nIMAGE=%s\n' \
+            "${PR_HEAD_SHA}" "$(git rev-parse HEAD)" "${preview_image}" \
+            > "${RUNNER_TEMP}/lajur-instabox-backend-info.txt"
+
+      - name: Upload short-lived disposable InstaBox backend image for PR 65
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.number == 65 && github.head_ref == 'lajur-mobile-audit-pr64' && github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: lajur-instabox-backend-${{ github.event.pull_request.head.sha }}
+          path: |
+            ${{ runner.temp }}/lajur-instabox-backend.tar.gz
+            ${{ runner.temp }}/lajur-instabox-backend.tar.gz.sha256
+            ${{ runner.temp }}/lajur-instabox-backend-info.txt
+          if-no-files-found: error
+          retention-days: 3
