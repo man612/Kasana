@@ -62,6 +62,7 @@ const primary = [
     active: computed(() => route.matched.some((item) => item.name === ROUTES_NAMES.analytics)),
   },
 ];
+const activeColumn = computed(() => primary.findIndex(({ active }) => active.value));
 const groups = [
   { ...primary[1]!, open: isAccountsOpen, children: accountChildren },
   { ...primary[2]!, open: isTransactionsOpen, children: computed(() => SIDEBAR_NAV_CHILDREN.transactions) },
@@ -92,9 +93,11 @@ watch(
 );
 
 let navigationFrame = 0;
+let navigationTimer: ReturnType<typeof setTimeout>;
 let navigationRequest = 0;
 const cancelPending = () => {
   cancelAnimationFrame(navigationFrame);
+  clearTimeout(navigationTimer);
   navigationRequest++;
   pendingHref.value = '';
 };
@@ -108,13 +111,13 @@ const onActivate = (event: MouseEvent, href: string, navigate: () => Promise<unk
 
   // Paint feedback before the route resolves and mounts its page. Keep only the latest tap.
   navigationFrame = requestAnimationFrame(() => {
-    navigationFrame = requestAnimationFrame(() => {
+    navigationTimer = setTimeout(() => {
       void navigate()
         .finally(() => {
           if (request === navigationRequest) pendingHref.value = '';
         })
         .catch(() => undefined);
-    });
+    }, 0);
   });
 };
 
@@ -123,7 +126,7 @@ const getActiveSurface = () => nav.value?.querySelector<HTMLElement>('[data-nav-
 watch(
   () => route.fullPath,
   async () => {
-    if (reducedMotion.value === 'reduce') return;
+    if (props.bottomNav || reducedMotion.value === 'reduce') return;
     const previous = getActiveSurface();
     const before = previous?.getBoundingClientRect();
     await nextTick();
@@ -133,7 +136,7 @@ watch(
     const after = current.getBoundingClientRect();
     const dx = before.left - after.left;
     const dy = before.top - after.top;
-    const nearby = props.bottomNav ? Math.abs(dx) <= after.width * 2.2 : Math.abs(dy) <= 120;
+    const nearby = Math.abs(dy) <= 120;
     move = current.animate(
       nearby
         ? [
@@ -171,7 +174,7 @@ onScopeDispose(() => {
         @click="onActivate($event, href, navigate)"
       >
         <span
-          v-if="active"
+          v-if="active && !bottomNav"
           data-nav-highlight
           aria-hidden="true"
           class="bg-primary/10 pointer-events-none absolute inset-0 rounded-[inherit]"
@@ -194,8 +197,15 @@ onScopeDispose(() => {
     </RouterLink>
   </DefineRouteLink>
 
-  <div ref="nav" :class="bottomNav ? 'grid grid-cols-4 gap-1' : 'grid gap-0.5'">
+  <div ref="nav" :class="bottomNav ? 'relative isolate grid grid-cols-4 gap-1' : 'grid gap-0.5'">
     <template v-if="bottomNav">
+      <span
+        data-nav-highlight
+        aria-hidden="true"
+        class="bottom-indicator bg-primary/10 pointer-events-none absolute inset-y-0 left-0 -z-10 rounded-xl motion-safe:transition-[transform,opacity] motion-safe:duration-220 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)]"
+        :class="activeColumn < 0 && 'opacity-0'"
+        :style="{ '--nav-active-column': Math.max(0, activeColumn) }"
+      />
       <RouteLink v-for="item in primary" :key="item.name" v-bind="item" :active="item.active.value" />
     </template>
     <template v-else>
@@ -253,3 +263,10 @@ onScopeDispose(() => {
     </template>
   </div>
 </template>
+
+<style scoped>
+.bottom-indicator {
+  width: calc((100% - 3 * var(--spacing)) / 4);
+  transform: translateX(calc(var(--nav-active-column) * (100% + var(--spacing))));
+}
+</style>
