@@ -179,6 +179,20 @@ describe('Patch user settings', () => {
     expect(invalidDeadline.statusCode).toBe(ERROR_CODES.ValidationError);
   });
 
+  it('skips automatic progress only for a dismissed guide when the client opts in', async () => {
+    await helpers.createAccount({ raw: true });
+    await helpers.updateOnboarding({ raw: true, onboardingState: { isDismissed: true, completedTasks: [] } });
+    const quiet = await helpers.getOnboarding({ raw: true, skipProgressWhenDismissed: true });
+    const original = await helpers.getOnboarding({ raw: true });
+    expect(quiet.isDismissed).toBe(true);
+    expect(quiet.completedTasks).not.toContain('create-account');
+    expect(original.completedTasks).toContain('create-account');
+
+    await helpers.updateOnboarding({ raw: true, onboardingState: { isDismissed: false } });
+    const reopened = await helpers.getOnboarding({ raw: true, skipProgressWhenDismissed: true });
+    expect(reopened.completedTasks).toContain('create-account');
+  });
+
   it('persists currencyDisplay in both directions and keeps it through a rejected patch', async () => {
     const patched = await helpers.patchUserSettings({ raw: true, patch: { currencyDisplay: 'narrowSymbol' } });
     expect(patched.currencyDisplay).toBe('narrowSymbol');

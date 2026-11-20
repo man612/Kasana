@@ -402,6 +402,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
       isDismissed.value = data.isDismissed;
       dismissedAt.value = data.dismissedAt;
       hiddenUntil.value = data.hiddenUntil ?? 0;
+      void fetchOnboardingState();
     } catch {
       if (accountId === userStore.user?.id) addErrorNotification(i18n.global.t('common.errors.settingsSaveFailed'));
     } finally {
