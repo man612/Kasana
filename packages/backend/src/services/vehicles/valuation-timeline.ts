@@ -14,7 +14,7 @@ import { format, parseISO } from 'date-fns';
 
 import { computeVehicleValue } from './compute-vehicle-value';
 
-export const requiresCustomRate = (preset: DEPRECIATION_PRESET) =>
+const requiresCustomRate = (preset: DEPRECIATION_PRESET) =>
   preset === DEPRECIATION_PRESET.custom || preset === DEPRECIATION_PRESET.straightLine;
 
 export function validateValuationProfile(type: VehicleType | null, profile: VehicleValuationProfile) {
@@ -42,7 +42,7 @@ export function getValuationProfile(vehicle: Vehicles): VehicleValuationProfile 
   };
 }
 
-export type ValuationAnchor = { date: string; value: Money; profile: VehicleValuationProfile; override?: true };
+type ValuationAnchor = { date: string; value: Money; profile: VehicleValuationProfile; override?: true };
 
 export const computeFromAnchor = (anchor: ValuationAnchor, asOf: Date) =>
   computeVehicleValue({ ...anchor.profile, anchorValue: anchor.value, anchorDate: parseISO(anchor.date), asOf });
