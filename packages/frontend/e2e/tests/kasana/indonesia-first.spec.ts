@@ -71,6 +71,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
     page,
     playwright,
   }) => {
+    test.setTimeout(90_000);
     const credentials = buildTestCredentials({ prefix: 'kasana-idr' });
     const accountName = 'Dompet Uji Kasana IDR';
 
@@ -104,57 +105,8 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         password: credentials.password,
       });
 
-      // The generic onboarding fixture deliberately permanently dismisses the guide.
-      // Reopen it for this isolated timer check, then restore the fixture's original
-      // dismissed state before continuing the other interaction smoke assertions.
-      const onboardingPath = '/api/v1/user/settings/onboarding';
-      const shortHideMs = 30_000;
-      const shortDeadline = Date.now() + shortHideMs;
-      await apiPut({
-        request: api,
-        path: onboardingPath,
-        data: { isDismissed: false, dismissedAt: null, hiddenUntil: shortDeadline },
-      });
-      // The countdown uses the absolute expiry returned by the account API.
-      await page.clock.install();
-      const waitForOnboarding = (method: 'GET' | 'PUT') =>
-        page.waitForResponse(
-          (response) => new URL(response.url()).pathname === onboardingPath && response.request().method() === method,
-          { timeout: 25_000 },
-        );
-      const initialOnboarding = waitForOnboarding('GET');
-      await page.goto('/dashboard');
-      expect((await (await initialOnboarding).json()).response.hiddenUntil).toBe(shortDeadline);
-      await expect(page.getByTestId('dashboard-period-bar')).toBeVisible();
-      const quickStart = page.locator('button.fixed:has(svg.lucide-rocket)');
-      await expect(quickStart).toBeHidden();
-      await page.clock.fastForward(shortHideMs + 1_000);
-      await expect(quickStart).toBeVisible({ timeout: 8_000 });
-
-      // A one-hour hide saved from the UI survives reload with the original expiry.
-      await quickStart.click();
-      await page.getByRole('button', { name: /^(Sembunyikan|Hide)$/ }).click();
-      const savedOnboarding = waitForOnboarding('PUT');
-      const oneHour = 60 * 60_000;
-      const beforeSave = await page.evaluate(() => Date.now());
-      await page.getByRole('menuitem', { name: /^(Selama 1 jam|For 1 hour)$/ }).click();
-      const { hiddenUntil: originalDeadline } = (await (await savedOnboarding).json()).response;
-      expect(originalDeadline).toBeGreaterThanOrEqual(beforeSave + oneHour);
-      expect(originalDeadline).toBeLessThanOrEqual((await page.evaluate(() => Date.now())) + oneHour);
-      await expect(quickStart).toBeHidden();
-      const reloadedOnboarding = waitForOnboarding('GET');
-      await page.reload();
-      await expect(page.getByTestId('dashboard-period-bar')).toBeVisible();
-      // On reload the layout waits for idle before asking for Quick Start again.
-      await page.clock.fastForward(2_100);
-      expect((await (await reloadedOnboarding).json()).response.hiddenUntil).toBe(originalDeadline);
-      await expect(quickStart).toBeHidden();
-
-      await dismissOnboarding({ request: api });
-      await page.reload();
-      await expect(quickStart).toBeHidden();
-
       // Swipe from just inside the system-back edge to open the app sidebar.
+      await expect(page.getByText('Belanja simulasi Kasana', { exact: true })).toBeVisible();
       const shell = page.locator('.h-dvh').first();
       await swipeElement(shell, 0.14, 0.74);
       const sidebarSheet = page.locator('[role="dialog"][data-state="open"]').first();
@@ -713,6 +665,75 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(unusedScroll).toBeLessThanOrEqual(2);
       await page.keyboard.press('Escape');
       await expect(saveTransaction).toBeVisible();
+    } finally {
+      await api.dispose();
+    }
+  });
+
+  test('restores the account Quick Start deadline and reveals the trigger when it expires', async ({
+    page,
+    playwright,
+  }) => {
+    const credentials = buildTestCredentials({ prefix: 'kasana-quick-start' });
+    await signUpAndVerify({ creds: credentials });
+    const api = await signInViaApi({ playwright, email: credentials.email, password: credentials.password });
+
+    try {
+      await completeOnboarding({ request: api, currencyCode: 'IDR' });
+      await createAccount({ request: api, name: 'Dompet Uji Mulai Cepat', currencyCode: 'IDR', initialBalance: 0 });
+      await loginViaUI({ page, email: credentials.email, password: credentials.password });
+
+      // The onboarding fixture dismisses the guide by default. Restore it with a short expiry.
+      const onboardingPath = '/api/v1/user/settings/onboarding';
+      const shortHideMs = 30_000;
+      const shortDeadline = Date.now() + shortHideMs;
+      await apiPut({
+        request: api,
+        path: onboardingPath,
+        data: { isDismissed: false, dismissedAt: null, hiddenUntil: shortDeadline },
+      });
+      // The countdown uses the absolute expiry returned by the account API.
+      await page.clock.install();
+      const waitForOnboarding = (method: 'GET' | 'PUT') =>
+        page.waitForResponse(
+          (response) => new URL(response.url()).pathname === onboardingPath && response.request().method() === method,
+          { timeout: 25_000 },
+        );
+      const initialOnboarding = waitForOnboarding('GET');
+      await page.goto('/dashboard');
+      expect((await (await initialOnboarding).json()).response.hiddenUntil).toBe(shortDeadline);
+      await expect(page.getByTestId('dashboard-period-bar')).toBeVisible();
+      const quickStart = page.locator('button.fixed:has(svg.lucide-rocket)');
+      await expect(quickStart).toBeHidden();
+      await page.clock.fastForward(shortHideMs + 1_000);
+      await expect(quickStart).toBeVisible({ timeout: 8_000 });
+
+      // A one-hour hide saved from the UI survives reload with the original expiry.
+      await quickStart.click();
+      await page.getByRole('button', { name: /^(Sembunyikan|Hide)$/ }).click();
+      const savedOnboarding = waitForOnboarding('PUT');
+      const oneHour = 60 * 60_000;
+      const beforeSave = await page.evaluate(() => Date.now());
+      await page.getByRole('menuitem', { name: /^(Selama 1 jam|For 1 hour)$/ }).click();
+      const { hiddenUntil: originalDeadline } = (await (await savedOnboarding).json()).response;
+      expect(originalDeadline).toBeGreaterThanOrEqual(beforeSave + oneHour);
+      expect(originalDeadline).toBeLessThanOrEqual((await page.evaluate(() => Date.now())) + oneHour);
+      await expect(quickStart).toBeHidden();
+      const reloadedOnboarding = waitForOnboarding('GET');
+      await page.reload();
+      await expect(page.getByTestId('dashboard-period-bar')).toBeVisible();
+      // On reload the layout waits for idle before asking for Quick Start again.
+      await page.clock.fastForward(2_100);
+      expect((await (await reloadedOnboarding).json()).response.hiddenUntil).toBe(originalDeadline);
+      await expect(quickStart).toBeHidden();
+
+      await dismissOnboarding({ request: api });
+      const dismissedOnboarding = waitForOnboarding('GET');
+      await page.reload();
+      await expect(page.getByTestId('dashboard-period-bar')).toBeVisible();
+      await page.clock.fastForward(2_100);
+      expect((await (await dismissedOnboarding).json()).response.isDismissed).toBe(true);
+      await expect(quickStart).toBeHidden();
     } finally {
       await api.dispose();
     }
