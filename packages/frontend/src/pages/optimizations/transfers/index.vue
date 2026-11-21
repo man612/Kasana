@@ -83,6 +83,7 @@ const allItems = ref<BulkTransferScanItem[]>([]);
 const totalCount = ref(0);
 const currentOffset = ref(0);
 const isFetchingPage = ref(false);
+const pageLoadFailed = ref(false);
 
 const selectedItemIndex = ref<number>(0);
 const suggestionsDialogOpen = ref(false);
@@ -142,7 +143,15 @@ const { virtualRows, totalSize } = useVirtualizedInfiniteScroll<BulkTransferScan
 
 async function loadNextPage() {
   const filters = appliedFilters.value;
-  if (!filters || !hasNextPage.value || isFetchingPage.value || isScanning.value || isActing.value) return;
+  if (
+    !filters ||
+    !hasNextPage.value ||
+    pageLoadFailed.value ||
+    isFetchingPage.value ||
+    isScanning.value ||
+    isActing.value
+  )
+    return;
   const generation = scanGeneration;
   isFetchingPage.value = true;
 
@@ -160,11 +169,18 @@ async function loadNextPage() {
     currentOffset.value += data.items.length;
     if (!data.items.length) currentOffset.value = data.total;
   } catch {
-    if (generation === scanGeneration)
+    if (generation === scanGeneration) {
+      pageLoadFailed.value = true;
       addErrorNotification(t('optimizations.transferSuggestions.notifications.loadError'));
+    }
   } finally {
     isFetchingPage.value = false;
   }
+}
+
+function retryNextPage() {
+  pageLoadFailed.value = false;
+  void loadNextPage();
 }
 
 const WEAK_CONFIDENCE = 70;
@@ -199,6 +215,7 @@ async function freshScan(filters: ReturnType<typeof getScanFilters>) {
     allItems.value = data.items;
     totalCount.value = data.total;
     currentOffset.value = data.items.length;
+    pageLoadFailed.value = false;
     selectedItemIndex.value = 0;
   } catch {
     addErrorNotification(t('optimizations.transferSuggestions.notifications.scanError'));
@@ -430,8 +447,11 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
                   </div>
                 </template>
                 <template v-else>
-                  <div class="text-muted-foreground flex items-center justify-center py-3 text-xs">
-                    {{ $t('optimizations.transferSuggestions.scanning') }}
+                  <div class="text-muted-foreground flex items-center justify-center py-1 text-xs">
+                    <Button v-if="pageLoadFailed" variant="outline" size="sm" @click="retryNextPage">
+                      {{ $t('common.actions.retry') }}
+                    </Button>
+                    <span v-else class="py-2">{{ $t('optimizations.transferSuggestions.scanning') }}</span>
                   </div>
                 </template>
               </div>

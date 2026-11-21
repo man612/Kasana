@@ -30,11 +30,7 @@ export const useCategoriesStore = defineStore('categories', () => {
 
   onScopeDispose(
     queryClient.getQueryCache().subscribe((event) => {
-      if (event.query.queryHash !== categoryHash) return;
-      if (event.type === 'removed') {
-        categories.value = [];
-        isFetched.value = false;
-      } else if (event.query.state.data !== undefined) {
+      if (event.query.queryHash === categoryHash && event.type === 'updated' && event.action.type === 'success') {
         categories.value = event.query.state.data as CategoryModel[];
         isFetched.value = true;
       }
@@ -85,6 +81,11 @@ export const useCategoriesStore = defineStore('categories', () => {
     ),
   );
 
+  const resetCategories = () => {
+    categories.value = [];
+    isFetched.value = false;
+  };
+
   return {
     categories,
     categoriesMap,
@@ -93,5 +94,6 @@ export const useCategoriesStore = defineStore('categories', () => {
     ownCategories,
     formattedCategories,
     loadCategories,
+    resetCategories,
   };
 });

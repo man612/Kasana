@@ -94,11 +94,12 @@ const referenceKeys = new Set(FRESH_REFERENCE_KEYS);
 // Attach the persister centrally via query defaults so individual useQuery call
 // sites stay untouched. Per-call options still win over these defaults, and no
 // whitelisted call site sets its own `persister`.
-if (persistedQueryFn) {
-  for (const queryKey of PERSISTED_QUERY_KEY_PREFIXES) {
+for (const queryKey of PERSISTED_QUERY_KEY_PREFIXES) {
+  const isReference = referenceKeys.has(queryKey);
+  if (persistedQueryFn || isReference) {
     queryClient.setQueryDefaults(queryKey, {
       persister: persistedQueryFn,
-      ...(referenceKeys.has(queryKey) && {
+      ...(isReference && {
         staleTime: REFERENCE_FRESHNESS_MS,
         meta: { persistedFreshForMs: REFERENCE_FRESHNESS_MS },
       }),

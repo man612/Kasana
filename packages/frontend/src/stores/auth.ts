@@ -102,6 +102,7 @@ export const useAuthStore = defineStore('auth', () => {
     const lastSeenUserId = localStorage.getItem(PERSISTED_QUERIES_USER_KEY);
 
     if (lastSeenUserId !== currentUserIdStr) {
+      categoriesStore.resetCategories();
       // Keeping the previous user's stamp makes the next load retry a failed wipe.
       const isWiped = await resetQueryCaches(queryClient);
       if (!isWiped) return;

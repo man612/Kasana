@@ -203,7 +203,7 @@ const getPortfolioSummaryImpl = async ({
   return {
     portfolioId,
     portfolioName: portfolio.name,
-    unpricedHoldingsCount: holdings.filter((holding) => Number(holding.quantity) > 0 && !holding.priceDate).length,
+    unpricedHoldingsCount: holdings.filter((holding) => Number(holding.quantity) !== 0 && !holding.priceDate).length,
     totalCurrentValue: toDisplay(totalCurrentValueInBase),
     totalCostBasis: toDisplay(totalCostBasisInBase),
     unrealizedGainValue: toDisplay(totalUnrealizedGainInBase),
