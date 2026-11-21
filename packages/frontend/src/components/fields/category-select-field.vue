@@ -175,7 +175,7 @@
                   v-model="searchQuery"
                   auto-focus
                   class="border-border w-full border-b bg-transparent px-4 py-3 text-sm outline-none"
-                  :placeholder="$t('fields.categorySelect.searchPlaceholder')"
+                  :placeholder="$t('fields.categorySelect.searchCategoryLabel')"
                   :aria-label="$t('fields.categorySelect.searchCategoryLabel')"
                 />
                 <div
@@ -301,7 +301,7 @@
             <ListboxFilter
               v-model="searchQuery"
               class="min-w-0 flex-1 bg-transparent outline-none"
-              :placeholder="selectedValue?.name || $t('fields.categorySelect.searchPlaceholder')"
+              :placeholder="$t('fields.categorySelect.searchCategoryLabel')"
               :aria-label="$t('fields.categorySelect.searchCategoryLabel')"
             />
 

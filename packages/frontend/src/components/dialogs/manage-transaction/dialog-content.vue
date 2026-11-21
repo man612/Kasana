@@ -816,6 +816,7 @@ watch(
 // Keep planned-mode changes out of the numeric field's focus path. Turning a
 // schedule off must never open the Android keyboard unexpectedly.
 const setPlannedMode = (value: boolean) => {
+  if (value && usesLiveTransactionTime.value) form.value.time = new Date();
   form.value.isPlanned = value;
   if (!value && isMobileView.value) {
     void nextTick().then(() => {
