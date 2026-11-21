@@ -1,5 +1,9 @@
 import { DataTypes, QueryInterface } from 'sequelize';
 
+import { dropRealTransactionsViewSql } from './utils/real-transactions-view';
+
+const createRealTransactionsViewSql = `CREATE OR REPLACE VIEW real_transactions AS SELECT * FROM "Transactions" WHERE "isPlanned" = false AND "deletedAt" IS NULL;`;
+
 module.exports = {
   up: async (queryInterface: QueryInterface) => {
     await queryInterface.sequelize.transaction(async (transaction) => {
@@ -39,6 +43,7 @@ module.exports = {
         `,
         { transaction },
       );
+      await queryInterface.sequelize.query(createRealTransactionsViewSql, { transaction });
     });
   },
   down: async (queryInterface: QueryInterface) => {
@@ -52,7 +57,9 @@ module.exports = {
         `,
         { transaction },
       );
+      await queryInterface.sequelize.query(dropRealTransactionsViewSql, { transaction });
       await queryInterface.removeColumn('Transactions', 'payeeNameSnapshot', { transaction });
+      await queryInterface.sequelize.query(createRealTransactionsViewSql, { transaction });
     });
   },
 };

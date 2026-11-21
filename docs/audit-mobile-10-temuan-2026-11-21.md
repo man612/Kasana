@@ -22,3 +22,7 @@ Pekerjaan dimulai dari `eb0b2be9e`, head PR #65 pada saat audit. Pengujian memak
 - Chromium dengan profil sentuh 320 px memeriksa lebar label periode, posisi kedua panah dan kontrol pengaturan, serta siklus tooltip saat disentuh ulang. Interaksi grafik tersebut tidak memicu permintaan API.
 - Pada profil 320 px, penyuntingan penerima memeriksa status tombol Simpan, backdrop mode kategorisasi, pemulihan isian setelah menu ditutup, dan riwayat setelah penghapusan.
 - Lint frontend dan pemeriksaan kunci terjemahan lulus. Typecheck backend lulus.
+- Browser 320 px juga memeriksa target sentuh tombol sidebar, tindakan Kendaraan, jadwal Pinjaman, riwayat Akun, popover Grup, dan pratinjau Otomatisasi. PostgreSQL mengonfirmasi transaksi uji tersimpan pukul 01:02 WIB dengan nominal Rp78.999,10.
+- Build produksi lulus. Pada PWA Chromium yang terpasang dengan emulasi sentuh 390 px, tooltip hilang dalam sekitar 564 ms sejak sentuhan dilepas pada satu pengukuran. Eksplorasi grafik tidak memicu panggilan API. Form juga lolos uji simpan waktu manual.
+- Sebanyak 38 uji unit terfokus lulus. Uji PostgreSQL tambahan memverifikasi penghapusan akun dalam transaksi yang dikembalikan, penyimpanan nama saat penerima dihapus langsung, dan kesamaan kolom `real_transactions` dengan tabel sambil mempertahankan filter transaksi terhapus.
+- Pengujian perangkat Android fisik, keyboard virtual Android, dan pengukuran performa pada perangkat pengguna masih terbuka.
