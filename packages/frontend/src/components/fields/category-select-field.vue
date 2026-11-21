@@ -60,7 +60,11 @@
               @mousedown.stop.prevent
               @click.stop="toggleCategory(item.id)"
             >
-              <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
+              <ChevronDownIcon
+                class="size-4 transition-transform duration-200 motion-reduce:transition-none"
+                :class="collapsedCategoryIds.has(item.id) && '-rotate-90'"
+                aria-hidden="true"
+              />
             </button>
           </div>
         </template>
@@ -194,7 +198,7 @@
               :disabled="disabled"
               :class="
                 cn(
-                  'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
+                  'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-11 w-full min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
                   'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
                   disabled && 'cursor-not-allowed opacity-50',
                   $slots['field-right'] && 'rounded-r-none border-r-0',
@@ -202,6 +206,8 @@
                 )
               "
               :aria-label="$t('fields.categorySelect.selectCategoryLabel')"
+              aria-haspopup="dialog"
+              :aria-expanded="isOpen"
               :title="selectedValue?.name || $t('fields.categorySelect.selectCategoryLabel')"
               @click="openDropdown"
             >
@@ -225,10 +231,7 @@
                   </span>
                 </span>
               </Transition>
-              <ChevronDownIcon
-                class="text-muted-foreground size-4 shrink-0 transition-transform duration-150 ease-out"
-                :class="{ 'rotate-180': isOpen }"
-              />
+              <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
             </button>
             <Transition name="lajur-info-reveal">
               <button
