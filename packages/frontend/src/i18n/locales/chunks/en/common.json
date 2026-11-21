@@ -208,6 +208,13 @@
     },
     "outOfWallet": "Out of wallet",
     "dateSelector": {
+      "previousPage": "Previous calendar page",
+      "nextPage": "Next calendar page",
+      "calendarDateTitle": "Choose a date",
+      "timeWheel": "Choose time by scrolling",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "chooseMonthYear": "Choose month and year, {month}",
       "dialogTitle": "Date range",
       "dueDate": "Due date",
       "quickSelect": "Quick select",

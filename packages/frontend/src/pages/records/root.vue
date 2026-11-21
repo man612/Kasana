@@ -72,7 +72,15 @@
               v-model:sorting="sorting"
               secondary-trigger
               @applied="applyFilters"
-            />
+            >
+              <template v-if="activeView === 'list'" #list-settings>
+                <TransactionTimeGroupingOptions
+                  :model-value="timeGrouping"
+                  :unavailable="!isChronological"
+                  @update:model-value="setTimeGrouping"
+                />
+              </template>
+            </SavedViewsMenu>
           </div>
 
           <span ref="moreMenuAnchor" class="inline-flex shrink-0">
@@ -134,6 +142,10 @@
               pin-bulk-toolbar
               ref="transactionsListRef"
               enable-bulk-edit
+              animate-changes
+              :time-grouping="isChronological ? timeGrouping : 'none'"
+              :time-ascending="sorting.order === SORT_DIRECTIONS.asc"
+              :time-group-range="timeGroupRange"
               :content-filters-active="contentFiltersActive"
               :transactions="transactionsPages?.pages.flat() ?? []"
               :has-next-page="hasNextPage"
@@ -176,7 +188,15 @@
               </DesktopOnlyTooltip>
             </div>
 
-            <SavedViewsMenu v-model:filters="filters" v-model:sorting="sorting" block @applied="applyFilters" />
+            <SavedViewsMenu v-model:filters="filters" v-model:sorting="sorting" block @applied="applyFilters">
+              <template #list-settings>
+                <TransactionTimeGroupingOptions
+                  :model-value="timeGrouping"
+                  :unavailable="!isChronological"
+                  @update:model-value="setTimeGrouping"
+                />
+              </template>
+            </SavedViewsMenu>
             <TrashLink />
           </div>
 
@@ -206,6 +226,10 @@
               pin-bulk-toolbar
               ref="transactionsListRef"
               enable-bulk-edit
+              animate-changes
+              :time-grouping="isChronological ? timeGrouping : 'none'"
+              :time-ascending="sorting.order === SORT_DIRECTIONS.asc"
+              :time-group-range="timeGroupRange"
               :content-filters-active="contentFiltersActive"
               :transactions="transactionsPages?.pages.flat() ?? []"
               :has-next-page="hasNextPage"
@@ -397,6 +421,9 @@ import FiltersPanel from '@/components/records-filters/index.vue';
 import { useActiveView } from '@/components/records-filters/saved-views';
 import { parseStoredFilters, useTransactionsWithFilters } from '@/components/records-filters/transactions-with-filters';
 import { useFiltersFromQuery } from '@/components/records-filters/use-filters-from-query';
+import { useTransactionTimeGrouping } from '@/components/transactions-list/use-transaction-time-grouping';
+import TransactionTimeGroupingOptions from './components/transaction-time-grouping-options.vue';
+import { SORT_DIRECTIONS, TRANSACTION_SORT_FIELD } from '@bt/shared/types';
 import TransactionsList from '@/components/transactions-list/transactions-list.vue';
 import {
   DropdownMenu,
@@ -437,6 +464,8 @@ import { useNotificationCenter } from '@/components/notification-center';
 import { useI18n } from 'vue-i18n';
 
 const sorting = ref<TableSorting>({ ...DEFAULT_SORTING });
+const { mode: timeGrouping, setMode: setTimeGrouping } = useTransactionTimeGrouping();
+const isChronological = computed(() => sorting.value.sortBy === TRANSACTION_SORT_FIELD.time);
 
 const {
   isResetButtonDisabled,
@@ -602,8 +631,11 @@ watch(filters, (next, previous) => {
   applyFiltersDebounced();
 });
 
-// Content filters dissolve groups in the list view – only date filters keep
-// groups visible.
+const timeGroupRange = computed(() => {
+  const { start, end } = appliedFilters.value;
+  return start || end ? { from: start, to: end } : undefined;
+});
+// Date filters keep groups in the results. Content filters show only their matching transactions.
 const contentFiltersActive = computed(() => isAnyGroupDissolvingFilterActive(appliedFilters.value));
 
 const selectionScopeKey = computed(() => JSON.stringify({ filters: appliedFilters.value, sorting: sorting.value }));

@@ -1,16 +1,17 @@
-/** Preserve customized widget sizes, except an empty saved two-row Latest
- * Transactions widget which would otherwise stretch a blank dashboard. */
+/** Let an empty or collapsed Latest Transactions card fit its contents outside edit mode. */
 export function getEffectiveDashboardRowSpan({
   widgetId,
   rowSpan,
   isEditMode,
   isDataEmpty,
+  isCompact = false,
 }: {
   widgetId: string;
   rowSpan?: number;
   isEditMode: boolean;
   isDataEmpty: boolean;
+  isCompact?: boolean;
 }): number {
-  if (widgetId === 'latest-records' && !isEditMode && isDataEmpty) return 1;
+  if (widgetId === 'latest-records' && !isEditMode && (isDataEmpty || isCompact)) return 1;
   return rowSpan ?? 1;
 }

@@ -20,6 +20,7 @@ import {
   MAX_AI_CONNECTIONS,
   MAX_CATEGORY_MAPPING_PRESETS,
   MAX_SAVED_TRANSACTION_VIEWS,
+  TRANSACTION_TIME_GROUPINGS,
   type MutuallyAssignable,
   NOTIFICATION_TYPES,
   PAYMENT_TYPES,
@@ -207,6 +208,7 @@ const ZodInvestmentTransactionsTableSettingsSchema = z.object({
 const ZodTransactionsListSettingsSchema = z.object({
   /** Hides the pinned "Upcoming" section (overdue + due within 3 days). Defaults to false. */
   hideUpcoming: z.boolean().optional(),
+  timeGrouping: z.enum(TRANSACTION_TIME_GROUPINGS).optional(),
 });
 
 // Transaction-form-only preferences.
@@ -469,6 +471,7 @@ export const ZodSettingsPatchSchema = z.object({
       transactionsList: z
         .object({
           hideUpcoming: z.boolean().optional(),
+          timeGrouping: z.enum(TRANSACTION_TIME_GROUPINGS).optional(),
         })
         .optional(),
       transactionForm: z

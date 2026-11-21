@@ -114,7 +114,12 @@ const startNextEntry = async ({ prefill }: { prefill: TransactionPrefill }) => {
     <Drawer.DrawerTrigger class="w-full" as-child>
       <slot />
     </Drawer.DrawerTrigger>
-    <Drawer.DrawerContent custom-indicator @pointer-down-outside="interceptDismiss" @escape-key-down="interceptDismiss">
+    <Drawer.DrawerContent
+      adaptive-height
+      custom-indicator
+      @pointer-down-outside="interceptDismiss"
+      @escape-key-down="interceptDismiss"
+    >
       <ReuseContent />
     </Drawer.DrawerContent>
   </Drawer.Drawer>

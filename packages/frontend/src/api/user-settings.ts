@@ -1,5 +1,6 @@
 import { api } from '@/api/_api';
 import type { SupportedLocale } from '@bt/shared/i18n/locales';
+import type { TransactionTimeGrouping } from '@bt/shared/types';
 import type {
   CategoryMappingPreset,
   CategoryOrder,
@@ -57,6 +58,7 @@ interface TransactionsListSettings {
    * hidden from the list view. Defaults to false (section visible).
    */
   hideUpcoming?: boolean;
+  timeGrouping?: TransactionTimeGrouping;
 }
 
 interface TransactionFormSettings {

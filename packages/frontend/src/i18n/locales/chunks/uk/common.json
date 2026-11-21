@@ -201,6 +201,13 @@
     },
     "outOfWallet": "Поза гаманцем",
     "dateSelector": {
+      "previousPage": "Попередня сторінка календаря",
+      "nextPage": "Наступна сторінка календаря",
+      "calendarDateTitle": "Виберіть дату",
+      "timeWheel": "Вибрати час прокручуванням",
+      "hours": "Години",
+      "minutes": "Хвилини",
+      "chooseMonthYear": "Вибрати місяць і рік, {month}",
       "dialogTitle": "Діапазон дат",
       "dueDate": "Дата",
       "quickSelect": "Швидкий вибір",

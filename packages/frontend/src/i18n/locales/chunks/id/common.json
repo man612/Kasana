@@ -208,6 +208,13 @@
     },
     "outOfWallet": "Di Luar Dompet",
     "dateSelector": {
+      "previousPage": "Halaman kalender sebelumnya",
+      "nextPage": "Halaman kalender berikutnya",
+      "calendarDateTitle": "Pilih tanggal",
+      "timeWheel": "Pilih jam dengan gulir",
+      "hours": "Jam",
+      "minutes": "Menit",
+      "chooseMonthYear": "Pilih bulan dan tahun, {month}",
       "dialogTitle": "Rentang tanggal",
       "dueDate": "Tanggal jatuh tempo",
       "quickSelect": "Pilih cepat",

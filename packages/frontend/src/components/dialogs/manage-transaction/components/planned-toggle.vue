@@ -69,7 +69,7 @@ const rootClass = computed(() => {
   if (props.variant === 'addon') {
     return cn(
       'group flex h-auto items-center gap-1.5 self-stretch rounded-l-none rounded-r-md border border-input bg-muted px-3 text-xs font-medium transition-colors',
-      isOn.value && 'border-primary/60 bg-primary/20 text-primary-text',
+      isOn.value ? 'border-primary/60 bg-primary/20 text-primary-text' : 'text-muted-foreground',
     );
   }
   return cn(
@@ -92,12 +92,7 @@ const hoverClass = computed(() => {
   );
 });
 
-const iconClass = computed(() =>
-  cn(
-    props.variant === 'addon' ? 'size-3.5' : 'size-3',
-    props.variant === 'addon' && !isOn.value && 'text-muted-foreground transition-colors group-hover:text-primary-text',
-  ),
-);
+const iconClass = 'size-3.5 shrink-0';
 
 const onClick = () => {
   if (props.disabled) return;

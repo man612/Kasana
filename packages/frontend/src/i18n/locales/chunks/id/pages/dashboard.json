@@ -13,6 +13,40 @@
         "includePlannedSaveError": "Tidak dapat menyimpan pengaturan transaksi terencana. Silakan coba lagi."
       },
       "balanceTrend": {
+        "presentation": {
+          "summary": "Ringkasan",
+          "graph": "Grafik",
+          "label": "Tampilan Tren Saldo",
+          "asOf": "Per {date}",
+          "periodStart": "Awal periode",
+          "periodChange": "Perubahan selama periode",
+          "metrics": {
+            "total": {
+              "label": "Nilai gabungan",
+              "description": "Saldo rekening, nilai aset, dan kewajiban mengikuti komponen yang disertakan melalui Pengaturan."
+            },
+            "accounts": {
+              "label": "Saldo rekening",
+              "description": "Nilai gabungan rekening yang dipilih. Transfer antar rekening tidak menambah saldo gabungan."
+            },
+            "portfolios": {
+              "label": "Nilai portofolio",
+              "description": "Nilai investasi dan kas dalam portofolio."
+            },
+            "ventures": {
+              "label": "Nilai ventura",
+              "description": "Nilai ventura yang tercatat untuk periode ini."
+            },
+            "vehicles": {
+              "label": "Estimasi nilai kendaraan",
+              "description": "Estimasi nilai aset kendaraan mengikuti penilaian dan depresiasi yang tercatat."
+            },
+            "loans": {
+              "label": "Sisa pinjaman",
+              "description": "Jumlah kewajiban yang masih terutang. Penurunan berarti sisa utang berkurang."
+            }
+          }
+        },
         "title": "Tren saldo",
         "table": {
           "toggle": "Lihat angka per tanggal",
@@ -482,6 +516,11 @@
       "loadFailed": "Couldn't load recurring payments"
     },
     "latestRecords": {
+      "collapse": "Ringkas transaksi terbaru",
+      "expand": "Perluas transaksi terbaru",
+      "compactSaveError": "Gagal menyimpan tampilan ringkas. Coba lagi.",
+      "visibleRows": "{count} baris transaksi terbaru",
+      "scheduledRows": "{count} pembayaran terjadwal",
       "settings": {
         "excludeTitle": "Kecualikan transaksi",
         "excludeTransfersDescription": "Sembunyikan transfer antar akun Anda sendiri",

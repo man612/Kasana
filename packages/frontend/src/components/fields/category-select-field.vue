@@ -60,10 +60,7 @@
               @mousedown.stop.prevent
               @click.stop="toggleCategory(item.id)"
             >
-              <ChevronDownIcon
-                class="size-4 transition-transform duration-200"
-                :class="collapsedCategoryIds.has(item.id) && '-rotate-90'"
-              />
+              <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
             </button>
           </div>
         </template>
@@ -229,7 +226,7 @@
                 </span>
               </Transition>
               <ChevronDownIcon
-                class="text-popover-foreground size-5 shrink-0 transition-transform duration-150 ease-out"
+                class="text-muted-foreground size-4 shrink-0 transition-transform duration-150 ease-out"
                 :class="{ 'rotate-180': isOpen }"
               />
             </button>
@@ -342,7 +339,7 @@ import { cn } from '@/lib/utils';
 import { useKeyboardViewport } from '@/composable/use-keyboard-viewport';
 import { CATEGORY_TYPES, type CategoryModel } from '@bt/shared/types';
 import { createReusableTemplate } from '@vueuse/core';
-import { ChevronDownIcon, SearchIcon, XIcon } from '@lucide/vue';
+import { ChevronDownIcon, ChevronRightIcon, SearchIcon, XIcon } from '@lucide/vue';
 import { ListboxContent, ListboxFilter, ListboxItem, ListboxRoot } from 'reka-ui';
 import { computed, ref, watch } from 'vue';
 

@@ -3,7 +3,7 @@ import { type MaybeRefOrGetter, computed, toValue } from 'vue';
 
 import type { GroupRowData } from './transaction-group-record.vue';
 
-type DisplayItem = TransactionModel | GroupRowData;
+export type DisplayItem = TransactionModel | GroupRowData;
 
 export function isGroupRow(item: DisplayItem): item is GroupRowData {
   return 'type' in item && item.type === 'group';
@@ -81,6 +81,7 @@ export function useTransactionsDisplay({
         transactionCount: membership.transactionCount ?? members.length,
         dateFrom: new Date(Math.min(...timestamps)),
         dateTo: new Date(Math.max(...timestamps)),
+        latestTime: membership.latestTime,
       });
     }
 

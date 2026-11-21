@@ -362,6 +362,16 @@
       "emptyAll": "Empty all",
       "emptyAllConfirmTitle": "Permanently empty Trash?",
       "emptyAllConfirmDescription": "Permanently delete all {count} transactions in Trash? This cannot be undone."
+    },
+    "timeGrouping": {
+      "title": "Group by time",
+      "none": "No grouping",
+      "day": "By day",
+      "week": "By week",
+      "chronologicalOnly": "Choose a date sort to group the list.",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "currentWeek": "This week · {range}"
     }
   },
   "records": {

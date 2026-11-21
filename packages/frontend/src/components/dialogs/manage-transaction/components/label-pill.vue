@@ -27,7 +27,7 @@ withDefaults(
             'border-input bg-muted h-auto gap-1.5 self-stretch rounded-l-none rounded-r-md border px-3 text-xs font-medium transition-colors',
             active
               ? 'border-primary/60 bg-primary/20 text-primary-text hover:bg-primary/30 hover:text-primary-text'
-              : 'hover:border-primary/50 hover:bg-muted hover:text-primary-text',
+              : 'text-muted-foreground hover:border-primary/50 hover:bg-muted hover:text-primary-text',
           )
         : cn(
             'h-auto gap-1.5 rounded-full border px-2 py-0.5 text-xs font-normal transition-colors hover:bg-transparent',

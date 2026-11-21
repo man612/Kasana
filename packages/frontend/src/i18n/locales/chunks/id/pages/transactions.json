@@ -362,6 +362,16 @@
       "emptyAll": "Kosongkan Semua",
       "emptyAllConfirmTitle": "Kosongkan seluruh Tempat Sampah?",
       "emptyAllConfirmDescription": "Hapus permanen {count} transaksi dari Tempat Sampah? Tindakan ini tidak bisa dibatalkan."
+    },
+    "timeGrouping": {
+      "title": "Kelompokkan berdasarkan waktu",
+      "none": "Tanpa pengelompokan",
+      "day": "Per hari",
+      "week": "Per minggu",
+      "chronologicalOnly": "Gunakan urutan tanggal untuk mengelompokkan daftar.",
+      "today": "Hari ini",
+      "yesterday": "Kemarin",
+      "currentWeek": "Minggu ini · {range}"
     }
   },
   "records": {

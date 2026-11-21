@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getLocalTimeZoneLabel } from '@/common/utils/indonesian-time';
 import { useDateLocale } from '@/composable/use-date-locale';
 import { useDocumentVisibility, useElementVisibility, useIntervalFn } from '@vueuse/core';
 import { computed, shallowRef, useTemplateRef, watch } from 'vue';
@@ -24,7 +25,7 @@ watch(
 
 const label = computed(() => {
   const date = props.live ? now.value : props.value;
-  return format(date, 'EEEE, d MMMM yyyy · HH:mm:ss');
+  return `${format(date, 'd MMM yyyy · HH:mm:ss')} ${getLocalTimeZoneLabel(date)}`;
 });
 </script>
 

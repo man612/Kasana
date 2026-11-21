@@ -103,6 +103,7 @@ export interface TransactionApiResponse {
     /** Full group membership size, independent of how many members are in this fetch
      *  window. Populated when the group include computes the correlated count. */
     transactionCount: number;
+    latestTime?: string;
   }>;
   /** Recipient who attached this tx to a shared tracker. Present (and possibly `null`)
    *  only on tracker-scoped fetches; absent on the global tx list and on detail lookups
@@ -252,6 +253,7 @@ export function serializeTransaction(
     paymentTotal?: Money;
     refundedAmount?: Money;
   },
+  { groupViewerId }: { groupViewerId?: number } = {},
 ): TransactionApiResponse {
   // Aliased literal: a plain property on raw rows, dataValues-only on model instances.
   const hasAttachments = (tx.getDataValue?.('hasAttachments' as keyof Transactions) ??
@@ -307,19 +309,22 @@ export function serializeTransaction(
       })),
     }),
     ...(tx.transactionGroups && {
-      transactionGroups: tx.transactionGroups.map((group) => ({
-        id: group.id,
-        name: group.name,
-        icon: group.icon,
-        iconColor: group.iconColor,
-        // Attached via a correlated subquery on the include, so it lives in dataValues
-        // (no model getter for aliased literals) and must be read with getDataValue.
-        // Falls back to the loaded-member count on paths that don't compute the aggregate.
-        transactionCount:
-          (group.getDataValue('transactionCount' as keyof TransactionGroups) as number | undefined) ??
-          group.transactions?.length ??
-          0,
-      })),
+      transactionGroups: tx.transactionGroups.map((group) => {
+        const membership = group.getDataValue('liveMembership' as keyof TransactionGroups) as
+          | { count: number; latestTime: string | null }
+          | undefined;
+        return {
+          id: group.id,
+          name: group.name,
+          icon: group.icon,
+          iconColor: group.iconColor,
+          transactionCount: membership?.count ?? group.transactions?.length ?? 0,
+          // Shared accounts and trackers can expose one group member without exposing the rest.
+          ...(groupViewerId !== undefined &&
+            groupViewerId === tx.userId &&
+            membership?.latestTime && { latestTime: membership.latestTime }),
+        };
+      }),
     }),
     // `addedBy` is included whenever the upstream service attached it (tracker-scoped
     // fetches). `null` is a meaningful value — "owner-attached" — and must be sent so
@@ -359,8 +364,9 @@ export function serializeTransactions(
       refundedAmount?: Money;
     }
   >,
+  options?: { groupViewerId?: number },
 ): TransactionApiResponse[] {
-  return txs.map(serializeTransaction);
+  return txs.map((tx) => serializeTransaction(tx, options));
 }
 
 /**

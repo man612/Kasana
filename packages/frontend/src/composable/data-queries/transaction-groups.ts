@@ -35,6 +35,14 @@ export async function syncTransactionGroupQueries({
   await Promise.all(keys.map((queryKey) => queryClient.cancelQueries({ queryKey })));
 
   const members = group?.transactions ? new Set(group.transactions.map(({ id }) => id)) : undefined;
+  const latestTimestamp = group?.transactions?.reduce(
+    (maximum, transaction) => Math.max(maximum, +new Date(transaction.time)),
+    -Infinity,
+  );
+  const latestTime =
+    latestTimestamp !== undefined && Number.isFinite(latestTimestamp)
+      ? new Date(latestTimestamp).toISOString()
+      : undefined;
   const updateRows = (rows: TransactionModel[]) =>
     rows.map((transaction) => {
       const memberships = transaction.transactionGroups ?? [];
@@ -54,6 +62,7 @@ export async function syncTransactionGroupQueries({
             icon: group.icon,
             iconColor: group.iconColor,
             transactionCount: members?.size ?? existing?.transactionCount ?? 0,
+            ...((latestTime ?? existing?.latestTime) && { latestTime: latestTime ?? existing?.latestTime }),
           },
           ...otherGroups,
         ],

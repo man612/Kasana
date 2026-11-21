@@ -39,7 +39,12 @@ watch(open, (value) => {
 
 <template>
   <Drawer.Drawer v-if="mobile" :dismissible="!hasChanges() && !isSaving()" :open="open" @update:open="requestOpen">
-    <Drawer.DrawerContent custom-indicator @pointer-down-outside="requestDismiss" @escape-key-down="requestDismiss">
+    <Drawer.DrawerContent
+      adaptive-height
+      custom-indicator
+      @pointer-down-outside="requestDismiss"
+      @escape-key-down="requestDismiss"
+    >
       <Drawer.DrawerTitle class="sr-only">{{ $t('transactions.list.detailsTitle') }}</Drawer.DrawerTitle>
       <Drawer.DrawerDescription class="sr-only">{{
         $t('transactions.list.detailsDescription')

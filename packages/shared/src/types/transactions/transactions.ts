@@ -4,6 +4,9 @@ import type { CategorizationMeta } from '../categorization';
 import { RecordId } from '../record-id';
 import type { TagModel } from '../tags';
 
+export const TRANSACTION_TIME_GROUPINGS = ['none', 'day', 'week'] as const;
+export type TransactionTimeGrouping = (typeof TRANSACTION_TIME_GROUPINGS)[number];
+
 export enum PAYMENT_TYPES {
   qris = 'qris',
   eWallet = 'eWallet',
@@ -181,6 +184,7 @@ export interface TransactionModel {
     icon?: string | null;
     iconColor?: string | null;
     transactionCount: number;
+    latestTime?: string;
   }>;
   /** Who attached this tx to the tracker: the recipient who attached it, else the tracker owner
    *  (also for rule and AI links). Present on tracker-scoped tx fetches; absent elsewhere.

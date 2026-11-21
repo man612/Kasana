@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/vue-query';
 import { format } from 'date-fns';
 import { computed, ref, useId, watch } from 'vue';
 
+import { isTransactionTimeInRange, type TransactionTimeRange } from './time-sections';
 import GroupIcon from './group-icon.vue';
 import TransactionGroupActions from './transaction-group-actions.vue';
 import TransactionRecord from './transaction-record.vue';
@@ -21,6 +22,7 @@ export interface GroupRowData {
   transactionCount: number;
   dateFrom: Date;
   dateTo: Date;
+  latestTime?: string;
   members: TransactionModel[];
 }
 
@@ -29,6 +31,7 @@ const props = defineProps<{
   expanded?: boolean;
   expandable?: boolean;
   previewLimit?: number;
+  timeRange?: TransactionTimeRange;
 }>();
 
 const emit = defineEmits<{
@@ -52,9 +55,15 @@ const detail = useQuery(
     enabled: Boolean(props.expanded) && props.expandable,
   })),
 );
-const members = computed(() =>
-  detail.data.value?.transactions ? dedupeTransferLegs(detail.data.value.transactions) : props.group.members,
-);
+const members = computed(() => {
+  const groupMembers = detail.data.value?.transactions;
+  if (!groupMembers) return props.group.members;
+  const range = props.timeRange;
+  const inRange = range
+    ? groupMembers.filter((item) => isTransactionTimeInRange(new Date(item.time), range))
+    : groupMembers;
+  return dedupeTransferLegs(inRange);
+});
 
 const visibleMembers = computed(() => members.value.slice(0, props.previewLimit));
 const hasMoreMembers = computed(

@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
+import { useTransactionsDisplay } from '@/components/transactions-list/use-transactions-display';
+import { useResizeObserver } from '@vueuse/core';
 import { type SubscriptionListItem } from '@/api/subscriptions';
 import { loadTransactions as apiLoadTransactions } from '@/api/transactions';
 import type { DashboardWidgetConfig } from '@/api/user-settings';
@@ -16,12 +19,12 @@ import SubscriptionMarkPaidDialog from '@/pages/planned/subscriptions/components
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useRootStore } from '@/stores';
 import { useQuery } from '@tanstack/vue-query';
-import { ArrowUpRightIcon, ListIcon } from '@lucide/vue';
+import { ArrowUpRightIcon, ChevronsDownUpIcon, ChevronsUpDownIcon, ListIcon } from '@lucide/vue';
 import { differenceInCalendarDays, format, isAfter, parseISO } from 'date-fns';
 import { SUBSCRIPTION_PERIOD_STATUSES } from '@bt/shared/types';
 import { storeToRefs } from 'pinia';
 import type { Ref } from 'vue';
-import { computed, inject, ref, watch } from 'vue';
+import { computed, inject, nextTick, ref, watch } from 'vue';
 
 import EmptyState from './components/empty-state.vue';
 import LatestRecordsSettingsPopover from './components/latest-records-settings-popover.vue';
@@ -118,6 +121,45 @@ const pastTransactions = computed(() => {
 const scheduledRows = computed(() => sortedScheduledItems.value.slice(0, MAX_DISPLAY));
 const txMaxDisplay = computed(() => Math.max(0, MAX_DISPLAY - scheduledRows.value.length));
 
+const { isOn: compact, setFlag: setCompact } = useWidgetConfigFlag({
+  key: 'compact',
+  saveErrorKey: 'widgets.latestRecords.compactSaveError',
+  defaultValue: false,
+});
+const { displayTransactions } = useTransactionsDisplay({
+  transactions: pastTransactions,
+  maxDisplay: txMaxDisplay,
+});
+const visibleTransactionRows = computed(() => (txMaxDisplay.value > 0 ? displayTransactions.value.length : 0));
+const listRef = ref<InstanceType<typeof ScrollArea> | null>(null);
+const listContent = ref<HTMLElement | null>(null);
+const viewport = computed(() => listRef.value?.viewportRef?.viewportElement as HTMLElement | undefined);
+const showTopFade = ref(false);
+const showBottomFade = ref(false);
+let lastScrollTop = 0;
+let maxScrollTop = 0;
+function onListScroll() {
+  const top = viewport.value?.scrollTop ?? 0;
+  showTopFade.value = top > 1;
+  showBottomFade.value = maxScrollTop - top > 1;
+}
+function measureScroll() {
+  const element = viewport.value;
+  if (!element?.clientHeight || compact.value) return;
+  maxScrollTop = element.scrollHeight - element.clientHeight;
+  onListScroll();
+}
+useResizeObserver([viewport, listContent], measureScroll);
+watch(compact, async (collapsed) => {
+  if (collapsed) {
+    lastScrollTop = viewport.value?.scrollTop ?? 0;
+  } else {
+    await nextTick();
+    if (viewport.value && !compact.value) viewport.value.scrollTop = lastScrollTop;
+    measureScroll();
+  }
+});
+
 const markPaidDialogRef = ref<InstanceType<typeof SubscriptionMarkPaidDialog> | null>(null);
 
 function handleMarkPaid({ subscription }: { subscription: SubscriptionListItem }) {
@@ -157,7 +199,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
 </script>
 
 <template>
-  <WidgetWrapper class="max-h-[min(65dvh,26rem)]" :is-fetching="isFetching">
+  <WidgetWrapper class="max-h-[min(65dvh,26rem)]" :is-fetching="isFetching" :fit-content="compact">
     <template #title>
       {{ $t('dashboard.widgets.latestTransactions.title') }}
     </template>
@@ -183,6 +225,21 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
         </span>
       </DesktopOnlyTooltip>
 
+      <UiButton
+        v-if="widgetConfigRef && !isDataEmpty && !isInitialLoading"
+        type="button"
+        size="icon-sm"
+        variant="ghost"
+        class="text-muted-foreground max-sm:size-9"
+        :aria-label="$t(compact ? 'widgets.latestRecords.expand' : 'widgets.latestRecords.collapse')"
+        :title="$t(compact ? 'widgets.latestRecords.expand' : 'widgets.latestRecords.collapse')"
+        :aria-pressed="compact"
+        data-testid="latest-transactions-compact-toggle"
+        @click="setCompact({ value: !compact })"
+      >
+        <ChevronsUpDownIcon v-if="compact" class="size-4" aria-hidden="true" />
+        <ChevronsDownUpIcon v-else class="size-4" aria-hidden="true" />
+      </UiButton>
       <LatestRecordsSettingsPopover />
     </template>
 
@@ -194,70 +251,100 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
         <ListIcon class="size-12" />
       </EmptyState>
     </template>
-    <ScrollArea
-      v-else
-      class="-mx-2 max-h-[min(55dvh,22rem)] min-h-0 flex-1"
-      viewport-class="px-2 md:overscroll-contain-if-scrollable"
-    >
-      <!-- Scheduled payment rows: one row per item, overdue first, sorted by dueDate -->
-      <template v-if="includeScheduled && scheduledRows.length > 0">
-        <div
-          v-for="sub in scheduledRows"
-          :key="sub.id"
-          class="bg-muted/40 mb-1.5 flex items-center gap-2.5 rounded-md px-3 py-2"
-        >
-          <BrandLogo v-bind="toEntityLogoDisplayProps(sub)" :name="sub.name" class="size-5 shrink-0" />
-          <div class="min-w-0 flex-1">
-            <p class="truncate text-sm leading-tight font-medium">
-              {{ sub.name }}
-            </p>
-            <p class="text-muted-foreground overflow-hidden text-xs text-ellipsis whitespace-nowrap">
-              <span v-if="sub.currentPeriod?.status === 'overdue'" class="text-app-expense-color font-medium">
-                {{ $t('widgets.latestRecords.overdueBadge') }}
-              </span>
-              <span v-else class="text-warning-text font-medium">
-                {{ $t('widgets.latestRecords.scheduledBadge') }}
-              </span>
-              <span v-if="sub.currentPeriod">
-                &nbsp;&middot;&nbsp;{{ formatDueDate({ dueDate: sub.currentPeriod.dueDate }) }}
-              </span>
-            </p>
-          </div>
-          <div class="flex shrink-0 items-center gap-1.5">
-            <span class="text-sm font-medium">
-              <template v-if="sub.expectedCurrencyCode && sub.expectedAmount != null">
-                {{ formatAmountByCurrencyCode(sub.expectedAmount, sub.expectedCurrencyCode) }}
-              </template>
-              <template v-else-if="sub.expectedAmount != null">
-                {{ formatBaseCurrency(sub.expectedAmount) }}
-              </template>
-            </span>
-            <UiButton
-              size="sm"
-              variant="outline"
-              class="h-7 shrink-0 px-2 text-xs"
-              @click="handleMarkPaid({ subscription: sub })"
-            >
-              {{ $t('widgets.latestRecords.payAction') }}
-            </UiButton>
-          </div>
-        </div>
-      </template>
+    <template v-else>
+      <LayoutCollapse :open="compact" class="shrink-0">
+        <p class="text-muted-foreground px-1 pb-1 text-sm" data-testid="latest-transactions-compact-summary">
+          {{ $t('widgets.latestRecords.visibleRows', visibleTransactionRows) }}
+          <span v-if="scheduledRows.length">
+            · {{ $t('widgets.latestRecords.scheduledRows', scheduledRows.length) }}</span
+          >
+        </p>
+      </LayoutCollapse>
 
-      <TransactionsList
-        v-if="txMaxDisplay > 0"
-        raw-list
-        compact
-        expand-groups
-        :group-preview-limit="3"
-        :paginate="false"
-        class="gap-0.5!"
-        :transactions="pastTransactions"
-        :max-display="txMaxDisplay"
-        :tags-variant="tagsVariant"
-        :show-account="showAccount"
-      />
-    </ScrollArea>
+      <LayoutCollapse :open="!compact" class="min-h-0" :class="!compact && 'flex-1'">
+        <div class="relative h-full max-h-[min(55dvh,22rem)] min-h-0">
+          <ScrollArea
+            ref="listRef"
+            class="h-full max-h-[min(55dvh,22rem)] min-h-0"
+            viewport-class="px-1 md:overscroll-contain-if-scrollable"
+            :scroll-y="onListScroll"
+          >
+            <div ref="listContent">
+              <!-- Scheduled payment rows: one row per item, overdue first, sorted by dueDate -->
+              <template v-if="includeScheduled && scheduledRows.length > 0">
+                <div
+                  v-for="sub in scheduledRows"
+                  :key="sub.id"
+                  class="bg-muted/40 mb-1.5 flex items-center gap-2.5 rounded-md px-3 py-2"
+                >
+                  <BrandLogo v-bind="toEntityLogoDisplayProps(sub)" :name="sub.name" class="size-5 shrink-0" />
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm leading-tight font-medium">
+                      {{ sub.name }}
+                    </p>
+                    <p class="text-muted-foreground overflow-hidden text-xs text-ellipsis whitespace-nowrap">
+                      <span v-if="sub.currentPeriod?.status === 'overdue'" class="text-app-expense-color font-medium">
+                        {{ $t('widgets.latestRecords.overdueBadge') }}
+                      </span>
+                      <span v-else class="text-warning-text font-medium">
+                        {{ $t('widgets.latestRecords.scheduledBadge') }}
+                      </span>
+                      <span v-if="sub.currentPeriod">
+                        &nbsp;&middot;&nbsp;{{ formatDueDate({ dueDate: sub.currentPeriod.dueDate }) }}
+                      </span>
+                    </p>
+                  </div>
+                  <div class="flex shrink-0 items-center gap-1.5">
+                    <span class="text-sm font-medium">
+                      <template v-if="sub.expectedCurrencyCode && sub.expectedAmount != null">
+                        {{ formatAmountByCurrencyCode(sub.expectedAmount, sub.expectedCurrencyCode) }}
+                      </template>
+                      <template v-else-if="sub.expectedAmount != null">
+                        {{ formatBaseCurrency(sub.expectedAmount) }}
+                      </template>
+                    </span>
+                    <UiButton
+                      size="sm"
+                      variant="outline"
+                      class="h-7 shrink-0 px-2 text-xs"
+                      @click="handleMarkPaid({ subscription: sub })"
+                    >
+                      {{ $t('widgets.latestRecords.payAction') }}
+                    </UiButton>
+                  </div>
+                </div>
+              </template>
+
+              <TransactionsList
+                v-if="txMaxDisplay > 0"
+                raw-list
+                compact
+                expand-groups
+                :group-preview-limit="3"
+                :paginate="false"
+                class="gap-0.5!"
+                :transactions="pastTransactions"
+                :max-display="txMaxDisplay"
+                :tags-variant="tagsVariant"
+                :show-account="showAccount"
+              />
+            </div>
+          </ScrollArea>
+          <div
+            :class="!compact && showTopFade ? 'opacity-100' : 'opacity-0'"
+            class="from-card pointer-events-none absolute inset-x-0 top-0 z-10 h-3 bg-linear-to-b to-transparent motion-safe:transition-opacity"
+            aria-hidden="true"
+            data-testid="latest-transactions-fade-top"
+          />
+          <div
+            :class="!compact && showBottomFade ? 'opacity-100' : 'opacity-0'"
+            class="from-card pointer-events-none absolute inset-x-0 bottom-0 z-10 h-3 bg-linear-to-t to-transparent motion-safe:transition-opacity"
+            aria-hidden="true"
+            data-testid="latest-transactions-fade-bottom"
+          />
+        </div>
+      </LayoutCollapse>
+    </template>
 
     <!-- Mark-paid dialog: rendered once, opened imperatively via triggerPay() -->
     <SubscriptionMarkPaidDialog ref="markPaidDialogRef" />

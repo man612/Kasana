@@ -25,10 +25,7 @@
                 />
               </template>
               <span v-else class="text-muted-foreground min-w-0 flex-1 truncate">{{ placeholder || label }}</span>
-              <ChevronDownIcon
-                class="text-muted-foreground size-4 shrink-0 transition-transform duration-200"
-                :class="mobileOpen && 'rotate-180'"
-              />
+              <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
             </button>
           </Dialog.DialogTrigger>
           <Dialog.DialogContent
@@ -195,7 +192,7 @@ import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-br
 import { OUT_OF_WALLET_ACCOUNT_MOCK } from '@/common/const';
 import { getAccountDisplayLabel } from '@/common/utils/account-display';
 import { filterDropdownAccounts, useAccountDropdownPrefs } from '@/composable/use-account-dropdown-prefs';
-import { ChevronDownIcon, PlusIcon, StarIcon, WalletIcon, XIcon } from '@lucide/vue';
+import { ChevronRightIcon, PlusIcon, StarIcon, WalletIcon, XIcon } from '@lucide/vue';
 import { AccountModel } from '@bt/shared/types';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';

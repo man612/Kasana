@@ -3,13 +3,14 @@ import type { TagsIndicatorVariant } from '@/components/common/tags-indicator.vu
 import { useScrollAreaContainer } from '@/composable/scroll-area-container';
 import { type MatchingTransactions, useBulkTransactionActions } from '@/composable/use-bulk-transaction-actions';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
-import { TransactionModel } from '@bt/shared/types';
+import { type TransactionTimeGrouping, TransactionModel } from '@bt/shared/types';
 import { useVirtualizer } from '@tanstack/vue-virtual';
-import { createReusableTemplate } from '@vueuse/core';
+import { createReusableTemplate, useDocumentVisibility, useEventListener, useIntervalFn } from '@vueuse/core';
 import { ListIcon } from '@lucide/vue';
 import {
   computed,
   defineAsyncComponent,
+  nextTick,
   reactive,
   ref,
   TransitionGroup,
@@ -27,6 +28,15 @@ import PlannedRowsToggle from './planned-rows-toggle.vue';
 import TransactionDetailsModal from './transaction-details-modal.vue';
 import TransactionGroupRecord, { type GroupRowData } from './transaction-group-record.vue';
 import TransactionRecord from './transaction-record.vue';
+import TransactionTimeHeading from './transaction-time-heading.vue';
+import {
+  buildTimeSectionRows,
+  isTimeSection,
+  isTransactionTimeInRange,
+  type TransactionTimeRange,
+  type TransactionTimeSection,
+} from './time-sections';
+import { startOfDay } from 'date-fns';
 import { useManageTransactionDialog } from './use-manage-transaction-dialog';
 import { PLANNED_HEADER, useCollapsedPlanned } from './use-collapsed-planned';
 import { getDisplayItemKey, isGroupRow, useTransactionsDisplay } from './use-transactions-display';
@@ -68,6 +78,9 @@ const props = withDefaults(
     hidePlannedMarker?: boolean;
     tagsVariant?: TagsIndicatorVariant;
     showAccount?: boolean;
+    timeGrouping?: TransactionTimeGrouping;
+    timeAscending?: boolean;
+    timeGroupRange?: TransactionTimeRange;
   }>(),
   {
     isTransactionRecord: false,
@@ -78,11 +91,12 @@ const props = withDefaults(
     enableBulkEdit: false,
     contentFiltersActive: false,
     disableGrouping: false,
+    timeGrouping: 'none',
   },
 );
 const emits = defineEmits(['fetch-next-page']);
 const [DefineRowTemplate, UseRowTemplate] = createReusableTemplate<{
-  item: TransactionModel | GroupRowData | typeof PLANNED_HEADER;
+  item: TransactionModel | GroupRowData | TransactionTimeSection | typeof PLANNED_HEADER;
   index: number;
 }>();
 const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
@@ -96,18 +110,56 @@ const { displayTransactions } = useTransactionsDisplay({
 });
 
 // Raw lists are narrow slices (e.g. the planned-overview widget), where collapsing would hide everything.
-const { rows, visibleItems, isPlannedExpanded, plannedCount } = useCollapsedPlanned({
+const {
+  rows: collapsedRows,
+  visibleItems,
+  isPlannedExpanded,
+  plannedCount,
+} = useCollapsedPlanned({
   items: displayTransactions,
   isPlanned: (item) => !isGroupRow(item) && item.isPlanned,
   enabled: () => !props.rawList,
 });
-const rowKey = (index: number) => {
-  const row = rows.value[index];
-  return row === PLANNED_HEADER ? 'planned-header' : getDisplayItemKey(row, index);
+const today = ref(startOfDay(new Date()));
+const documentVisibility = useDocumentVisibility();
+const { resume: watchDayBoundary, pause: pauseDayBoundary } = useIntervalFn(
+  () => {
+    const localDay = startOfDay(new Date());
+    if (+localDay !== +today.value) today.value = localDay;
+  },
+  60_000,
+  { immediate: false, immediateCallback: true },
+);
+watch(
+  () => props.timeGrouping !== 'none' && documentVisibility.value === 'visible',
+  (active) => (active ? watchDayBoundary() : pauseDayBoundary()),
+  { immediate: true },
+);
+
+const rows = computed<(TransactionModel | GroupRowData | TransactionTimeSection | typeof PLANNED_HEADER)[]>(() => {
+  const mode = props.timeGrouping;
+  if (mode === 'none') return collapsedRows.value;
+  const sections = buildTimeSectionRows({
+    items: visibleItems.value,
+    mode,
+    ascending: props.timeAscending,
+    getTime: (item) => {
+      if (!isGroupRow(item)) return new Date(item.time);
+      const date = item.latestTime ? new Date(item.latestTime) : item.dateTo;
+      return props.timeGroupRange && !isTransactionTimeInRange(date, props.timeGroupRange) ? item.dateTo : date;
+    },
+  });
+  return collapsedRows.value.includes(PLANNED_HEADER) ? [PLANNED_HEADER, ...sections] : sections;
+});
+const keyForRow = ({ row, index }: { row: (typeof rows.value)[number] | undefined; index: number }) => {
+  if (row === PLANNED_HEADER) return 'planned-header';
+  if (isTimeSection(row)) return row.key;
+  return getDisplayItemKey(row, index);
 };
+const rowKey = (index: number) => keyForRow({ row: rows.value[index], index });
 const hasRowDivider = (index: number) => {
   const nextRow = rows.value[index + 1];
-  return Boolean(nextRow && nextRow !== PLANNED_HEADER && !isGroupRow(nextRow));
+  return Boolean(nextRow && nextRow !== PLANNED_HEADER && !isTimeSection(nextRow) && !isGroupRow(nextRow));
 };
 
 // Transaction detail dialog (Dialog on desktop, Drawer on mobile). transfer_to_loan
@@ -200,10 +252,9 @@ const virtualizer = useVirtualizer(
   computed(() => ({
     count: rows.value.length + (props.hasNextPage ? 1 : 0),
     getScrollElement: () => scrollElement.value,
-    estimateSize: () => 52 + 8,
+    estimateSize: (index) => (isTimeSection(rows.value[index]) ? 36 : 60),
     getItemKey: ((currentRows) => (index) => {
-      const row = currentRows[index];
-      return row === PLANNED_HEADER ? 'planned-header' : getDisplayItemKey(row, index);
+      return keyForRow({ row: currentRows[index], index });
     })(rows.value),
     overscan: 10,
     scrollMargin: scrollMargin.value,
@@ -223,6 +274,82 @@ defineExpose({
 
 const virtualRows = computed(() => virtualizer.value.getVirtualItems());
 const totalSize = computed(() => virtualizer.value.getTotalSize());
+const listScrollTop = ref(0);
+const updateScrollTop = () => {
+  listScrollTop.value = scrollElement.value?.scrollTop ?? 0;
+};
+watch(scrollElement, updateScrollTop, { flush: 'post' });
+useEventListener(scrollElement, 'scroll', updateScrollTop, { passive: true });
+// A visual copy stays inside the viewport below the pinned bulk toolbar.
+// The original heading remains in the virtual sequence and accessible to AT.
+const stickySection = computed(() => {
+  const virtualItems = virtualRows.value;
+  if (props.timeGrouping === 'none' || !virtualItems.length) return undefined;
+  const offset = listScrollTop.value;
+  if (offset <= scrollMargin.value) return undefined;
+  const firstVisible = virtualItems.find((item) => item.end > offset);
+  if (!firstVisible || (firstVisible.start >= offset && isTimeSection(rows.value[firstVisible.index])))
+    return undefined;
+  const section = sectionByRow.value[firstVisible.index];
+  if (!section) return undefined;
+  const nextHeading = virtualItems.find((item) => item.start > offset && isTimeSection(rows.value[item.index]));
+  return { section, push: nextHeading ? Math.min(0, nextHeading.start - offset - 36) : 0 };
+});
+const sectionByRow = computed(() => {
+  let section: TransactionTimeSection | undefined;
+  return rows.value.map((row) => {
+    if (isTimeSection(row)) section = row;
+    return section;
+  });
+});
+
+let layoutRevision = 0;
+watch(
+  () => props.timeGrouping,
+  async () => {
+    const revision = ++layoutRevision;
+    const instance = virtualizer.value;
+    const offset = instance.scrollOffset ?? 0;
+    const first = instance.getVirtualItems().find((item) => item.end > offset && !String(item.key).startsWith('time-'));
+    const relativeTop = first ? first.start - offset : 0;
+    const viewport = scrollElement.value?.getBoundingClientRect();
+    const canAnimate = viewport && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const oldPositions = new Map<string, number>();
+    if (canAnimate) {
+      listContainerRef.value?.querySelectorAll<HTMLElement>('[data-row-key]').forEach((row) => {
+        const rect = row.getBoundingClientRect();
+        if (rect.bottom > viewport.top && rect.top < viewport.bottom) oldPositions.set(row.dataset.rowKey!, rect.top);
+      });
+    }
+    await nextTick();
+    if (revision !== layoutRevision) return;
+    if (first && offset > scrollMargin.value) {
+      const index = rows.value.findIndex((_, candidate) => rowKey(candidate) === first.key);
+      const target = index >= 0 ? virtualizer.value.getOffsetForIndex(index, 'start') : undefined;
+      if (target) virtualizer.value.scrollToOffset(target[0] - relativeTop);
+    }
+    if (!oldPositions.size) return;
+    requestAnimationFrame(() => {
+      if (revision !== layoutRevision) return;
+      listContainerRef.value?.querySelectorAll<HTMLElement>('[data-row-key]').forEach((row) => {
+        const top = oldPositions.get(row.dataset.rowKey!);
+        if (top === undefined) return;
+        const shift = top - row.getBoundingClientRect().top;
+        if (Math.abs(shift) < 2 || Math.abs(shift) > viewport!.height) return;
+        row.getAnimations().forEach((animation) => {
+          if (animation.id === 'transaction-time-reorder') animation.cancel();
+        });
+        const move = row.animate([{ translate: `0 ${shift}px` }, { translate: '0 0' }], {
+          duration: 180,
+          easing: 'ease-out',
+        });
+        move.id = 'transaction-time-reorder';
+      });
+    });
+  },
+  { flush: 'sync' },
+);
+
 const changedRowKeys = new Set<string>();
 const liveRowKeys = computed(
   () => new Set(props.animateChanges ? rows.value.map((_, index) => String(rowKey(index))) : []),
@@ -281,8 +408,9 @@ watchEffect(() => {
 
     <!-- Reusable row template: renders a group row or a transaction row with leading/trailing slots -->
     <DefineRowTemplate v-slot="{ item, index }">
+      <TransactionTimeHeading v-if="isTimeSection(item)" :section="item" :today="today" />
       <PlannedRowsToggle
-        v-if="item === PLANNED_HEADER"
+        v-else-if="item === PLANNED_HEADER"
         v-model="isPlannedExpanded"
         :count="plannedCount"
         class="h-13 w-full rounded-md"
@@ -292,6 +420,7 @@ watchEffect(() => {
         :group="item"
         :expandable="enableBulkEdit || expandGroups"
         :preview-limit="groupPreviewLimit"
+        :time-range="timeGrouping === 'none' ? undefined : timeGroupRange"
         :expanded="expandedGroups.has(item.groupId)"
         @click="handleGroupRowClick"
         @toggle="toggleGroup"
@@ -340,6 +469,18 @@ watchEffect(() => {
       <template v-else-if="paginate">
         <div ref="listContainerRef" class="relative">
           <div v-bind="$attrs" v-if="transactions" class="w-full">
+            <div
+              v-if="stickySection"
+              class="pointer-events-none sticky top-0 z-20 h-0"
+              aria-hidden="true"
+              data-testid="transaction-time-sticky"
+            >
+              <TransactionTimeHeading
+                :section="stickySection.section"
+                :today="today"
+                :style="{ transform: `translateY(${stickySection.push}px)` }"
+              />
+            </div>
             <component
               :is="animateChanges ? TransitionGroup : 'div'"
               v-bind="

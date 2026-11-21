@@ -97,6 +97,22 @@ describe('Patch user settings', () => {
     expect(patched.locale).toBe('en');
   });
 
+  it('persists time grouping alongside other transaction-list settings', async () => {
+    await helpers.patchUserSettings({
+      raw: true,
+      patch: { ui: { transactionsList: { hideUpcoming: true } } },
+    });
+    const saved = await helpers.patchUserSettings({
+      raw: true,
+      patch: { ui: { transactionsList: { timeGrouping: 'week' } } },
+    });
+    expect(saved.ui?.transactionsList).toEqual({ hideUpcoming: true, timeGrouping: 'week' });
+    expect((await helpers.getUserSettings({ raw: true })).ui?.transactionsList).toEqual(saved.ui?.transactionsList);
+
+    const invalid = await helpers.patchUserSettings({ patch: { ui: { transactionsList: { timeGrouping: 'month' } } } });
+    expect(invalid.statusCode).toBe(ERROR_CODES.ValidationError);
+  });
+
   it('two patches to different slices do not clobber each other', async () => {
     await helpers.patchUserSettings({
       raw: true,

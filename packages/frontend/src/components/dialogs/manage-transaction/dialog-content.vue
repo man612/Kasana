@@ -1397,6 +1397,9 @@ const optionalFieldNames: Record<MountableField, string> = {
   location: 'dialogs.manageTransaction.form.location.label',
   originalAmount: 'dialogs.manageTransaction.form.originalAmountLabel',
 };
+const visibleExtraFields = computed(
+  () => (Object.keys(optionalFieldNames) as MountableField[]).filter((field) => shownFields.value[field]).length,
+);
 const requestedOptionalName = computed(() =>
   pendingOptionalRemoval.value ? t(optionalFieldNames[pendingOptionalRemoval.value]) : '',
 );
@@ -1806,11 +1809,6 @@ onUnmounted(() => {
         </template>
       </DateField>
     </div>
-    <Transition name="lajur-form-panel">
-      <PlannedUnlockHint v-if="isFormCreation && form.isPlanned">
-        {{ $t('dialogs.manageTransaction.form.plannedDatesUnlockedHint') }}
-      </PlannedUnlockHint>
-    </Transition>
     <p v-if="isPreAnchorLoanPayment" class="text-muted-foreground px-1 text-xs">
       {{ $t('dialogs.loanPayment.preAnchorHint') }}
     </p>
@@ -2177,9 +2175,17 @@ onUnmounted(() => {
       </div>
       <Popover v-if="addFieldChips.length" v-model:open="isAddDetailOpen" modal>
         <PopoverTrigger as-child>
-          <Button type="button" variant="outline" size="sm" class="mt-1 min-h-11 justify-start gap-2">
-            <PlusIcon class="size-4" aria-hidden="true" />
-            {{ $t('dialogs.manageTransaction.form.addFieldsLabel') }}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            class="bg-muted/30 mt-1 min-h-11 w-full justify-start gap-2"
+          >
+            <PlusIcon class="text-muted-foreground size-4" aria-hidden="true" />
+            <span>{{ $t('dialogs.manageTransaction.form.addFieldsLabel') }}</span>
+            <span v-if="visibleExtraFields" class="text-muted-foreground ml-auto text-xs tabular-nums">
+              {{ $t('dialogs.manageTransaction.form.activeExtraFields', visibleExtraFields) }}
+            </span>
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -2212,7 +2218,7 @@ onUnmounted(() => {
   <VehicleLinkedView v-else-if="isVehicleLinkedView" :transaction="$props.transaction!" @close-modal="closeModal" />
   <div
     v-else
-    class="grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden rounded-t-xl max-md:h-[calc(95dvh-env(safe-area-inset-bottom))]"
+    class="grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden rounded-t-xl"
     @keydown="onKeydown"
   >
     <p role="status" class="sr-only">{{ templating.announcement.value }}</p>
@@ -2421,7 +2427,7 @@ onUnmounted(() => {
                 </template>
 
                 <template #account-hint>
-                  <Transition name="lajur-form-panel" mode="out-in">
+                  <Transition name="lajur-form-panel">
                     <PlannedUnlockHint v-if="isFormCreation && form.isPlanned && hasConnectedAccountsToOffer">
                       {{ $t('dialogs.manageTransaction.form.plannedAccountsUnlockedHint') }}
                     </PlannedUnlockHint>
@@ -2515,6 +2521,11 @@ onUnmounted(() => {
                 </template>
               </account-field>
             </LayoutCollapse>
+            <Transition name="lajur-form-panel">
+              <PlannedUnlockHint v-if="isFormCreation && form.isPlanned" role="status">
+                {{ $t('dialogs.manageTransaction.form.plannedDatesUnlockedHint') }}
+              </PlannedUnlockHint>
+            </Transition>
 
             <!-- Picking a transaction to link collapses account-field to its single-account
                branch (no destination panel), so the pending linked leg gets its own panel. -->
@@ -2567,7 +2578,7 @@ onUnmounted(() => {
                       class="w-11 shrink-0 justify-center px-0"
                       @click="isSplitDialogOpen = true"
                     >
-                      <SplitIcon class="size-4" aria-hidden="true" />
+                      <SplitIcon class="size-3.5 shrink-0" aria-hidden="true" />
                     </LabelPill>
                   </template>
                 </category-select-field>

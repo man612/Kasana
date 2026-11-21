@@ -111,6 +111,7 @@
                 >
                   <TransactionsList
                     animate-changes
+                    :time-grouping="timeGrouping"
                     compact
                     :hasNextPage="hasNextPage"
                     :transactions="rawTransactionsList"
@@ -141,6 +142,7 @@ import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import { Separator } from '@/components/lib/ui/separator';
 import * as Tabs from '@/components/lib/ui/tabs';
+import { useTransactionTimeGrouping } from '@/components/transactions-list/use-transaction-time-grouping';
 import TransactionsList from '@/components/transactions-list/transactions-list.vue';
 import TransactionRecordSkeleton from '@/components/transactions-list/transaction-record-skeleton.vue';
 import { ROUTES_NAMES } from '@/routes/constants';
@@ -157,6 +159,8 @@ import Header from './components/header.vue';
 import { isGenuineVehicleOrphan } from './is-vehicle-orphan';
 import BankConnectionView from './types/bank-connection/index.vue';
 import SystemAccount from './types/system/system.vue';
+
+const { mode: timeGrouping } = useTransactionTimeGrouping();
 
 const { t } = useI18n();
 const route = useRoute();
