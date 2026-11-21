@@ -171,10 +171,7 @@ async function loadNextPage() {
     currentOffset.value += data.items.length;
     if (!data.items.length) currentOffset.value = data.total;
   } catch {
-    if (generation === scanGeneration) {
-      pageLoadFailed.value = true;
-      addErrorNotification(t('optimizations.transferSuggestions.notifications.loadError'));
-    }
+    if (generation === scanGeneration) pageLoadFailed.value = true;
   } finally {
     isFetchingPage.value = false;
   }
@@ -416,6 +413,15 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
         {{ $t('optimizations.transferSuggestions.resultsNeedRefresh') }}
       </p>
 
+      <div v-if="pageLoadFailed" class="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b px-4 py-2">
+        <p class="text-warning-text text-xs" role="status">
+          {{ $t('optimizations.transferSuggestions.notifications.loadError') }}
+        </p>
+        <Button variant="outline" size="sm" class="min-h-11" @click="retryNextPage">
+          {{ $t('common.actions.retry') }}
+        </Button>
+      </div>
+
       <div
         v-if="hasScanned && totalCount > 0"
         class="text-muted-foreground flex shrink-0 items-center justify-between gap-2 border-b px-4 py-2 text-sm"
@@ -466,11 +472,11 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
                   </div>
                 </template>
                 <template v-else>
-                  <div class="text-muted-foreground flex items-center justify-center py-1 text-xs">
-                    <Button v-if="pageLoadFailed" variant="outline" size="sm" @click="retryNextPage">
-                      {{ $t('common.actions.retry') }}
-                    </Button>
-                    <span v-else class="py-2">{{ $t('optimizations.transferSuggestions.scanning') }}</span>
+                  <div
+                    v-if="!pageLoadFailed"
+                    class="text-muted-foreground flex items-center justify-center py-3 text-xs"
+                  >
+                    {{ $t('optimizations.transferSuggestions.scanning') }}
                   </div>
                 </template>
               </div>
