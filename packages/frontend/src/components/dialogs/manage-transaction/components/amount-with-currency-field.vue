@@ -32,7 +32,7 @@ const props = withDefaults(
   {
     amount: null,
     currency: null,
-    placeholder: undefined,
+    placeholder: '0',
     disabled: false,
     suggestVisible: false,
     suggestedAmount: null,

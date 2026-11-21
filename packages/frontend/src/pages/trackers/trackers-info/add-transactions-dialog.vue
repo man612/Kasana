@@ -166,9 +166,6 @@ const isMobileView = useWindowBreakpoints(1024);
               <div v-else class="flex h-13 items-center justify-center">{{ t('transactions.list.loadingMore') }}</div>
             </div>
           </div>
-          <template v-if="!hasNextTransactionsPage">
-            <p class="flex justify-center">{{ t('transactions.list.noMoreData') }}</p>
-          </template>
         </ScrollArea>
 
         <div v-if="isTransactionsPicked" class="flex shrink-0 gap-2 border-t pt-3">

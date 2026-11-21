@@ -7,25 +7,30 @@ import { z } from 'zod';
  * GET /user/settings/onboarding
  * Returns the user's onboarding state merged with auto-detected completed tasks
  */
-export const getOnboarding = createController(z.object({}), async ({ user }) => {
-  const { id: userId } = user;
+export const getOnboarding = createController(
+  z.object({
+    query: z.object({ skipProgressWhenDismissed: z.enum(['true', 'false']).optional() }),
+  }),
+  async ({ user, query }) => {
+    const { id: userId } = user;
+    const stored = onboardingService.getOnboardingState({ userId });
+    const detectProgress = () => onboardingService.detectCompletedTasks({ userId });
+    // The app only needs visibility while the guide is dismissed. Keep the full
+    // progress response for existing clients and for an enabled guide.
+    const detected =
+      query.skipProgressWhenDismissed === 'true'
+        ? stored.then((state) => (state.isDismissed ? [] : detectProgress()))
+        : detectProgress();
+    const [storedState, detectedTasks] = await Promise.all([stored, detected]);
 
-  // Get stored onboarding state and auto-detect completed tasks in parallel
-  const [storedState, detectedTasks] = await Promise.all([
-    onboardingService.getOnboardingState({ userId }),
-    onboardingService.detectCompletedTasks({ userId }),
-  ]);
-
-  // Merge stored completed tasks with detected ones (remove duplicates)
-  const allCompletedTasks = [...new Set([...storedState.completedTasks, ...detectedTasks])];
-
-  return {
-    data: {
-      ...storedState,
-      completedTasks: allCompletedTasks,
-    },
-  };
-});
+    return {
+      data: {
+        ...storedState,
+        completedTasks: [...new Set([...storedState.completedTasks, ...detectedTasks])],
+      },
+    };
+  },
+);
 
 /**
  * PUT /user/settings/onboarding

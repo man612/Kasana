@@ -20,6 +20,8 @@ export interface TransactionGroupWithAggregates {
   id: string;
   name: string;
   note: string | null;
+  icon: string | null;
+  iconColor: string | null;
   createdAt: Date;
   updatedAt: Date;
   userId: number;
@@ -105,6 +107,8 @@ export const getTransactionGroups = async ({
     id: group.id,
     name: group.name,
     note: group.note,
+    icon: group.icon,
+    iconColor: group.iconColor,
     createdAt: group.createdAt,
     updatedAt: group.updatedAt,
     userId: group.userId,

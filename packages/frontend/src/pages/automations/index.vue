@@ -4,21 +4,20 @@ import SelectField from '@/components/fields/select-field.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Card } from '@/components/lib/ui/card';
 import { PillTabs, type PillTabItem } from '@/components/lib/ui/pill-tabs';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
 import { useNotificationCenter } from '@/components/notification-center';
 import { useDeleteAutomation, useTransactionAutomations } from '@/composable/data-queries/transaction-automations';
-import { trackAnalyticsEvent } from '@/lib/posthog';
 import { captureException } from '@/lib/sentry';
 import { ROUTES_NAMES } from '@/routes';
 import { useTagsStore } from '@/stores';
 import type { TransactionAutomationModel } from '@bt/shared/types';
-import { LightbulbIcon, PlusIcon, ZapIcon } from '@lucide/vue';
+import { PlusIcon, ZapIcon } from '@lucide/vue';
 import { useLocalStorage } from '@vueuse/core';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import ApplyToHistoryDialog from './components/apply-to-history-dialog.vue';
 import type { AutomationDensity } from './components/automation-chips';
+import AutomationGuide from './components/automation-guide.vue';
 import AutomationsList from './components/automations-list.vue';
 
 const SKELETON_ROW_COUNT = 3;
@@ -53,10 +52,6 @@ const filteredList = computed(() =>
     ? list.value
     : list.value.filter((rule) => rule.isEnabled === (statusFilter.value === 'enabled')),
 );
-
-const onTipsOpen = (open: boolean) => {
-  if (open) trackAnalyticsEvent({ event: 'automations_mcp_tip_opened' });
-};
 
 const isApplyOpen = ref(false);
 const ruleToApply = ref<TransactionAutomationModel | null>(null);
@@ -96,25 +91,17 @@ const handleDelete = () => {
         <h1 class="text-2xl font-bold tracking-tight">
           {{ $t('automations.title') }}
         </h1>
-        <Popover @update:open="onTipsOpen">
-          <PopoverTrigger as-child>
-            <Button variant="soft-primary" size="sm">
-              <LightbulbIcon class="size-4" />
-              {{ $t('automations.mcpTip.trigger') }}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent class="w-80 text-sm" align="start">
-            <p>{{ $t('automations.mcpTip.text') }}</p>
-            <RouterLink
-              class="text-primary-text mt-2 inline-block underline underline-offset-2"
-              :to="{ name: ROUTES_NAMES.settingsAiConnectedApps }"
-            >
+        <AutomationGuide>
+          <details class="text-muted-foreground border-t pt-2">
+            <summary class="cursor-pointer font-medium">{{ $t('automations.guide.advanced') }}</summary>
+            <p class="mt-2">{{ $t('automations.mcpTip.text') }}</p>
+            <RouterLink class="text-primary-text underline" :to="{ name: ROUTES_NAMES.settingsAiConnectedApps }">
               {{ $t('automations.mcpTip.link') }}
             </RouterLink>
-          </PopoverContent>
-        </Popover>
+          </details>
+        </AutomationGuide>
       </div>
-      <router-link :to="{ name: ROUTES_NAMES.automationCreate }">
+      <router-link v-if="!isLoading && list.length" :to="{ name: ROUTES_NAMES.automationCreate }">
         <Button as="span">
           <PlusIcon class="size-4" />
           <span class="hidden @md/automations:inline">{{ $t('automations.newAutomation') }}</span>
@@ -142,41 +129,45 @@ const handleDelete = () => {
       />
     </div>
 
-    <Card v-if="isLoading" class="flex flex-col gap-2 p-3">
-      <div v-for="index in SKELETON_ROW_COUNT" :key="index" class="bg-muted h-14 animate-pulse rounded-md" />
-    </Card>
+    <Transition name="lajur-info-reveal" mode="out-in">
+      <Card v-if="isLoading" class="flex flex-col gap-2 p-3">
+        <div v-for="index in SKELETON_ROW_COUNT" :key="index" class="bg-muted h-14 animate-pulse rounded-md" />
+      </Card>
 
-    <Card v-else-if="isError && !list.length" class="text-destructive-text px-6 py-12 text-center text-sm">
-      {{ $t('automations.loadError') }}
-    </Card>
+      <Card v-else-if="isError && !list.length" class="text-destructive-text px-6 py-12 text-center text-sm">
+        {{ $t('automations.loadError') }}
+      </Card>
 
-    <Card v-else-if="list.length === 0" class="flex flex-col items-center gap-2 px-6 py-12 text-center">
-      <ZapIcon class="text-muted-foreground size-8" />
-      <h2 class="font-medium">{{ $t('automations.emptyState.title') }}</h2>
-      <p class="text-muted-foreground max-w-md text-sm">
-        {{ $t('automations.emptyState.description') }}
-      </p>
-      <router-link class="mt-2" :to="{ name: ROUTES_NAMES.automationCreate }">
-        <Button as="span">
-          <PlusIcon class="size-4" />
-          {{ $t('automations.emptyState.cta') }}
-        </Button>
-      </router-link>
-    </Card>
+      <Card v-else-if="list.length === 0" class="flex flex-col items-center gap-2 px-6 py-12 text-center">
+        <div class="bg-muted text-muted-foreground mb-1 grid size-12 place-items-center rounded-full">
+          <ZapIcon class="size-6" />
+        </div>
+        <h2 class="font-medium">{{ $t('automations.emptyState.title') }}</h2>
+        <p class="text-muted-foreground max-w-md text-sm">
+          {{ $t('automations.emptyState.description') }}
+        </p>
+        <router-link class="mt-2" :to="{ name: ROUTES_NAMES.automationCreate }">
+          <Button as="span">
+            <PlusIcon class="size-4" />
+            {{ $t('automations.emptyState.cta') }}
+          </Button>
+        </router-link>
+      </Card>
 
-    <Card v-else-if="filteredList.length === 0" class="text-muted-foreground px-6 py-12 text-center text-sm">
-      {{ $t('automations.statusFilter.empty') }}
-    </Card>
+      <Card v-else-if="filteredList.length === 0" class="text-muted-foreground px-6 py-12 text-center text-sm">
+        {{ $t('automations.statusFilter.empty') }}
+      </Card>
 
-    <Card v-else class="overflow-hidden">
-      <AutomationsList
-        :rules="filteredList"
-        :density="density"
-        :reorderable="statusFilter === 'all'"
-        @delete="(rule) => confirmDelete({ rule })"
-        @apply="(rule) => openApply({ rule })"
-      />
-    </Card>
+      <Card v-else key="automation-list" class="overflow-hidden">
+        <AutomationsList
+          :rules="filteredList"
+          :density="density"
+          :reorderable="statusFilter === 'all'"
+          @delete="(rule) => confirmDelete({ rule })"
+          @apply="(rule) => openApply({ rule })"
+        />
+      </Card>
+    </Transition>
 
     <ApplyToHistoryDialog v-if="isApplyOpen" v-model:open="isApplyOpen" :rule="ruleToApply" />
 

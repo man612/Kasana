@@ -1,13 +1,13 @@
 {
   "automations": {
     "title": "Otomatisasi",
-    "subtitle": "Berjalan pada transaksi baru dari sinkronisasi bank dan impor file. Aturan pertama yang cocok yang menang — seret aturan untuk mengurutkan ulang.",
-    "newAutomation": "Otomatisasi baru",
-    "new": "Baru",
+    "subtitle": "Atur kategori, tag, penerima, atau catatan secara otomatis saat transaksi baru masuk dari bank atau impor file. Aturan dijalankan dari urutan teratas.",
+    "newAutomation": "Buat otomatisasi",
+    "new": "Buat",
     "dragHint": "Seret untuk mengurutkan ulang",
     "toggleAriaLabel": "Aktifkan otomatisasi",
     "menuAriaLabel": "Tindakan otomatisasi",
-    "disabledPill": "Nonaktif",
+    "disabledPill": "Dijeda",
     "mcpTip": {
       "trigger": "Tips",
       "text": "Anda dapat mengelola otomatisasi dengan AI melalui koneksi MCP — minta AI untuk menata ulang aturan Anda, atau memeriksa duplikat dan konflik.",
@@ -22,7 +22,7 @@
     "pausedMissingRef": "Dijeda — {refType} \"{label}\" telah dihapus",
     "pausedMissingRefUnnamed": "Dijeda: {refType} yang dirujuk aturan ini telah dihapus",
     "matchStats": "{count} kecocokan · terakhir {date} | {count} kecocokan · terakhir {date}",
-    "matchStatsNever": "Belum pernah cocok",
+    "matchStatsNever": "Belum pernah dipakai",
     "loadError": "Tidak dapat memuat otomatisasi. Periksa koneksi Anda dan coba lagi.",
     "reorderDisabledFiltered": "Bersihkan filter status untuk mengurutkan ulang",
     "density": {
@@ -66,8 +66,8 @@
     },
     "emptyState": {
       "title": "Belum ada otomatisasi",
-      "description": "Otomatisasi mengategorikan, menandai, dan memberi catatan pada transaksi begitu transaksi masuk dari sinkronisasi bank atau impor file.",
-      "cta": "Buat otomatisasi pertama Anda"
+      "description": "Mulai dari pengeluaran yang sering muncul. Misalnya, masukkan belanja minimarket ke kategori Belanja Harian.",
+      "cta": "Buat otomatisasi"
     },
     "delete": {
       "title": "Hapus otomatisasi?",
@@ -119,22 +119,22 @@
       }
     },
     "editor": {
-      "titleNew": "Otomatisasi baru",
+      "titleNew": "Buat otomatisasi",
       "titleEdit": "Sunting otomatisasi",
       "back": "Kembali ke otomatisasi",
       "enabled": "Aktif",
-      "nameLabel": "Nama",
-      "namePlaceholder": "mis. Belanja dari Biedronka",
+      "nameLabel": "Nama otomatisasi",
+      "namePlaceholder": "Mis. Belanja minimarket",
       "conditionsHeader": "Cocokkan {match} dari kondisi berikut",
       "matchAll": "semua",
       "matchAny": "salah satu",
       "joinAnd": "DAN",
       "joinOr": "ATAU",
-      "addCondition": "Tambah kondisi",
-      "removeCondition": "Hapus kondisi",
+      "addCondition": "Tambah syarat",
+      "removeCondition": "Hapus syarat",
       "removeKeyword": "Hapus kata kunci",
-      "fieldPlaceholder": "Pilih kolom",
-      "operatorPlaceholder": "Pilih kondisi",
+      "fieldPlaceholder": "Pilih rincian transaksi",
+      "operatorPlaceholder": "Pilih syarat",
       "keywordPlaceholder": "Ketik kata kunci lalu tekan Enter",
       "amountPlaceholder": "Masukkan jumlah",
       "minPlaceholder": "Jumlah min.",
@@ -169,9 +169,9 @@
         "confirm": "Buang perubahan"
       },
       "preview": {
-        "title": "Pratinjau",
-        "run": "Pratinjau kecocokan",
-        "hint": "Selesaikan aturan ini untuk melihat pratinjau transaksi mana yang akan cocok.",
+        "title": "Periksa transaksi yang cocok",
+        "run": "Lihat pratinjau",
+        "hint": "Lengkapi syarat untuk melihat transaksi yang cocok. Pratinjau tidak mengubah transaksi.",
         "summary": "{matched} dari {scanned} transaksi terakhir yang dapat dikenai aturan ini",
         "empty": "Tidak ada kecocokan",
         "stale": "Kondisi berubah sejak pratinjau ini dijalankan.",
@@ -214,35 +214,58 @@
       }
     },
     "applyToHistory": {
-      "trigger": "Apply to past transactions",
-      "saveFirst": "Save your changes first",
-      "pickTitle": "Apply a rule to past transactions",
-      "pickHint": "Pick a rule. You'll review the matching transactions before anything changes.",
-      "title": "Apply \"{name}\" to past transactions",
-      "noRules": "You don't have any automations yet.",
-      "summary": "{count} past transaction matches this rule | {count} past transactions match this rule",
-      "moreMatches": "Only the {shown} most recent matches are listed. Apply these, then run it again.",
-      "scanCapped": "Only your {limit} most recent transactions were checked.",
+      "trigger": "Terapkan ke transaksi lama",
+      "saveFirst": "Simpan perubahan terlebih dahulu",
+      "pickTitle": "Jalankan aturan pada transaksi lama",
+      "pickHint": "Pilih aturan dari Otomatisasi, periksa transaksi yang cocok, lalu tentukan catatan yang ingin diperbarui.",
+      "title": "Terapkan “{name}” ke transaksi lama",
+      "noRules": "Belum ada aturan. Buat aturan di Otomatisasi, lalu kembali untuk memilih transaksi lama.",
+      "summary": "{count} transaksi lama cocok dengan aturan ini",
+      "moreMatches": "Hanya {shown} kecocokan terbaru yang ditampilkan. Terapkan pilihan ini, lalu periksa kembali.",
+      "scanCapped": "Pencarian mencakup {limit} transaksi terbaru.",
       "emptyState": {
-        "settledTitle": "All caught up",
-        "settledDescription": "This rule has nothing left to change on the only matching past transaction. | This rule has nothing left to change on the {count} matching past transactions.",
-        "noneTitle": "No matches yet",
-        "noneDescription": "No past transaction on your synced or imported accounts matches these conditions."
+        "settledTitle": "Semua sudah sesuai",
+        "settledDescription": "{count} transaksi yang cocok sudah sesuai dengan aturan.",
+        "noneTitle": "Tidak ada transaksi yang cocok",
+        "noneDescription": "Tidak ada transaksi hasil sinkronisasi atau impor yang memenuhi syarat aturan ini."
       },
       "selectAll": "Pilih semua",
       "selectedCount": "{count} dipilih",
-      "irreversible": "This can't be undone. Review the list carefully.",
-      "applyAction": "Apply to {count} transactions",
+      "irreversible": "Perubahan tidak bisa dibatalkan. Periksa pilihan Anda sebelum melanjutkan.",
+      "applyAction": "Terapkan ke {count} transaksi",
       "confirm": {
-        "title": "Apply this rule?",
+        "title": "Terapkan aturan ini?",
         "action": "Terapkan",
-        "description": "{count} transactions will be updated right away.",
-        "payeeNote": "The payee on those transactions will be treated as set by you, so automatic payee detection won't change it later."
+        "description": "{count} transaksi akan langsung diperbarui.",
+        "payeeNote": "Penerima yang ditetapkan akan dianggap sebagai pilihan Anda, sehingga deteksi otomatis tidak akan menggantinya."
       },
-      "success": "Applied to {applied} transactions",
-      "successWithSkipped": "Applied to {applied} transactions, {skipped} skipped",
-      "nothingApplied": "Nothing was applied. {skipped} transactions were skipped.",
-      "applyError": "Couldn't apply the rule to past transactions."
+      "success": "Diterapkan ke {applied} transaksi",
+      "successWithSkipped": "Diterapkan ke {applied} transaksi, {skipped} dilewati",
+      "nothingApplied": "Tidak ada perubahan. {skipped} transaksi dilewati.",
+      "applyError": "Gagal menerapkan aturan ke transaksi lama."
+    },
+    "guide": {
+      "title": "Cara kerja otomatisasi",
+      "intro": "Otomatisasi merapikan transaksi baru dari sinkronisasi bank atau impor file. Kamu memilih transaksi yang cocok dan rincian yang ingin diisi. Aturan ini berjalan tanpa AI.",
+      "choose": "Tentukan transaksi mana yang ingin dikenali, misalnya lewat kata tertentu di catatan atau rekening asalnya.",
+      "act": "Pilih rincian yang ingin diubah: kategori, penerima, tag, atau catatan. Nominal dan saldo tetap sama.",
+      "check": "Lihat transaksi yang cocok lewat Pratinjau, lalu simpan dan aktifkan aturan. Lajur. menjalankannya otomatis pada transaksi baru yang memenuhi syarat. Kamu hanya perlu mengonfirmasi jika ingin menerapkan aturan ke transaksi yang sudah tercatat.",
+      "exampleTitle": "Contoh belanja minimarket",
+      "example": "Buat aturan bernama “Belanja minimarket”. Pada syarat, pilih Catatan, lalu isi “Indomaret” pada Memuat. Pada tindakan, pilih Atur kategori, lalu pilih Belanja Harian. Periksa Pratinjau dan simpan aturan dalam keadaan aktif.",
+      "caution": "Aturan dapat mengganti rincian pada transaksi yang cocok. Transfer, transaksi terencana, dan transaksi manual biasa tidak diproses otomatis.",
+      "advanced": "Pengaturan lanjutan untuk AI",
+      "conditionsTitle": "Kapan aturan dipakai?",
+      "conditionsHelp": "Pilih Catatan lalu masukkan “Indomaret”. Pilih “semua” jika setiap syarat harus terpenuhi.",
+      "actionsTitle": "Apa yang ingin diisi?",
+      "actionsHelp": "Contohnya, pilih Atur kategori lalu pilih Belanja Harian. Satu aturan bisa mengisi beberapa rincian sekaligus.",
+      "incomplete": "Isi nama, syarat, dan tindakan agar bisa disimpan.",
+      "exampleRun": "Pada impor berikutnya, masukkan mutasi yang berisi belanja dengan catatan “Indomaret”. Buka transaksi itu dan periksa bahwa kategorinya Belanja Harian. Jumlah transaksi yang cocok dan waktu pemakaian terakhir terlihat di daftar Otomatisasi.",
+      "noMatch": "Kalau catatan tidak memuat kata tersebut, transaksi tidak diubah oleh aturan ini. Jika kategori yang dipakai aturan dihapus, aturan bisa dijeda. Buka Otomatisasi untuk melihat statusnya dan memilih kategori pengganti.",
+      "schedule": "Gunakan Pembayaran Berulang untuk mencatat tagihan sesuai jadwal. Otomatisasi mengisi rincian pada transaksi yang sudah masuk. Bayar penyedia melalui rekening atau metode pembayaranmu.",
+      "summaryTitle": "Ringkasan aturan",
+      "secondExampleTitle": "Contoh tag langganan internet",
+      "secondExample": "Pilih rekening yang biasa dipakai dan isi “Internet” sebagai kata di catatan. Pilih Tambah tag, lalu pilih tag Langganan. Saat mutasi berikutnya masuk dari rekening itu dengan catatan yang cocok, tag ditambahkan. Buka transaksi untuk melihat tag dan daftar Otomatisasi untuk melihat kapan aturan terakhir dipakai.",
+      "openRecurring": "Buka Pembayaran Berulang"
     }
   }
 }

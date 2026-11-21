@@ -100,7 +100,8 @@
       },
       "paidPercent": "{value}% dibayar",
       "monthsLeft": "Sisa {count} bln",
-      "ofPrincipal": "dari {amount}"
+      "ofPrincipal": "dari {amount}",
+      "scheduledPayment": "Cicilan terjadwal"
     },
     "types": {
       "mortgage": "KPR",
@@ -121,7 +122,7 @@
       "loadError": "Gagal memuat pinjaman ini.",
       "paidOffBadge": "Lunas",
       "summary": {
-        "outstanding": "Saldo saat ini",
+        "outstanding": "Sisa pokok tercatat",
         "principalOnlyTooltip": "Saldo mencerminkan pembayaran pokok saja. Bunga tidak bertambah secara otomatis – pernyataan pemberi pinjaman Anda adalah sumber kebenaran.",
         "apr": "APR",
         "originalPrincipal": "Pokok awal",
@@ -216,6 +217,11 @@
           "actual": "Saldo aktual",
           "schedule": "Jadwal asli"
         }
+      },
+      "detailsToggle": "Rincian pinjaman",
+      "tabs": {
+        "summary": "Ringkasan",
+        "activity": "Aktivitas"
       }
     }
   }

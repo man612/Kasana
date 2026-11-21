@@ -463,7 +463,7 @@ const accountLabel = computed(() =>
           v-model="directAmountValue"
           :currency-code="directForm.selectedCurrency?.currencyCode"
           :label="$t('forms.directCashTransaction.amountLabel')"
-          :placeholder="$t('forms.directCashTransaction.amountPlaceholder')"
+          placeholder="0"
           :disabled="isAnyMutationPending || disabled || !directForm.selectedCurrency"
           :error-message="getDirectFieldError('directForm.amount')"
           @blur="touchDirectField('directForm.amount')"
@@ -558,7 +558,7 @@ const accountLabel = computed(() =>
             v-model="transferAmountValue"
             :currency-code="transferForm.selectedCurrency?.currencyCode ?? transferForm.selectedAccount?.currencyCode"
             :label="$t('forms.directCashTransaction.amountLabel')"
-            :placeholder="$t('forms.directCashTransaction.amountPlaceholder')"
+            placeholder="0"
             :disabled="
               isAnyMutationPending ||
               disabled ||

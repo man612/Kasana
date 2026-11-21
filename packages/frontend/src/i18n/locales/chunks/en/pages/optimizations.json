@@ -173,7 +173,11 @@
           "title": "Many pairs scored below 70%",
           "body": "AI review can hide the ones that aren't transfers. Uses your AI allowance."
         }
-      }
+      },
+      "appliedPeriod": "Results for {from} – {to}",
+      "matchScore": "{score}% match",
+      "matchBasis": "Different accounts, similar amounts and nearby dates. Matching currencies increase the score.",
+      "resultsNeedRefresh": "Transactions changed. Scan again for current suggestions."
     },
     "reconciliation": {
       "title": "Transactions reconciliation",
@@ -290,6 +294,25 @@
         "restore": "Restore",
         "kept": "Kept",
         "removedRows": "{count} removed transaction | {count} removed transactions"
+      }
+    },
+    "help": {
+      "label": "How it works",
+      "transfers": {
+        "body": "Choose a period and review suggestions based on amount, date, and currency. Link pairs you recognize or skip unrelated records. Optional AI review may use your allowance.",
+        "example": "A Rp500,000 transfer from BCA to Jago can appear as a BCA expense and a Jago income. Linking records one transfer and excludes both from income and spending totals."
+      },
+      "aiCategorization": {
+        "body": "AI assigns categories to transactions with the default category. Select rows or run it for all eligible transactions. Check the model and limits first. You can correct categories from History.",
+        "example": "If AI categorizes a pharmacy purchase as Shopping, open it from History and change it to Health."
+      },
+      "reconciliation": {
+        "body": "Compare records from connected bank accounts. When merging, choose the record to keep. Removed records stop counting in balances and reports. History can restore the records; detached links stay detached.",
+        "example": "A pending payment may appear again when the bank posts it. Compare the amount and payee, then keep the posted record if both describe the same payment."
+      },
+      "applyRules": {
+        "body": "Choose an existing Automation rule. Review the recent imported or synced transactions it matches, select rows, and confirm the changes.",
+        "example": "If your rule categorizes notes containing “Indomaret” as Groceries, you can apply it to matching transactions shown in the preview."
       }
     }
   }

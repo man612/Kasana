@@ -133,10 +133,12 @@ test.describe('Investment Transaction – Settlement Currency', () => {
   });
 
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('preferred-locale', 'en'));
     await loginViaUI({ page, email: creds.email, password: creds.password });
     await seedTestData({ request: page.request });
 
     await page.goto(`/portfolios/${portfolioId}`);
+    await page.getByRole('tab', { name: 'Holdings', exact: true }).click();
     await page.waitForSelector('h1');
   });
 

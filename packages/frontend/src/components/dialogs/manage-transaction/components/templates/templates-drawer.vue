@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import InputField from '@/components/fields/input-field.vue';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import { Button } from '@/components/lib/ui/button';
 import * as Dialog from '@/components/lib/ui/dialog';
-import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { TransactionTemplateModel } from '@bt/shared/types';
-import { ChevronDownIcon, LayoutTemplateIcon, XIcon } from '@lucide/vue';
+import { ChevronDownIcon, LayoutTemplateIcon, LoaderCircleIcon, XIcon } from '@lucide/vue';
 import { computed, nextTick, ref, watch } from 'vue';
 
 import TemplatePreview from './template-preview.vue';
@@ -18,11 +18,22 @@ const props = defineProps<TemplateListProps>();
 
 const emit = defineEmits<TemplateListEmits>();
 
-const { query, isOpen, filtered, amountLabelOf, staleReasonOf, footerActions, closeAnd, openEditor } = useTemplateList({
+const {
+  query,
+  isOpen,
+  filtered,
+  amountLabelOf,
+  staleReasonOf,
+  footerActions,
+  showIncompleteHint,
+  chooseFooterAction,
+  openEditor,
+} = useTemplateList({
   props,
   emit,
 });
 
+const heading = ref<HTMLElement | null>(null);
 const expandedId = ref<string | null>(null);
 let appliedFromDialog = false;
 
@@ -74,6 +85,8 @@ const onCloseAutoFocus = (event: Event) => {
           variant="secondary"
           size="sm"
           :disabled="disabled"
+          @pointerenter="emit('prefetch')"
+          @focus="emit('prefetch')"
           :class="
             cn(
               'min-w-0 gap-1.5 font-normal',
@@ -106,102 +119,120 @@ const onCloseAutoFocus = (event: Event) => {
 
     <Dialog.DialogContent
       blur-overlay
-      class="max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-2xl p-5 duration-200 ease-out motion-reduce:transition-none"
+      intrinsic-height-motion
+      class="max-h-[min(85dvh,680px)] w-[calc(100vw-2rem)] max-w-md gap-0 overflow-hidden rounded-2xl p-4 duration-200 ease-out motion-reduce:transition-none"
+      @open-auto-focus.prevent="heading?.focus({ preventScroll: true })"
       @close-auto-focus="onCloseAutoFocus"
     >
-      <Dialog.DialogTitle class="pr-14 text-base font-semibold">
-        {{ $t('dialogs.manageTransaction.templates.trigger') }}
+      <Dialog.DialogTitle class="pr-10 text-base font-semibold">
+        <span ref="heading" tabindex="-1" class="outline-none">
+          {{ $t('dialogs.manageTransaction.templates.trigger') }}
+        </span>
       </Dialog.DialogTitle>
-      <p v-if="templates.length" class="text-muted-foreground mt-1 pb-3 text-xs">
-        {{ $t('dialogs.manageTransaction.templates.tapHint') }}
-      </p>
+      <Dialog.DialogDescription class="text-muted-foreground mt-1 pr-5 text-xs leading-relaxed">
+        {{
+          $t(
+            templates.length || isLoading
+              ? 'dialogs.manageTransaction.templates.tapHint'
+              : isError
+                ? 'dialogs.manageTransaction.templates.loadError'
+                : 'dialogs.manageTransaction.templates.emptyMobile',
+          )
+        }}
+        <LoaderCircleIcon v-if="isLoading" class="ms-1 inline size-3 motion-safe:animate-spin" aria-hidden="true" />
+      </Dialog.DialogDescription>
+      <Button
+        v-if="isError && !templates.length"
+        variant="outline"
+        size="sm"
+        class="mt-2 self-start"
+        @click="emit('retry')"
+      >
+        {{ $t('common.actions.retry') }}
+      </Button>
 
-      <div v-if="isLoading" aria-busy="true" class="flex flex-col gap-2 pb-3">
-        <div v-for="index in 3" :key="index" class="bg-muted h-11 animate-pulse rounded-md" />
-      </div>
+      <LayoutCollapse :open="templates.length > 0">
+        <div
+          v-if="templates.length"
+          class="lajur-dialog-scroll mt-2 max-h-[min(39dvh,20rem)] overflow-y-auto overscroll-contain"
+        >
+          <InputField
+            v-if="isFilterVisible"
+            v-model="query"
+            class="mb-2"
+            :placeholder="$t('dialogs.manageTransaction.templates.filterPlaceholder')"
+            :aria-label="$t('dialogs.manageTransaction.templates.filterPlaceholder')"
+          />
+          <p v-if="!filtered.length" class="text-muted-foreground py-2 text-xs leading-relaxed">
+            {{ $t('dialogs.manageTransaction.templates.noMatches') }}
+          </p>
+          <div class="flex flex-col">
+            <div
+              v-for="template in filtered"
+              :key="template.id"
+              :ref="(el) => (el ? rowEls.set(template.id, el as HTMLElement) : rowEls.delete(template.id))"
+              class="border-border border-b last:border-b-0"
+            >
+              <div class="flex items-stretch">
+                <Button
+                  variant="ghost"
+                  class="h-auto min-h-12 min-w-0 flex-1 justify-start rounded-none px-0 py-2 text-left font-normal"
+                  @click="applyTemplate({ template })"
+                >
+                  <TemplateRowContent
+                    :template="template"
+                    :amount-label="amountLabelOf({ template })"
+                    :stale-reason="staleReasonOf({ template })"
+                  />
+                </Button>
 
-      <div v-else-if="isError && !templates.length" class="flex flex-col items-start gap-2 px-1 pb-3">
-        <p class="text-muted-foreground text-xs leading-relaxed">
-          {{ $t('dialogs.manageTransaction.templates.loadError') }}
-        </p>
-        <Button variant="outline" size="sm" @click="emit('retry')">{{ $t('common.actions.retry') }}</Button>
-      </div>
+                <Button
+                  variant="ghost"
+                  class="text-muted-foreground -mr-2 h-auto w-14 shrink-0 rounded-none px-0"
+                  :aria-expanded="expandedId === template.id"
+                  :aria-label="$t('dialogs.manageTransaction.templates.toggleDetails')"
+                  @click="toggleRow({ template })"
+                >
+                  <ChevronDownIcon
+                    :class="
+                      cn('size-4 transition-transform', expandedId === template.id && 'text-foreground rotate-180')
+                    "
+                  />
+                </Button>
+              </div>
 
-      <p v-else-if="!templates.length" class="text-muted-foreground px-1 pb-3 text-xs leading-relaxed">
-        {{ $t('dialogs.manageTransaction.templates.emptyState') }}
-      </p>
-
-      <p v-else-if="!filtered.length" class="text-muted-foreground px-1 pb-3 text-xs leading-relaxed">
-        {{ $t('dialogs.manageTransaction.templates.noMatches') }}
-      </p>
-
-      <ScrollArea v-else class="min-h-0 flex-1 overflow-hidden" viewport-class="max-h-[40dvh]">
-        <div class="flex flex-col">
-          <div
-            v-for="template in filtered"
-            :key="template.id"
-            :ref="(el) => (el ? rowEls.set(template.id, el as HTMLElement) : rowEls.delete(template.id))"
-            class="border-border border-b last:border-b-0"
-          >
-            <div class="flex items-stretch">
-              <Button
-                variant="ghost"
-                class="h-auto min-h-12 min-w-0 flex-1 justify-start rounded-none px-0 py-2 text-left font-normal"
-                @click="applyTemplate({ template })"
-              >
-                <TemplateRowContent
-                  :template="template"
-                  :amount-label="amountLabelOf({ template })"
-                  :stale-reason="staleReasonOf({ template })"
-                />
-              </Button>
-
-              <Button
-                variant="ghost"
-                class="text-muted-foreground -mr-2 h-auto w-14 shrink-0 rounded-none px-0"
-                :aria-expanded="expandedId === template.id"
-                :aria-label="$t('dialogs.manageTransaction.templates.toggleDetails')"
-                @click="toggleRow({ template })"
-              >
-                <ChevronDownIcon
-                  :class="cn('size-4 transition-transform', expandedId === template.id && 'text-foreground rotate-180')"
-                />
-              </Button>
+              <TemplatePreview
+                v-if="expandedId === template.id"
+                :template="template"
+                :sources="sources"
+                :stale-reason="staleReasonOf({ template })"
+                class="mb-2.5"
+                @edit="openEditor({ template })"
+              />
             </div>
-
-            <TemplatePreview
-              v-if="expandedId === template.id"
-              :template="template"
-              :sources="sources"
-              :stale-reason="staleReasonOf({ template })"
-              class="mb-2.5"
-              @edit="openEditor({ template })"
-            />
           </div>
         </div>
-      </ScrollArea>
-
-      <div v-if="isFilterVisible" class="mt-3">
-        <InputField
-          v-model="query"
-          :placeholder="$t('dialogs.manageTransaction.templates.filterPlaceholder')"
-          :aria-label="$t('dialogs.manageTransaction.templates.filterPlaceholder')"
-        />
-      </div>
+      </LayoutCollapse>
 
       <div class="border-border mt-3 grid grid-cols-1 gap-2 border-t pt-3">
         <Button
           v-for="action in mobileFooterActions"
           :key="action.key"
           :variant="action.variant"
-          class="h-auto min-h-11 min-w-0 w-full justify-start gap-2 px-3 text-left text-sm font-normal whitespace-normal"
-          :disabled="action.disabled"
-          @click="closeAnd({ run: action.run })"
+          class="h-auto min-h-11 w-fit min-w-0 gap-2 justify-self-end px-3 text-left text-sm font-normal whitespace-normal transition-[opacity,color,background-color] data-[incomplete]:opacity-50"
+          :data-incomplete="action.disabled ? '' : undefined"
+          :aria-description="action.disabled ? $t('dialogs.manageTransaction.templates.incompleteHint') : undefined"
+          @click="chooseFooterAction({ action })"
         >
           <component :is="action.icon" v-if="action.icon" class="size-4" />
           {{ action.label }}
         </Button>
       </div>
+      <LayoutCollapse :open="showIncompleteHint">
+        <p class="text-muted-foreground px-1 pt-2 text-sm" role="status">
+          {{ $t('dialogs.manageTransaction.templates.incompleteHint') }}
+        </p>
+      </LayoutCollapse>
     </Dialog.DialogContent>
   </Dialog.Dialog>
 </template>

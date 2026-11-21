@@ -5,6 +5,8 @@
  * before Web Audio can start. Users may disable it in Appearance settings.
  */
 const STORAGE_KEY = 'lajur:mobile-interaction-sound';
+const MIN_SOUND_INTERVAL_MS = 100;
+const MAX_RESUME_DELAY_MS = 250;
 
 export const getMobileInteractionSoundEnabled = (): boolean => {
   try {
@@ -24,9 +26,14 @@ export const setMobileInteractionSoundEnabled = (enabled: boolean): void => {
 
 let context: AudioContext | null = null;
 let isInstalled = false;
+let requestGeneration = 0;
+let lastStartedAt = -Infinity;
 
 const playTone = (audio: AudioContext) => {
-  if (audio.state !== 'running') return;
+  if (audio.state !== 'running' || document.hidden || !getMobileInteractionSoundEnabled()) return;
+  const startedAt = performance.now();
+  if (startedAt - lastStartedAt < MIN_SOUND_INTERVAL_MS) return;
+  lastStartedAt = startedAt;
   const now = audio.currentTime;
   const oscillator = audio.createOscillator();
   const gain = audio.createGain();
@@ -34,33 +41,48 @@ const playTone = (audio: AudioContext) => {
   oscillator.frequency.setValueAtTime(680, now);
   oscillator.frequency.exponentialRampToValueAtTime(480, now + 0.05);
   // Easier to hear on small speakers while remaining a brief UI cue.
-  gain.gain.setValueAtTime(0.10, now);
+  gain.gain.setValueAtTime(0.1, now);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
   oscillator.connect(gain);
   gain.connect(audio.destination);
+  oscillator.onended = () => {
+    oscillator.disconnect();
+    gain.disconnect();
+  };
   oscillator.start(now);
   oscillator.stop(now + 0.075);
 };
 
 export const previewInteractionSound = () => {
-  if (!window.AudioContext) return;
+  if (!window.AudioContext || document.hidden || !getMobileInteractionSoundEnabled()) return;
+  if (navigator.userActivation?.isActive === false) return;
   try {
-    context ??= new AudioContext();
-    // The first tap often resumes an AudioContext suspended by autoplay policy.
-    // Previously it returned without ever playing the first sound.
-    if (context.state !== 'running') {
-      void context.resume().then(() => playTone(context!)).catch(() => undefined);
+    if (!context || context.state === 'closed') context = new window.AudioContext();
+    const audio = context;
+    const generation = ++requestGeneration;
+    const requestedAt = performance.now();
+    if (audio.state === 'running') {
+      playTone(audio);
       return;
     }
-    playTone(context);
+    // Resume during the gesture, including after the mobile OS interrupts the PWA.
+    void audio
+      .resume()
+      .then(() => {
+        if (generation === requestGeneration && performance.now() - requestedAt < MAX_RESUME_DELAY_MS) playTone(audio);
+      })
+      .catch(() => undefined);
   } catch {
-    // Audio is optional; a blocked audio context must never break a button.
+    // An unavailable output must not interrupt the user's action.
   }
 };
 
 export const installMobileInteractionSounds = (): void => {
   if (isInstalled) return;
   isInstalled = true;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) requestGeneration++;
+  });
 
   document.addEventListener(
     'click',
@@ -68,14 +90,16 @@ export const installMobileInteractionSounds = (): void => {
       if (!getMobileInteractionSoundEnabled()) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
-      const control = target.closest<HTMLElement>(
-        'button, a[href], [role="button"], [role="tab"], [role="menuitem"]',
-      );
-      if (!control || control.matches(':disabled, [disabled], [aria-disabled="true"]')) return;
+      const control = target.closest<HTMLElement>('button, a[href], [role="button"], [role="tab"], [role="menuitem"]');
+      if (
+        !control ||
+        control.closest(':disabled, [disabled], [aria-disabled="true"], [inert], [data-interaction-sound-toggle]')
+      )
+        return;
       // Preview plays its own sound; the document click must not replay it.
       if (control.closest('[data-interaction-sound-preview]')) return;
       previewInteractionSound();
     },
-    { passive: true },
+    { capture: true, passive: true },
   );
 };

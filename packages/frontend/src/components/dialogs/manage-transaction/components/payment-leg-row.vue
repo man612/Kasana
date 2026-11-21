@@ -68,6 +68,7 @@ defineExpose({
       >
         <div class="flex min-w-0 flex-[2] items-center overflow-hidden">
           <AccountSelectField
+            allow-create
             class="min-w-0 flex-1"
             embedded
             :model-value="account"
@@ -88,9 +89,10 @@ defineExpose({
             class="min-w-0 flex-1"
             :model-value="amount"
             embedded
-            :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
             :aria-label="$t('dialogs.manageTransaction.form.amountLabel')"
-            :disabled="disabled || locked || (requireAccountBeforeAmount && !account)"
+            :disabled="disabled || locked"
+            :readonly="requireAccountBeforeAmount && !account"
+            :tabindex="requireAccountBeforeAmount && !account ? -1 : undefined"
             @update:model-value="emit('update:amount', $event)"
             @blur="emit('amount-blur')"
           />

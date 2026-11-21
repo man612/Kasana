@@ -8,14 +8,14 @@ import CategorySelectField from '@/components/fields/category-select-field.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import InputField from '@/components/fields/input-field.vue';
 import PayeeSelectField from '@/components/fields/payee-select-field.vue';
-import SelectField from '@/components/fields/select-field.vue';
+import PaymentMethodDialog from '@/components/fields/payment-method-dialog.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import TagSelectField from '@/components/fields/tag-select-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
 import TransactionTypeToggle from '@/components/fields/transaction-type-toggle.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Checkbox } from '@/components/lib/ui/checkbox';
 import { useNotificationCenter } from '@/components/notification-center';
-import { useCurrencyName } from '@/composable';
 import { usePayeeLookup } from '@/composable/data-queries/payees';
 import {
   useCreateTransactionTemplate,
@@ -23,7 +23,6 @@ import {
   useUpdateTransactionTemplate,
 } from '@/composable/data-queries/transaction-templates';
 import { useFormValidation } from '@/composable/form-validator';
-import { useLinkedCurrencyGroup } from '@/composable/use-linked-currency-group';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { isApiErrorWithCode } from '@/js/errors';
 import { useCategoriesStore } from '@/stores';
@@ -31,7 +30,6 @@ import { findFormattedCategoryById } from '@/stores/categories/helpers';
 import {
   API_ERROR_CODES,
   type AccountModel,
-  type CurrencyModel,
   type RecordId,
   TRANSACTION_TYPES,
   type TransactionTemplateModel,
@@ -70,10 +68,6 @@ const { t } = useI18n();
 const { addSuccessNotification } = useNotificationCenter();
 const { formattedCategories } = storeToRefs(useCategoriesStore());
 const { nameById: payeeNameById } = usePayeeLookup();
-const { formatCurrencyLabel } = useCurrencyName();
-const linkedCurrencyGroup = useLinkedCurrencyGroup();
-const currencyLabel = (item: CurrencyModel): string =>
-  formatCurrencyLabel({ code: item.code, fallbackName: item.currency });
 const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 
 const createMutation = useCreateTransactionTemplate();
@@ -119,7 +113,7 @@ const emptyTemplateForm = () => ({
   tagIds: [] as string[],
   paymentType: null as VerbosePaymentType | null,
   note: '',
-  originalCurrency: null as CurrencyModel | null,
+  originalCurrencyCode: null as string | null,
 });
 
 const form = ref(emptyTemplateForm());
@@ -164,8 +158,7 @@ const seedFrom = ({ source }: { source: Omit<CreateTransactionTemplateBody, 'nam
   form.value.tagIds = [...(source.tagIds ?? [])];
   form.value.paymentType = VERBOSE_PAYMENT_TYPES.find((item) => item.value === source.paymentType) ?? null;
   form.value.note = source.note ?? '';
-  form.value.originalCurrency =
-    props.sources.currencies.find((item) => item.code === source.originalCurrencyCode) ?? null;
+  form.value.originalCurrencyCode = source.originalCurrencyCode ?? null;
 };
 
 const seedName = () => {
@@ -178,17 +171,16 @@ const seedName = () => {
 watch(
   () => props.open,
   (open) => {
+    initialFormSnapshot.value = '';
+    isDiscardConfirmationOpen.value = false;
     if (!open) return;
 
     nameConflictError.value = null;
     resetValidation();
 
     const source = props.initial ?? props.template ?? null;
-    if (source) {
-      seedFrom({ source });
-    } else {
-      form.value = emptyTemplateForm();
-    }
+    form.value = emptyTemplateForm();
+    if (source) seedFrom({ source });
     form.value.name = seedName();
     // Compare the normalized payload, not Vue object identity, before discarding edits.
     void nextTick(() => {
@@ -239,6 +231,18 @@ const isPending = computed(
   () => createMutation.isPending.value || updateMutation.isPending.value || deleteMutation.isPending.value,
 );
 
+const canSave = computed(() => {
+  const { name, keepAccount, account, noAmount, amount, note } = form.value;
+  return (
+    !isPending.value &&
+    !nameConflictError.value &&
+    !!name.trim() &&
+    name.trim().length <= NAME_MAX_LENGTH &&
+    note.trim().length <= 1000 &&
+    (keepAccount ? noAmount : !!account && (noAmount || (amount != null && Number.isFinite(amount) && amount >= 0)))
+  );
+});
+
 const buildPayload = (): CreateTransactionTemplateBody => {
   const accountId = form.value.keepAccount ? null : (form.value.account?.id ?? null);
   const note = form.value.note.trim();
@@ -252,15 +256,15 @@ const buildPayload = (): CreateTransactionTemplateBody => {
     payeeId: (form.value.payeeId as RecordId | null) ?? null,
     paymentType: form.value.paymentType?.value ?? null,
     note: note || null,
-    originalCurrencyCode: form.value.originalCurrency?.code ?? null,
-    tagIds: form.value.tagIds as RecordId[],
+    originalCurrencyCode: form.value.originalCurrencyCode,
+    tagIds: [...form.value.tagIds].sort() as RecordId[],
   };
 };
 
 const save = async () => {
   touchField('form.name');
   touchField('form.account');
-  if (!isFormValid('form')) return;
+  if (!canSave.value || !isFormValid('form')) return;
 
   const payload = buildPayload();
 
@@ -341,18 +345,14 @@ const confirmDelete = async () => {
       </div>
 
       <div>
-        <InputField
+        <FormattedAmountField
           v-model="form.amount"
-          type="number"
-          only-positive
+          :currency-code="form.account?.currencyCode ?? 'IDR'"
           :label="$t('dialogs.manageTransaction.form.amountLabel')"
-          :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
-          :disabled="form.noAmount"
+          :disabled="form.noAmount || form.keepAccount"
         >
-          <template #iconTrailing>
-            <span>{{ form.account?.currencyCode }}</span>
-          </template>
-        </InputField>
+          <template #iconTrailing>{{ form.account?.currencyCode }}</template>
+        </FormattedAmountField>
         <label class="mt-2 flex min-h-11 items-center gap-2 text-sm">
           <Checkbox v-model="form.noAmount" :disabled="form.keepAccount" />
           {{ $t('dialogs.manageTransaction.templates.form.noAmount') }}
@@ -380,35 +380,18 @@ const confirmDelete = async () => {
 
       <TagSelectField v-model="form.tagIds" :label="$t('dialogs.manageTransaction.form.tagsLabel')" />
 
-      <SelectField
-        v-model="form.paymentType"
-        :label="$t('dialogs.manageTransaction.form.paymentTypeLabel')"
-        :values="VERBOSE_PAYMENT_TYPES"
-        :label-key="(item) => $t(item.label)"
-        clearable
-      />
-
-      <SelectField
-        v-model="form.originalCurrency"
-        :values="sources.currencies"
-        :pinned-group="linkedCurrencyGroup"
-        :label-key="currencyLabel"
-        value-key="code"
-        with-search
-        clearable
-        :label="$t('dialogs.manageTransaction.templates.form.originalCurrencyLabel')"
-        :placeholder="$t('dialogs.manageTransaction.templates.form.originalCurrencyPlaceholder')"
-      />
+      <PaymentMethodDialog v-model="form.paymentType" :label="$t('dialogs.manageTransaction.form.paymentTypeLabel')" />
 
       <TextareaField
         v-model="form.note"
+        :maxlength="1000"
         :label="$t('dialogs.manageTransaction.form.noteLabel')"
         :placeholder="$t('dialogs.manageTransaction.form.notePlaceholder')"
       />
     </div>
 
     <template #footer>
-      <div class="flex min-w-0 w-full items-center gap-2 px-2">
+      <div class="flex w-full min-w-0 items-center gap-2 px-2">
         <Button
           v-if="isEditingExisting"
           variant="soft-destructive"
@@ -420,7 +403,12 @@ const confirmDelete = async () => {
         <Button variant="outline" class="ml-auto min-w-24" :disabled="isPending" @click="isOpen = false">
           {{ $t('common.actions.cancel') }}
         </Button>
-        <Button class="min-w-24" :disabled="isPending" :loading="isPending" @click="save">
+        <Button
+          class="min-w-24 transition-[background-color,opacity]"
+          :disabled="!canSave"
+          :loading="isPending"
+          @click="save"
+        >
           {{ $t('dialogs.manageTransaction.templates.form.save') }}
         </Button>
       </div>

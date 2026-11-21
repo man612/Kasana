@@ -134,6 +134,7 @@ const { virtualRows, totalSize } = useVirtualizedInfiniteScroll({
 
 const {
   isDialogVisible,
+  editSession,
   dialogProps,
   isCompactDialog,
   handleRecordClick,
@@ -338,8 +339,19 @@ const handleUnlink = () =>
       />
     </div>
 
-    <TransactionDetailsModal v-model:open="isDialogVisible" :mobile="isMobile" :is-compact="isCompactDialog">
-      <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" @request-close="closeDialog" />
+    <TransactionDetailsModal
+      v-slot="{ requestClose }"
+      v-model:open="isDialogVisible"
+      :session="editSession"
+      :mobile="isMobile"
+      :is-compact="isCompactDialog"
+    >
+      <ManageTransactionDialogContent
+        ref="editSession"
+        v-bind="dialogProps"
+        @close-modal="closeDialog"
+        @request-close="requestClose"
+      />
     </TransactionDetailsModal>
     <LoanPaymentDialog
       v-if="loanDialogProps.loanAccount"

@@ -19,11 +19,13 @@
       "baseCurrencyEquivalent": "≈ {value} in {code}",
       "loadError": "Failed to load portfolio summary.",
       "metrics": {
-        "costBasis": "Cost basis",
+        "costBasis": "Cost of assets held",
         "unrealized": "Unrealized",
         "realized": "Realized",
-        "totalReturn": "Total return"
-      }
+        "totalReturn": "Total return",
+        "cash": "Cash balance"
+      },
+      "totalGain": "total gain/loss"
     },
     "cashBalances": {
       "title": "Cash balances",
@@ -87,7 +89,8 @@
         "totalCost": "Total cost",
         "marketValue": "Market value",
         "unrealizedGain": "Unrealized gain",
-        "realizedGain": "Realized gain"
+        "realizedGain": "Realized gain",
+        "avgCost": "Average purchase price"
       },
       "transactions": {
         "loading": "Loading transactions…",
@@ -111,7 +114,8 @@
       "tryAgainLater": "Please try again later",
       "emptyDescription": "Add your first transaction to start tracking your investments",
       "addFirstHolding": "Add first holding",
-      "importTransactions": "Or import from a file"
+      "importTransactions": "Or import from a file",
+      "noMarketPrice": "Market price unavailable"
     },
     "transactionsList": {
       "title": "Transactions",
@@ -151,6 +155,10 @@
       "deleteTransaction": {
         "tooltip": "Delete transaction"
       }
+    },
+    "sections": {
+      "summary": "Overview",
+      "holdings": "Holdings"
     }
   }
 }

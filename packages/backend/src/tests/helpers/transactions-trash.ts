@@ -1,4 +1,10 @@
-import type { DeleteTrashResponse, GetTrashResponse, RecordId, RestoreTrashResponse } from '@bt/shared/types';
+import type {
+  DeleteTrashResponse,
+  GetTrashResponse,
+  RecordId,
+  RestoreTrashResponse,
+  RestoreTrashBody,
+} from '@bt/shared/types';
 import Transactions from '@models/transactions.model';
 import { subDays } from 'date-fns';
 
@@ -9,16 +15,13 @@ export function getTrash<R extends boolean | undefined = undefined>({ raw }: { r
 }
 
 export function restoreTrash<R extends boolean | undefined = undefined>({
-  transactionIds,
   raw,
-}: {
-  transactionIds: RecordId[];
-  raw?: R;
-}) {
+  ...payload
+}: RestoreTrashBody & { raw?: R }) {
   return makeRequest<RestoreTrashResponse, R>({
     method: 'post',
     url: '/transactions/trash/restore',
-    payload: { transactionIds },
+    payload,
     raw,
   });
 }

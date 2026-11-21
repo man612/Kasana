@@ -1,5 +1,4 @@
-import { TRANSACTION_TRANSFER_NATURE, TRANSACTION_TYPES } from '@bt/shared/types';
-import { Money } from '@common/types/money';
+import { TRANSACTION_TRANSFER_NATURE } from '@bt/shared/types';
 import { logger } from '@js/utils';
 import Accounts from '@models/accounts.model';
 import ExchangeRates from '@models/exchange-rates.model';
@@ -14,7 +13,7 @@ import {
   createFindLatestUsdRate,
   createGetExchangeRate,
 } from '@services/stats/get-combined-balance-history/exchange-rate-lookup';
-import { computeVehicleValue } from '@services/vehicles/compute-vehicle-value';
+import { buildValuationAnchors, computeFromAnchor } from '@services/vehicles/valuation-timeline';
 import { endOfDay, format, parseISO, startOfDay, subDays } from 'date-fns';
 import { Op } from 'sequelize';
 
@@ -29,42 +28,13 @@ const vehicleValueAtDate = (vehicle: VehicleCompute, dateStr: string): number =>
     else break;
   }
 
-  const value = computeVehicleValue({
-    anchorValue: Money.fromCents(activeAnchor.valueCents),
-    anchorDate: parseISO(activeAnchor.date),
-    asOf: parseISO(dateStr),
-    vehicleClass: vehicle.vehicleClass,
-    preset: vehicle.preset,
-    customAnnualRatePct: vehicle.customAnnualRatePct,
-    salvageFloorPct: vehicle.salvageFloorPct,
-  });
-
-  return value.toCents();
+  return computeFromAnchor(activeAnchor, parseISO(dateStr)).toCents();
 };
 
-interface VehicleAnchor {
-  /** yyyy-MM-dd. Either purchaseDate or an override tx date. */
-  date: string;
-  /** Vehicle value at the anchor moment, in account currency cents. */
-  valueCents: number;
-}
-
 interface VehicleCompute {
-  id: string;
-  accountId: string;
   accountCurrencyCode: string;
   purchaseDate: string;
-  vehicleClass: Vehicles['vehicleClass'];
-  preset: Vehicles['depreciationPreset'];
-  customAnnualRatePct: number | null;
-  salvageFloorPct: number;
-  /**
-   * Anchor history in chronological order. First entry is always the purchase
-   * (purchaseDate, purchasePrice). Subsequent entries are manual overrides
-   * (transfer_out_wallet txs), each with the post-override value reconstructed
-   * from the previous anchor plus the signed tx amount.
-   */
-  anchors: VehicleAnchor[];
+  anchors: ReturnType<typeof buildValuationAnchors>;
 }
 
 /**
@@ -140,43 +110,11 @@ export const calculateVehiclesBalanceHistory = async ({
     else txsByAccount.set(tx.accountId, [tx]);
   }
 
-  const vehicleComputes: VehicleCompute[] = activeVehicles.map((vehicle) => {
-    const compute: VehicleCompute = {
-      id: vehicle.id,
-      accountId: vehicle.accountId,
-      accountCurrencyCode: vehicle.account.currencyCode,
-      purchaseDate: vehicle.purchaseDate,
-      vehicleClass: vehicle.vehicleClass,
-      preset: vehicle.depreciationPreset,
-      customAnnualRatePct: vehicle.customAnnualRatePct ? Number(vehicle.customAnnualRatePct) : null,
-      salvageFloorPct: Number(vehicle.salvageFloorPct),
-      anchors: [{ date: vehicle.purchaseDate, valueCents: vehicle.purchasePrice.toCents() }],
-    };
-
-    const txs = txsByAccount.get(vehicle.accountId) ?? [];
-    for (const tx of txs) {
-      const txDateStr = formatDate(tx.time);
-      const lastAnchor = compute.anchors[compute.anchors.length - 1]!;
-
-      const preTxValue = computeVehicleValue({
-        anchorValue: Money.fromCents(lastAnchor.valueCents),
-        anchorDate: parseISO(lastAnchor.date),
-        asOf: parseISO(txDateStr),
-        vehicleClass: compute.vehicleClass,
-        preset: compute.preset,
-        customAnnualRatePct: compute.customAnnualRatePct,
-        salvageFloorPct: compute.salvageFloorPct,
-      });
-
-      const signedAmountCents =
-        tx.transactionType === TRANSACTION_TYPES.income ? tx.amount.toCents() : -tx.amount.toCents();
-      const newAnchorCents = preTxValue.toCents() + signedAmountCents;
-
-      compute.anchors.push({ date: txDateStr, valueCents: newAnchorCents });
-    }
-
-    return compute;
-  });
+  const vehicleComputes: VehicleCompute[] = activeVehicles.map((vehicle) => ({
+    accountCurrencyCode: vehicle.account.currencyCode,
+    purchaseDate: vehicle.purchaseDate,
+    anchors: buildValuationAnchors(vehicle, txsByAccount.get(vehicle.accountId) ?? []),
+  }));
 
   const minRangeDate = uniqueDates[0] ?? maxDate;
   const dataFetchMinDate = format(subDays(parseISO(minRangeDate), 7), 'yyyy-MM-dd');

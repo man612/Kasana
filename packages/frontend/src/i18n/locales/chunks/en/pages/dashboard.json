@@ -13,8 +13,46 @@
         "includePlannedSaveError": "Couldn't save the planned transactions setting. Please try again."
       },
       "balanceTrend": {
+        "presentation": {
+          "summary": "Summary",
+          "graph": "Chart",
+          "label": "Balance trend view",
+          "asOf": "As of {date}",
+          "periodStart": "Period start",
+          "periodChange": "Change during period",
+          "metrics": {
+            "total": {
+              "label": "Combined value",
+              "description": "Account balances, assets, and liabilities follow the components included in Settings."
+            },
+            "accounts": {
+              "label": "Account balance",
+              "description": "Combined value of the selected accounts. Transfers between them leave the combined balance unchanged."
+            },
+            "portfolios": {
+              "label": "Portfolio value",
+              "description": "Value of investments and cash in portfolios."
+            },
+            "ventures": {
+              "label": "Venture value",
+              "description": "Recorded venture value for this period."
+            },
+            "vehicles": {
+              "label": "Estimated vehicle value",
+              "description": "Estimated asset value follows recorded valuations and depreciation."
+            },
+            "loans": {
+              "label": "Outstanding loans",
+              "description": "Amount still owed. A decrease means less debt remains."
+            }
+          }
+        },
         "title": "Balance trend",
-        "table": { "toggle": "View balance by date", "date": "Date", "amount": "Balance" },
+        "table": {
+          "toggle": "View balance by date",
+          "date": "Date",
+          "amount": "Balance"
+        },
         "balanceTypes": {
           "total": "Total",
           "accounts": "Accounts",
@@ -78,7 +116,9 @@
         },
         "projection": {
           "summary": "{amount} projected · {count} planned entry through {date} | {amount} projected · {count} planned entries through {date}"
-        }
+        },
+        "panHint": "Drag across the chart or use the arrow keys to explore dates.",
+        "showFullRange": "Show full range"
       },
       "expensesStructure": {
         "title": "Expenses structure",
@@ -454,7 +494,10 @@
         "thisYear": "This year",
         "previousYear": "Previous year"
       },
-      "backToCurrent": "Current period"
+      "backToCurrent": "Current period",
+      "previousPeriod": "Previous period",
+      "nextPeriod": "Next period",
+      "loadingPeriod": "Loading data for this period"
     }
   },
   "widgets": {
@@ -473,6 +516,11 @@
       "loadFailed": "Couldn't load recurring payments"
     },
     "latestRecords": {
+      "collapse": "Collapse latest transactions",
+      "expand": "Expand latest transactions",
+      "compactSaveError": "Could not save the compact view. Try again.",
+      "visibleRows": "{count} recent transaction row | {count} recent transaction rows",
+      "scheduledRows": "{count} scheduled payment | {count} scheduled payments",
       "settings": {
         "excludeTitle": "Exclude transactions",
         "excludeTransfersDescription": "Hide transfers between your own accounts",
@@ -487,7 +535,7 @@
         "nothingExcluded": "Nothing excluded",
         "tagsStyleTitle": "Tags",
         "tagsStyleNames": "Names",
-        "tagsStyleBars": "Bars",
+        "tagsStyleBars": "Compact",
         "tagsStyleSaveError": "Couldn't save the tag style. Please try again.",
         "showAccountTitle": "Account",
         "showAccountDescription": "Show the account logo on each transaction",

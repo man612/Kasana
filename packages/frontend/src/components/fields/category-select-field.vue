@@ -61,8 +61,9 @@
               @click.stop="toggleCategory(item.id)"
             >
               <ChevronDownIcon
-                class="size-4 transition-transform duration-200"
+                class="size-4 transition-transform duration-200 motion-reduce:transition-none"
                 :class="collapsedCategoryIds.has(item.id) && '-rotate-90'"
+                aria-hidden="true"
               />
             </button>
           </div>
@@ -116,7 +117,7 @@
                     <span
                       :key="selectedValue?.id ?? 'empty-category'"
                       class="flex min-w-0 flex-1 items-center gap-2"
-                      :class="selectedValue && !disabled && 'pe-5.5'"
+                      :class="clearable && selectedValue && !disabled && 'pe-5.5'"
                     >
                       <CategoryCircle
                         v-if="selectedValue"
@@ -137,7 +138,7 @@
               </Dialog.DialogTrigger>
               <Transition name="lajur-info-reveal">
                 <button
-                  v-if="selectedValue && !disabled"
+                  v-if="clearable && selectedValue && !disabled"
                   type="button"
                   class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-8 flex w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
                   :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
@@ -159,9 +160,6 @@
                 <Dialog.DialogTitle class="text-base font-semibold">
                   {{ $t('fields.categorySelect.selectCategoryLabel') }}
                 </Dialog.DialogTitle>
-                <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
-                  {{ $t('fields.categorySelect.dialogHint') }}
-                </Dialog.DialogDescription>
               </div>
               <div
                 v-if="sharedOwnerHandle"
@@ -173,15 +171,12 @@
                   :content="$t('fields.categorySelect.sharedOwnerNoticeTooltip', { owner: sharedOwnerHandle })"
                 />
               </div>
-              <div v-if="unlistedIds" class="text-muted-foreground border-b px-3 py-2 text-xs" role="note">
-                {{ $t('fields.categorySelect.unlistedNotice') }}
-              </div>
               <ListboxRoot :model-value="selectedValue" by="id" highlight-on-hover>
                 <ListboxFilter
                   v-model="searchQuery"
                   auto-focus
                   class="border-border w-full border-b bg-transparent px-4 py-3 text-sm outline-none"
-                  :placeholder="$t('fields.categorySelect.searchPlaceholder')"
+                  :placeholder="$t('fields.categorySelect.searchCategoryLabel')"
                   :aria-label="$t('fields.categorySelect.searchCategoryLabel')"
                 />
                 <div
@@ -203,7 +198,7 @@
               :disabled="disabled"
               :class="
                 cn(
-                  'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
+                  'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-11 w-full min-w-0 items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
                   'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
                   disabled && 'cursor-not-allowed opacity-50',
                   $slots['field-right'] && 'rounded-r-none border-r-0',
@@ -211,6 +206,8 @@
                 )
               "
               :aria-label="$t('fields.categorySelect.selectCategoryLabel')"
+              aria-haspopup="dialog"
+              :aria-expanded="isOpen"
               :title="selectedValue?.name || $t('fields.categorySelect.selectCategoryLabel')"
               @click="openDropdown"
             >
@@ -218,7 +215,7 @@
                 <span
                   :key="selectedValue?.id ?? 'empty-category'"
                   class="flex min-w-0 flex-1 items-center gap-2"
-                  :class="selectedValue && !disabled && 'pe-5.5'"
+                  :class="clearable && selectedValue && !disabled && 'pe-5.5'"
                 >
                   <CategoryCircle
                     v-if="selectedValue"
@@ -234,14 +231,11 @@
                   </span>
                 </span>
               </Transition>
-              <ChevronDownIcon
-                class="text-popover-foreground size-5 shrink-0 transition-transform duration-150 ease-out"
-                :class="{ 'rotate-180': isOpen }"
-              />
+              <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
             </button>
             <Transition name="lajur-info-reveal">
               <button
-                v-if="selectedValue && !disabled"
+                v-if="clearable && selectedValue && !disabled"
                 type="button"
                 class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-8 flex w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
                 :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
@@ -260,10 +254,34 @@
     <FieldError :error-message="errorMessage" />
 
     <!-- Mobile: Drawer -->
-    <Drawer.Drawer v-if="isMobile" :open="isOpen" @update:open="handleDrawerOpenChange">
-      <Drawer.DrawerContent class="h-[88dvh] max-h-[92dvh] px-4 pb-4">
-        <Drawer.DrawerHeader class="px-0 pb-2">
-          <Drawer.DrawerTitle>{{ $t('fields.categorySelect.selectCategoryLabel') }}</Drawer.DrawerTitle>
+    <Drawer.Drawer v-if="isMobile" :open="isOpen" fixed @update:open="handleDrawerOpenChange">
+      <Drawer.DrawerContent
+        custom-indicator
+        class="h-[88dvh] max-h-[92dvh] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] motion-safe:transition-[max-height,bottom] motion-safe:duration-150"
+        :style="keyboardSheetStyle"
+        @open-auto-focus.prevent="mobileHeading?.focus({ preventScroll: true })"
+        @close-auto-focus="onCategoryCloseAutoFocus"
+      >
+        <Drawer.DrawerHeader
+          class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-0 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 text-left"
+        >
+          <Drawer.DrawerTitle>
+            <span ref="mobileHeading" tabindex="-1" class="outline-none">{{
+              $t('fields.categorySelect.selectCategoryLabel')
+            }}</span>
+          </Drawer.DrawerTitle>
+          <DesktopOnlyTooltip :content="$t('common.ui.close')">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              class="text-muted-foreground size-11"
+              :aria-label="$t('common.ui.close')"
+              @click="handleDrawerOpenChange(false)"
+            >
+              <XIcon class="size-5" aria-hidden="true" />
+            </Button>
+          </DesktopOnlyTooltip>
         </Drawer.DrawerHeader>
 
         <div
@@ -275,18 +293,15 @@
           <HintIcon :content="$t('fields.categorySelect.sharedOwnerNoticeTooltip', { owner: sharedOwnerHandle })" />
         </div>
 
-        <div v-if="unlistedIds" class="text-muted-foreground mb-3 text-xs" role="note">
-          {{ $t('fields.categorySelect.unlistedNotice') }}
-        </div>
-
         <ListboxRoot :model-value="selectedValue" by="id" highlight-on-hover class="flex min-h-0 flex-1 flex-col">
           <div
-            class="border-input bg-input-background mb-3 flex h-10 w-full items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9"
+            class="border-input bg-input-background mb-3 flex h-11 w-full shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-base md:h-9 md:text-sm"
           >
+            <SearchIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
             <ListboxFilter
               v-model="searchQuery"
               class="min-w-0 flex-1 bg-transparent outline-none"
-              :placeholder="selectedValue?.name || $t('fields.categorySelect.searchPlaceholder')"
+              :placeholder="$t('fields.categorySelect.searchCategoryLabel')"
               :aria-label="$t('fields.categorySelect.searchCategoryLabel')"
             />
 
@@ -312,6 +327,8 @@
 </template>
 
 <script setup lang="ts">
+import { Button } from '@/components/lib/ui/button';
+import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import HintIcon from '@/components/common/hint-icon.vue';
 import { type FormattedCategory } from '@/common/types';
 import { truncateOwnerUsername } from '@/common/utils/account-display';
@@ -322,9 +339,10 @@ import * as Drawer from '@/components/lib/ui/drawer';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { cn } from '@/lib/utils';
+import { useKeyboardViewport } from '@/composable/use-keyboard-viewport';
 import { CATEGORY_TYPES, type CategoryModel } from '@bt/shared/types';
 import { createReusableTemplate } from '@vueuse/core';
-import { ChevronDownIcon, SearchIcon, XIcon } from '@lucide/vue';
+import { ChevronDownIcon, ChevronRightIcon, SearchIcon, XIcon } from '@lucide/vue';
 import { ListboxContent, ListboxFilter, ListboxItem, ListboxRoot } from 'reka-ui';
 import { computed, ref, watch } from 'vue';
 
@@ -348,6 +366,7 @@ const props = withDefaults(
     placeholder?: string;
     errorMessage?: string;
     disabled?: boolean;
+    clearable?: boolean;
     /** Forwarded to inner CategoryCircle so icon inheritance walks the right tree. */
     categoriesMap?: Record<string, CategoryModel>;
     /**
@@ -487,22 +506,46 @@ const shouldShowSeparator = ({ item, index }: { item: FlatCategory; index: numbe
   return prevItem!.rootParentId !== item.rootParentId;
 };
 
+const mobileHeading = ref<HTMLElement | null>(null);
+const keyboard = useKeyboardViewport(computed(() => isMobile.value && isOpen.value));
+const closingKeyboardStyle = ref<{ bottom: string; maxHeight: string }>();
+const keyboardSheetStyle = computed(
+  () =>
+    closingKeyboardStyle.value ??
+    (keyboard.value && {
+      bottom: `${keyboard.value.bottomInset}px`,
+      maxHeight: `${Math.max(1, keyboard.value.height - 8)}px`,
+    }),
+);
+
 const openDropdown = () => {
+  closingKeyboardStyle.value = undefined;
   isOpen.value = true;
   searchQuery.value = '';
 };
 
 const handleDrawerOpenChange = (open: boolean) => {
-  isOpen.value = open;
-  if (!open) {
-    searchQuery.value = '';
+  if (!open && isOpen.value) {
+    closingKeyboardStyle.value = keyboardSheetStyle.value;
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement && mobileHeading.value?.closest('[role="dialog"]')?.contains(focused)) {
+      focused.blur();
+    }
   }
+  isOpen.value = open;
+};
+const onCategoryCloseAutoFocus = (event: Event) => {
+  if (isOpen.value) return;
+  closingKeyboardStyle.value = undefined;
+  event.preventDefault();
+  triggerRef.value?.focus({ preventScroll: true });
 };
 
 const selectItem = (item: FlatCategory) => {
   selectedValue.value = item;
   emit('update:model-value', item);
-  isOpen.value = false;
+  if (isMobile.value) handleDrawerOpenChange(false);
+  else isOpen.value = false;
   searchQuery.value = '';
 };
 

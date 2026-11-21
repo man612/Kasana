@@ -8,9 +8,9 @@ import * as errors from '@/js/errors';
 import { invalidatePersistedQuery, queryClient } from '@/lib/query-client';
 import { useUserStore } from '@/stores/user';
 import { CategoryModel } from '@bt/shared/types';
-import { useQuery } from '@tanstack/vue-query';
+import { hashKey, useQuery } from '@tanstack/vue-query';
 import { defineStore, storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, onScopeDispose, ref } from 'vue';
 
 import { buildCategoriesObjectGraph } from './helpers';
 
@@ -20,8 +20,22 @@ export const useCategoriesStore = defineStore('categories', () => {
 
   // Union of the caller's own categories and those of every account-owner they can read,
   // so display lookups can resolve ids belonging to a shared account.
+  const categoryQuery = {
+    queryKey: VUE_QUERY_CACHE_KEYS.categoriesList,
+    queryFn: loadSystemCategories,
+  };
   const categories = ref<CategoryModel[]>([]);
   const isFetched = ref(false);
+  const categoryHash = hashKey(categoryQuery.queryKey);
+
+  onScopeDispose(
+    queryClient.getQueryCache().subscribe((event) => {
+      if (event.query.queryHash === categoryHash && event.type === 'updated' && event.action.type === 'success') {
+        categories.value = event.query.state.data as CategoryModel[];
+        isFetched.value = true;
+      }
+    }),
+  );
 
   // Never `ensureQueryData` here: it short-circuits on present data and would hand back
   // the entry `force` just invalidated, making the flag inert.
@@ -31,18 +45,8 @@ export const useCategoriesStore = defineStore('categories', () => {
         await invalidatePersistedQuery({ queryKey: VUE_QUERY_CACHE_KEYS.categoriesList });
       }
 
-      const result = await queryClient.fetchQuery({
-        queryKey: VUE_QUERY_CACHE_KEYS.categoriesList,
-        queryFn: loadSystemCategories,
-        staleTime: Infinity,
-      });
-
-      // Guard on presence, never on `.length`: an empty list is a valid state (the user
-      // deleted their last category) and must clear the ref rather than keep it stale.
-      if (result) {
-        categories.value = result;
-        isFetched.value = true;
-      }
+      categories.value = await queryClient.fetchQuery(categoryQuery);
+      isFetched.value = true;
     } catch (err) {
       if (!(err instanceof errors.AuthError)) {
         notificationStore.addErrorNotification(i18n.global.t('settings.categories.errors.cannotLoad'));
@@ -77,6 +81,11 @@ export const useCategoriesStore = defineStore('categories', () => {
     ),
   );
 
+  const resetCategories = () => {
+    categories.value = [];
+    isFetched.value = false;
+  };
+
   return {
     categories,
     categoriesMap,
@@ -85,5 +94,6 @@ export const useCategoriesStore = defineStore('categories', () => {
     ownCategories,
     formattedCategories,
     loadCategories,
+    resetCategories,
   };
 });

@@ -5,7 +5,7 @@
   >
     <Switch
       :model-value="!isDismissed && !isTemporarilyHidden"
-      :disabled="!isInitialized"
+      :disabled="!isInitialized || isSavingVisibility"
       @update:model-value="(value) => (value ? onboardingStore.reopen() : onboardingStore.dismissPermanently())"
     />
   </SettingRow>
@@ -19,5 +19,5 @@ import { storeToRefs } from 'pinia';
 import SettingRow from './setting-row.vue';
 
 const onboardingStore = useOnboardingStore();
-const { isDismissed, isTemporarilyHidden, isInitialized } = storeToRefs(onboardingStore);
+const { isDismissed, isTemporarilyHidden, isInitialized, isSavingVisibility } = storeToRefs(onboardingStore);
 </script>

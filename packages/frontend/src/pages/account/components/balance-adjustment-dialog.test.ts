@@ -1,3 +1,5 @@
+import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import commonEn from '@/i18n/locales/chunks/en/common.json';
 import formsEn from '@/i18n/locales/chunks/en/forms.json';
 import accountEn from '@/i18n/locales/chunks/en/pages/account.json';
 import { type VueWrapper, flushPromises, mount } from '@vue/test-utils';
@@ -69,7 +71,7 @@ vi.mock('@/components/common/responsive-dialog.vue', async () => {
     default: defineComponent({
       name: 'ResponsiveDialogStub',
       props: { open: { type: Boolean, default: true } },
-      emits: ['update:open'],
+      emits: ['update:open', 'closed'],
       setup(props, { emit, slots }) {
         const close = () => emit('update:open', false);
         return () =>
@@ -86,7 +88,7 @@ vi.mock('@/components/common/responsive-dialog.vue', async () => {
 const i18n = createI18n({
   legacy: false,
   locale: 'en',
-  messages: { en: { ...accountEn, ...formsEn } },
+  messages: { en: { ...commonEn, ...accountEn, ...formsEn } },
 });
 
 /* ─────────────────────────────── Helpers ──────────────────────────────── */
@@ -273,10 +275,14 @@ describe('BalanceAdjustmentDialog', () => {
       expect(mockAddSuccess).toHaveBeenCalledWith(t('pages.account.balanceAdjustmentDialog.successNotification'));
     });
 
-    it('emits close on successful submit', async () => {
+    it('tells the host to remove the dialog after the close animation', async () => {
       const w = mountDialog();
       await enterAmountAndSubmit(w, 2000);
 
+      const dialog = w.getComponent(ResponsiveDialog);
+      expect(dialog.props('open')).toBe(false);
+      expect(w.emitted('close')).toBeUndefined();
+      dialog.vm.$emit('closed');
       expect(w.emitted('close')).toHaveLength(1);
     });
 
@@ -309,7 +315,7 @@ describe('BalanceAdjustmentDialog', () => {
   });
 
   describe('mode switching', () => {
-    it('preserves each mode\'s amount and shared note across repeated switches', async () => {
+    it("preserves each mode's amount and shared note across repeated switches", async () => {
       const w = mountDialog();
       await amountInput(w).setValue('5000');
       await noteInput(w).setValue('Penyesuaian manual');
@@ -318,7 +324,9 @@ describe('BalanceAdjustmentDialog', () => {
       expect((noteInput(w).element as HTMLInputElement).value).toBe('Penyesuaian manual');
 
       await amountInput(w).setValue('250');
-      const setTo = w.findAll('button').find((b) => b.text().trim() === t('pages.account.balanceAdjustmentDialog.setToBalance'))!;
+      const setTo = w
+        .findAll('button')
+        .find((b) => b.text().trim() === t('pages.account.balanceAdjustmentDialog.setToBalance'))!;
       await setTo.trigger('click');
       await nextTick();
       expect((amountInput(w).element as HTMLInputElement).value).toBe('5.000');

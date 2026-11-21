@@ -320,7 +320,7 @@ const navigateToTransactions = ({ categoryId }: { categoryId: string }) => {
             <SettingsIcon class="text-muted-foreground size-4" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent class="w-72 overflow-hidden p-0" align="end">
+        <PopoverContent dim-backdrop class="w-72 overflow-hidden p-0" align="end">
           <SlidingPanels v-model="settingsView" :panels="['main', 'sort']">
             <template #main>
               <header class="border-b px-3 py-2 text-sm font-medium">{{ t('common.actions.settings') }}</header>

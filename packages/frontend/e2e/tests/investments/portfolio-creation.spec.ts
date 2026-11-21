@@ -24,6 +24,7 @@ test.describe('Portfolio Creation', () => {
   });
 
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('preferred-locale', 'en'));
     await loginViaUI({ page, email: creds.email, password: creds.password });
 
     if (!dataSeeded) {
@@ -38,7 +39,7 @@ test.describe('Portfolio Creation', () => {
     await page.goto('/investments');
     await page.waitForURL(/\/investments/, { timeout: 15_000 });
 
-    const emptyStateBtn = page.getByRole('button', { name: /create your first portfolio/i });
+    const emptyStateBtn = page.getByRole('button', { name: /^create portfolio$/i });
     await expect(emptyStateBtn).toBeVisible({ timeout: 10_000 });
     await emptyStateBtn.click();
 
@@ -49,7 +50,11 @@ test.describe('Portfolio Creation', () => {
 
     const submitBtn = dialog.locator('button[type="submit"]');
     await expect(submitBtn).toBeEnabled();
+    const createRequest = page.waitForRequest(
+      (request) => request.method() === 'POST' && new URL(request.url()).pathname.endsWith('/portfolios'),
+    );
     await submitBtn.click();
+    expect((await createRequest).postDataJSON()).toMatchObject({ displayCurrencyCode: 'IDR' });
 
     await waitForSuccessToast({ page });
 

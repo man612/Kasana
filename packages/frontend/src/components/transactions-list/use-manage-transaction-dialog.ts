@@ -1,4 +1,5 @@
 import { loadTransactionById } from '@/api/transactions';
+import type { TransactionDialogSession } from '@/components/dialogs/manage-transaction/composables/transaction-dialog-close';
 import { useNotificationCenter } from '@/components/notification-center';
 import { i18n } from '@/i18n';
 import { captureException } from '@/lib/sentry';
@@ -13,7 +14,7 @@ import {
   TransactionModel,
 } from '@bt/shared/types';
 import { storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, ref, shallowRef } from 'vue';
 
 interface DialogProps {
   transaction: TransactionModel | undefined;
@@ -38,6 +39,7 @@ export function useManageTransactionDialog() {
   const { addErrorNotification } = useNotificationCenter();
 
   const isDialogVisible = ref(false);
+  const editSession = shallowRef<TransactionDialogSession | null>(null);
   const dialogProps = ref<DialogProps>({
     transaction: undefined,
     oppositeTransaction: undefined,
@@ -160,6 +162,7 @@ export function useManageTransactionDialog() {
 
   return {
     isDialogVisible,
+    editSession,
     dialogProps,
     isCompactDialog,
     handleRecordClick,

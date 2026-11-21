@@ -13,7 +13,7 @@ import { ArrowRightIcon, GripVerticalIcon, HistoryIcon, MoreVerticalIcon, Pencil
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { format } from 'date-fns';
+import { useDateLocale } from '@/composable/use-date-locale';
 
 import AutomationChipTrack from './automation-chip-track.vue';
 import { type AutomationDensity, buildAutomationChips } from './automation-chips';
@@ -29,6 +29,7 @@ const props = defineProps<{
 const emit = defineEmits<{ delete: []; apply: []; select: [] }>();
 
 const { t } = useI18n();
+const { format } = useDateLocale();
 const router = useRouter();
 const { addErrorNotification, addNotification } = useNotificationCenter();
 
@@ -55,7 +56,13 @@ const pausedLabel = computed(() => {
     : t('automations.pausedMissingRefUnnamed', { refType });
 });
 
-const bodyClass = computed(() => cn('min-w-0 flex-1', !props.rule.isEnabled && 'opacity-55'));
+const bodyClass = computed(() =>
+  cn(
+    'min-w-0 flex-1',
+    'transition-opacity duration-200 motion-reduce:transition-none',
+    !props.rule.isEnabled && 'opacity-55',
+  ),
+);
 
 const eyebrowClass = 'text-[10px] font-extrabold tracking-wider uppercase @md/automations:hidden';
 
@@ -147,10 +154,10 @@ const handleMenuAction = ({ close, action }: { close: () => void; action: 'edit'
             <span class="truncate text-base font-medium">{{ rule.name }}</span>
 
             <span
-              v-if="!rule.isEnabled"
-              class="bg-warning-text/10 text-warning-text order-2 rounded-full px-2 py-0.5 text-xs @md/automations:order-1"
+              class="order-2 rounded-full px-2 py-0.5 text-xs transition-colors motion-reduce:transition-none @md/automations:order-1"
+              :class="rule.isEnabled ? 'bg-success-text/10 text-success-text' : 'bg-warning-text/10 text-warning-text'"
             >
-              {{ pausedLabel }}
+              {{ rule.isEnabled ? $t('automations.editor.enabled') : pausedLabel }}
             </span>
 
             <span

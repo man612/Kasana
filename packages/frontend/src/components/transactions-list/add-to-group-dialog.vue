@@ -3,7 +3,7 @@ import * as transactionGroupsApi from '@/api/transaction-groups';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import { Button } from '@/components/lib/ui/button';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
-import { invalidateTransactionGroupQueries } from '@/composable/data-queries/transaction-groups';
+import { syncTransactionGroupQueries } from '@/composable/data-queries/transaction-groups';
 import { getApiErrorMessage } from '@/js/errors';
 import { useQuery, useQueryClient } from '@tanstack/vue-query';
 import { CheckIcon, SearchIcon } from '@lucide/vue';
@@ -54,18 +54,19 @@ const filteredGroups = computed(() => {
 });
 
 const handleSubmit = async () => {
+  if (isSubmitting.value) return;
   if (!selectedGroupId.value || !props.transactionIds.length) return;
 
   isSubmitting.value = true;
   error.value = '';
 
   try {
-    await transactionGroupsApi.addTransactionsToGroup({
+    const group = await transactionGroupsApi.addTransactionsToGroup({
       groupId: selectedGroupId.value,
       transactionIds: props.transactionIds,
     });
 
-    invalidateTransactionGroupQueries({ queryClient });
+    await syncTransactionGroupQueries({ queryClient, groupId: group.id, group });
 
     emit('update:open', false);
     emit('added');
@@ -83,7 +84,12 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <ResponsiveDialog :open="open" custom-close dialog-content-class="sm:max-w-md" @update:open="emit('update:open', $event)">
+  <ResponsiveDialog
+    :open="open"
+    custom-close
+    dialog-content-class="sm:max-w-md"
+    @update:open="emit('update:open', $event)"
+  >
     <template #title>{{ t('transactions.transactionGroups.addToGroupDialog.title') }}</template>
     <template #description>
       Add {{ transactionIds.length }} selected transaction{{ transactionIds.length !== 1 ? 's' : '' }} to a group
@@ -127,7 +133,7 @@ const handleSubmit = async () => {
             <p class="truncate font-medium">{{ group.name }}</p>
             <p v-if="group.transactionCount !== undefined" class="text-muted-foreground text-xs">
               {{ group.transactionCount }}
-              {{ t('transactions.transactionGroups.addToGroupDialog.transactionCountLabel') || 'transactions' }}
+              {{ $t('transactions.transactionGroups.addToGroupDialog.transactionCountLabel') }}
             </p>
           </div>
           <CheckIcon v-if="selectedGroupId === group.id" class="text-primary-text ml-2 size-4 shrink-0" />

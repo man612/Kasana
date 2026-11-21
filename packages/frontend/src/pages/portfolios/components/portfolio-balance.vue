@@ -19,7 +19,7 @@
     </div>
 
     <!-- Error State -->
-    <div v-else-if="error" class="p-6 text-center">
+    <div v-else-if="error && !summary" class="p-6 text-center">
       <div class="bg-destructive/10 mx-auto mb-3 flex size-10 items-center justify-center rounded-full">
         <TrendingDownIcon class="text-destructive-text size-5" />
       </div>
@@ -39,17 +39,19 @@
         <!-- Total Value + Gain -->
         <div class="shrink-0">
           <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 class="text-3xl font-semibold tracking-tight">
+            <h2 class="text-3xl font-semibold tracking-tight break-words tabular-nums">
               {{ formatCurrency(Number(summary.totalPortfolioValue), summary.currencyCode) }}
             </h2>
-            <div :class="getGainColorClass({ gainValue: getTotalGainValue() })" class="flex items-center gap-1.5">
+            <div
+              v-if="!summary.unpricedHoldingsCount"
+              :class="getGainColorClass({ gainValue: getTotalGainValue() })"
+              class="flex items-center gap-1.5"
+            >
               <component :is="getTotalGainValue() >= 0 ? TrendingUpIcon : TrendingDownIcon" class="size-4" />
               <span class="text-sm font-medium">
                 {{ getTotalGainValue() >= 0 ? '+' : '' }}{{ formatCurrency(getTotalGainValue(), summary.currencyCode) }}
               </span>
-              <span class="text-xs">
-                ({{ getTotalGainPercent() >= 0 ? '+' : '' }}{{ getTotalGainPercent().toFixed(2) }}%)
-              </span>
+              <span class="text-muted-foreground text-xs">{{ $t('portfolioDetail.balance.totalGain') }}</span>
             </div>
           </div>
           <!-- Base-currency equivalent, only when the display currency differs -->
@@ -88,7 +90,10 @@
             <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               {{ $t('portfolioDetail.balance.metrics.unrealized') }}
             </p>
-            <div :class="getGainColorClass({ gainValue: Number(summary.unrealizedGainValue) })">
+            <div
+              v-if="!summary.unpricedHoldingsCount"
+              :class="getGainColorClass({ gainValue: Number(summary.unrealizedGainValue) })"
+            >
               <p class="text-base font-semibold">
                 {{ Number(summary.unrealizedGainValue) >= 0 ? '+' : ''
                 }}{{ formatCurrency(Number(summary.unrealizedGainValue), summary.currencyCode) }}
@@ -98,6 +103,7 @@
                 }}{{ Number(summary.unrealizedGainPercent).toFixed(2) }}%
               </p>
             </div>
+            <p v-else class="text-muted-foreground">—</p>
           </div>
 
           <!-- Realized Gains -->
@@ -110,27 +116,25 @@
                 {{ Number(summary.realizedGainValue) >= 0 ? '+' : ''
                 }}{{ formatCurrency(Number(summary.realizedGainValue), summary.currencyCode) }}
               </p>
-              <p class="text-xs">
-                {{ Number(summary.realizedGainPercent) >= 0 ? '+' : ''
-                }}{{ Number(summary.realizedGainPercent).toFixed(2) }}%
-              </p>
             </div>
           </div>
 
-          <!-- Total Return -->
           <div class="space-y-0.5">
-            <p class="text-muted-foreground text-xs font-medium tracking-wide whitespace-nowrap uppercase">
-              {{ $t('portfolioDetail.balance.metrics.totalReturn') }}
+            <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              {{ $t('portfolioDetail.balance.metrics.cash') }}
             </p>
-            <div :class="getGainColorClass({ gainValue: getTotalGainValue() })">
-              <p class="text-base font-semibold">
-                {{ getTotalGainValue() >= 0 ? '+' : '' }}{{ formatCurrency(getTotalGainValue(), summary.currencyCode) }}
-              </p>
-              <p class="text-xs">{{ getTotalGainPercent() >= 0 ? '+' : '' }}{{ getTotalGainPercent().toFixed(2) }}%</p>
-            </div>
+            <p class="font-semibold break-words tabular-nums">
+              {{ formatCurrency(Number(summary.totalCashInBaseCurrency), summary.currencyCode) }}
+            </p>
           </div>
         </div>
       </div>
+      <p v-if="summary.unpricedHoldingsCount" class="text-warning-text mt-4 text-xs">
+        {{ $t('investments.summary.unpriced', { count: summary.unpricedHoldingsCount }) }}
+      </p>
+      <p v-else-if="isFetching || error" class="text-muted-foreground mt-4 text-xs" role="status">
+        {{ $t(isFetching ? 'investments.summary.refreshing' : 'investments.summary.incomplete') }}
+      </p>
     </div>
   </Card>
 </template>
@@ -139,36 +143,20 @@
 import { Card } from '@/components/lib/ui/card';
 import { usePortfolioSummary } from '@/composable/data-queries/portfolio-summary';
 import { useFormatCurrency } from '@/composable/formatters';
-import { toLocalNumber } from '@/js/helpers/formatters';
 import { getGainColorClass } from '@/composable/gain-color';
-import { useCurrenciesStore } from '@/stores/currencies';
 import { TrendingDownIcon, TrendingUpIcon } from '@lucide/vue';
-import { storeToRefs } from 'pinia';
 import { toRef } from 'vue';
 
 const props = defineProps<{ portfolioId: string }>();
 const portfolioId = toRef(props, 'portfolioId');
 
-const { data: summary, isLoading, error } = usePortfolioSummary(portfolioId);
+const { data: summary, isLoading, isFetching, error } = usePortfolioSummary(portfolioId);
 
 const { formatAmountByCurrencyCode } = useFormatCurrency();
-const { currencies } = storeToRefs(useCurrenciesStore());
-
-const formatCurrency = (amount: number, currencyCode: string) => {
-  const userCurrency = currencies.value.find((c) => c.currency?.code === currencyCode.toUpperCase());
-  if (!userCurrency) {
-    return toLocalNumber(amount, { maximumFractionDigits: 2 });
-  }
-  return formatAmountByCurrencyCode(amount, userCurrency.currencyCode);
-};
+const formatCurrency = formatAmountByCurrencyCode;
 
 const getTotalGainValue = () => {
   if (!summary.value) return 0;
   return Number(summary.value.unrealizedGainValue) + Number(summary.value.realizedGainValue);
-};
-
-const getTotalGainPercent = () => {
-  if (!summary.value || Number(summary.value.totalCostBasis) === 0) return 0;
-  return (getTotalGainValue() / Number(summary.value.totalCostBasis)) * 100;
 };
 </script>

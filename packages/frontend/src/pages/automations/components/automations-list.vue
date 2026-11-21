@@ -4,7 +4,7 @@ import { useReorderAutomations, useTransactionAutomations } from '@/composable/d
 import { isApiErrorWithCode } from '@/js/errors';
 import { captureException } from '@/lib/sentry';
 import { API_ERROR_CODES, type RecordId, type TransactionAutomationModel } from '@bt/shared/types';
-import { computed } from 'vue';
+import { computed, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { VueDraggable } from 'vue-draggable-plus';
 
@@ -20,6 +20,7 @@ const props = defineProps<{
 const emit = defineEmits<{ delete: [rule: TransactionAutomationModel]; apply: [rule: TransactionAutomationModel] }>();
 
 const { t } = useI18n();
+const listId = useId();
 const { addErrorNotification } = useNotificationCenter();
 const { refetch } = useTransactionAutomations();
 const reorderMutation = useReorderAutomations();
@@ -55,18 +56,23 @@ const draggableRules = computed({
     :delay-on-touch-only="true"
     ghost-class="automation-row-ghost"
     drag-class="automation-row-dragging"
-    class="divide-border/60 flex flex-col divide-y"
+    :target="`[id='${listId}']`"
+    draggable=".lajur-flow-row:not(.lajur-flow-row-leave-active)"
   >
-    <AutomationRow
-      v-for="(rule, index) in draggableRules"
-      :key="rule.id"
-      :rule="rule"
-      :position="reorderable ? index + 1 : undefined"
-      :density="density"
-      :reorderable="reorderable"
-      @delete="emit('delete', rule)"
-      @apply="emit('apply', rule)"
-    />
+    <TransitionGroup :id="listId" name="lajur-flow-row" tag="div" class="divide-border/60 divide-y">
+      <div v-for="(rule, index) in draggableRules" :key="rule.id" class="lajur-flow-row">
+        <div>
+          <AutomationRow
+            :rule="rule"
+            :position="reorderable ? index + 1 : undefined"
+            :density="density"
+            :reorderable="reorderable"
+            @delete="emit('delete', rule)"
+            @apply="emit('apply', rule)"
+          />
+        </div>
+      </div>
+    </TransitionGroup>
   </VueDraggable>
 </template>
 

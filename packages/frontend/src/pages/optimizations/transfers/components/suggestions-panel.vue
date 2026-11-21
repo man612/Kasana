@@ -19,6 +19,7 @@ const SKIP_DIALOG_SUPPRESSED_KEY = 'optimizations-skip-dialog-suppressed';
 const props = defineProps<{
   selectedItem: BulkTransferScanItem | null;
   isLinking: boolean;
+  actionsDisabled?: boolean;
   isSkipping: boolean;
 }>();
 
@@ -122,6 +123,7 @@ const previewIncomeAccount = computed(
             :key="match.transaction.id"
             :match="match"
             :is-linking="isLinking"
+            :actions-disabled="actionsDisabled"
             :is-skipping="isSkipping"
             @link="handleLinkClick(match)"
             @skip="handleSkipClick(match)"
@@ -142,7 +144,7 @@ const previewIncomeAccount = computed(
   <ResponsiveAlertDialog
     v-model:open="confirmDialogOpen"
     :confirm-label="$t('common.actions.link')"
-    :confirm-disabled="isLinking"
+    :confirm-disabled="isLinking || actionsDisabled"
     @confirm="handleConfirmLink"
   >
     <template #title>{{ $t('optimizations.transferSuggestions.confirmLink.title') }}</template>

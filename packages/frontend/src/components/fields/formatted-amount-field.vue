@@ -1,47 +1,52 @@
 <template>
-  <FieldLabel :label="label" :only-template="embedded || !!$slots['label-right']">
+  <FieldLabel :label="label" :only-template="embedded || !!$slots['label-right'] || !!$slots['field-right']">
     <template v-if="$slots['label-right']" #label-right>
       <slot name="label-right" />
     </template>
-    <div class="relative">
-      <span
-        v-if="currencyCode === 'IDR' && !embedded"
-        aria-hidden="true"
-        class="text-muted-foreground pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm font-semibold"
-      >
-        Rp
-      </span>
-      <input
-        ref="inputRef"
-        v-bind="$attrs"
-        type="text"
-        inputmode="decimal"
-        :value="displayValue"
-        :placeholder="placeholder"
-        :disabled="disabled"
-        :autofocus="autofocus"
-        autocomplete="off"
-        spellcheck="false"
-        :class="
-          cn(
-            'border-input bg-input-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-11 w-full rounded-md border px-3 py-2 text-base md:h-9 md:text-sm tabular-nums focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 md:h-9',
-            errorMessage && 'border-destructive',
-            embedded &&
-              'h-full border-0 bg-transparent px-2 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-full',
-            currencyCode === 'IDR' && !embedded && 'pl-10',
-            $slots.iconTrailing && currencyCode !== 'IDR' && 'pr-14',
-            ($attrs.class as string) ?? '',
-          )
-        "
-        @input="onInput"
-        @blur="emit('blur')"
-      />
-      <div
-        v-if="$slots.iconTrailing && currencyCode !== 'IDR'"
-        class="pointer-events-none absolute inset-y-0 right-2 flex items-center"
-      >
-        <slot name="iconTrailing" />
+    <div :class="$slots['field-right'] ? 'flex min-w-0 items-center gap-2' : 'contents'">
+      <div class="relative min-w-0 flex-1">
+        <span
+          v-if="currencyCode === 'IDR' && !embedded"
+          aria-hidden="true"
+          :class="disabled ? 'text-muted-foreground' : 'text-foreground'"
+          class="pointer-events-none absolute inset-y-0 left-3 z-1 flex items-center text-sm font-semibold motion-safe:transition-colors motion-safe:duration-180"
+        >
+          Rp
+        </span>
+        <input
+          ref="inputRef"
+          :aria-label="$slots['field-right'] ? label : undefined"
+          v-bind="$attrs"
+          type="text"
+          inputmode="decimal"
+          :value="displayValue"
+          :placeholder="placeholder ?? '0'"
+          :disabled="disabled"
+          :autofocus="autofocus"
+          autocomplete="off"
+          spellcheck="false"
+          :class="
+            cn(
+              'border-input bg-input-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring disabled:bg-muted/55 disabled:text-muted-foreground flex h-11 w-full rounded-md border px-3 py-2 text-base tabular-nums focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed motion-safe:transition-colors motion-safe:duration-180 md:h-9 md:text-sm',
+              errorMessage && 'border-destructive',
+              embedded &&
+                'h-full border-0 bg-transparent px-2 focus-visible:ring-0 focus-visible:ring-offset-0 md:h-full',
+              currencyCode === 'IDR' && !embedded && 'pl-10',
+              $slots.iconTrailing && currencyCode !== 'IDR' && 'pr-14',
+              ($attrs.class as string) ?? '',
+            )
+          "
+          @input="onInput"
+          @blur="emit('blur')"
+        />
+        <div
+          v-if="$slots.iconTrailing && currencyCode !== 'IDR'"
+          class="pointer-events-none absolute inset-y-0 right-2 flex items-center"
+        >
+          <slot name="iconTrailing" />
+        </div>
       </div>
+      <slot name="field-right" />
     </div>
     <FieldError :error-message="errorMessage" />
   </FieldLabel>
@@ -98,7 +103,7 @@ const formatNumber = (value: number): string => {
 const displayValue = computed(() => {
   if (props.modelValue === null || props.modelValue === undefined) return trailingFragment.value === '-' ? '-' : '';
   // fragment uses a canonical '.' — swap in the locale's decimal separator to match the formatter.
-  const fragment = trailingFragment.value.replace('.', separators.decimal);
+  const fragment = props.disabled ? '' : trailingFragment.value.replace('.', separators.decimal);
   return `${formatNumber(props.modelValue)}${fragment}`;
 });
 

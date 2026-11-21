@@ -20,6 +20,7 @@ import {
   MAX_AI_CONNECTIONS,
   MAX_CATEGORY_MAPPING_PRESETS,
   MAX_SAVED_TRANSACTION_VIEWS,
+  TRANSACTION_TIME_GROUPINGS,
   type MutuallyAssignable,
   NOTIFICATION_TYPES,
   PAYMENT_TYPES,
@@ -107,6 +108,7 @@ const ZodOnboardingStateSchema = z.object({
   completedTasks: z.array(z.string()).default([]),
   isDismissed: z.boolean().default(false),
   dismissedAt: z.string().datetime().nullable().default(null),
+  hiddenUntil: z.number().int().nonnegative().optional(),
 });
 
 // Schema for partial updates - no defaults so only provided fields are included
@@ -114,6 +116,7 @@ export const ZodOnboardingStateUpdateSchema = z.object({
   completedTasks: z.array(z.string()).optional(),
   isDismissed: z.boolean().optional(),
   dismissedAt: z.string().datetime().nullable().optional(),
+  hiddenUntil: z.number().int().nonnegative().optional(),
 });
 
 export type OnboardingStateSchema = z.infer<typeof ZodOnboardingStateSchema>;
@@ -205,6 +208,7 @@ const ZodInvestmentTransactionsTableSettingsSchema = z.object({
 const ZodTransactionsListSettingsSchema = z.object({
   /** Hides the pinned "Upcoming" section (overdue + due within 3 days). Defaults to false. */
   hideUpcoming: z.boolean().optional(),
+  timeGrouping: z.enum(TRANSACTION_TIME_GROUPINGS).optional(),
 });
 
 // Transaction-form-only preferences.
@@ -400,6 +404,7 @@ export const ZodSettingsSchema = z.object({
   categoryOrder: z.record(ZodCategoryOrderKeySchema, z.array(z.uuid())).optional(),
   currencyDisplay: z.enum(CURRENCY_DISPLAY_PREFERENCES).optional(),
   accentTheme: z.enum(ACCENT_THEME_PREFERENCES).optional(),
+  colorTheme: z.enum(['light', 'dark', 'system']).optional(),
   fire: ZodFireSettingsSchema.optional(),
   // Server-owned, oldest first: written by the PATCH that changes `fire`.
   fireHistory: z.array(ZodFireSettingsSnapshotSchema).max(FIRE_HISTORY_MAX_ENTRIES).optional(),
@@ -466,6 +471,7 @@ export const ZodSettingsPatchSchema = z.object({
       transactionsList: z
         .object({
           hideUpcoming: z.boolean().optional(),
+          timeGrouping: z.enum(TRANSACTION_TIME_GROUPINGS).optional(),
         })
         .optional(),
       transactionForm: z
@@ -509,6 +515,7 @@ export const ZodSettingsPatchSchema = z.object({
   categoryOrder: z.record(ZodCategoryOrderKeySchema, z.array(z.uuid()).optional()).optional(),
   currencyDisplay: z.enum(CURRENCY_DISPLAY_PREFERENCES).optional(),
   accentTheme: z.enum(ACCENT_THEME_PREFERENCES).optional(),
+  colorTheme: z.enum(['light', 'dark', 'system']).optional(),
   fire: ZodFireSettingsSchema.optional(),
   payday: ZodPaydaySchema.optional(),
   unrealizedLossAlerts: ZodUnrealizedLossAlertsSchema.optional(),

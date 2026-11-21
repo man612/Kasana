@@ -27,7 +27,7 @@
         v-model="form.amountThreshold"
         type="number"
         :label="$t('settings.tags.reminders.form.amountThreshold')"
-        :placeholder="$t('settings.tags.reminders.form.amountThresholdPlaceholder')"
+        placeholder="0"
         min="0"
         step="0.01"
       />

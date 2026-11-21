@@ -82,7 +82,7 @@ const setupLoan = async () => {
   const pay = async ({ amount }: { amount: number }) => {
     const [payment] = await helpers.createTransaction({
       payload: {
-        ...helpers.buildTransactionPayload({ accountId: source.id, amount }),
+        ...helpers.buildTransactionPayload({ accountId: source.id, amount, time: new Date().toISOString() }),
         transferNature: TRANSACTION_TRANSFER_NATURE.transfer_to_loan,
         destinationAmount: amount,
         destinationAccountId: loan.id as RecordId,
@@ -110,6 +110,25 @@ const shareAccount = async ({ accountId, recipient }: { accountId: RecordId; rec
 };
 
 describe('Transactions Trash', () => {
+  it('bulk-restores an expense and both transfer legs exactly once', async () => {
+    const source = await createAccount();
+    const destination = await createAccount();
+    const expense = await createExpense({ accountId: source.id, amount: 75 });
+    const transfer = await createTransfer({ fromId: source.id, toId: destination.id, amount: 125 });
+    await trash({ id: expense.id });
+    await trash({ id: transfer.from.id });
+    expect(await balanceOf({ id: source.id })).toBe(1000);
+
+    const result = await helpers.restoreTrash({ all: true, raw: true });
+    expect(new Set(result.restoredIds)).toEqual(new Set([expense.id, transfer.from.id, transfer.to.id]));
+    expect(await helpers.getTrash({ raw: true })).toEqual([]);
+    expect(await balanceOf({ id: source.id })).toBe(800);
+    expect(await balanceOf({ id: destination.id })).toBe(1125);
+
+    expect((await helpers.restoreTrash({ all: true, raw: true })).restoredIds).toEqual([]);
+    expect(await balanceOf({ id: source.id })).toBe(800);
+  });
+
   describe('GET /transactions/trash', () => {
     it('returns an empty list when nothing is trashed', async () => {
       const account = await createAccount();
@@ -412,7 +431,7 @@ describe('Transactions Trash', () => {
       });
       const [payment] = await helpers.createTransaction({
         payload: {
-          ...helpers.buildTransactionPayload({ accountId: source.id, amount: 500 }),
+          ...helpers.buildTransactionPayload({ accountId: source.id, amount: 500, time: new Date().toISOString() }),
           transferNature: TRANSACTION_TRANSFER_NATURE.transfer_to_loan,
           destinationAmount: 500,
           destinationAccountId: loan.id as RecordId,

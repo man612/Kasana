@@ -78,7 +78,6 @@ const sourceCurrency = computed(() => {
   return code ? currenciesMap.value[code]?.currency?.code : undefined;
 });
 const loanCurrency = computed(() => currenciesMap.value[props.loanAccount.currencyCode]?.currency?.code);
-const loanCurrencyLabel = computed(() => (props.loanAccount.currencyCode === 'IDR' ? 'Rp' : loanCurrency.value));
 
 const isCurrenciesDifferent = computed(
   () => !!form.value.account && form.value.account.currencyCode !== props.loanAccount.currencyCode,
@@ -329,7 +328,6 @@ const unlinkPayment = () => {
           <div class="text-muted-foreground text-xs">{{ $t('dialogs.loanPayment.payingTo') }}</div>
           <div class="truncate text-sm font-medium">{{ loanAccount.name }}</div>
         </div>
-        <div class="text-muted-foreground shrink-0 text-xs">{{ loanCurrencyLabel }}</div>
       </div>
 
       <FormRow>
@@ -356,23 +354,26 @@ const unlinkPayment = () => {
           :disabled="isLoading"
           :error-message="amountErrorMessage"
           @blur="onAmountBlur"
-        />
-      </FormRow>
-      <div class="flex flex-wrap items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          :disabled="!canFillRecordedOutstanding"
-          class="transition-[background-color,color,transform] duration-200 active:scale-95 motion-reduce:transition-none"
-          @click="fillRecordedOutstanding"
         >
-          {{ $t('dialogs.loanPayment.fillRecordedOutstanding') }}
-        </Button>
-        <span v-if="!canFillRecordedOutstanding && isCurrenciesDifferent" class="text-muted-foreground text-xs">
+          <template #field-right>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              :disabled="!canFillRecordedOutstanding"
+              :aria-label="$t('dialogs.loanPayment.fillRecordedOutstanding')"
+              class="h-11 shrink-0 px-2.5 motion-safe:active:scale-[0.98] md:h-9"
+              @click="fillRecordedOutstanding"
+            >
+              <span class="sm:hidden">{{ $t('dialogs.loanPayment.fillOutstandingShort') }}</span>
+              <span class="max-sm:hidden">{{ $t('dialogs.loanPayment.fillRecordedOutstanding') }}</span>
+            </Button>
+          </template>
+        </FormattedAmountField>
+        <p v-if="!canFillRecordedOutstanding && isCurrenciesDifferent" class="text-muted-foreground text-xs">
           {{ $t('dialogs.loanPayment.fillRequiresSameCurrency') }}
-        </span>
-      </div>
+        </p>
+      </FormRow>
       <Transition name="lajur-info-reveal">
         <p v-if="showOutstandingNote" class="text-muted-foreground text-xs leading-relaxed" role="status">
           {{ $t('dialogs.loanPayment.fillOutstandingNotice') }}

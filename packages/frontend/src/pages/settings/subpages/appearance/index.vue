@@ -20,7 +20,8 @@
             :variant="themePreference === option.value ? 'default' : 'outline'"
             class="relative overflow-hidden transition-[background-color,border-color,color,box-shadow,transform] duration-300 ease-out active:scale-[0.97] motion-reduce:transition-none"
             size="sm"
-            @click="setThemePreference(option.value)"
+            :disabled="isPatching"
+            @click="updateColorTheme(option.value)"
           >
             <component
               :is="option.icon"
@@ -47,6 +48,7 @@
             :key="option.value"
             type="button"
             :aria-pressed="accentTheme === option.value"
+            :disabled="isPatching"
             class="border-input hover:bg-accent focus-visible:ring-ring inline-flex min-h-10 items-center gap-2 rounded-md border px-3 py-2 text-sm transition-[background-color,border-color,color,box-shadow,transform] duration-250 ease-out focus-visible:ring-2 focus-visible:outline-none active:scale-[0.97] motion-reduce:transition-none"
             :class="accentTheme === option.value && 'border-primary bg-primary/10 text-primary-text'"
             @click="updateAccentTheme(option.value)"
@@ -75,10 +77,17 @@
         <div class="flex items-center justify-between gap-4">
           <span class="text-sm">{{ $t('settings.appearance.interactionSound.toggle') }}</span>
           <div class="flex shrink-0 items-center gap-2">
-            <Button data-interaction-sound-preview variant="outline" size="sm" @click="previewInteractionSound">
+            <Button
+              data-interaction-sound-preview
+              :disabled="!interactionSoundEnabled"
+              variant="outline"
+              size="sm"
+              @click="previewInteractionSound"
+            >
               {{ $t('settings.appearance.interactionSound.preview') }}
             </Button>
             <Switch
+              data-interaction-sound-toggle
               :model-value="interactionSoundEnabled"
               :aria-label="$t('settings.appearance.interactionSound.toggle')"
               @update:model-value="(v) => updateInteractionSound(!!v)"
@@ -240,6 +249,7 @@ import { TOGGLEABLE_ACCOUNTS_NAV_CHILDREN } from '@/components/sidebar/nav-items
 import { Switch } from '@/components/lib/ui/switch';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { TOGGLEABLE_SIDEBAR_SECTIONS, useSidebarSections } from '@/composable/use-sidebar-sections';
+import { useUserStore } from '@/stores/user';
 import { useSupportButton } from '@/composable/use-support-button';
 import { CheckIcon, CoinsIcon, HeartIcon, LayersIcon, MonitorIcon, MoonStarIcon, SunIcon } from '@lucide/vue';
 import { ref, type Component } from 'vue';
@@ -259,10 +269,36 @@ const {
 } = useSupportButton();
 const { data: userSettings, patch, isPatching } = useUserSettings();
 
+const userStore = useUserStore();
+
 function updateAccentTheme(value: AccentTheme): void {
+  if (isPatching.value || value === accentTheme.value) return;
+  const accountId = userStore.user?.id;
+  const previous = accentTheme.value;
   setAccentTheme(value);
-  // The shared settings endpoint persists this per user for reloads and other devices.
-  patch({ accentTheme: value });
+  patch(
+    { accentTheme: value },
+    {
+      onError: () => {
+        if (accountId === userStore.user?.id) setAccentTheme(previous);
+      },
+    },
+  );
+}
+
+function updateColorTheme(value: ThemePreference): void {
+  if (isPatching.value || value === themePreference.value) return;
+  const accountId = userStore.user?.id;
+  const previous = themePreference.value;
+  setThemePreference(value);
+  patch(
+    { colorTheme: value },
+    {
+      onError: () => {
+        if (accountId === userStore.user?.id) setThemePreference(previous);
+      },
+    },
+  );
 }
 
 interface ThemeOption {

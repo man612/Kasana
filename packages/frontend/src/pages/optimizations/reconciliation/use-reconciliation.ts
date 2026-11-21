@@ -81,12 +81,14 @@ export const bankCheckText = ({
 };
 
 export const useReconciliationActions = () => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const localizedErrors = locale.value.startsWith('id');
   const { addNotification } = useNotificationCenter();
 
   const remove = useInvalidatingMutation({
     invalidateKeys: INVALIDATE_KEYS,
     errorKey: ERROR_KEY,
+    preferLocalizedError: localizedErrors,
     mutationFn: reconciliationRemove,
     successMessage: ({ removedIds }) =>
       t('optimizations.reconciliation.notifications.removed', { count: removedIds.length }, removedIds.length),
@@ -95,6 +97,7 @@ export const useReconciliationActions = () => {
   const merge = useInvalidatingMutation({
     invalidateKeys: INVALIDATE_KEYS,
     errorKey: ERROR_KEY,
+    preferLocalizedError: localizedErrors,
     mutationFn: reconciliationMerge,
     successMessage: ({ removedIds }) =>
       t('optimizations.reconciliation.notifications.merged', { count: removedIds.length }, removedIds.length),
@@ -103,6 +106,7 @@ export const useReconciliationActions = () => {
   const restore = useInvalidatingMutation({
     invalidateKeys: INVALIDATE_KEYS,
     errorKey: ERROR_KEY,
+    preferLocalizedError: localizedErrors,
     mutationFn: reconciliationRestore,
     successMessage: ({ restoredIds }) =>
       t('optimizations.reconciliation.notifications.restored', { count: restoredIds.length }, restoredIds.length),
@@ -111,6 +115,7 @@ export const useReconciliationActions = () => {
   const keepBooked = useInvalidatingMutation({
     invalidateKeys: INVALIDATE_KEYS,
     errorKey: ERROR_KEY,
+    preferLocalizedError: localizedErrors,
     mutationFn: keepAsBooked,
     successKey: 'optimizations.reconciliation.notifications.keptAsBooked',
   });
@@ -118,6 +123,7 @@ export const useReconciliationActions = () => {
   const checkWithBank = useInvalidatingMutation({
     invalidateKeys: INVALIDATE_KEYS,
     errorKey: ERROR_KEY,
+    preferLocalizedError: localizedErrors,
     mutationFn: checkAccountsWithBank,
     persistentErrorId: 'reconciliation-bank-check',
     onSuccess: (result) =>
@@ -125,7 +131,7 @@ export const useReconciliationActions = () => {
         id: 'reconciliation-bank-check',
         type: result.failedCount ? NotificationType.warning : NotificationType.success,
         persistent: true,
-        ...bankCheckText({ ...result, t }),
+        ...bankCheckText({ ...result, failedMessage: localizedErrors ? undefined : result.failedMessage, t }),
       }),
   });
 

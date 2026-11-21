@@ -199,3 +199,29 @@
 .vc-time-decimal {
   @apply ml-0.5;
 }
+
+.calendar--month-navigation .vc-title {
+  @apply pointer-events-auto gap-1 rounded-md px-2 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring;
+}
+.calendar--month-navigation .vc-title::after {
+  content: '';
+  @apply size-1.5 translate-y-[-1px] rotate-45 border-r border-b border-current;
+}
+.calendar--month-navigation .vc-arrow {
+  @apply size-9 focus-visible:ring-2 focus-visible:ring-ring;
+}
+.calendar--month-navigation:has(~ .vc-nav-popover-container .vc-nav-container) .vc-weeks {
+  @apply opacity-40 blur-[1px];
+}
+@media (prefers-reduced-motion: reduce) {
+  .calendar {
+    --vc-slide-duration: 0s;
+  }
+}
+
+.calendar--month-navigation .vc-weekday {
+  @apply w-auto;
+}
+.calendar--month-navigation .vc-day-content {
+  @apply size-[min(2.25rem,10vw)];
+}

@@ -206,6 +206,7 @@
         "unexpectedError": "Kesalahan tak terduga"
       },
       "excludeFromStats": {
+        "example": "Jika dompet tunai berisi Rp 500.000 dikecualikan, dompet tetap terlihat di Akun. Saldonya tidak dihitung pada total dasbor, dan transaksinya tidak masuk statistik arus kas.",
         "label": "Kecualikan dari statistik",
         "tooltip": "Saat diaktifkan, akun ini tidak akan disertakan dalam total saldo, grafik arus kas, atau statistik lainnya",
         "recipientTooltip": "Diatur oleh pemilik akun. Pengaturan per-penerima direncanakan untuk rilis mendatang."
@@ -388,7 +389,12 @@
         "yearsLabel": "{n} thn sejak pembelian",
         "yearsMonthsLabel": "{y}thn {m}bln sejak pembelian"
       },
-      "estimateDisclaimer": "Dihitung dari harga beli atau penilaian manual terakhir, tanggal acuannya, dan pola depresiasi. Ini bukan harga jual pasar terkini; kilometer kendaraan belum memengaruhi perhitungan."
+      "estimateDisclaimer": "Dihitung dari harga beli atau penilaian manual terakhir, tanggal acuannya, dan pola depresiasi. Ini bukan harga jual pasar terkini; kilometer kendaraan belum memengaruhi perhitungan.",
+      "tabs": {
+        "summary": "Ringkasan",
+        "activity": "Aktivitas",
+        "information": "Informasi"
+      }
     }
   }
 }

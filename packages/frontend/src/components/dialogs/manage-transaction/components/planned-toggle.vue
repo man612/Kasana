@@ -1,6 +1,6 @@
 <template>
   <span v-if="readonly" data-test="planned-toggle" :class="rootClass">
-    <ClockIcon :class="iconClass" />
+    <CalendarDaysIcon :class="iconClass" />
     {{ $t('dialogs.manageTransaction.form.plannedLabel') }}
   </span>
   <!-- aria-disabled instead of native disabled, so the tooltip explaining why stays hoverable. -->
@@ -14,11 +14,19 @@
       :aria-checked="modelValue"
       :aria-disabled="disabled || undefined"
       :aria-label="$t('dialogs.manageTransaction.form.plannedLabel')"
-      :class="cn(rootClass, hoverClass, disabled && 'cursor-not-allowed opacity-50')"
+      :title="tooltip"
+      :class="
+        cn(
+          rootClass,
+          hoverClass,
+          variant === 'addon' && 'w-11 justify-center px-0',
+          disabled && 'cursor-not-allowed opacity-50',
+        )
+      "
       @click="onClick"
     >
-      <ClockIcon :class="iconClass" />
-      {{ $t('dialogs.manageTransaction.form.plannedLabel') }}
+      <CalendarDaysIcon :class="iconClass" aria-hidden="true" />
+      <span v-if="variant !== 'addon'">{{ $t('dialogs.manageTransaction.form.plannedLabel') }}</span>
     </Button>
   </DesktopOnlyTooltip>
 </template>
@@ -27,7 +35,7 @@
 import { Button } from '@/components/lib/ui/button';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { ClockIcon } from '@lucide/vue';
+import { CalendarDaysIcon } from '@lucide/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -61,7 +69,7 @@ const rootClass = computed(() => {
   if (props.variant === 'addon') {
     return cn(
       'group flex h-auto items-center gap-1.5 self-stretch rounded-l-none rounded-r-md border border-input bg-muted px-3 text-xs font-medium transition-colors',
-      isOn.value && 'border-primary/60 bg-primary/20 text-primary-text',
+      isOn.value ? 'border-primary/60 bg-primary/20 text-primary-text' : 'text-muted-foreground',
     );
   }
   return cn(
@@ -84,12 +92,7 @@ const hoverClass = computed(() => {
   );
 });
 
-const iconClass = computed(() =>
-  cn(
-    props.variant === 'addon' ? 'size-3.5' : 'size-3',
-    props.variant === 'addon' && !isOn.value && 'text-muted-foreground transition-colors group-hover:text-primary-text',
-  ),
-);
+const iconClass = 'size-3.5 shrink-0';
 
 const onClick = () => {
   if (props.disabled) return;

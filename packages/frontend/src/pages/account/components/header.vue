@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ACCOUNT_CATEGORIES_TRANSLATION_KEYS } from '@/common/const/account-categories-verbose';
 import AccountLogo from '@/components/common/account-logo.vue';
 import {
   DropdownMenu,
@@ -121,13 +122,13 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
 </script>
 
 <template>
-  <CardHeader>
+  <CardHeader class="px-4 pt-3 pb-2 md:px-6 md:pt-5 md:pb-3">
     <div class="flex flex-col">
-      <div class="flex w-full justify-between gap-4">
+      <div class="flex w-full items-center justify-between gap-2">
         <div class="flex min-w-0 items-center gap-3">
           <!-- Account logo — hover reveals the edit affordance (owner only) -->
-          <AccountLogoPicker v-if="isOwner" :account-id="account.id" class="size-10" />
-          <AccountLogo v-else :account="account" class="size-10" />
+          <AccountLogoPicker v-if="isOwner" :account-id="account.id" class="size-10 shrink-0" />
+          <AccountLogo v-else :account="account" class="size-10 shrink-0" />
 
           <!-- Account name — click to open rename popover (owner only) -->
           <Popover.Popover v-if="isOwner" :open="formEditingPopoverOpen" @update:open="onPopoverOpenChange">
@@ -137,7 +138,7 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
                 :aria-label="`${t('pages.account.header.editAccountName')}: ${account.name}`"
                 class="focus-visible:ring-ring -mx-1 flex min-h-10 min-w-0 cursor-pointer items-center rounded-md px-1 text-xl transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none"
               >
-                <span class="truncate">{{ account.name }}</span>
+                <span class="text-left wrap-anywhere">{{ account.name }}</span>
               </button>
             </Popover.PopoverTrigger>
             <Popover.PopoverContent>
@@ -157,7 +158,7 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
             </Popover.PopoverContent>
           </Popover.Popover>
           <div v-else class="flex min-w-0 items-center gap-2 text-xl">
-            <span class="truncate">{{ account.name }}</span>
+            <span class="text-left wrap-anywhere">{{ account.name }}</span>
           </div>
         </div>
 
@@ -237,6 +238,10 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
         </span>
       </div>
 
+      <p class="text-muted-foreground mt-1 text-xs">
+        {{ t(ACCOUNT_CATEGORIES_TRANSLATION_KEYS[account.accountCategory]) }}
+      </p>
+
       <!-- Balance -->
       <div class="flex items-center">
         <button
@@ -246,7 +251,10 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
           class="focus-visible:ring-ring flex min-h-11 cursor-pointer flex-wrap items-end justify-start gap-x-2 rounded-md transition-opacity hover:opacity-75 focus-visible:ring-2 focus-visible:outline-none"
           @click="adjustmentDialogOpen = true"
         >
-          <span class="text-amount text-3xl" :class="displayBalance < 0 && 'text-destructive-text'">
+          <span
+            class="text-amount min-w-0 text-3xl leading-tight wrap-anywhere tabular-nums"
+            :class="displayBalance < 0 && 'text-destructive-text'"
+          >
             {{ formatUIAmount(displayBalance, { currency: account.currencyCode }) }}
           </span>
           <span v-if="baseCurrency && account.currencyCode !== baseCurrency.currencyCode" class="text-white opacity-50">
@@ -255,7 +263,10 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
           </span>
         </button>
         <div v-else class="flex flex-wrap items-end justify-start gap-2">
-          <span class="text-amount text-3xl" :class="displayBalance < 0 && 'text-destructive-text'">
+          <span
+            class="text-amount min-w-0 text-3xl leading-tight wrap-anywhere tabular-nums"
+            :class="displayBalance < 0 && 'text-destructive-text'"
+          >
             {{ formatUIAmount(displayBalance, { currency: account.currencyCode }) }}
           </span>
           <span v-if="baseCurrency && account.currencyCode !== baseCurrency.currencyCode" class="text-white opacity-50">

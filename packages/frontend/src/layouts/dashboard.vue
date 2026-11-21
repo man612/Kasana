@@ -20,7 +20,7 @@
       <ui-header class="bg-card dark:bg-background sticky top-0 z-30" />
 
       <template v-if="isAppInitialized">
-        <div class="max-md:pb-4">
+        <div :class="route.name !== ROUTES_NAMES.transactions && 'max-md:pb-4'">
           <router-view v-slot="{ Component, route }">
             <Transition name="kasana-page" mode="out-in">
               <component :is="Component" :key="route.matched[1]?.path ?? route.path" />
@@ -28,6 +28,21 @@
           </router-view>
         </div>
       </template>
+      <div v-else-if="initializationFailed" class="grid justify-items-start gap-3 p-6">
+        <p role="status">{{ $t('common.errors.initializationFailed') }}</p>
+        <Button type="button" variant="outline" @click="rootStore.fetchInitialData">{{
+          $t('common.actions.retry')
+        }}</Button>
+      </div>
+      <div v-else class="mx-auto grid w-full max-w-5xl gap-3 p-4" aria-busy="true" data-testid="dashboard-startup">
+        <div class="bg-muted h-10 rounded-lg motion-safe:animate-pulse" aria-hidden="true" />
+        <div
+          v-for="index in 3"
+          :key="index"
+          class="bg-muted/75 h-32 rounded-xl border motion-safe:animate-pulse"
+          aria-hidden="true"
+        />
+      </div>
     </ScrollArea>
 
     <template v-if="isMobileView">
@@ -55,6 +70,7 @@
 import { useHead } from '@unhead/vue';
 import BottomNavbar from '@/components/bottom-navbar.vue';
 import ShareInvitationDialog from '@/components/dialogs/share-invitation-dialog.vue';
+import { Button } from '@/components/lib/ui/button';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import { QuickStartPanel, QuickStartSidebar, QuickStartTrigger } from '@/components/quick-start';
@@ -89,21 +105,32 @@ const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile, {
   wait: 50,
 });
 
-const primarySwipeRoutes = [ROUTES_NAMES.home, ROUTES_NAMES.accounts, ROUTES_NAMES.transactions, ROUTES_NAMES.analytics];
+const primarySwipeRoutes = [
+  ROUTES_NAMES.home,
+  ROUTES_NAMES.accounts,
+  ROUTES_NAMES.transactions,
+  ROUTES_NAMES.analytics,
+];
 const scrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
 let dashboardTouch: { x: number; y: number } | null = null;
-const clearDashboardTouch = () => { dashboardTouch = null; };
+const clearDashboardTouch = () => {
+  dashboardTouch = null;
+};
 const onDashboardTouchStart = (event: TouchEvent) => {
-  const isHome = String(route.name ?? '') === ROUTES_NAMES.home;
-  if (!isMobileView.value || (!isHome && !mobilePageSwipeEnabled.value)
-    || isMobileSheetOpen.value || event.touches.length !== 1) return;
+  if (!isMobileView.value || !mobilePageSwipeEnabled.value || isMobileSheetOpen.value || event.touches.length !== 1)
+    return;
   const touch = event.touches[0]!;
   // Avoid the OS back-gesture edge and don't intercept buttons, fields, charts,
   // interactive widgets, or horizontal carousels.
-  if (touch.clientX < 24 || touch.clientX > window.innerWidth - 24) return;
-  if (touch.clientX > 84 && !mobilePageSwipeEnabled.value) return;
+  if (touch.clientX <= 62 || touch.clientX > window.innerWidth - 24) return;
   const target = event.target;
-  if (target instanceof Element && target.closest('button, input, select, textarea, a, nav, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe]')) return;
+  if (
+    target instanceof Element &&
+    target.closest(
+      'button, input, select, textarea, a, nav, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe]',
+    )
+  )
+    return;
   if (document.querySelector('[role="dialog"][data-state="open"], [aria-modal="true"]')) return;
   dashboardTouch = { x: touch.clientX, y: touch.clientY };
 };
@@ -111,15 +138,11 @@ const onDashboardTouchEnd = (event: TouchEvent) => {
   if (!dashboardTouch || event.changedTouches.length !== 1) return;
   const start = dashboardTouch;
   dashboardTouch = null;
+  if (isMobileSheetOpen.value) return;
   const touch = event.changedTouches[0]!;
   const dx = touch.clientX - start.x;
   const dy = touch.clientY - start.y;
   if (Math.abs(dx) <= 100 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
-  if (dx > 0 && String(route.name ?? '') === ROUTES_NAMES.home) {
-    isMobileSheetOpen.value = true;
-    return;
-  }
-  if (!mobilePageSwipeEnabled.value || start.x <= 84) return;
   const current = primarySwipeRoutes.indexOf(String(route.name) as typeof ROUTES_NAMES.home);
   if (current < 0) return;
   const next = current + (dx < 0 ? 1 : -1);
@@ -127,7 +150,7 @@ const onDashboardTouchEnd = (event: TouchEvent) => {
 };
 
 watch(
-  () => route.fullPath,
+  () => route.path,
   () => {
     if (scrollAreaRef.value?.viewportRef?.viewportElement) {
       scrollAreaRef.value.viewportRef.viewportElement.scrollTop = 0;
@@ -135,7 +158,7 @@ watch(
   },
 );
 
-const { isAppInitialized } = storeToRefs(rootStore);
+const { isAppInitialized, initializationFailed } = storeToRefs(rootStore);
 const { isBaseCurrencyExists } = storeToRefs(userCurrenciesStore);
 
 // The base-currency guard must run the instant the app is ready — it decides

@@ -2,7 +2,7 @@
   <Card
     :class="[
       cn('flex flex-col', $attrs.class as string),
-      isDashboard ? 'h-full' : { 'max-h-87.5': !higher, 'max-h-181': higher },
+      isDashboard ? (fitContent ? 'h-fit' : 'h-full') : { 'max-h-87.5': !higher, 'max-h-181': higher },
     ]"
   >
     <CardHeader :class="isDashboard ? 'sm:py-3' : ''">
@@ -38,6 +38,7 @@ withDefaults(
   defineProps<{
     higher?: boolean;
     isFetching?: boolean;
+    fitContent?: boolean;
   }>(),
   {
     isFetching: false,

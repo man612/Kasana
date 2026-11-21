@@ -1,91 +1,58 @@
 <script setup lang="ts">
+import PageWrapper from '@/components/common/page-wrapper.vue';
 import { Card } from '@/components/lib/ui/card';
 import { useTransactionAutomations } from '@/composable/data-queries/transaction-automations';
-import ApplyToHistoryDialog from '@/pages/automations/components/apply-to-history-dialog.vue';
-import { ROUTES_NAMES } from '@/routes';
-import { ArrowRightLeftIcon, GitMergeIcon, HistoryIcon, SparklesIcon } from '@lucide/vue';
-import { type Component, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ROUTES_NAMES } from '@/routes/constants';
+import { ArrowRightLeftIcon, ChevronRightIcon, GitMergeIcon, HistoryIcon, SparklesIcon } from '@lucide/vue';
+import { defineAsyncComponent, ref } from 'vue';
+import { RouterLink } from 'vue-router';
 
-const router = useRouter();
-const { list: automations, isLoading, isError } = useTransactionAutomations();
+import OptimizationHelp from './components/optimization-help.vue';
 
+const ApplyToHistoryDialog = defineAsyncComponent(
+  () => import('@/pages/automations/components/apply-to-history-dialog.vue'),
+);
 const isApplyOpen = ref(false);
+const { list: automations, isLoading, isError, refetch } = useTransactionAutomations({ enabled: isApplyOpen });
 
-interface OptimizationCard {
-  icon: Component;
-  titleKey: string;
-  descriptionKey: string;
-  onClick: () => void;
-}
-
-const optimizations: OptimizationCard[] = [
-  {
-    icon: ArrowRightLeftIcon,
-    titleKey: 'optimizations.cards.transfers.title',
-    descriptionKey: 'optimizations.cards.transfers.description',
-    onClick: () => {
-      router.push({ name: ROUTES_NAMES.optimizationsTransfers });
-    },
-  },
-  {
-    icon: SparklesIcon,
-    titleKey: 'optimizations.cards.aiCategorization.title',
-    descriptionKey: 'optimizations.cards.aiCategorization.description',
-    onClick: () => {
-      router.push({ name: ROUTES_NAMES.optimizationsAiCategorization });
-    },
-  },
-  {
-    icon: GitMergeIcon,
-    titleKey: 'optimizations.cards.reconciliation.title',
-    descriptionKey: 'optimizations.cards.reconciliation.description',
-    onClick: () => {
-      router.push({ name: ROUTES_NAMES.optimizationsReconciliation });
-    },
-  },
-  {
-    icon: HistoryIcon,
-    titleKey: 'optimizations.cards.applyRules.title',
-    descriptionKey: 'optimizations.cards.applyRules.description',
-    onClick: () => (isApplyOpen.value = true),
-  },
-];
+const tools = [
+  { key: 'transfers', icon: ArrowRightLeftIcon, route: ROUTES_NAMES.optimizationsTransfers },
+  { key: 'aiCategorization', icon: SparklesIcon, route: ROUTES_NAMES.optimizationsAiCategorization },
+  { key: 'reconciliation', icon: GitMergeIcon, route: ROUTES_NAMES.optimizationsReconciliation },
+  { key: 'applyRules', icon: HistoryIcon },
+] as const;
 </script>
 
 <template>
-  <div class="flex flex-col gap-6 p-4 md:p-6">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight">
-        {{ $t('optimizations.title') }}
-      </h1>
-      <p class="text-muted-foreground mt-1 text-sm">
-        {{ $t('optimizations.landingDescription') }}
-      </p>
-    </div>
+  <PageWrapper>
+    <div class="grid max-w-2xl gap-4">
+      <header>
+        <h1 class="text-2xl font-semibold tracking-tight">{{ $t('optimizations.title') }}</h1>
+        <p class="text-muted-foreground mt-1 text-sm">{{ $t('optimizations.landingDescription') }}</p>
+      </header>
 
-    <div class="grid grid-cols-[repeat(auto-fill,minmax(385px,1fr))] gap-4">
-      <Card
-        v-for="item in optimizations"
-        :key="item.titleKey"
-        class="hover:border-primary/50 focus-visible:ring-ring cursor-pointer p-5 transition-colors focus-visible:ring-2 focus-visible:outline-hidden"
-        role="button"
-        tabindex="0"
-        @click="item.onClick()"
-        @keydown.enter.self.prevent="item.onClick()"
-        @keydown.space.self.prevent="item.onClick()"
-      >
-        <div class="flex items-start gap-4">
-          <div class="bg-primary/10 flex size-10 shrink-0 items-center justify-center rounded-lg">
-            <component :is="item.icon" class="text-primary-text size-5" />
-          </div>
-          <div class="min-w-0">
-            <h3 class="font-semibold">{{ $t(item.titleKey) }}</h3>
-            <p class="text-muted-foreground mt-1 text-sm">
-              {{ $t(item.descriptionKey) }}
-            </p>
-          </div>
-        </div>
+      <Card class="divide-border divide-y overflow-hidden py-0">
+        <component
+          :is="'route' in tool ? RouterLink : 'button'"
+          v-for="tool in tools"
+          :key="tool.key"
+          v-bind="'route' in tool ? { to: { name: tool.route } } : { type: 'button' }"
+          class="hover:bg-muted/60 focus-visible:ring-ring flex min-h-16 w-full items-center gap-3 px-3 py-3 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset sm:px-4"
+          @click="'route' in tool || (isApplyOpen = true)"
+        >
+          <span class="bg-primary/10 text-primary-text grid size-10 shrink-0 place-items-center rounded-lg">
+            <component :is="tool.icon" class="size-5" aria-hidden="true" />
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="block text-sm leading-tight font-semibold">{{
+              $t(`optimizations.cards.${tool.key}.title`)
+            }}</span>
+            <span class="text-muted-foreground mt-1 block text-xs leading-relaxed">
+              {{ $t(`optimizations.cards.${tool.key}.description`) }}
+            </span>
+          </span>
+          <ChevronRightIcon class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
+        </component>
       </Card>
     </div>
 
@@ -96,6 +63,12 @@ const optimizations: OptimizationCard[] = [
       :rules="automations"
       :rules-loading="isLoading"
       :rules-error="isError"
-    />
-  </div>
+      :prefer-localized-error="$i18n.locale.startsWith('id')"
+      @retry-rules="refetch()"
+    >
+      <template #pick-help>
+        <OptimizationHelp feature="applyRules" />
+      </template>
+    </ApplyToHistoryDialog>
+  </PageWrapper>
 </template>

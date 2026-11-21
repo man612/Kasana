@@ -30,7 +30,12 @@
     </DefineTableSettings>
 
     <DefineTrashLink>
-      <Button variant="secondary" :data-trash-empty="isTrashEmpty ? 'true' : undefined" :class="isTrashEmpty && 'opacity-55'" @click="openTrash">
+      <Button
+        variant="secondary"
+        :data-trash-empty="isTrashEmpty ? 'true' : undefined"
+        :class="isTrashEmpty && 'opacity-55'"
+        @click="openTrash"
+      >
         <Trash2Icon class="size-4" />
         {{ $t('navigation.trash') }}
       </Button>
@@ -67,7 +72,15 @@
               v-model:sorting="sorting"
               secondary-trigger
               @applied="applyFilters"
-            />
+            >
+              <template v-if="activeView === 'list'" #list-settings>
+                <TransactionTimeGroupingOptions
+                  :model-value="timeGrouping"
+                  :unavailable="!isChronological"
+                  @update:model-value="setTimeGrouping"
+                />
+              </template>
+            </SavedViewsMenu>
           </div>
 
           <span ref="moreMenuAnchor" class="inline-flex shrink-0">
@@ -104,7 +117,11 @@
                   <Maximize2Icon class="size-4" />
                   {{ $t('transactions.table.fullscreen.enter') }}
                 </DropdownMenuItem>
-                <DropdownMenuItem :data-trash-empty="isTrashEmpty ? 'true' : undefined" :class="isTrashEmpty && 'opacity-55'" @select="openTrash">
+                <DropdownMenuItem
+                  :data-trash-empty="isTrashEmpty ? 'true' : undefined"
+                  :class="isTrashEmpty && 'opacity-55'"
+                  @select="openTrash"
+                >
                   <Trash2Icon class="size-4" />
                   {{ $t('navigation.trash') }}
                 </DropdownMenuItem>
@@ -120,24 +137,24 @@
           <UpcomingSection v-if="showUpcomingSection" @toggle-hide="toggleHideUpcoming" />
 
           <Card class="min-h-0 flex-1 overflow-hidden" style="view-transition-name: lajur-transactions-content">
-            <ScrollArea class="h-full" :scroll-area-id="SCROLL_AREA_IDS.transactionsPage">
-              <!-- No top padding: the list's bulk toolbar is sticky top-0 and must sit flush
-                   with the scroll viewport edge, otherwise rows peek through the gap -->
-              <div v-if="isFetched" class="pb-3 sm:px-3">
-                <TransactionsList
-                  ref="transactionsListRef"
-                  enable-bulk-edit
-                  :content-filters-active="contentFiltersActive"
-                  :transactions="transactionsPages?.pages.flat() ?? []"
-                  :has-next-page="hasNextPage"
-                  :is-fetching-next-page="isFetchingNextPage"
-                  :scroll-area-id="SCROLL_AREA_IDS.transactionsPage"
-                  :selection-scope-key="selectionScopeKey"
-                  :matching="matching"
-                  @fetch-next-page="fetchNextPage"
-                />
-              </div>
-            </ScrollArea>
+            <TransactionsList
+              v-if="isFetched"
+              pin-bulk-toolbar
+              ref="transactionsListRef"
+              enable-bulk-edit
+              animate-changes
+              :time-grouping="isChronological ? timeGrouping : 'none'"
+              :time-ascending="sorting.order === SORT_DIRECTIONS.asc"
+              :time-group-range="timeGroupRange"
+              :content-filters-active="contentFiltersActive"
+              :transactions="transactionsPages?.pages.flat() ?? []"
+              :has-next-page="hasNextPage"
+              :is-fetching-next-page="isFetchingNextPage"
+              :scroll-area-id="SCROLL_AREA_IDS.transactionsPage"
+              :selection-scope-key="selectionScopeKey"
+              :matching="matching"
+              @fetch-next-page="fetchNextPage"
+            />
           </Card>
         </template>
       </template>
@@ -171,7 +188,15 @@
               </DesktopOnlyTooltip>
             </div>
 
-            <SavedViewsMenu v-model:filters="filters" v-model:sorting="sorting" block @applied="applyFilters" />
+            <SavedViewsMenu v-model:filters="filters" v-model:sorting="sorting" block @applied="applyFilters">
+              <template #list-settings>
+                <TransactionTimeGroupingOptions
+                  :model-value="timeGrouping"
+                  :unavailable="!isChronological"
+                  @update:model-value="setTimeGrouping"
+                />
+              </template>
+            </SavedViewsMenu>
             <TrashLink />
           </div>
 
@@ -196,22 +221,24 @@
           <UpcomingSection v-if="showUpcomingSection" @toggle-hide="toggleHideUpcoming" />
 
           <Card class="min-h-0 flex-1 overflow-hidden" style="view-transition-name: lajur-transactions-content">
-            <ScrollArea class="h-full" :scroll-area-id="SCROLL_AREA_IDS.transactionsPage">
-              <div v-if="isFetched" class="px-3 pb-3">
-                <TransactionsList
-                  ref="transactionsListRef"
-                  enable-bulk-edit
-                  :content-filters-active="contentFiltersActive"
-                  :transactions="transactionsPages?.pages.flat() ?? []"
-                  :has-next-page="hasNextPage"
-                  :is-fetching-next-page="isFetchingNextPage"
-                  :scroll-area-id="SCROLL_AREA_IDS.transactionsPage"
-                  :selection-scope-key="selectionScopeKey"
-                  :matching="matching"
-                  @fetch-next-page="fetchNextPage"
-                />
-              </div>
-            </ScrollArea>
+            <TransactionsList
+              v-if="isFetched"
+              pin-bulk-toolbar
+              ref="transactionsListRef"
+              enable-bulk-edit
+              animate-changes
+              :time-grouping="isChronological ? timeGrouping : 'none'"
+              :time-ascending="sorting.order === SORT_DIRECTIONS.asc"
+              :time-group-range="timeGroupRange"
+              :content-filters-active="contentFiltersActive"
+              :transactions="transactionsPages?.pages.flat() ?? []"
+              :has-next-page="hasNextPage"
+              :is-fetching-next-page="isFetchingNextPage"
+              :scroll-area-id="SCROLL_AREA_IDS.transactionsPage"
+              :selection-scope-key="selectionScopeKey"
+              :matching="matching"
+              @fetch-next-page="fetchNextPage"
+            />
           </Card>
         </div>
       </div>
@@ -350,7 +377,11 @@
                page itself slightly taller than the viewport, so the user can
                swipe up to push the view toggle / filters bar off-screen and
                gain extra rows of table. -->
-          <Card v-show="showTableCard" :class="['overflow-hidden', tableCardSizingClass]" style="view-transition-name: lajur-transactions-content">
+          <Card
+            v-show="showTableCard"
+            :class="['overflow-hidden', tableCardSizingClass]"
+            style="view-transition-name: lajur-transactions-content"
+          >
             <TransactionsTable
               ref="tableRef"
               :transactions="transactionsPages?.pages.flat() ?? []"
@@ -390,6 +421,9 @@ import FiltersPanel from '@/components/records-filters/index.vue';
 import { useActiveView } from '@/components/records-filters/saved-views';
 import { parseStoredFilters, useTransactionsWithFilters } from '@/components/records-filters/transactions-with-filters';
 import { useFiltersFromQuery } from '@/components/records-filters/use-filters-from-query';
+import { useTransactionTimeGrouping } from '@/components/transactions-list/use-transaction-time-grouping';
+import TransactionTimeGroupingOptions from './components/transaction-time-grouping-options.vue';
+import { SORT_DIRECTIONS, TRANSACTION_SORT_FIELD } from '@bt/shared/types';
 import TransactionsList from '@/components/transactions-list/transactions-list.vue';
 import {
   DropdownMenu,
@@ -430,6 +464,8 @@ import { useNotificationCenter } from '@/components/notification-center';
 import { useI18n } from 'vue-i18n';
 
 const sorting = ref<TableSorting>({ ...DEFAULT_SORTING });
+const { mode: timeGrouping, setMode: setTimeGrouping } = useTransactionTimeGrouping();
+const isChronological = computed(() => sorting.value.sortBy === TRANSACTION_SORT_FIELD.time);
 
 const {
   isResetButtonDisabled,
@@ -498,9 +534,11 @@ const activeView = computed<TransactionsView>(() => (isMobileMode.value ? mobile
 // Interpolate the named content-card bounds when switching layout;
 // non-supporting browsers and reduced-motion users get an immediate update.
 const animateLayoutChange = (update: () => void) => {
-  const start = (document as Document & {
-    startViewTransition?: (callback: () => Promise<void>) => unknown;
-  }).startViewTransition;
+  const start = (
+    document as Document & {
+      startViewTransition?: (callback: () => Promise<void>) => unknown;
+    }
+  ).startViewTransition;
   if (!start || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
     update();
     return;
@@ -556,8 +594,14 @@ const isFullscreenMode = ref(false);
 // `pointer: coarse` flags touch input – used to hide the "Esc" hint on tablets
 // where pressing Esc isn't an option.
 const isTouchPointer = useMediaQuery('(pointer: coarse)');
-const enterFullscreen = () => animateLayoutChange(() => { isFullscreenMode.value = true; });
-const exitFullscreen = () => animateLayoutChange(() => { isFullscreenMode.value = false; });
+const enterFullscreen = () =>
+  animateLayoutChange(() => {
+    isFullscreenMode.value = true;
+  });
+const exitFullscreen = () =>
+  animateLayoutChange(() => {
+    isFullscreenMode.value = false;
+  });
 // An open reka layer (dialog, popover, select) takes Escape first. This listener is registered before any layer's
 // window listener, so the layer is still open here. Tooltip layers use other data-state values and don't block.
 useEventListener('keydown', (event: KeyboardEvent) => {
@@ -587,8 +631,11 @@ watch(filters, (next, previous) => {
   applyFiltersDebounced();
 });
 
-// Content filters dissolve groups in the list view – only date filters keep
-// groups visible.
+const timeGroupRange = computed(() => {
+  const { start, end } = appliedFilters.value;
+  return start || end ? { from: start, to: end } : undefined;
+});
+// Date filters keep groups in the results. Content filters show only their matching transactions.
 const contentFiltersActive = computed(() => isAnyGroupDissolvingFilterActive(appliedFilters.value));
 
 const selectionScopeKey = computed(() => JSON.stringify({ filters: appliedFilters.value, sorting: sorting.value }));

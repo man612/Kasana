@@ -8,7 +8,7 @@ import {
   getAccountTypeTintedChipClass,
 } from '@/pages/accounts/account-type-presentation';
 import type { ACCOUNT_CATEGORIES, AccountModel } from '@bt/shared/types';
-import { computed, useAttrs } from 'vue';
+import { type Component, computed, useAttrs } from 'vue';
 
 defineOptions({ inheritAttrs: false });
 
@@ -19,6 +19,7 @@ const props = defineProps<{
   >;
   /** Overrides `account.accountCategory` for the fallback chip. */
   category?: ACCOUNT_CATEGORIES;
+  fallbackIcon?: Component;
   /** Opaque fallback chip, for a logo that overlaps other content. */
   solid?: boolean;
 }>();
@@ -28,7 +29,7 @@ const attrs = useAttrs();
 const selection = computed(() => toLogoSelection(props.account));
 
 const chipCategory = computed(() => props.category ?? props.account.accountCategory);
-const chipIcon = computed(() => getAccountTypeIcon({ category: chipCategory.value }));
+const chipIcon = computed(() => props.fallbackIcon ?? getAccountTypeIcon({ category: chipCategory.value }));
 const chipClass = computed(() =>
   cn(
     'flex shrink-0 items-center justify-center rounded-lg',

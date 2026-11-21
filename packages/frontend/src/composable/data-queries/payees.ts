@@ -290,7 +290,10 @@ export const useDeletePayee = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id }: { id: string }) => deletePayee({ id }),
-    onSuccess: () => invalidatePayeesScope(queryClient),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [VUE_QUERY_GLOBAL_PREFIXES.transactionChange] });
+      invalidatePayeesScope(queryClient);
+    },
   });
 };
 

@@ -1,5 +1,6 @@
 import type { RecordId } from '@bt/shared/types';
 import { findOrThrowNotFound } from '@common/utils/find-or-throw-not-found';
+import { t } from '@i18n/index';
 import { ValidationError } from '@js/errors';
 import TransactionGroupItems from '@models/transaction-group-items.model';
 import TransactionGroups from '@models/transaction-groups.model';
@@ -23,7 +24,7 @@ export const addTransactionsToGroup = withTransaction(async (payload: AddTransac
     query: TransactionGroups.findOne({
       where: { id: groupId, userId },
     }),
-    message: 'Transaction group not found.',
+    message: t({ key: 'transactionGroups.notFound' }),
   });
 
   // Auto-include opposite sides of transfer pairs
@@ -54,7 +55,7 @@ export const addTransactionsToGroup = withTransaction(async (payload: AddTransac
 
   if (currentCount + newIds.length > MAX_GROUP_SIZE) {
     throw new ValidationError({
-      message: `Adding these transactions would exceed the maximum group size of ${MAX_GROUP_SIZE}.`,
+      message: t({ key: 'transactionGroups.addLimit', variables: { max: MAX_GROUP_SIZE } }),
     });
   }
 

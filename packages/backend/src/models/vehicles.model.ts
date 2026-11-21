@@ -1,4 +1,10 @@
-import { DEPRECIATION_PRESET, RecordId, VEHICLE_CLASS } from '@bt/shared/types';
+import {
+  DEPRECIATION_PRESET,
+  RecordId,
+  VEHICLE_CLASS,
+  type VehicleType,
+  type VehicleValuationRevision,
+} from '@bt/shared/types';
 import { IdColumn } from '@common/types/id-column';
 import { Money } from '@common/types/money';
 import { MoneyField } from '@common/types/money-column';
@@ -60,6 +66,15 @@ export default class Vehicles extends Model {
     defaultValue: VEHICLE_CLASS.sedan,
   })
   vehicleClass!: VEHICLE_CLASS;
+
+  @Column({ type: DataType.STRING(32), allowNull: true })
+  vehicleType!: VehicleType | null;
+
+  @Column({ type: DataType.STRING(32), allowNull: true })
+  licensePlate!: string | null;
+
+  @Column({ type: DataType.JSONB, allowNull: true })
+  valuationRevisions!: VehicleValuationRevision[] | null;
 
   @MoneyField({ storage: 'cents' })
   declare purchasePrice: Money;

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { LayoutGridIcon } from '@lucide/vue';
-import { computed, nextTick, provide, ref, watch } from 'vue';
+import { computed, nextTick, provide } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
 
 import { useDashboardLayout } from '../composables/use-dashboard-layout';
@@ -12,29 +13,10 @@ const props = defineProps<{
   currentPeriod: Period;
 }>();
 
-const gridRoot = ref<HTMLElement | null>(null);
-// Animate the existing grid instead of remounting widgets on each month change.
-// Remounting would discard local widget state and interfere with draggable layouts.
-watch(
-  () => [props.currentPeriod.from.getTime(), props.currentPeriod.to.getTime()].join(':'),
-  () => {
-    const element = gridRoot.value;
-    if (!element || typeof element.animate !== 'function') return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    element.animate(
-      [
-        { opacity: 0.74, transform: 'translateY(6px)' },
-        { opacity: 1, transform: 'translateY(0)' },
-      ],
-      { duration: 210, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-    );
-  },
-  { flush: 'post' },
-);
-
+const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const {
   isEditMode,
-  activeWidgets,
+  layoutReady,
   draftWidgets,
   displayWidgets,
   availableWidgets,
@@ -67,7 +49,7 @@ const animateLayoutChange = (change: () => void) => {
       startViewTransition?: (callback: () => Promise<void>) => unknown;
     }
   ).startViewTransition;
-  if (!isEditMode.value || !startViewTransition || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+  if (!startViewTransition || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
     change();
     return;
   }
@@ -83,7 +65,7 @@ const addWidgetAnimated = (widgetId: string) => animateLayoutChange(() => addWid
 
 defineExpose({
   isEditMode,
-  enterEditMode,
+  enterEditMode: () => layoutReady.value && (isMobile.value ? enterEditMode() : animateLayoutChange(enterEditMode)),
   saveLayout,
   cancelEdit,
 });
@@ -93,8 +75,11 @@ const GRID_CLASSES =
 </script>
 
 <template>
-  <div ref="gridRoot">
-    <template v-if="displayWidgets.length === 0">
+  <div>
+    <div v-if="!layoutReady" :class="GRID_CLASSES" aria-busy="true">
+      <div v-for="index in 3" :key="index" class="bg-muted/60 h-64 rounded-xl border motion-safe:animate-pulse" />
+    </div>
+    <template v-else-if="displayWidgets.length === 0">
       <div class="text-muted-foreground flex flex-col items-center justify-center gap-3 py-20">
         <LayoutGridIcon class="size-12 opacity-50" />
         <p class="text-sm">{{ $t('dashboard.editMode.emptyState') }}</p>
@@ -109,7 +94,10 @@ const GRID_CLASSES =
       handle=".drag-handle"
       :disabled="!isEditMode"
       :animation="200"
-      :class="[GRID_CLASSES, isEditMode ? 'kasana-dashboard-edit-enter' : 'kasana-dashboard-edit-return']"
+      :class="[
+        GRID_CLASSES,
+        !isMobile && (isEditMode ? 'kasana-dashboard-edit-enter' : 'kasana-dashboard-edit-return'),
+      ]"
     >
       <DashboardWidgetSlot
         v-for="widget in displayWidgets"
@@ -124,8 +112,10 @@ const GRID_CLASSES =
       />
     </VueDraggable>
 
-    <div v-if="isEditMode" class="mt-6">
-      <DashboardAddWidgetPanel :available-widgets="availableWidgets" @add="addWidgetAnimated" />
-    </div>
+    <Transition name="lajur-form-panel">
+      <div v-if="isEditMode" class="mt-6">
+        <DashboardAddWidgetPanel :available-widgets="availableWidgets" @add="addWidgetAnimated" />
+      </div>
+    </Transition>
   </div>
 </template>

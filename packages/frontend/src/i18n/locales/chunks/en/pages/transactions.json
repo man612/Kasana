@@ -85,9 +85,11 @@
       "noMoreData": "No more transactions",
       "loadingMore": "Loading more...",
       "detailsTitle": "Transaction details",
-      "detailsDescription": "View and edit transaction"
+      "detailsDescription": "View and edit transaction",
+      "empty": "No transactions in this view yet"
     },
     "bulkEdit": {
+      "actions": "Transaction actions",
       "selectAll": "Select all",
       "selectAllShort": "All",
       "selectBeforeAction": "Select at least one transaction to use these actions.",
@@ -159,7 +161,8 @@
         "notePlaceholder": "Optional description...",
         "creatingText": "Creating...",
         "buttonLabel": "Create group",
-        "cancelButton": "Cancel"
+        "cancelButton": "Cancel",
+        "selected": "{count} transactions selected."
       },
       "groupsPage": {
         "title": "Transaction groups",
@@ -193,7 +196,16 @@
         "minTransactions": "Select at least {min} transactions",
         "alreadyInGroup": "Some selected transactions already belong to a group",
         "createFailed": "Failed to create group",
-        "addFailed": "Failed to add transactions to group"
+        "addFailed": "Failed to add transactions to group",
+        "loadFailed": "Could not load the group."
+      },
+      "icon": {
+        "default": "Default icon",
+        "label": "Choose a group icon"
+      },
+      "inline": {
+        "expand": "Expand transactions in {name}",
+        "collapse": "Collapse transactions in {name}"
       }
     },
     "planned": {
@@ -302,6 +314,9 @@
       "filtersCount": "{count} filter | {count} filters"
     },
     "trashPage": {
+      "restoreAll": "Restore all",
+      "restoreAllTitle": "Restore all transactions?",
+      "restoreAllDescription": "Transactions will return to the list and count toward balances and statistics again.",
       "title": "Trash",
       "description": "Newest deletions first. Each is removed for good after {days} days. Pick one to see what comes back with it.",
       "expiringBanner": "{count} will be deleted permanently within {days}.",
@@ -347,6 +362,16 @@
       "emptyAll": "Empty all",
       "emptyAllConfirmTitle": "Permanently empty Trash?",
       "emptyAllConfirmDescription": "Permanently delete all {count} transactions in Trash? This cannot be undone."
+    },
+    "timeGrouping": {
+      "title": "Group by time",
+      "none": "No grouping",
+      "day": "By day",
+      "week": "By week",
+      "chronologicalOnly": "Choose a date sort to group the list.",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "currentWeek": "This week · {range}"
     }
   },
   "records": {

@@ -66,8 +66,23 @@ export function useChartTooltipPosition({
       y = 10;
     }
 
-    tooltip.x = x;
-    tooltip.y = y;
+    if (strategy === 'fixed') {
+      const margin = 10;
+      const viewport = window.visualViewport;
+      const left = (viewport?.offsetLeft ?? 0) + margin;
+      const top = (viewport?.offsetTop ?? 0) + margin;
+      tooltip.x = Math.max(
+        left,
+        Math.min(x, left + (viewport?.width ?? viewportWidth) - tooltipRect.width - 2 * margin),
+      );
+      tooltip.y = Math.max(
+        top,
+        Math.min(y, top + (viewport?.height ?? viewportHeight) - tooltipRect.height - 2 * margin),
+      );
+    } else {
+      tooltip.x = x;
+      tooltip.y = y;
+    }
   }
 
   return { updateTooltipPosition };

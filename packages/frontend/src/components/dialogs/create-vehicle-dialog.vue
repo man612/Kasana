@@ -30,7 +30,7 @@ const onCreated = () => {
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen" custom-close>
+  <ResponsiveDialog v-model:open="isOpen" fit-keyboard custom-close>
     <template v-if="$slots.default" #trigger>
       <slot />
     </template>

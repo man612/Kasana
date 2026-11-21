@@ -74,7 +74,7 @@ const monogramStyle = computed(() => {
 // The 15% primary tint marks only the auto-derived first-letter placeholder.
 const monogramClass = computed(() =>
   cn(
-    'absolute inset-0 flex items-center justify-center overflow-hidden rounded-[inherit] leading-none font-bold uppercase whitespace-nowrap',
+    'absolute inset-0 flex items-center justify-center overflow-hidden rounded-[inherit] motion-safe:transition-colors motion-safe:duration-150 leading-none font-bold uppercase whitespace-nowrap',
     !solidFill.value && 'bg-primary/15 text-primary-text',
   ),
 );

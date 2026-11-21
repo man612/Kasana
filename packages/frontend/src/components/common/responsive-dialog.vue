@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import DialogHeaderActions from '@/components/common/dialog-header-actions.vue';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { Button } from '@/components/lib/ui/button';
 import { XIcon } from '@lucide/vue';
@@ -6,11 +7,13 @@ import { useI18n } from 'vue-i18n';
 import * as Drawer from '@/components/lib/ui/drawer';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { useCloseDialogWhen } from '@/composable/use-close-dialog-when';
+import { useKeyboardViewport } from '@/composable/use-keyboard-viewport';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { createReusableTemplate, useVModel } from '@vueuse/core';
-import type { HTMLAttributes } from 'vue';
+import { computed, useSlots, type HTMLAttributes } from 'vue';
 
 const { t } = useI18n();
+const slots = useSlots();
 const [UseTemplate, SlotContent] = createReusableTemplate();
 const [UseFooterTemplate, FooterSlotContent] = createReusableTemplate();
 const [UseScrollArea, ScrollAreaContent] = createReusableTemplate();
@@ -24,6 +27,9 @@ const props = withDefaults(
     dialogContentClass?: HTMLAttributes['class'];
     drawerContentClass?: HTMLAttributes['class'];
     customClose?: boolean;
+    fitKeyboard?: boolean;
+    intrinsicHeightMotion?: boolean;
+    raised?: boolean;
     /** Closes the dialog the moment this turns true, e.g. `useIsAiUsageExitPage()` for dialogs linking to AI or billing settings. */
     closeWhen?: boolean;
     /** When true, disables the internal scroll wrapper (display: contents).
@@ -48,9 +54,17 @@ const props = withDefaults(
   { dismissible: true, mobilePresentation: 'drawer' },
 );
 
-const emit = defineEmits(['update:open', 'open-auto-focus']);
+const emit = defineEmits(['update:open', 'open-auto-focus', 'close-auto-focus', 'closed']);
 
 const isOpen = useVModel(props, 'open', emit, { passive: true });
+const keyboard = useKeyboardViewport(
+  computed(() => Boolean(props.fitKeyboard && isOpen.value && isMobile.value && props.mobilePresentation === 'drawer')),
+);
+const drawerKeyboardStyle = computed(() =>
+  isOpen.value && keyboard.value
+    ? { bottom: `${keyboard.value.bottomInset}px`, maxHeight: `${Math.max(1, keyboard.value.height - 8)}px` }
+    : undefined,
+);
 
 const setOpen = (open: boolean) => {
   if (!open && !props.dismissible) return;
@@ -58,6 +72,16 @@ const setOpen = (open: boolean) => {
 };
 
 const close = () => setOpen(false);
+const hasDrawerClose = computed(
+  () =>
+    props.dismissible &&
+    !props.customClose &&
+    (!slots.footer || props.hideDrawerFooter || props.showDrawerCloseWithFooter),
+);
+const onCloseAutoFocus = (event: Event) => {
+  emit('close-auto-focus', event);
+  if (!isOpen.value) emit('closed');
+};
 
 useCloseDialogWhen({ when: () => !!props.closeWhen, close });
 </script>
@@ -79,22 +103,25 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
   </UseScrollArea>
 
   <template v-if="isMobile && props.mobilePresentation === 'drawer'">
-    <Drawer.Drawer :open="isOpen" :dismissible="props.dismissible" @update:open="setOpen">
+    <Drawer.Drawer :open="isOpen" :fixed="props.fitKeyboard" :dismissible="props.dismissible" @update:open="setOpen">
       <Drawer.DrawerTrigger v-if="$slots.trigger" as-child>
         <slot name="trigger" />
       </Drawer.DrawerTrigger>
 
       <Drawer.DrawerContent
         :custom-indicator="props.drawerCustomIndicator"
+        :dim-backdrop="props.raised"
+        :style="drawerKeyboardStyle"
         :class="[
           !props.noInternalScroll && 'grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden',
-          'px-4 pb-4',
+          'px-4 pb-[max(1rem,env(safe-area-inset-bottom))]',
           drawerContentClass,
         ]"
+        @close-auto-focus="onCloseAutoFocus"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
         <Button
-          v-if="props.dismissible && !props.customClose && (!$slots.footer || hideDrawerFooter || props.showDrawerCloseWithFooter)"
+          v-if="hasDrawerClose && !$slots['header-actions']"
           type="button"
           variant="ghost"
           size="icon"
@@ -104,13 +131,6 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         >
           <XIcon class="size-5" />
         </Button>
-        <div
-          v-if="$slots['header-actions']"
-          class="absolute top-3 z-20 flex min-h-10 items-center"
-          :class="props.dismissible && !props.customClose && (!$slots.footer || hideDrawerFooter || props.showDrawerCloseWithFooter) ? 'right-14' : 'right-3'"
-        >
-          <slot name="header-actions" />
-        </div>
         <template v-if="props.srOnlyHeader">
           <Drawer.DrawerTitle class="sr-only">
             <slot name="title" />
@@ -122,14 +142,20 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         <component
           :is="$slots.title || $slots.description ? Drawer.DrawerHeader : 'div'"
           v-else
-          class="mb-2 px-0 pt-6 pb-0 text-center"
+          class="mb-2 px-0 pb-0"
+          :class="
+            $slots['header-actions']
+              ? 'grid grid-cols-[minmax(0,1fr)_auto] items-start pt-2 text-left'
+              : 'pt-6 text-center'
+          "
         >
-          <Drawer.DrawerTitle>
-            <slot name="title" />
-          </Drawer.DrawerTitle>
-          <Drawer.DrawerDescription>
-            <slot name="description" />
-          </Drawer.DrawerDescription>
+          <div :class="$slots['header-actions'] ? 'min-w-0' : 'contents'">
+            <Drawer.DrawerTitle><slot name="title" /></Drawer.DrawerTitle>
+            <Drawer.DrawerDescription><slot name="description" /></Drawer.DrawerDescription>
+          </div>
+          <DialogHeaderActions v-if="$slots['header-actions']" :close="hasDrawerClose ? close : undefined">
+            <slot name="header-actions" />
+          </DialogHeaderActions>
         </component>
 
         <ScrollAreaContent />
@@ -150,18 +176,18 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
       </Dialog.DialogTrigger>
 
       <Dialog.DialogContent
+        :intrinsic-height-motion="props.intrinsicHeightMotion"
         :class="[
           !props.noInternalScroll && 'grid grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden',
           dialogContentClass,
           isMobile && 'max-h-[88dvh] w-[calc(100vw-2rem)] max-w-md rounded-2xl',
         ]"
-        :blur-overlay="isMobile"
-        :custom-close="customClose"
+        :blur-overlay="isMobile || props.raised"
+        :custom-close="Boolean(customClose || $slots['header-actions'])"
+        :raised="props.raised"
+        @close-auto-focus="onCloseAutoFocus"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >
-        <div v-if="$slots['header-actions']" class="absolute top-3 right-14 z-20 flex items-center">
-          <slot name="header-actions" />
-        </div>
         <template v-if="props.srOnlyHeader">
           <Dialog.DialogTitle class="sr-only">
             <slot name="title" />
@@ -171,13 +197,20 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
           </Dialog.DialogDescription>
         </template>
         <template v-else-if="$slots.title || $slots.description">
-          <Dialog.DialogHeader class="mb-4 text-left">
-            <Dialog.DialogTitle>
-              <slot name="title" />
-            </Dialog.DialogTitle>
-            <Dialog.DialogDescription>
-              <slot name="description" />
-            </Dialog.DialogDescription>
+          <Dialog.DialogHeader
+            class="mb-4 text-left"
+            :class="$slots['header-actions'] && 'grid grid-cols-[minmax(0,1fr)_auto] items-start'"
+          >
+            <div :class="$slots['header-actions'] ? 'min-w-0' : 'contents'">
+              <Dialog.DialogTitle><slot name="title" /></Dialog.DialogTitle>
+              <Dialog.DialogDescription><slot name="description" /></Dialog.DialogDescription>
+            </div>
+            <DialogHeaderActions
+              v-if="$slots['header-actions']"
+              :close="!customClose && dismissible ? close : undefined"
+            >
+              <slot name="header-actions" />
+            </DialogHeaderActions>
           </Dialog.DialogHeader>
         </template>
 

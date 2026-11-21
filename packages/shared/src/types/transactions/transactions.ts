@@ -4,6 +4,9 @@ import type { CategorizationMeta } from '../categorization';
 import { RecordId } from '../record-id';
 import type { TagModel } from '../tags';
 
+export const TRANSACTION_TIME_GROUPINGS = ['none', 'day', 'week'] as const;
+export type TransactionTimeGrouping = (typeof TRANSACTION_TIME_GROUPINGS)[number];
+
 export enum PAYMENT_TYPES {
   qris = 'qris',
   eWallet = 'eWallet',
@@ -137,6 +140,8 @@ export interface TransactionModel {
   /** Present on the list endpoint only; absent on create/update responses. */
   hasAttachments?: boolean;
   isPlanned: boolean;
+  /** Marks a balance correction that does not represent cash movement. */
+  isBalanceAdjustment?: boolean;
   /** Serializer-derived: set when a bank transaction merged into this row while it was planned. */
   plannedMerge?: { mergedAt: string } | null;
   /** Serializer-derived: the bank has not booked this row yet. */
@@ -145,6 +150,8 @@ export interface TransactionModel {
   categorizationMeta?: CategorizationMeta | null;
   /** Linked Payee. Null when no Payee resolved (raw merchant missing/unmatched). */
   payeeId?: RecordId | null;
+  /** Last known name after the live payee link was deleted. */
+  payeeNameSnapshot?: string;
   /**
    * Stops background Payee auto-linking from touching this row.
    *
@@ -171,7 +178,14 @@ export interface TransactionModel {
   tags?: TagModel[];
   /** Present on transaction read endpoints; absent on create/update responses.
    *  transactionCount is the group's full membership size, not the members in the fetch window. */
-  transactionGroups?: Array<{ id: RecordId; name: string; transactionCount: number }>;
+  transactionGroups?: Array<{
+    id: RecordId;
+    name: string;
+    icon?: string | null;
+    iconColor?: string | null;
+    transactionCount: number;
+    latestTime?: string;
+  }>;
   /** Who attached this tx to the tracker: the recipient who attached it, else the tracker owner
    *  (also for rule and AI links). Present on tracker-scoped tx fetches; absent elsewhere.
    *  With several trackers in scope, one link row decides both this and `addedByRule`. */

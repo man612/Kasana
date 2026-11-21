@@ -2,8 +2,9 @@ import { getAllCurrencies, loadUserBaseCurrency, loadUserCurrencies } from '@/ap
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import { invalidatePersistedQuery, queryClient } from '@/lib/query-client';
 import { CurrencyModel, UserCurrencyModel } from '@bt/shared/types';
+import { hashKey } from '@tanstack/vue-query';
 import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
+import { computed, onScopeDispose, ref } from 'vue';
 
 export const useCurrenciesStore = defineStore('currencies', () => {
   const systemCurrencies = ref<CurrencyModel[]>([]);
@@ -47,6 +48,24 @@ export const useCurrenciesStore = defineStore('currencies', () => {
     );
   };
 
+  const linkedHash = hashKey(VUE_QUERY_CACHE_KEYS.userCurrencies);
+  const baseHash = hashKey(VUE_QUERY_CACHE_KEYS.baseCurrency);
+
+  onScopeDispose(
+    queryClient.getQueryCache().subscribe((event) => {
+      if (event.type !== 'updated' || event.action.type !== 'success') return;
+      if (event.query.queryHash === linkedHash) {
+        currencies.value = [...(event.query.state.data as UserCurrencyModel[])];
+        if (baseCurrency.value && !currencies.value.some(({ id }) => id === baseCurrency.value?.id)) {
+          currencies.value.push(baseCurrency.value);
+        }
+        orderLinkedFirst();
+      } else if (event.query.queryHash === baseHash) {
+        baseCurrency.value = event.query.state.data as UserCurrencyModel | null;
+      }
+    }),
+  );
+
   // Both fetches run through the vue-query cache (staleTime Infinity) so they dedupe on
   // init and can be persisted/invalidated by key. `force` drops the cached entries first,
   // so post-mutation reloads pull fresh data instead of returning the cache.
@@ -65,7 +84,6 @@ export const useCurrenciesStore = defineStore('currencies', () => {
       queryClient.fetchQuery({
         queryKey: VUE_QUERY_CACHE_KEYS.userCurrencies,
         queryFn: loadUserCurrencies,
-        staleTime: Infinity,
       }),
       queryClient.fetchQuery({
         queryKey: VUE_QUERY_CACHE_KEYS.allCurrencies,
@@ -74,7 +92,7 @@ export const useCurrenciesStore = defineStore('currencies', () => {
       }),
     ]);
 
-    currencies.value = userCurrencies;
+    currencies.value = [...userCurrencies];
     systemCurrencies.value = systemOnes;
     orderLinkedFirst();
   };

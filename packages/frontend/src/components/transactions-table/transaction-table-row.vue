@@ -125,6 +125,9 @@
             <span class="truncate">{{ payee.name }}</span>
           </DesktopOnlyTooltip>
         </div>
+        <span v-else-if="tx.payeeNameSnapshot" class="truncate" :title="tx.payeeNameSnapshot">
+          {{ tx.payeeNameSnapshot }}
+        </span>
         <span v-else class="text-muted-foreground">—</span>
       </template>
 

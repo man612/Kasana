@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ContextualHelp from '@/components/common/contextual-help.vue';
 import AiUsageBadge from '@/components/common/ai-usage/ai-usage-badge.vue';
 import { Button } from '@/components/lib/ui/button';
 import { DateSelector, type DateSelectorPreset } from '@/components/lib/ui/date-selector';
@@ -220,8 +221,8 @@ const quickPresets = computed<DateSelectorPreset[]>(() => [
 
       <AiUsageBadge v-if="!aiBlocker" :feature="AI_FEATURE.transferMatching" />
 
-      <Popover>
-        <PopoverTrigger as-child>
+      <ContextualHelp :title="$t('optimizations.transferSuggestions.aiReview.label')">
+        <template #trigger>
           <Button
             variant="ghost"
             size="icon-sm"
@@ -230,9 +231,8 @@ const quickPresets = computed<DateSelectorPreset[]>(() => [
           >
             <CircleHelpIcon class="size-4" />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent align="start" class="grid w-80 gap-2 text-sm">
-          <p class="font-semibold">{{ $t('optimizations.transferSuggestions.aiReview.label') }}</p>
+        </template>
+        <div class="space-y-2">
           <p class="text-muted-foreground">{{ $t('optimizations.transferSuggestions.aiReview.description') }}</p>
           <i18n-t keypath="optimizations.transferSuggestions.aiReview.cost" tag="p" class="text-muted-foreground">
             <template #link>
@@ -241,8 +241,8 @@ const quickPresets = computed<DateSelectorPreset[]>(() => [
               </RouterLink>
             </template>
           </i18n-t>
-        </PopoverContent>
-      </Popover>
+        </div>
+      </ContextualHelp>
 
       <Button
         :disabled="isLoading"

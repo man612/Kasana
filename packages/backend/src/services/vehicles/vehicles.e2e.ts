@@ -185,7 +185,7 @@ describe('Vehicles', () => {
       expect(after?.getTime()).toBe(initialComputedAt?.getTime());
     });
 
-    it('force-refreshes value when curve params change', async () => {
+    it('applies curve changes prospectively without revaluing the asset on the edit date', async () => {
       const vehicle = await helpers.createVehicle({ ...basePayload(), raw: true });
       const initialBalance = vehicle.account!.currentBalance;
 
@@ -195,7 +195,12 @@ describe('Vehicles', () => {
         raw: true,
       });
 
-      expect(updated.account!.currentBalance).toBeLessThan(initialBalance);
+      expect(updated.account!.currentBalance).toBe(initialBalance);
+      const detail = await helpers.getVehicleById({ id: vehicle.id, raw: true });
+      expect(detail.valuationSegments?.map(({ preset }) => preset)).toEqual([
+        DEPRECIATION_PRESET.classDefault,
+        DEPRECIATION_PRESET.fast,
+      ]);
     });
   });
 

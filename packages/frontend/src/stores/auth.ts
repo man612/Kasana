@@ -3,8 +3,10 @@ import { analyticsPlan } from '@/common/const/billing';
 import type { DemoEndReason } from '@/common/const/demo';
 import { getDeviceName } from '@/common/utils/device-name';
 import { dismissPersistentNotifications } from '@/components/notification-center';
+import { userSettingsQueryOptions } from '@/composable/data-queries/user-settings';
 import { isMobileSheetOpen } from '@/composable/global-state/mobile-sheet';
 import { OAuthProviderNotConfiguredError, UnexpectedError, isApiErrorWithCode } from '@/js/errors';
+import { reportApiAvailability } from '@/lib/api-availability';
 import { authClient, getSession, signIn, signOut, signUp } from '@/lib/auth-client';
 import {
   consumeDemoOriginProperties,
@@ -21,7 +23,7 @@ import { useCategoriesStore, useCurrenciesStore, useUserStore } from '@/stores';
 import { API_ERROR_CODES, OAUTH_PROVIDER, USER_ROLES, UserInfoResponse } from '@bt/shared/types';
 import { useQueryClient } from '@tanstack/vue-query';
 import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 
 import { resetAllDefinedStores } from './setup';
 
@@ -93,13 +95,14 @@ export const useAuthStore = defineStore('auth', () => {
    * Drop persisted (IndexedDB) and in-memory query caches when the authenticated
    * user differs from the one whose data was last persisted on this device. Runs
    * before any persisted query mounts so a fresh account never restores another's
-   * cached lists. No-op on first login and when the same user returns.
+   * cached lists. A missing ownership stamp also requires a wipe.
    */
   const reconcilePersistedQueriesForUser = async ({ userId }: { userId: number }) => {
     const currentUserIdStr = String(userId);
     const lastSeenUserId = localStorage.getItem(PERSISTED_QUERIES_USER_KEY);
 
-    if (lastSeenUserId !== null && lastSeenUserId !== currentUserIdStr) {
+    if (lastSeenUserId !== currentUserIdStr) {
+      categoriesStore.resetCategories();
       // Keeping the previous user's stamp makes the next load retry a failed wipe.
       const isWiped = await resetQueryCaches(queryClient);
       if (!isWiped) return;
@@ -116,11 +119,19 @@ export const useAuthStore = defineStore('auth', () => {
     // wipe after that orphans their observers and they never resolve until reload.
     const user = await loadUserData();
     await reconcilePersistedQueriesForUser({ userId: user.id });
+    // This path also runs on reload. Leave same-user snapshots intact and let
+    // each query's freshness policy decide when to make a confirming request.
     userStore.user = user;
+    // Start preferences before dashboard widgets mount so saved layout and filters are ready sooner.
+    void queryClient.prefetchQuery(userSettingsQueryOptions);
     // Sweep abandoned persisted-query rows (see `collectPersistedQueryGarbage`);
     // not awaited – nothing below depends on it.
     void collectPersistedQueryGarbage();
-    await Promise.all([currenciesStore.loadBaseCurrency(), categoriesStore.loadCategories()]);
+    // Start these alongside the currency gate; the entry page and root store
+    // reuse the same query even while its first request is still running.
+    void currenciesStore.loadCurrencies().catch(() => {});
+    void categoriesStore.loadCategories();
+    await currenciesStore.loadBaseCurrency();
   };
 
   /**
@@ -230,10 +241,21 @@ export const useAuthStore = defineStore('auth', () => {
    * Validates the current session by checking with better-auth.
    * Sets isSessionChecked to true after validation attempt.
    */
-  const validateSession = async (): Promise<boolean> => {
+  let sessionCheck: Promise<boolean> | undefined;
+  const validateSession = (): Promise<boolean> => {
+    sessionCheck ??= checkSession().finally(() => {
+      sessionCheck = undefined;
+    });
+    return sessionCheck;
+  };
+
+  const checkSession = async (): Promise<boolean> => {
     try {
       const session = await getSession();
 
+      const status = session?.error?.status;
+      if (status && status >= 500) reportApiAvailability(status === 504 ? 'requestTimeout' : 'serverUnavailable');
+      else if (!session?.error) reportApiAvailability(null);
       if (!session?.data?.session) {
         isSessionChecked.value = true;
         return false;
@@ -249,6 +271,8 @@ export const useAuthStore = defineStore('auth', () => {
       isSessionChecked.value = true;
       return true;
     } catch (error) {
+      if (navigator.onLine === false) reportApiAvailability('offline');
+      else if (error instanceof TypeError) reportApiAvailability('unreachable');
       // Server-side failures (incl. a gateway 5xx page) aren't client bugs; any other throw is a
       // network failure or bug. Either way the user lands in an ordinary signed-out state.
       if (!SERVER_FAILURE_CODES.some((code) => isApiErrorWithCode(error, code))) {
@@ -326,13 +350,6 @@ export const useAuthStore = defineStore('auth', () => {
       window.location.assign(providerLogoutUrl);
     }
   };
-
-  watch(isLoggedIn, (newValue) => {
-    // Only invalidate queries when logging IN, not when logging out
-    if (newValue) {
-      queryClient.invalidateQueries();
-    }
-  });
 
   return {
     isLoggedIn,

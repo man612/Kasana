@@ -1,5 +1,5 @@
 import { TRANSACTION_TRANSFER_NATURE, TRANSACTION_TYPES, isTwoLegTransfer } from '@bt/shared/types';
-import type { RecordId, RestoreTrashResponse } from '@bt/shared/types';
+import type { RecordId, RestoreTrashResponse, RestoreTrashBody } from '@bt/shared/types';
 import { ValidationError } from '@js/errors';
 import { logger } from '@js/utils/logger';
 import Accounts from '@models/accounts.model';
@@ -77,8 +77,9 @@ const recheckRefundLinks = async ({ id }: { id: string }): Promise<{ touchedIds:
 };
 
 export const restoreTrashed = withTransaction(
-  async ({ userId, transactionIds }: { userId: number; transactionIds: string[] }): Promise<RestoreTrashResponse> => {
-    const legs = await loadTrashedLegs({ userId, transactionIds });
+  async (params: { userId: number } & RestoreTrashBody): Promise<RestoreTrashResponse> => {
+    const legs = await loadTrashedLegs(params);
+    if (!legs.length) return { restoredIds: [], droppedRefundLinks: 0 };
 
     const accounts = await Accounts.findAll({
       where: { id: { [Op.in]: [...new Set(legs.map((leg) => leg.accountId))] } },

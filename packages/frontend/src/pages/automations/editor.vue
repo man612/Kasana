@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import ResourceNotFound from '@/components/common/resource-not-found.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import InputField from '@/components/fields/input-field.vue';
@@ -13,6 +15,8 @@ import {
   useTransactionAutomation,
   useUpdateAutomation,
 } from '@/composable/data-queries/transaction-automations';
+import { useKeyboardViewport } from '@/composable/use-keyboard-viewport';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { extractApiErrorMessage } from '@/js/errors';
 import { captureException } from '@/lib/sentry';
 import { ROUTES_NAMES } from '@/routes';
@@ -27,12 +31,11 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   HistoryIcon,
-  Loader2Icon,
-  PlayIcon,
-  WandSparklesIcon,
-  ZapIcon,
+  ChevronDownIcon,
+  ListFilterIcon,
+  ListChecksIcon,
 } from '@lucide/vue';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, reactive, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
 
@@ -40,6 +43,7 @@ import ActionsBuilder from './components/actions-builder.vue';
 import ApplyToHistoryDialog from './components/apply-to-history-dialog.vue';
 import AutomationChipTrack from './components/automation-chip-track.vue';
 import { buildAutomationChips } from './components/automation-chips';
+import AutomationGuide from './components/automation-guide.vue';
 import { provideAutomationRefs } from './components/automation-refs';
 import {
   type AutomationValidationError,
@@ -64,6 +68,17 @@ useTagsStore()
   .loadTags()
   .catch((error) => captureException({ error, context: { scope: 'automations-editor:load-tags' } }));
 
+const formId = useId();
+const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
+const keyboard = useKeyboardViewport(isMobile);
+const visibleEditorHeight = computed(() =>
+  keyboard.value
+    ? {
+        height: `calc(${keyboard.value.height}px - var(--header-height, 3.5rem))`,
+      }
+    : undefined,
+);
+
 const ruleId = computed(() => (route.params.id as RecordId | undefined) || undefined);
 const isCreate = computed(() => !ruleId.value);
 const { automation, isFetched, isError } = useTransactionAutomation({ id: ruleId });
@@ -77,6 +92,18 @@ const form = reactive({
 
 const clone = <T,>(value: T): T => JSON.parse(JSON.stringify(value));
 
+const normalizedConditions = computed<AutomationConditions>(() => ({
+  match: form.conditions.items.length === 1 ? 'all' : form.conditions.match,
+  items: form.conditions.items.map((item) =>
+    item.field === 'note' || item.field === 'merchant' ? { ...item, value: trimKeywords({ value: item.value }) } : item,
+  ),
+}));
+const serializeDraft = () =>
+  JSON.stringify({
+    ...form,
+    name: form.name.trim(),
+    conditions: normalizedConditions.value,
+  });
 const snapshot = ref('');
 const isLoaded = ref(false);
 
@@ -92,7 +119,7 @@ watch(
       form.conditions = clone(rule.conditions);
       form.actions = clone(rule.actions);
     }
-    snapshot.value = JSON.stringify(form);
+    snapshot.value = serializeDraft();
     isLoaded.value = true;
   },
   { immediate: true },
@@ -149,7 +176,8 @@ const sentenceChips = computed(() =>
     },
   }),
 );
-const hasSentence = computed(() => sentenceChips.value.when.length > 0);
+const hasSentence = computed(() => sentenceChips.value.when.length > 0 && sentenceChips.value.then.length > 0);
+const previewOpen = ref(false);
 
 const areConditionsValid = computed(
   () => form.conditions.items.length > 0 && conditionErrors.value.every((error) => !error),
@@ -162,13 +190,6 @@ const isValid = computed(
 
 const showErrors = ref(false);
 
-const normalizedConditions = computed<AutomationConditions>(() => ({
-  match: form.conditions.match,
-  items: form.conditions.items.map((item) =>
-    item.field === 'note' || item.field === 'merchant' ? { ...item, value: trimKeywords({ value: item.value }) } : item,
-  ),
-}));
-
 const createMutation = useCreateAutomation();
 const updateMutation = useUpdateAutomation();
 const isSaving = computed(() => createMutation.isPending.value || updateMutation.isPending.value);
@@ -177,7 +198,7 @@ const goToList = () => router.push({ name: ROUTES_NAMES.automations });
 
 const handleSave = () => {
   showErrors.value = true;
-  if (!isValid.value || isSaving.value) return;
+  if (!isValid.value || isSaving.value || (!isCreate.value && !isDirty.value)) return;
 
   const payload = {
     name: form.name.trim(),
@@ -188,7 +209,7 @@ const handleSave = () => {
 
   const handlers = {
     onSuccess: () => {
-      snapshot.value = JSON.stringify(form);
+      snapshot.value = serializeDraft();
       addSuccessNotification(t('automations.editor.saveSuccess'));
       goToList();
     },
@@ -200,7 +221,7 @@ const handleSave = () => {
   else updateMutation.mutate({ id: ruleId.value!, payload }, handlers);
 };
 
-const isDirty = computed(() => isLoaded.value && JSON.stringify(form) !== snapshot.value);
+const isDirty = computed(() => isLoaded.value && serializeDraft() !== snapshot.value);
 const pendingPath = ref<string | null>(null);
 const isLeaveDialogOpen = ref(false);
 
@@ -216,14 +237,17 @@ const isApplyOpen = ref(false);
 const confirmLeave = () => {
   const path = pendingPath.value;
   pendingPath.value = null;
-  snapshot.value = JSON.stringify(form);
+  snapshot.value = serializeDraft();
   if (path) router.push(path);
 };
 </script>
 
 <template>
-  <div class="flex w-full max-w-5xl flex-col gap-6 p-4 md:p-6">
-    <div class="@container/editor-head flex items-center gap-3">
+  <div
+    class="flex h-[calc(100dvh-var(--header-height)-var(--bottom-navbar-height,0px)-1rem)] min-h-0 w-full max-w-5xl flex-col overflow-hidden md:h-[calc(100dvh-var(--header-height))]"
+    :style="visibleEditorHeight"
+  >
+    <div class="border-border @container/editor-head flex shrink-0 items-center gap-2 border-b px-3 py-2 md:px-6">
       <DesktopOnlyTooltip :content="$t('automations.editor.back')">
         <router-link :to="{ name: ROUTES_NAMES.automations }">
           <Button as="span" variant="ghost" size="icon-sm" :aria-label="$t('automations.editor.back')">
@@ -235,24 +259,27 @@ const confirmLeave = () => {
         {{ isCreate ? $t('automations.editor.titleNew') : $t('automations.editor.titleEdit') }}
       </h1>
 
-      <DesktopOnlyTooltip
-        v-if="!isCreate && automation"
-        :disabled="!isDirty"
-        :content="$t('automations.applyToHistory.saveFirst')"
-      >
-        <span class="ml-auto inline-flex shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            :disabled="isDirty"
-            :aria-label="$t('automations.applyToHistory.trigger')"
-            @click="isApplyOpen = true"
-          >
-            <HistoryIcon class="size-4" />
-            <span class="hidden @md/editor-head:inline">{{ $t('automations.applyToHistory.trigger') }}</span>
-          </Button>
-        </span>
-      </DesktopOnlyTooltip>
+      <div class="ml-auto flex shrink-0 items-center gap-1">
+        <DesktopOnlyTooltip
+          v-if="!isCreate && automation"
+          :disabled="!isDirty"
+          :content="$t('automations.applyToHistory.saveFirst')"
+        >
+          <span class="ml-auto inline-flex shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              :disabled="isDirty"
+              :aria-label="$t('automations.applyToHistory.trigger')"
+              @click="isApplyOpen = true"
+            >
+              <HistoryIcon class="size-4" />
+              <span class="hidden @md/editor-head:inline">{{ $t('automations.applyToHistory.trigger') }}</span>
+            </Button>
+          </span>
+        </DesktopOnlyTooltip>
+        <AutomationGuide compact-trigger />
+      </div>
     </div>
 
     <Card v-if="!isCreate && !isFetched" class="flex flex-col gap-3 p-4">
@@ -272,8 +299,15 @@ const confirmLeave = () => {
     />
 
     <template v-else>
-      <div class="@container/editor flex flex-col gap-5">
-        <Card :class="['flex flex-wrap items-end gap-x-5 gap-y-3 p-4', showErrors && formNameError && 'pb-7']">
+      <form
+        :id="formId"
+        data-no-nav-swipe
+        class="lajur-dialog-scroll @container/editor min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-4 md:p-6"
+        @submit.prevent="handleSave"
+        @focusout="showErrors = true"
+      >
+        <p class="text-muted-foreground max-w-prose text-sm leading-relaxed">{{ $t('automations.guide.intro') }}</p>
+        <Card :class="['flex flex-wrap items-end gap-x-5 gap-y-2 p-3', showErrors && formNameError && 'pb-7']">
           <InputField
             v-model="form.name"
             class="w-full min-w-0 @xl/editor:max-w-md @xl/editor:flex-1"
@@ -286,79 +320,109 @@ const confirmLeave = () => {
             <Switch id="automation-enabled" v-model="form.isEnabled" />
             {{ $t('automations.editor.enabled') }}
           </label>
-          <Button type="button" class="ml-auto hidden md:inline-flex" :disabled="isSaving" @click="handleSave">
-            <Loader2Icon v-if="isSaving" class="size-4 animate-spin" />
-            {{ $t('common.actions.save') }}
-          </Button>
         </Card>
 
-        <div
-          v-if="hasSentence"
-          class="border-border bg-card/50 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border border-dashed px-3 py-2.5"
-        >
-          <span class="text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
-            {{ $t('automations.chips.when') }}
-          </span>
-          <AutomationChipTrack
-            :chips="sentenceChips.when"
-            variant="when"
-            density="comfortable"
-            :match="form.conditions.match"
-          />
-          <template v-if="sentenceChips.then.length">
-            <ArrowRightIcon class="text-muted-foreground size-3.5 shrink-0" />
-            <span class="text-primary-text text-[11px] font-bold tracking-wider uppercase">
-              {{ $t('automations.chips.then') }}
-            </span>
-            <AutomationChipTrack :chips="sentenceChips.then" variant="then" density="comfortable" />
-          </template>
-        </div>
-
         <div class="flex flex-col">
-          <RailSection :icon="ZapIcon" tone="when" connected>
+          <RailSection :icon="ListFilterIcon" tone="when" connected>
             <template #header>
-              <i18n-t
-                keypath="automations.editor.conditionsHeader"
-                tag="div"
-                class="flex flex-wrap items-center gap-2 text-sm font-semibold"
-              >
-                <template #match>
-                  <PillTabs
-                    size="sm"
-                    :items="matchTabs"
-                    :model-value="form.conditions.match"
-                    @update:model-value="(match) => (form.conditions.match = match as 'all' | 'any')"
-                  />
-                </template>
-              </i18n-t>
+              <div class="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                {{ $t('automations.guide.conditionsTitle') }}
+                <HintIcon
+                  :title="$t('automations.guide.conditionsTitle')"
+                  :content="$t('automations.guide.conditionsHelp')"
+                />
+                <PillTabs
+                  v-if="form.conditions.items.length > 1"
+                  size="sm"
+                  :items="matchTabs"
+                  :model-value="form.conditions.match"
+                  @update:model-value="(match) => (form.conditions.match = match as 'all' | 'any')"
+                />
+              </div>
             </template>
             <ConditionsBuilder v-model="form.conditions" :errors="showErrors ? conditionErrors : []" />
           </RailSection>
 
-          <RailSection :icon="WandSparklesIcon" tone="then" connected>
+          <RailSection :icon="ListChecksIcon" tone="then">
             <template #header>
-              <div class="text-sm font-semibold">{{ $t('automations.editor.actionsHeader') }}</div>
+              <div class="flex items-center gap-1 text-sm font-semibold">
+                {{ $t('automations.guide.actionsTitle') }}
+                <HintIcon
+                  :title="$t('automations.guide.actionsTitle')"
+                  :content="$t('automations.guide.actionsHelp')"
+                />
+              </div>
             </template>
             <ActionsBuilder v-model="form.actions" :errors="showErrors ? actionErrors : []" />
           </RailSection>
-
-          <RailSection :icon="PlayIcon" tone="check">
-            <template #header>
-              <div class="text-sm font-semibold">{{ $t('automations.editor.preview.title') }}</div>
-            </template>
-            <PreviewPanel :conditions="normalizedConditions" :disabled="!areConditionsValid" />
-          </RailSection>
         </div>
 
-        <p v-if="showErrors && formError" class="text-destructive-text text-xs">{{ formError }}</p>
-      </div>
+        <LayoutCollapse :open="hasSentence">
+          <div
+            class="border-border bg-card flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border px-3 py-2.5"
+          >
+            <h2 class="w-full text-sm font-semibold">{{ $t('automations.guide.summaryTitle') }}</h2>
+            <span class="text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
+              {{ $t('automations.chips.when') }}
+            </span>
+            <AutomationChipTrack
+              :chips="sentenceChips.when"
+              variant="when"
+              density="comfortable"
+              :match="form.conditions.match"
+            />
+            <template v-if="sentenceChips.then.length">
+              <ArrowRightIcon class="text-muted-foreground size-3.5 shrink-0" />
+              <span class="text-primary-text text-[11px] font-bold tracking-wider uppercase">
+                {{ $t('automations.chips.then') }}
+              </span>
+              <AutomationChipTrack :chips="sentenceChips.then" variant="then" density="comfortable" />
+            </template>
+          </div>
+        </LayoutCollapse>
 
-      <div class="bg-background/95 border-border sticky bottom-0 z-10 -mx-4 border-t px-4 py-3 backdrop-blur md:hidden">
-        <Button type="button" class="w-full" :disabled="isSaving" @click="handleSave">
-          <Loader2Icon v-if="isSaving" class="size-4 animate-spin" />
+        <Card class="p-2">
+          <Button
+            type="button"
+            variant="ghost"
+            class="min-h-11 w-full justify-between text-left whitespace-normal"
+            :aria-expanded="previewOpen"
+            @click="previewOpen = !previewOpen"
+          >
+            {{ $t('automations.editor.preview.title') }}
+            <ChevronDownIcon
+              class="size-4 shrink-0 motion-safe:transition-transform"
+              :class="previewOpen && 'rotate-180'"
+              aria-hidden="true"
+            />
+          </Button>
+          <LayoutCollapse :open="previewOpen">
+            <div class="p-2">
+              <PreviewPanel :conditions="normalizedConditions" :disabled="!areConditionsValid" />
+            </div>
+          </LayoutCollapse>
+        </Card>
+
+        <LayoutCollapse :open="Boolean(showErrors && formError)">
+          <p class="text-destructive-text text-sm" role="alert">{{ formError }}</p>
+        </LayoutCollapse>
+      </form>
+      <footer
+        class="bg-background/95 border-border grid shrink-0 grid-cols-1 items-center gap-2 border-t px-4 pt-3 pb-[max(.75rem,env(safe-area-inset-bottom))] md:flex md:justify-end md:px-6"
+      >
+        <p v-if="!isValid" class="text-muted-foreground text-xs md:mr-auto">
+          {{ $t('automations.guide.incomplete') }}
+        </p>
+        <Button
+          type="submit"
+          :form="formId"
+          class="min-h-11 w-full md:w-auto"
+          :disabled="!isValid || isSaving || (!isCreate && !isDirty)"
+          :loading="isSaving"
+        >
           {{ $t('common.actions.save') }}
         </Button>
-      </div>
+      </footer>
     </template>
 
     <ApplyToHistoryDialog v-if="isApplyOpen" v-model:open="isApplyOpen" :rule="automation" />

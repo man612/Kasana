@@ -1,17 +1,25 @@
 import type { DashboardWidgetConfig } from '@/api/user-settings';
 import { DEFAULT_DASHBOARD_LAYOUT, WIDGET_REGISTRY } from '@/components/widgets/widget-registry';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { trackAnalyticsEvent } from '@/lib/posthog';
+import { useUserStore } from '@/stores/user';
 import { useLocalStorage } from '@vueuse/core';
 import { cloneDeep } from 'lodash-es';
 import { computed, nextTick, ref, watch } from 'vue';
 
 export function useDashboardLayout() {
-  const { data: settings, patchAsync } = useUserSettings();
+  const { data: settings, isPending: isSettingsPending, patchAsync } = useUserSettings();
+  const user = useUserStore();
 
-  const cachedLayout = useLocalStorage<DashboardWidgetConfig[]>('dashboard-layout', DEFAULT_DASHBOARD_LAYOUT);
+  const cachedLayout = useLocalStorage<DashboardWidgetConfig[]>(
+    computed(() => `dashboard-layout:user:${user.user?.id ?? 'none'}`),
+    [],
+  );
+  const layoutReady = computed(() => Boolean(settings.value || cachedLayout.value.length || !isSettingsPending.value));
 
   const isEditMode = ref(false);
+  const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
   const draftWidgets = ref<DashboardWidgetConfig[]>([]);
 
   const activeWidgets = computed<DashboardWidgetConfig[]>(() => {
@@ -24,14 +32,20 @@ export function useDashboardLayout() {
     }
 
     // Still loading — use cached layout for accurate skeletons
-    return cachedLayout.value.filter((w) => w.widgetId in WIDGET_REGISTRY);
+    return (cachedLayout.value.length ? cachedLayout.value : DEFAULT_DASHBOARD_LAYOUT).filter(
+      (w) => w.widgetId in WIDGET_REGISTRY,
+    );
   });
 
-  watch(activeWidgets, (layout) => {
-    if (settings.value) {
-      cachedLayout.value = layout;
-    }
-  });
+  watch(
+    activeWidgets,
+    (layout) => {
+      if (settings.value && user.user) {
+        cachedLayout.value = layout;
+      }
+    },
+    { immediate: true },
+  );
 
   const displayWidgets = computed(() => (isEditMode.value ? draftWidgets.value : activeWidgets.value));
 
@@ -46,19 +60,23 @@ export function useDashboardLayout() {
     trackAnalyticsEvent({ event: 'dashboard_edit_opened' });
   };
 
-  const exitEditMode = () => {
+  const exitEditMode = ({ resetDraft = false }: { resetDraft?: boolean } = {}) => {
+    const exit = () => {
+      isEditMode.value = false;
+      if (resetDraft) draftWidgets.value = [];
+    };
     const reducedMotion =
       typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const transitionHost = document as Document & {
       startViewTransition?: (callback: () => Promise<void>) => unknown;
     };
-    if (reducedMotion || typeof transitionHost.startViewTransition !== 'function') {
-      isEditMode.value = false;
+    if (isMobile.value || reducedMotion || typeof transitionHost.startViewTransition !== 'function') {
+      exit();
       return;
     }
     // Capture both layouts after Vue paints to avoid abrupt widget flicker.
     transitionHost.startViewTransition(async () => {
-      isEditMode.value = false;
+      exit();
       await nextTick();
     });
   };
@@ -73,8 +91,7 @@ export function useDashboardLayout() {
   };
 
   const cancelEdit = () => {
-    draftWidgets.value = [];
-    isEditMode.value = false;
+    exitEditMode({ resetDraft: true });
   };
 
   const removeWidget = ({ widgetId }: { widgetId: string }) => {
@@ -126,6 +143,7 @@ export function useDashboardLayout() {
   return {
     isEditMode,
     activeWidgets,
+    layoutReady,
     draftWidgets,
     displayWidgets,
     availableWidgets,

@@ -100,7 +100,8 @@
       },
       "paidPercent": "{value}% paid",
       "monthsLeft": "{count} mo left",
-      "ofPrincipal": "of {amount}"
+      "ofPrincipal": "of {amount}",
+      "scheduledPayment": "Scheduled payment"
     },
     "types": {
       "mortgage": "Mortgage",
@@ -121,7 +122,7 @@
       "loadError": "Failed to load this loan.",
       "paidOffBadge": "Paid off",
       "summary": {
-        "outstanding": "Current balance",
+        "outstanding": "Outstanding principal",
         "principalOnlyTooltip": "Balance reflects principal payments only. Interest is not accrued automatically – your lender's statement is the source of truth.",
         "apr": "APR",
         "originalPrincipal": "Original principal",
@@ -216,6 +217,11 @@
           "actual": "Actual balance",
           "schedule": "Original schedule"
         }
+      },
+      "detailsToggle": "Loan details",
+      "tabs": {
+        "summary": "Overview",
+        "activity": "Activity"
       }
     }
   }

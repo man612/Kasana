@@ -25,7 +25,8 @@
       </Button>
     </PopoverTrigger>
 
-    <PopoverContent align="start" class="w-80 p-1">
+    <PopoverContent align="start" class="w-80 max-w-[calc(100vw-1.5rem)] p-1">
+      <slot name="list-settings" />
       <ScrollArea class="max-h-72" viewport-class="max-h-72">
         <p v-if="views.length === 0" class="text-muted-foreground px-2 py-3 text-center text-sm">
           {{ $t('transactions.savedViews.empty') }}
@@ -161,8 +162,13 @@
     </form>
 
     <template #footer="{ close }">
-      <Button variant="ghost" @click="close">{{ $t('common.actions.cancel') }}</Button>
-      <Button :disabled="!viewName.trim() || isPatching" :loading="isPatching" @click="submitName">
+      <Button variant="outline" class="min-h-11" @click="close">{{ $t('common.actions.cancel') }}</Button>
+      <Button
+        class="min-h-11 transition-[background-color,opacity]"
+        :disabled="!viewName.trim() || isPatching"
+        :loading="isPatching"
+        @click="submitName"
+      >
         {{ $t('common.actions.save') }}
       </Button>
     </template>

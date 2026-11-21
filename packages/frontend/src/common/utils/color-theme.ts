@@ -1,6 +1,8 @@
 import { readonly, ref } from 'vue';
 
 const THEME_LS_KEY = 'preferred-theme';
+let themeAccountId: number | null = null;
+const themeCacheKey = (id: number) => `${THEME_LS_KEY}:user:${id}`;
 
 export enum Themes {
   dark = 'dark',
@@ -54,6 +56,7 @@ const readStoredPreference = (): string | null => {
 const writeStoredPreference = (pref: ThemePreference): void => {
   try {
     localStorage.setItem(THEME_LS_KEY, pref);
+    if (themeAccountId !== null) localStorage.setItem(themeCacheKey(themeAccountId), pref);
   } catch (error) {
     console.warn('[color-theme] Failed to persist theme preference:', error);
   }
@@ -63,6 +66,30 @@ export const setThemePreference = (pref: ThemePreference) => {
   _themePreference.value = pref;
   writeStoredPreference(pref);
   applyTheme(resolveTheme(pref));
+};
+
+export const identifyColorThemeForUser = ({
+  userId,
+  serverPreference,
+}: {
+  userId: number | null;
+  serverPreference?: string;
+}) => {
+  themeAccountId = userId;
+  let cached: string | null = null;
+  if (userId !== null) {
+    try {
+      cached = localStorage.getItem(themeCacheKey(userId));
+    } catch {
+      // Storage can be unavailable in private browsing.
+    }
+  }
+  const candidate = serverPreference ?? cached;
+  const preference = isValidPreference(candidate) ? candidate : ThemePreference.system;
+  _themePreference.value = preference;
+  applyTheme(resolveTheme(preference));
+  // A response with no preference must not overwrite the previous device cache.
+  if (serverPreference || cached || userId === null) writeStoredPreference(preference);
 };
 
 const onSystemPreferenceChange = () => {

@@ -248,15 +248,14 @@ const { isFormValid, isFormValidQuiet, getFieldErrorMessage, touchField } = useF
 
 // Date objects need stable scalar values for change detection. A restored
 // edit form must remain unsavable until its effective data differs.
-const serializeForm = () => JSON.stringify({
-  ...form,
-  startDate: form.startDate instanceof Date ? form.startDate.getTime() : form.startDate,
-});
+const serializeForm = () =>
+  JSON.stringify({
+    ...form,
+    startDate: form.startDate instanceof Date ? form.startDate.getTime() : form.startDate,
+  });
 const initialFormSnapshot = serializeForm();
 const hasChanges = computed(() => serializeForm() !== initialFormSnapshot);
-const isSubmitDisabled = computed(
-  () => props.submitting || !isFormValidQuiet() || (isEdit.value && !hasChanges.value),
-);
+const isSubmitDisabled = computed(() => props.submitting || !isFormValidQuiet() || (isEdit.value && !hasChanges.value));
 defineExpose({ isSubmitDisabled, hasChanges });
 
 const submit = () => {
@@ -326,7 +325,7 @@ const submit = () => {
         :placeholder="$t('forms.loan.loanTypePlaceholder')"
         @update:model-value="(value) => (form.loanType = value as LOAN_TYPE)"
       >
-        <template #header-action><FormFieldHelp topic="loanType" /></template>
+        <template #header-action><FormFieldHelp topic="loanType" header /></template>
       </OptionPickerDialog>
     </div>
 

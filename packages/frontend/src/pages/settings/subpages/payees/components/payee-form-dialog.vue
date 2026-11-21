@@ -1,27 +1,24 @@
 <template>
-  <ResponsiveDialog v-model:open="isOpen">
+  <ResponsiveDialog v-model:open="isOpen" custom-close :dismissible="!isPending">
+    <template #title>{{ isEdit ? $t('payees.actions.edit') : $t('payees.newPayeeButton') }}</template>
     <template #default>
       <div class="flex flex-col gap-4">
-        <h3 class="text-lg font-semibold">
-          {{ isEdit ? $t('payees.actions.rename') : $t('payees.newPayeeButton') }}
-        </h3>
-
         <InputField
           v-model="form.name"
           :label="$t('payees.columns.name')"
           :placeholder="$t('payees.form.namePlaceholder')"
           :error-message="nameError ?? undefined"
-        />
-
-        <!-- Logo picker: create-only. Renaming an existing payee uses the
-             dedicated payee-logo-picker dialog instead. -->
-        <div v-if="!isEdit" class="flex flex-col gap-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-sm font-medium">{{ $t('payees.logo.fieldLabel') }}</span>
-            <HintIcon :content="$t('payees.logo.domainHint')" />
-          </div>
-          <LogoField v-model="form.logo" :name-for-search="form.name" />
-        </div>
+          :maxlength="200"
+        >
+          <template v-if="!isEdit" #field-right>
+            <LogoSquareField
+              v-model="form.logo"
+              :name-for-search="form.name"
+              size-class="size-11 rounded-lg md:size-9"
+              :disabled="isPending"
+            />
+          </template>
+        </InputField>
 
         <CategorySelectField
           v-model="form.category"
@@ -37,25 +34,50 @@
           }}</span>
           <HintIcon :content="$t('payees.form.categorizationMode.fullExplanation')" />
         </div>
-        <SelectField
-          v-model="form.categorizationMode"
-          :values="categorizationModeOptions"
-          label-key="label"
-          value-key="value"
-        />
+        <Popover v-model:open="isModeOpen" modal>
+          <PopoverTrigger as-child>
+            <Button
+              type="button"
+              variant="outline"
+              class="min-h-11 w-full justify-between"
+              :aria-label="`${$t('payees.form.categorizationMode.label')}: ${activeModeLabel}`"
+            >
+              {{ activeModeLabel }}
+              <ChevronDownIcon class="size-4" aria-hidden="true" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            dim-backdrop
+            align="start"
+            class="w-(--reka-popover-trigger-width) max-w-[calc(100vw-1.5rem)] p-1"
+          >
+            <Button
+              v-for="option in categorizationModeOptions"
+              :key="option.value"
+              type="button"
+              variant="ghost"
+              class="min-h-11 w-full justify-between text-left whitespace-normal"
+              :aria-pressed="form.categorizationMode.value === option.value"
+              @click="
+                form.categorizationMode = option;
+                isModeOpen = false;
+              "
+            >
+              {{ option.label }}
+              <CheckIcon v-if="form.categorizationMode.value === option.value" class="size-4" aria-hidden="true" />
+            </Button>
+          </PopoverContent>
+        </Popover>
         <p class="text-muted-foreground -mt-2 text-xs">
           {{ activeModeHint }}
         </p>
-
-        <div class="flex justify-end gap-2 pt-2">
-          <Button variant="ghost" :disabled="isPending" @click="isOpen = false">
-            {{ $t('common.actions.cancel') }}
-          </Button>
-          <Button variant="default" :disabled="!form.name || isPending" @click="handleSave">
-            {{ $t('common.actions.save') }}
-          </Button>
-        </div>
       </div>
+    </template>
+    <template #footer="{ close }">
+      <Button variant="outline" :disabled="isPending" @click="close">{{ $t('common.actions.cancel') }}</Button>
+      <Button :disabled="!canSave" @click="handleSave">{{
+        $t(isEdit ? 'payees.actions.saveChanges' : 'common.actions.save')
+      }}</Button>
     </template>
   </ResponsiveDialog>
 </template>
@@ -67,10 +89,10 @@ import { useNotificationCenter } from '@/components/notification-center';
 import { useCategoriesStore } from '@/stores';
 import type { FormattedCategory } from '@/common/types';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
-import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import CategorySelectField from '@/components/fields/category-select-field.vue';
 import InputField from '@/components/fields/input-field.vue';
-import SelectField from '@/components/fields/select-field.vue';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
+import { CheckIcon, ChevronDownIcon } from '@lucide/vue';
 import { Button } from '@/components/lib/ui/button';
 import { ApiErrorResponseError, isApiErrorWithCode } from '@/js/errors';
 import { captureException } from '@/lib/sentry';
@@ -80,7 +102,7 @@ import { storeToRefs } from 'pinia';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import LogoField from '@/components/common/logo-field.vue';
+import LogoSquareField from '@/components/common/logo-square-field.vue';
 import { type LogoSelection, toOptionalLogoPayload } from '@/components/common/logo-selection';
 
 interface Props {
@@ -191,7 +213,24 @@ const createMut = useCreatePayee();
 const updateMut = useUpdatePayee();
 const isPending = computed(() => createMut.isPending.value || updateMut.isPending.value);
 
+const isModeOpen = ref(false);
+const activeModeLabel = computed(
+  () => categorizationModeOptions.value.find((option) => option.value === form.categorizationMode.value)?.label,
+);
+const canSave = computed(() => {
+  const name = form.name.trim();
+  if (!name || name.length > 200 || isPending.value) return false;
+  const original = props.payee;
+  return (
+    !original ||
+    name !== original.name ||
+    (form.category?.id ?? null) !== (original.defaultCategoryId ?? null) ||
+    form.categorizationMode.value !== (original.categorizationMode ?? CATEGORIZATION_MODE.enforce)
+  );
+});
+
 async function handleSave() {
+  if (!canSave.value) return;
   nameError.value = null;
   try {
     let saved: PayeeModel;
@@ -199,7 +238,7 @@ async function handleSave() {
       saved = await updateMut.mutateAsync({
         id: props.payee.id,
         payload: {
-          name: form.name,
+          name: form.name.trim(),
           defaultCategoryId: form.category?.id ?? null,
           categorizationMode: form.categorizationMode.value,
         },
@@ -207,7 +246,7 @@ async function handleSave() {
       addSuccessNotification(t('payees.toasts.updated'));
     } else {
       saved = await createMut.mutateAsync({
-        name: form.name,
+        name: form.name.trim(),
         defaultCategoryId: form.category?.id ?? null,
         categorizationMode: form.categorizationMode.value,
         // No selection omits the logo keys so the new payee keeps auto-resolving.

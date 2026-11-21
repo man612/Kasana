@@ -6,6 +6,8 @@ import {
   CurrencyOptionValue,
   FILTER_OPERATION,
   type RecordId,
+  RESOURCE_TYPES,
+  SHARE_PERMISSIONS,
   SORT_DIRECTIONS,
   TRANSACTION_SORT_FIELD,
   TRANSACTION_TRANSFER_NATURE,
@@ -1266,12 +1268,56 @@ describe('GET /transactions — response shape', () => {
     expect(richRow.transactionGroups!.map((g) => ({ id: g.id, transactionCount: g.transactionCount }))).toEqual([
       { id: group.id, transactionCount: 2 },
     ]);
+    const expectedGroupTime = Math.max(new Date(rich.time).getTime(), new Date(sibling.time).getTime());
+    expect(Date.parse(richRow.transactionGroups![0]!.latestTime!)).toBe(expectedGroupTime);
     expect(richRow.hasAttachments).toBe(false);
     expect(rows.find((tx) => tx.id === plain.id)).toMatchObject({
       tags: [],
       splits: [],
       transactionGroups: [],
       hasAttachments: false,
+    });
+  });
+
+  it('keeps a private group member timestamp out of a shared account response', async () => {
+    const sharedAccount = await helpers.createAccount({ raw: true });
+    const privateAccount = await helpers.createAccount({ raw: true });
+    const [earlier] = await helpers.createTransaction({
+      payload: helpers.buildTransactionPayload({
+        accountId: sharedAccount.id,
+        time: subDays(new Date(), 8).toISOString(),
+      }),
+      raw: true,
+    });
+    const [later] = await helpers.createTransaction({
+      payload: helpers.buildTransactionPayload({ accountId: privateAccount.id }),
+      raw: true,
+    });
+    await helpers.createTransactionGroup({
+      payload: helpers.buildTransactionGroupPayload({ transactionIds: [earlier.id, later.id] }),
+      raw: true,
+    });
+    const recipient = await helpers.provisionSecondUserWithBaseCurrency();
+    const invitation = await helpers.createShareInvitation({
+      inviteeEmail: recipient.email,
+      resourceType: RESOURCE_TYPES.account,
+      resourceId: sharedAccount.id,
+      permission: SHARE_PERMISSIONS.read,
+      raw: true,
+    });
+
+    await helpers.asUser({
+      cookies: recipient.cookies,
+      fn: async () => {
+        await helpers.acceptShareInvitation({ token: invitation.token, raw: true });
+        const rows = (await helpers.getTransactions({
+          accountIds: [sharedAccount.id],
+          raw: true,
+        })) as unknown as TransactionApiResponse[];
+        const membership = rows.find((row) => row.id === earlier.id)?.transactionGroups?.[0];
+        expect(membership?.transactionCount).toBe(2);
+        expect(membership).not.toHaveProperty('latestTime');
+      },
     });
   });
 

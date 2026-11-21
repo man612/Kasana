@@ -1,43 +1,40 @@
 <script setup lang="ts">
-import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import ContextualHelp from '@/components/common/contextual-help.vue';
 import { Button } from '@/components/lib/ui/button';
 import { CircleHelpIcon } from '@lucide/vue';
-import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 /** Clickable explanation using the app's existing dialog/drawer pattern. */
-defineProps<{ topic: string }>();
+defineProps<{ topic: string; header?: boolean }>();
 
 const { t } = useI18n();
-const isOpen = ref(false);
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen" mobile-presentation="center">
+  <ContextualHelp :title="t(`forms.fieldHelp.${topic}.title`)">
     <template #trigger>
       <Button
         type="button"
         variant="ghost"
         size="icon-sm"
-        class="text-muted-foreground hover:text-foreground size-8 shrink-0 rounded-lg"
+        class="text-muted-foreground hover:text-foreground shrink-0 rounded-lg"
+        :class="header ? 'size-11' : 'size-8'"
         :aria-label="t('forms.fieldHelp.open', { field: t(`forms.fieldHelp.${topic}.title`) })"
         :title="t(`forms.fieldHelp.${topic}.title`)"
       >
-        <CircleHelpIcon class="size-4" />
+        <CircleHelpIcon :class="header ? 'size-5' : 'size-4'" aria-hidden="true" />
       </Button>
     </template>
-    <template #title>{{ t(`forms.fieldHelp.${topic}.title`) }}</template>
-    <template #description>{{ t('forms.fieldHelp.description') }}</template>
-    <div class="space-y-4 px-1 pb-3 text-sm leading-relaxed">
-      <p class="text-foreground">{{ t(`forms.fieldHelp.${topic}.meaning`) }}</p>
-      <div class="border-border bg-muted/40 rounded-xl border p-3">
-        <p class="text-foreground mb-1 font-semibold">{{ t('forms.fieldHelp.example') }}</p>
+    <div class="space-y-3">
+      <p>{{ t(`forms.fieldHelp.${topic}.meaning`) }}</p>
+      <div class="border-primary/45 bg-muted/40 border-l-2 py-2 pr-3 pl-3">
+        <p class="mb-0.5 font-semibold">{{ t('forms.fieldHelp.example') }}</p>
         <p class="text-muted-foreground">{{ t(`forms.fieldHelp.${topic}.example`) }}</p>
       </div>
-      <div class="border-border rounded-xl border p-3">
-        <p class="text-foreground mb-1 font-semibold">{{ t('forms.fieldHelp.important') }}</p>
-        <p class="text-muted-foreground">{{ t(`forms.fieldHelp.${topic}.important`) }}</p>
+      <div class="text-muted-foreground">
+        <p class="text-foreground mb-0.5 font-semibold">{{ t('forms.fieldHelp.important') }}</p>
+        <p>{{ t(`forms.fieldHelp.${topic}.important`) }}</p>
       </div>
     </div>
-  </ResponsiveDialog>
+  </ContextualHelp>
 </template>

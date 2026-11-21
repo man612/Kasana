@@ -1,13 +1,12 @@
 <template>
   <div
+    data-transaction-row
+    :data-divider="showDivider || undefined"
     :class="[
-      'group/row hover:bg-muted/50 grid w-full cursor-pointer rounded-md px-2 py-1 transition-colors [content-visibility:auto]',
-      showCheckbox
-        ? 'grid-cols-[auto_minmax(0,1fr)_max-content] items-center gap-2'
-        : (shouldShowGroupedTransfer && !compact) || isLoadingGroupedTransfer
-          ? 'grid-cols-[minmax(0,1fr)_max-content] items-end gap-3'
-          : 'grid-cols-[minmax(0,1fr)_max-content] items-center gap-2',
-      shouldShowGroupedTransfer && compact && '@container/tx-record',
+      'group/row hover:bg-muted/50 relative grid w-full cursor-pointer items-center gap-2 rounded-md px-2 transition-colors',
+      compact ? 'py-1.5' : 'py-2',
+      showCheckbox ? 'grid-cols-[auto_minmax(0,1fr)_fit-content(46%)]' : 'grid-cols-[minmax(0,1fr)_fit-content(46%)]',
+      showCheckbox && 'has-checkbox',
     ]"
     aria-haspopup="true"
     @click="transactionEmit"
@@ -26,9 +25,9 @@
       <div v-else class="size-4" />
     </label>
 
-    <div class="flex items-center gap-2 overflow-x-clip">
-      <template v-if="!isTransferTransaction && !linkTarget && category">
-        <div class="relative shrink-0">
+    <div class="flex min-w-0 items-center gap-2">
+      <template v-if="!isTransferTransaction && !linkTarget && !isBalanceCorrection && category">
+        <div class="relative grid size-6 shrink-0 place-items-center">
           <CategoryCircle :category="category" />
           <ResponsiveTooltip v-if="showAccount && accountFrom" :content="accountFrom.name" :delay-duration="100">
             <!-- Backing tracks the row's hover fill so the badge's cut-out never shows as a halo. -->
@@ -45,79 +44,50 @@
         </div>
       </template>
 
-      <div :class="isCompactInline ? 'flex w-full min-w-0 items-center gap-2 text-left' : 'w-full text-left'">
+      <div class="w-full min-w-0 text-left">
         <template v-if="isLoadingGroupedTransfer">
           <!-- Loading skeleton: known leg renders on its side (source left, dest
                right); the still-loading opposite leg is a placeholder. -->
           <div class="mb-1 flex items-center gap-1.5">
             <div v-if="ownLegIsIncome" class="h-4 w-20 animate-pulse rounded bg-white/10"></div>
             <template v-else>
-              <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-5 shrink-0" />
+              <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-6 shrink-0" />
               <span class="text-sm font-medium tracking-wide">
                 {{ accountFrom?.name }}
               </span>
             </template>
             <ArrowRight :size="14" class="opacity-60" />
             <template v-if="ownLegIsIncome">
-              <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-5 shrink-0" />
+              <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-6 shrink-0" />
               <span class="text-sm font-medium tracking-wide">
                 {{ accountFrom?.name }}
               </span>
             </template>
             <div v-else class="h-4 w-20 animate-pulse rounded bg-white/10"></div>
           </div>
-          <div class="flex items-center gap-3 text-sm">
-            <div v-if="ownLegIsIncome" class="h-4 w-16 animate-pulse rounded bg-white/10"></div>
-            <span v-else class="text-amount text-app-expense-color">{{ formattedExpenseAmount }}</span>
-            <ArrowRight :size="12" class="opacity-40" />
-            <span v-if="ownLegIsIncome" class="text-amount text-app-income-color">{{ formattedIncomeAmount }}</span>
-            <div v-else class="h-4 w-16 animate-pulse rounded bg-white/10"></div>
+        </template>
+        <template v-else-if="shouldShowGroupedTransfer">
+          <div class="flex min-w-0 items-center gap-1.5 text-sm">
+            <AccountLogo v-if="transferFromAccount" :account="transferFromAccount" class="size-6 shrink-0" />
+            <span class="min-w-0 truncate">{{
+              transferFromAccount?.name ?? $t('common.transactions.record.hiddenAccount')
+            }}</span>
+            <ArrowRight :size="14" class="shrink-0 opacity-60" />
+            <AccountLogo v-if="transferToAccount" :account="transferToAccount" class="size-6 shrink-0" />
+            <span class="min-w-0 truncate">{{
+              transferToAccount?.name ?? $t('common.transactions.record.hiddenAccount')
+            }}</span>
           </div>
         </template>
-        <div v-else-if="shouldShowGroupedTransfer && compact" class="min-w-0">
-          <div class="flex min-w-0 items-center gap-1.5 text-sm tracking-wider">
-            <AccountLogo v-if="transferFromAccount" :account="transferFromAccount" class="size-5 shrink-0" />
-            <span class="truncate">{{ transferFromAccount?.name }}</span>
-            <ArrowRight :size="14" class="shrink-0 opacity-60" />
-            <HandCoinsIcon v-if="isLoanDestination" :size="14" class="text-app-transfer-color shrink-0" />
-            <AccountLogo v-if="transferToAccount" :account="transferToAccount" class="size-5 shrink-0" />
-            <span class="truncate">{{ transferToAccount?.name }}</span>
-          </div>
-          <!-- Too narrow for one line: amounts drop under the accounts. -->
-          <div class="mt-1 flex items-center gap-3 text-sm @lg/tx-record:hidden">
-            <span class="text-amount text-muted-foreground whitespace-nowrap">{{ formattedExpenseAmount }}</span>
-            <ArrowRight :size="12" class="shrink-0 opacity-40" />
-            <span class="text-amount whitespace-nowrap">{{ formattedIncomeAmount }}</span>
+        <div v-else-if="isBalanceCorrection" class="flex min-w-0 items-center gap-2">
+          <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-6 shrink-0" />
+          <div class="min-w-0">
+            <div class="truncate text-sm">{{ accountFrom?.name }}</div>
           </div>
         </div>
-        <template v-else-if="shouldShowGroupedTransfer">
-          <!-- Grouped transfer: show account movement on top with better styling -->
-          <div class="mb-1 flex items-center gap-1.5">
-            <div class="flex min-w-17 items-center gap-1.5">
-              <AccountLogo v-if="transferFromAccount" :account="transferFromAccount" class="size-5 shrink-0" />
-              <span class="line-clamp-1 text-sm font-medium tracking-wide">
-                {{ transferFromAccount?.name }}
-              </span>
-            </div>
-            <ArrowRight :size="14" class="shrink-0 opacity-60" />
-            <HandCoinsIcon v-if="isLoanDestination" :size="14" class="text-app-transfer-color shrink-0" />
-            <div class="flex min-w-17 items-center gap-1.5">
-              <AccountLogo v-if="transferToAccount" :account="transferToAccount" class="size-5 shrink-0" />
-              <span class="line-clamp-1 text-sm font-medium tracking-wide">
-                {{ transferToAccount?.name }}
-              </span>
-            </div>
-          </div>
-          <!-- Show both amounts on bottom with better spacing and typography -->
-          <div class="flex items-center gap-3 text-sm">
-            <span class="text-amount text-app-expense-color whitespace-nowrap">{{ formattedExpenseAmount }}</span>
-            <ArrowRight :size="12" class="opacity-40" />
-            <span class="text-amount text-app-income-color whitespace-nowrap">{{ formattedIncomeAmount }}</span>
-          </div>
-        </template>
         <template v-else-if="linkTarget">
           <div :class="['flex items-center gap-1.5', compact && 'min-w-0']">
-            <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-5 shrink-0" />
+            <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-6 shrink-0" />
             <span class="line-clamp-1 text-sm tracking-wider">
               {{ accountFrom?.name }}
             </span>
@@ -126,7 +96,7 @@
               v-if="linkTarget.logoSelection"
               v-bind="toLogoDisplayProps({ selection: linkTarget.logoSelection })"
               :name="linkTarget.name"
-              class="size-5 shrink-0"
+              class="size-6 shrink-0"
             />
             <component :is="linkTarget.icon" v-else :size="14" class="text-app-transfer-color shrink-0" />
             <div v-if="linkTarget.isLoading" class="h-4 w-16 animate-pulse rounded bg-white/10" />
@@ -143,16 +113,16 @@
         </template>
         <template v-else-if="isTransferTransaction">
           <div :class="['flex items-center gap-1.5 text-sm tracking-wider', compact && 'min-w-0']">
-            <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-5 shrink-0" />
+            <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-6 shrink-0" />
             <span class="line-clamp-1">{{ transferFromLabel }}</span>
             <ArrowRight :size="14" :class="['shrink-0 opacity-60', ownLegIsIncome && 'rotate-180']" />
-            <AccountLogo v-if="accountTo" :account="accountTo" class="size-5 shrink-0" />
+            <AccountLogo v-if="accountTo" :account="accountTo" class="size-6 shrink-0" />
             <span class="line-clamp-1">{{ transferToLabel }}</span>
           </div>
         </template>
         <template v-else>
-          <div :class="['flex items-center gap-2', compact && 'shrink-0']">
-            <span class="text-sm tracking-wider whitespace-nowrap">
+          <div class="flex min-w-0 items-center gap-1.5">
+            <span class="min-w-0 truncate text-sm">
               {{ category ? category.name : t('common.ui.other') }}
             </span>
             <ResponsiveTooltip v-if="aiMatchReason" content-class-name="max-w-64" :delay-duration="100">
@@ -192,7 +162,6 @@
             <SplitIndicator :transaction="transaction" />
             <PaymentIndicator :transaction="transaction" />
             <RefundIndicator v-if="!hideRefundMarker" :transaction="transaction" />
-            <TagsIndicator :tags="transaction.tags ?? []" :variant="tagsVariant" />
             <AttachmentIndicator :transaction="transaction" />
             <ResponsiveTooltip
               v-if="externalLinkHref && !compact"
@@ -230,62 +199,31 @@
             </ResponsiveTooltip>
           </div>
         </template>
-        <span
-          v-if="!shouldShowGroupedTransfer && !isLoadingGroupedTransfer"
-          :class="
-            compact
-              ? 'text-muted-foreground min-w-0 truncate text-sm'
-              : 'text-muted-foreground line-clamp-1 text-sm tracking-wider [word-break:break-word]'
-          "
+        <div
+          v-if="rowCaption || transaction.tags?.length"
+          class="text-muted-foreground flex min-w-0 items-center gap-1.5 overflow-hidden text-xs"
         >
-          {{ transaction.note }}
-        </span>
+          <span v-if="rowCaption" class="min-w-0 truncate" :title="rowCaption">{{ rowCaption }}</span>
+          <TagsIndicator
+            v-if="transaction.tags?.length"
+            :tags="transaction.tags"
+            :variant="tagsVariant"
+            :compact="compact"
+            row-summary
+          />
+        </div>
       </div>
     </div>
-    <div
-      v-if="shouldShowGroupedTransfer && compact"
-      class="flex items-center justify-end gap-2 self-end @lg/tx-record:self-center"
-    >
-      <div v-if="!hideDate" class="text-muted-foreground text-xs whitespace-nowrap">
-        {{ formateDate(transaction.time) }}
-      </div>
-      <div class="hidden items-center gap-1.5 text-sm whitespace-nowrap @lg/tx-record:flex">
-        <span class="text-amount text-muted-foreground">{{ formattedExpenseAmount }}</span>
-        <ArrowRight :size="12" class="shrink-0 opacity-40" />
-        <span class="text-amount">{{ formattedIncomeAmount }}</span>
-      </div>
-    </div>
-    <div v-else-if="shouldShowGroupedTransfer || isLoadingGroupedTransfer" class="flex items-start pt-0.5">
-      <div v-if="!hideDate" class="text-muted-foreground text-right text-xs whitespace-nowrap tabular-nums">
-        {{ formateDate(transaction.time) }}
-      </div>
-    </div>
-    <div v-else-if="compact" class="flex items-baseline justify-end gap-2">
-      <div v-if="!hideDate" class="text-muted-foreground text-xs whitespace-nowrap">
-        {{ formateDate(transaction.time) }}
-      </div>
+    <div class="min-w-0">
       <div
         :class="[
-          'text-amount text-right text-sm whitespace-nowrap',
-          transaction.transactionType === TRANSACTION_TYPES.income && 'text-app-income-color',
-          transaction.transactionType === TRANSACTION_TYPES.expense && 'text-app-expense-color',
+          'text-amount truncate text-right tabular-nums',
+          compact && 'text-sm',
+          isCashMovement && (ownLegIsIncome ? 'text-app-income-color' : 'text-app-expense-color'),
         ]"
+        :title="rowAmount"
       >
-        {{ formattedAmount }}
-      </div>
-    </div>
-    <div v-else>
-      <div
-        :class="[
-          'text-amount text-right',
-          transaction.transactionType === TRANSACTION_TYPES.income && 'text-app-income-color',
-          transaction.transactionType === TRANSACTION_TYPES.expense && 'text-app-expense-color',
-        ]"
-      >
-        {{ formattedAmount }}
-      </div>
-      <div v-if="formattedPaymentShare" class="text-muted-foreground text-amount text-right text-xs">
-        ≈ {{ formattedPaymentShare }}
+        {{ rowAmount }}
       </div>
       <div v-if="!hideDate" class="text-muted-foreground text-right text-xs">
         {{ formateDate(transaction.time) }}
@@ -328,7 +266,6 @@ import {
   BriefcaseIcon,
   ExternalLinkIcon,
   InfoIcon,
-  HandCoinsIcon,
   MapPinIcon,
   RocketIcon,
   SparklesIcon,
@@ -366,6 +303,7 @@ const props = withDefaults(
     index?: number;
     /** Single-line row: the note renders inline, amount and date share one line. */
     compact?: boolean;
+    showDivider?: boolean;
     /** Set where a parent already shows the date, e.g. a single-day group. */
     hideDate?: boolean;
     /** Set where planned rows already sit under their own collapsible header. */
@@ -465,11 +403,11 @@ const shouldShowGroupedTransfer = computed(() => {
   );
 });
 
+const isCashMovement = computed(() => !isTransferTransaction.value && !linkTarget.value && !isBalanceCorrection.value);
+
 const isLoadingGroupedTransfer = computed(() => {
   return isTransferTransaction.value && isTwoLegTransfer(transaction.value.transferNature) && isLoadingOpposite.value;
 });
-
-const isCompactInline = computed(() => props.compact && !isLoadingGroupedTransfer.value);
 
 const category = computed(() => categoriesMap.value[transaction.value.categoryId]);
 const externalLinkHref = computed(() =>
@@ -508,7 +446,27 @@ const transferToAccount = computed(() =>
   transferDestinationLeg.value ? accountsRecord.value[transferDestinationLeg.value.accountId] : undefined,
 );
 
-const isLoanDestination = computed(() => transferToAccount.value?.accountCategory === ACCOUNT_CATEGORIES.loan);
+const isLoanDestination = computed(
+  () => transaction.value.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_to_loan,
+);
+const isVehicleAdjustment = computed(
+  () =>
+    transaction.value.transferNature === TRANSACTION_TRANSFER_NATURE.transfer_out_wallet &&
+    accountFrom.value?.accountCategory === ACCOUNT_CATEGORIES.vehicle,
+);
+const isBalanceCorrection = computed(() => isVehicleAdjustment.value || Boolean(transaction.value.isBalanceAdjustment));
+const isSameAmountTransfer = computed(
+  () =>
+    transferSourceLeg.value?.currencyCode === transferDestinationLeg.value?.currencyCode &&
+    transferSourceLeg.value?.amount === transferDestinationLeg.value?.amount,
+);
+const formattedTransferAmount = computed(() =>
+  isSameAmountTransfer.value && transferDestinationLeg.value
+    ? formatUIAmount(Math.abs(transferDestinationLeg.value.amount), {
+        currency: transferDestinationLeg.value.currencyCode,
+      })
+    : formattedIncomeAmount.value,
+);
 
 // Accounts can be undefined when hidden from the caller — e.g. a recipient viewing a
 // transfer on a shared account whose other side lives in an unshared private account of
@@ -576,4 +534,35 @@ const formattedIncomeAmount = computed(() => {
     currency: leg.currencyCode,
   });
 });
+
+const rowAmount = computed(() => {
+  if (shouldShowGroupedTransfer.value) return formattedTransferAmount.value;
+  return formattedAmount.value;
+});
+
+const rowCaption = computed(() => {
+  if (isVehicleAdjustment.value) return t('dialogs.manageTransaction.vehicleLinked.title');
+  if (transaction.value.isBalanceAdjustment) return t('pages.account.header.adjustBalance');
+  if (shouldShowGroupedTransfer.value) {
+    if (!isSameAmountTransfer.value) return formattedExpenseAmount.value;
+    if (isLoanDestination.value) return t('dialogs.loanPayment.title');
+  }
+  if (formattedPaymentShare.value) return `≈ ${formattedPaymentShare.value}`;
+  return transaction.value.note || transaction.value.payeeNameSnapshot;
+});
 </script>
+
+<style scoped>
+[data-transaction-row]:is([data-divider], :has(+ [data-transaction-row]))::after {
+  position: absolute;
+  inset-inline: 2.5rem 0.5rem;
+  inset-block-end: 0;
+  height: 1px;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--border) 65%, transparent);
+  content: '';
+}
+[data-transaction-row].has-checkbox::after {
+  inset-inline-start: 5.25rem;
+}
+</style>

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import type { VerbosePaymentType } from '@/common/const';
 import { VERBOSE_PAYMENT_TYPES } from '@/common/const';
+import DialogHeaderActions from '@/components/common/dialog-header-actions.vue';
+import ContextualHelp from '@/components/common/contextual-help.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
+import { Button } from '@/components/lib/ui/button';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { PAYMENT_TYPES } from '@bt/shared/types';
 import {
@@ -41,12 +44,6 @@ const props = withDefaults(
 const emit = defineEmits<{ 'update:modelValue': [value: VerbosePaymentType | null] }>();
 const { t } = useI18n();
 const isOpen = ref(false);
-const isHelpOpen = ref(false);
-const helpMethod = ref<PAYMENT_TYPES | null>(null);
-const openHelp = (method: PAYMENT_TYPES | null) => {
-  helpMethod.value = method;
-  isHelpOpen.value = true;
-};
 const iconColors = [
   'bg-blue-500/15 text-blue-500 dark:text-blue-300',
   'bg-emerald-500/15 text-emerald-500 dark:text-emerald-300',
@@ -125,7 +122,7 @@ const pick = (value: VerbosePaymentType | null) => {
             :aria-required="required"
             :aria-invalid="Boolean(errorMessage)"
             :class="errorMessage && 'border-destructive'"
-            class="border-input bg-input-background hover:bg-muted/60 focus-visible:ring-ring flex h-9 min-w-0 flex-1 items-center gap-2 rounded-md border px-3 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            class="border-input bg-input-background hover:bg-muted/60 focus-visible:ring-ring flex h-10 min-w-0 flex-1 items-center gap-2 rounded-md border px-3 text-left text-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-9"
             data-testid="payment-method-dialog-trigger"
           >
             <component :is="selectedIcon" v-if="selectedIcon" class="text-muted-foreground size-4 shrink-0" />
@@ -137,28 +134,41 @@ const pick = (value: VerbosePaymentType | null) => {
         </Dialog.DialogTrigger>
         <Dialog.DialogContent
           blur-overlay
-          class="max-h-[88dvh] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden rounded-2xl p-0 data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 data-[state=open]:duration-250 motion-reduce:animate-none"
+          custom-close
+          class="data-[state=open]:slide-in-from-bottom-2 data-[state=closed]:slide-out-to-bottom-2 max-h-[88dvh] w-[calc(100vw-2rem)] max-w-xl gap-0 overflow-hidden rounded-2xl p-0 data-[state=open]:duration-250 motion-reduce:animate-none"
           data-testid="payment-method-dialog"
         >
-          <div class="border-border relative border-b px-4 py-4 pr-23">
-            <button
-              type="button"
-              class="text-muted-foreground hover:text-foreground hover:bg-muted absolute top-3.5 right-12 flex size-8 items-center justify-center rounded-md"
-              :aria-label="
-                t('dialogs.manageTransaction.paymentMethodHelp.learnMore', {
-                  name: t('dialogs.manageTransaction.paymentMethodHelp.title'),
-                })
-              "
-              @click="openHelp(null)"
-            >
-              <CircleHelpIcon class="size-4" />
-            </button>
-            <Dialog.DialogTitle class="text-base font-semibold">
-              {{ t('dialogs.manageTransaction.paymentMethodHelp.title') }}
-            </Dialog.DialogTitle>
-            <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
-              {{ t('dialogs.manageTransaction.paymentMethodHelp.overview') }}
-            </Dialog.DialogDescription>
+          <div class="border-border grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-b px-4 py-3">
+            <div class="self-center">
+              <Dialog.DialogTitle class="text-base font-semibold">
+                {{ t('dialogs.manageTransaction.paymentMethodHelp.title') }}
+              </Dialog.DialogTitle>
+              <Dialog.DialogDescription class="text-muted-foreground mt-1 text-xs leading-relaxed">
+                {{ t('dialogs.manageTransaction.paymentMethodHelp.overview') }}
+              </Dialog.DialogDescription>
+            </div>
+            <DialogHeaderActions :close="() => (isOpen = false)">
+              <ContextualHelp
+                :title="t('dialogs.manageTransaction.paymentMethodHelp.title')"
+                :content="t('dialogs.manageTransaction.paymentMethodHelp.longExplanation')"
+              >
+                <template #trigger>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    class="text-muted-foreground size-11"
+                    :aria-label="
+                      t('dialogs.manageTransaction.paymentMethodHelp.learnMore', {
+                        name: t('dialogs.manageTransaction.paymentMethodHelp.title'),
+                      })
+                    "
+                  >
+                    <CircleHelpIcon class="size-5" aria-hidden="true" />
+                  </Button>
+                </template>
+              </ContextualHelp>
+            </DialogHeaderActions>
           </div>
           <div class="max-h-[min(66dvh,540px)] space-y-1 overflow-y-auto overscroll-contain p-3">
             <div
@@ -182,14 +192,17 @@ const pick = (value: VerbosePaymentType | null) => {
                 <span class="min-w-0 flex-1 text-sm font-medium">{{ t(option.label) }}</span>
                 <CheckIcon v-if="modelValue?.value === option.value" class="text-primary size-4 shrink-0" />
               </button>
-              <button
-                type="button"
-                class="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring flex size-9 shrink-0 items-center justify-center self-center rounded-lg focus-visible:ring-2 focus-visible:outline-none"
-                :aria-label="t('dialogs.manageTransaction.paymentMethodHelp.learnMore', { name: t(option.label) })"
-                @click.stop="openHelp(option.value)"
-              >
-                <CircleHelpIcon class="size-4" />
-              </button>
+              <ContextualHelp :title="t(option.label)" :content="optionHelp(option.value)">
+                <template #trigger>
+                  <button
+                    type="button"
+                    class="text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring flex size-9 shrink-0 items-center justify-center self-center rounded-lg focus-visible:ring-2 focus-visible:outline-none"
+                    :aria-label="t('dialogs.manageTransaction.paymentMethodHelp.learnMore', { name: t(option.label) })"
+                  >
+                    <CircleHelpIcon class="size-4" />
+                  </button>
+                </template>
+              </ContextualHelp>
             </div>
             <button
               v-if="!required"
@@ -205,18 +218,4 @@ const pick = (value: VerbosePaymentType | null) => {
     </div>
     <FieldError :error-message="errorMessage" />
   </FieldLabel>
-  <Dialog.Dialog v-model:open="isHelpOpen">
-    <Dialog.DialogContent blur-overlay class="w-[calc(100vw-2rem)] max-w-md gap-3 p-5">
-      <Dialog.DialogTitle class="pr-12 text-base font-semibold">
-        {{
-          helpMethod
-            ? t(options.find((x) => x.value === helpMethod)?.label ?? '')
-            : t('dialogs.manageTransaction.paymentMethodHelp.title')
-        }}
-      </Dialog.DialogTitle>
-      <Dialog.DialogDescription class="text-muted-foreground pr-5 text-sm leading-relaxed">
-        {{ helpMethod ? optionHelp(helpMethod) : t('dialogs.manageTransaction.paymentMethodHelp.longExplanation') }}
-      </Dialog.DialogDescription>
-    </Dialog.DialogContent>
-  </Dialog.Dialog>
 </template>

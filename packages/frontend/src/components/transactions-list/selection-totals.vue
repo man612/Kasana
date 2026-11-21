@@ -4,7 +4,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/pop
 import { useFormatCurrency } from '@/composable/formatters';
 import type { SelectedTotals } from '@/composable/transaction-selection';
 import { ChevronDownIcon, ListIcon, SquareCheckBigIcon } from '@lucide/vue';
-import { computed, nextTick, ref, watch } from 'vue';
+import { useElementSize, usePreferredReducedMotion } from '@vueuse/core';
+import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 interface Figure {
@@ -23,28 +24,11 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { formatBaseCurrency } = useFormatCurrency();
-const totalsTriggerRef = ref<HTMLElement | null>(null);
-// Width is naturally auto-sized. A CSS width transition alone cannot interpolate
-// auto -> auto, so measure the two layouts and animate the wrapper's actual width.
-// Restart from the current visible size when selection changes rapidly.
-watch(
-  () => [props.selectedCount, props.matching, props.totals.net, props.totals.income, props.totals.expense, props.totals.transfers],
-  async () => {
-    const element = totalsTriggerRef.value;
-    if (!element) return;
-    const oldWidth = element.getBoundingClientRect().width;
-    element.getAnimations().forEach((animation) => animation.cancel());
-    await nextTick();
-    if (totalsTriggerRef.value !== element) return;
-    const newWidth = element.getBoundingClientRect().width;
-    if (Math.abs(newWidth - oldWidth) < 1 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    element.animate([{ width: `${oldWidth}px` }, { width: `${newWidth}px` }], {
-      duration: 220,
-      easing: 'cubic-bezier(0.2, 0, 0, 1)',
-    });
-  },
-  { flush: 'pre' },
-);
+const amountContent = ref<HTMLElement | null>(null);
+const detailsContent = ref<HTMLElement | null>(null);
+const { width } = useElementSize(amountContent, undefined, { box: 'border-box' });
+const motion = usePreferredReducedMotion();
+let animations: Animation[] = [];
 
 const countLabel = computed(() =>
   t(props.matching ? 'transactions.bulkEdit.matchingCount' : 'transactions.bulkEdit.selectedCount', {
@@ -59,6 +43,19 @@ const net = computed<Figure>(() => ({
   colorClass:
     props.totals.net > 0 ? 'text-app-income-color' : props.totals.net < 0 ? 'text-app-expense-color' : 'text-inherit',
 }));
+
+const netLabel = computed(() => formatBaseCurrency(net.value.value));
+watch(
+  [countLabel, netLabel],
+  () => {
+    animations.forEach((animation) => animation.cancel());
+    if (motion.value === 'reduce') return;
+    animations = [amountContent.value, detailsContent.value].flatMap((node) =>
+      node?.animate ? [node.animate([{ opacity: 0.6 }, { opacity: 1 }], { duration: 200 })] : [],
+    );
+  },
+  { flush: 'post' },
+);
 
 const income = computed<Figure>(() => ({
   key: 'income',
@@ -94,21 +91,32 @@ const breakdown = computed<Figure[]>(() => [
 
 <template>
   <Popover>
-    <span ref="totalsTriggerRef" class="inline-flex min-w-0 max-w-full">
-      <PopoverTrigger as-child>
-      <Button variant="outline" size="sm" class="max-w-full min-w-0 gap-1 px-2 sm:gap-2 sm:px-3">
-        <span class="text-muted-foreground flex items-center gap-1">
-          <component :is="matching ? ListIcon : SquareCheckBigIcon" class="size-3.5" />
-          <span class="text-sm tabular-nums">{{ selectedCount }}</span>
+    <PopoverTrigger as-child>
+      <Button
+        variant="outline"
+        size="sm"
+        class="max-w-full min-w-0 overflow-hidden px-2 sm:px-3"
+        :aria-label="`${countLabel}, ${netLabel}`"
+      >
+        <span
+          aria-hidden="true"
+          class="max-w-full min-w-0 overflow-hidden motion-safe:transition-[width] motion-safe:duration-220"
+          :style="{ width: width ? `${Math.ceil(width)}px` : undefined }"
+        >
+          <span ref="amountContent" class="flex w-max items-center gap-1 sm:gap-2">
+            <span class="text-muted-foreground flex items-center gap-1">
+              <component :is="matching ? ListIcon : SquareCheckBigIcon" class="size-3.5" />
+              <span class="text-sm tabular-nums">{{ selectedCount }}</span>
+            </span>
+            <span :class="net.colorClass" class="text-xs tabular-nums sm:text-sm">{{ netLabel }}</span>
+            <ChevronDownIcon class="text-muted-foreground size-3.5" />
+          </span>
         </span>
-        <span :class="net.colorClass" class="min-w-0 truncate text-xs tabular-nums sm:text-sm">{{ formatBaseCurrency(net.value) }}</span>
-        <ChevronDownIcon class="text-muted-foreground size-3.5" />
       </Button>
-      </PopoverTrigger>
-    </span>
+    </PopoverTrigger>
 
     <PopoverContent align="start" class="w-auto min-w-56 p-3">
-      <div class="flex flex-col">
+      <div ref="detailsContent" class="flex flex-col">
         <span class="text-muted-foreground border-border mb-1 border-b pb-2 text-xs">
           {{ countLabel }}
         </span>

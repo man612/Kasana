@@ -51,18 +51,27 @@ function isEligibleCandidate({
   );
 }
 
+function firstAmountAtLeast(incomes: { cents: number }[], cents: number): number {
+  let start = 0;
+  let end = incomes.length;
+  while (start < end) {
+    const middle = start + Math.floor((end - start) / 2);
+    if (incomes[middle]!.cents < cents) start = middle + 1;
+    else end = middle;
+  }
+  return start;
+}
+
 function calculateConfidence({
   expenseRefAmountCents,
   matchRefAmountCents,
-  expenseTime,
-  matchTime,
+  daysDiff,
   expenseCurrency,
   matchCurrency,
 }: {
   expenseRefAmountCents: number;
   matchRefAmountCents: number;
-  expenseTime: Date;
-  matchTime: Date;
+  daysDiff: number;
   expenseCurrency: string;
   matchCurrency: string;
 }): number {
@@ -74,8 +83,7 @@ function calculateConfidence({
 
   // Date proximity: 30% weight
   const maxDaysDiff = RECOMMENDATION_DAYS_RANGE;
-  const actualDaysDiff = Math.abs(expenseTime.getTime() - matchTime.getTime()) / MS_PER_DAY;
-  const dateScore = CONFIDENCE_WEIGHT_DATE * (1 - Math.min(actualDaysDiff, maxDaysDiff) / maxDaysDiff);
+  const dateScore = CONFIDENCE_WEIGHT_DATE * (1 - Math.min(daysDiff, maxDaysDiff) / maxDaysDiff);
 
   // Currency match: 20% weight
   const currencyScore = expenseCurrency === matchCurrency ? CONFIDENCE_WEIGHT_CURRENCY : 0;
@@ -160,7 +168,16 @@ export async function bulkScanTransferRecommendations({
   })) as Transactions[];
 
   // Filter out parent transactions with splits and non-allowed transfer natures
-  const eligibleIncomes = incomes.filter((tx) => isEligibleCandidate({ tx, allowedTransferNatures }));
+  const incomesByAmount = incomes
+    .filter((tx) => isEligibleCandidate({ tx, allowedTransferNatures }))
+    .map((transaction, sourceOrder) => ({
+      transaction,
+      sourceOrder,
+      cents: transaction.refAmount.toCents(),
+      time: new Date(transaction.time).getTime(),
+    }))
+    .sort((a, b) => a.cents - b.cents);
+  if (!incomesByAmount.length) return emptyResult();
 
   // 3. Load dismissed pairs to filter them out (scoped to relevant expenses)
   const eligibleExpenseIds = eligibleExpenses.map((e) => e.id);
@@ -174,46 +191,41 @@ export async function bulkScanTransferRecommendations({
     const expenseRefCents = expense.refAmount.toCents();
     const lowerBound = Math.max(0, Math.floor(expenseRefCents * (1 - RECOMMENDATION_PERCENT_RANGE)));
     const upperBound = Math.ceil(expenseRefCents * (1 + RECOMMENDATION_PERCENT_RANGE));
-    const expenseTime = new Date(expense.time);
+    const expenseTime = new Date(expense.time).getTime();
 
-    const matchCandidates: BulkScanMatch[] = [];
+    const matchCandidates: (BulkScanMatch & { sourceOrder: number })[] = [];
 
-    for (const income of eligibleIncomes) {
-      // Skip dismissed pairs
-      if (dismissedPairsSet.has(`${expense.id}:${income.id}`)) continue;
+    const firstCandidate = firstAmountAtLeast(incomesByAmount, lowerBound);
+    for (let index = firstCandidate; index < incomesByAmount.length; index += 1) {
+      const { transaction: income, cents, time, sourceOrder } = incomesByAmount[index]!;
+      if (cents > upperBound) break;
+      if (income.accountId === expense.accountId || dismissedPairsSet.has(`${expense.id}:${income.id}`)) continue;
 
-      // Different account
-      if (income.accountId === expense.accountId) continue;
-
-      // Amount within ±10%
-      const incomeRefCents = income.refAmount.toCents();
-      if (incomeRefCents < lowerBound || incomeRefCents > upperBound) continue;
-
-      // Date within ±14 days
-      const incomeTime = new Date(income.time);
-      const daysDiff = Math.abs(expenseTime.getTime() - incomeTime.getTime()) / MS_PER_DAY;
+      const daysDiff = Math.abs(expenseTime - time) / MS_PER_DAY;
       if (daysDiff > RECOMMENDATION_DAYS_RANGE) continue;
 
       const confidence = calculateConfidence({
         expenseRefAmountCents: expenseRefCents,
-        matchRefAmountCents: incomeRefCents,
-        expenseTime,
-        matchTime: incomeTime,
+        matchRefAmountCents: cents,
+        daysDiff,
         expenseCurrency: expense.currencyCode,
         matchCurrency: income.currencyCode,
       });
 
       if (confidence < MIN_CONFIDENCE) continue;
 
-      matchCandidates.push({ transaction: income, confidence });
+      matchCandidates.push({ transaction: income, confidence, sourceOrder });
     }
 
     if (matchCandidates.length > 0) {
-      // Sort by confidence descending
-      matchCandidates.sort((a, b) => b.confidence - a.confidence);
+      // Keep the original income order when scores tie.
+      matchCandidates.sort((a, b) => b.confidence - a.confidence || a.sourceOrder - b.sourceOrder);
       results.push({
         expense,
-        matches: matchCandidates.slice(0, MAX_MATCHES_PER_EXPENSE),
+        matches: matchCandidates.slice(0, MAX_MATCHES_PER_EXPENSE).map(({ transaction, confidence }) => ({
+          transaction,
+          confidence,
+        })),
       });
     }
   }

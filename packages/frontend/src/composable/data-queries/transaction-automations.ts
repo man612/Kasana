@@ -17,10 +17,11 @@ const listKey = VUE_QUERY_CACHE_KEYS.transactionAutomationsList;
 const invalidateAutomationsScope = ({ queryClient }: { queryClient: QueryClient }) =>
   queryClient.invalidateQueries({ queryKey: listKey });
 
-export const useTransactionAutomations = () => {
+export const useTransactionAutomations = ({ enabled = true }: { enabled?: MaybeRefOrGetter<boolean> } = {}) => {
   const query = useQuery({
     queryKey: listKey,
     queryFn: loadTransactionAutomations,
+    enabled,
     staleTime: QUERY_CACHE_STALE_TIME.ANALYTICS,
   });
 
@@ -58,7 +59,13 @@ export const useCreateAutomation = () => {
 
   return useMutation({
     mutationFn: createTransactionAutomation,
-    onSuccess: () => invalidateAutomationsScope({ queryClient }),
+    onMutate: () => queryClient.cancelQueries({ queryKey: listKey }),
+    onSuccess: (created) => {
+      queryClient.setQueryData<TransactionAutomationModel[]>(listKey, (old) =>
+        [...(old ?? []).filter(({ id }) => id !== created.id), created].sort((a, b) => a.position - b.position),
+      );
+      void invalidateAutomationsScope({ queryClient });
+    },
   });
 };
 

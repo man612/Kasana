@@ -1,9 +1,9 @@
 <template>
   <div class="flex items-center justify-between gap-2 rounded-md px-2 py-2">
-    <span class="text-sm font-medium">
-      {{ $t('dashboard.widgets.common.includePlanned') }}
-      <HintIcon :content="$t('dashboard.widgets.common.includePlannedTooltip')" />
-    </span>
+    <div class="flex min-w-0 items-center gap-1">
+      <span class="min-w-0 text-sm font-medium"> {{ $t('dashboard.widgets.common.includePlanned') }} </span
+      ><HintIcon :content="$t('dashboard.widgets.common.includePlannedTooltip')" />
+    </div>
     <Switch
       class="shrink-0"
       :model-value="includePlanned"

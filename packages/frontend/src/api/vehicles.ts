@@ -1,5 +1,12 @@
 import { api } from '@/api/_api';
-import type { AccountModel, DEPRECIATION_PRESET, RecordId, VEHICLE_CLASS } from '@bt/shared/types';
+import type {
+  AccountModel,
+  DEPRECIATION_PRESET,
+  RecordId,
+  VEHICLE_CLASS,
+  VehicleType,
+  VehicleValuationSegment,
+} from '@bt/shared/types';
 
 export interface VehicleModel {
   id: RecordId;
@@ -10,6 +17,9 @@ export interface VehicleModel {
   trim: string | null;
   year: number;
   vehicleClass: VEHICLE_CLASS;
+  vehicleType?: VehicleType | null;
+  licensePlate?: string | null;
+  valuationSegments?: VehicleValuationSegment[];
   /** Decimal amount in the vehicle's currency. */
   purchasePrice: number;
   purchaseDate: string;
@@ -34,6 +44,8 @@ interface CreateVehiclePayload {
   trim?: string | null;
   year: number;
   vehicleClass: VEHICLE_CLASS;
+  vehicleType?: VehicleType | null;
+  licensePlate?: string | null;
   purchasePrice: number;
   purchaseDate: string;
   depreciationPreset?: DEPRECIATION_PRESET;
@@ -49,6 +61,8 @@ interface UpdateVehiclePayload {
   trim?: string | null;
   year?: number;
   vehicleClass?: VEHICLE_CLASS;
+  vehicleType?: VehicleType | null;
+  licensePlate?: string | null;
   depreciationPreset?: DEPRECIATION_PRESET;
   customAnnualRatePct?: number | null;
   salvageFloorPct?: number;

@@ -10,6 +10,7 @@ import { computed } from 'vue';
 const props = defineProps<{
   match: BulkTransferScanMatch;
   isLinking: boolean;
+  actionsDisabled?: boolean;
   isSkipping: boolean;
 }>();
 
@@ -28,7 +29,7 @@ function getConfidenceColors(confidence: number): { bg: string; text: string } {
   return { bg: 'bg-destructive-text', text: 'text-destructive-text' };
 }
 
-const isBusy = computed(() => props.isLinking || props.isSkipping);
+const isBusy = computed(() => props.isLinking || props.isSkipping || props.actionsDisabled);
 
 const confidenceColors = computed(() => getConfidenceColors(props.match.confidence));
 
@@ -50,7 +51,9 @@ function handleRecordClick([tx, oppositeTx]: [TransactionModel, TransactionModel
         class="ml-2 flex shrink-0 items-center gap-1.5 @[500px]/match:col-start-1 @[500px]/match:row-start-1 @[500px]/match:ml-0"
       >
         <div :class="cn('size-2 rounded-full', confidenceColors.bg)" />
-        <span :class="cn('text-xs font-semibold tabular-nums', confidenceColors.text)"> {{ match.confidence }}% </span>
+        <span :class="cn('text-xs font-semibold tabular-nums', confidenceColors.text)">
+          {{ $t('optimizations.transferSuggestions.matchScore', { score: match.confidence }) }}
+        </span>
       </div>
 
       <!-- Actions -->
@@ -69,6 +72,10 @@ function handleRecordClick([tx, oppositeTx]: [TransactionModel, TransactionModel
           {{ $t('common.actions.link') }}
         </Button>
       </div>
+
+      <p v-if="!match.ai" class="text-muted-foreground col-span-full px-2 pb-1 text-xs">
+        {{ $t('optimizations.transferSuggestions.matchBasis') }}
+      </p>
 
       <!-- AI verdict: its own row under the transaction -->
       <div

@@ -41,10 +41,7 @@
       @update:model-value="pickPayee"
     />
     <div v-else-if="column === TABLE_COLUMN.amount" class="relative">
-      <FormattedAmountField
-        v-model="form.amount"
-        :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
-      />
+      <FormattedAmountField v-model="form.amount" />
       <div v-if="isMobile && form.amount !== null" class="absolute top-0 right-1 flex h-10 items-center md:h-9">
         <ClearButton />
       </div>

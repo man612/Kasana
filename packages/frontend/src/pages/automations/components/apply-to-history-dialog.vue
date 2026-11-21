@@ -27,8 +27,9 @@ const props = defineProps<{
   rules?: TransactionAutomationModel[];
   rulesLoading?: boolean;
   rulesError?: boolean;
+  preferLocalizedError?: boolean;
 }>();
-const emit = defineEmits<{ 'update:open': [value: boolean] }>();
+const emit = defineEmits<{ 'retry-rules': []; 'update:open': [value: boolean] }>();
 
 const { t } = useI18n();
 const { addSuccessNotification, addWarningNotification, addErrorNotification } = useNotificationCenter();
@@ -122,7 +123,9 @@ const handleApply = () => {
         emit('update:open', false);
       },
       onError: (error) =>
-        addErrorNotification(extractApiErrorMessage(error) || t('automations.applyToHistory.applyError')),
+        addErrorNotification(
+          (!props.preferLocalizedError && extractApiErrorMessage(error)) || t('automations.applyToHistory.applyError'),
+        ),
     },
   );
 };
@@ -152,6 +155,7 @@ const handleApply = () => {
             ? $t('automations.applyToHistory.pickTitle')
             : $t('automations.applyToHistory.title', { name: activeRule.name })
         }}
+        <slot v-if="step === 'pick'" name="pick-help" />
       </div>
     </template>
 
@@ -162,7 +166,12 @@ const handleApply = () => {
         <div v-for="index in SKELETON_ROW_COUNT" :key="index" class="bg-muted h-16 animate-pulse rounded-md" />
       </div>
 
-      <p v-else-if="rulesError" class="text-destructive-text text-sm">{{ $t('automations.loadError') }}</p>
+      <div v-else-if="rulesError" class="flex flex-wrap items-center gap-2">
+        <p class="text-destructive-text text-sm">{{ $t('automations.loadError') }}</p>
+        <Button v-if="$slots['pick-help']" variant="outline" size="sm" @click="emit('retry-rules')">
+          {{ $t('common.actions.retry') }}
+        </Button>
+      </div>
 
       <div v-else-if="!rules?.length" class="flex flex-col items-center gap-3 py-6 text-center">
         <p class="text-muted-foreground text-sm">{{ $t('automations.applyToHistory.noRules') }}</p>
@@ -194,7 +203,10 @@ const handleApply = () => {
       </div>
 
       <p v-else-if="preview.isError.value" class="text-destructive-text text-xs">
-        {{ extractApiErrorMessage(preview.error.value) || $t('automations.editor.preview.error') }}
+        {{
+          (!preferLocalizedError && extractApiErrorMessage(preview.error.value)) ||
+          $t('automations.editor.preview.error')
+        }}
       </p>
 
       <template v-else-if="preview.data.value">

@@ -37,6 +37,7 @@ const props = withDefaults(
     modelModifiers?: object;
     columns?: number;
     type?: 'single' | 'range';
+    monthNavigation?: boolean;
   }>(),
   {
     type: 'single',
@@ -67,7 +68,9 @@ function handleNav(direction: 'prev' | 'next') {
 
 onMounted(async () => {
   await nextTick();
-  if (modelValue.value instanceof Date && calendarRef.value) calendarRef.value.focusDate(modelValue.value);
+  if (!(modelValue.value instanceof Date) || !calendarRef.value) return;
+  if (props.monthNavigation) calendarRef.value.move(modelValue.value);
+  else calendarRef.value.focusDate(modelValue.value);
 });
 
 // Reactive locale for v-calendar - tracks i18n locale changes
@@ -91,7 +94,7 @@ const vCalendarSlots = computed(() =>
 
 <template>
   <div class="relative">
-    <div v-if="$attrs.mode !== 'time'" class="absolute top-3 z-1 flex w-full justify-between px-4">
+    <div v-if="$attrs.mode !== 'time' && !monthNavigation" class="absolute top-3 z-1 flex w-full justify-between px-4">
       <button
         type="button"
         :class="cn(buttonVariants({ variant: 'outline' }), 'size-7 bg-transparent p-0 opacity-50 hover:opacity-100')"
@@ -115,10 +118,32 @@ const vCalendarSlots = computed(() =>
       :model-modifiers="modelModifiers"
       :locale="calendarLocale"
       class="calendar"
-      trim-weeks
+      :class="{ 'calendar--month-navigation': monthNavigation }"
+      :trim-weeks="!monthNavigation"
+      :nav-visibility="monthNavigation ? 'click' : undefined"
       :transition="'slide-h'"
       :columns="columns"
     >
+      <template v-if="monthNavigation" #header-title="{ title }">
+        <span aria-hidden="true">{{ title }}</span>
+        <span class="sr-only">{{ i18n.global.t('common.dateSelector.chooseMonthYear', { month: title }) }}</span>
+      </template>
+      <template v-if="monthNavigation" #header-prev-button>
+        <ChevronLeft class="size-4" aria-hidden="true" />
+        <span class="sr-only">{{ i18n.global.t('common.dateSelector.previousPage') }}</span>
+      </template>
+      <template v-if="monthNavigation" #header-next-button>
+        <ChevronRight class="size-4" aria-hidden="true" />
+        <span class="sr-only">{{ i18n.global.t('common.dateSelector.nextPage') }}</span>
+      </template>
+      <template v-if="monthNavigation" #nav-prev-button>
+        <ChevronLeft class="size-4" aria-hidden="true" />
+        <span class="sr-only">{{ i18n.global.t('common.dateSelector.previousPage') }}</span>
+      </template>
+      <template v-if="monthNavigation" #nav-next-button>
+        <ChevronRight class="size-4" aria-hidden="true" />
+        <span class="sr-only">{{ i18n.global.t('common.dateSelector.nextPage') }}</span>
+      </template>
       <template v-for="(_, slot) of vCalendarSlots" #[slot]="scope">
         <slot :name="slot" v-bind="scope" />
       </template>

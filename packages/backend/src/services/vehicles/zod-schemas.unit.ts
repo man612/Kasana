@@ -32,6 +32,7 @@ describe('createVehicleBodySchema', () => {
         'currentMileage',
         'customAnnualRatePct',
         'depreciationPreset',
+        'licensePlate',
         'make',
         'model',
         'name',
@@ -40,6 +41,7 @@ describe('createVehicleBodySchema', () => {
         'salvageFloorPct',
         'trim',
         'vehicleClass',
+        'vehicleType',
         'year',
       ].toSorted(),
     );
@@ -55,6 +57,18 @@ describe('createVehicleBodySchema', () => {
     expect(body.name).toBe('Camry');
     expect(body.make).toBe('Toyota');
     expect(body.currencyCode).toBe('USD');
+  });
+
+  it('normalizes the plate and accepts a catalogue type while retaining the legacy class field', () => {
+    const body = createVehicleBodySchema.parse({
+      ...VALID_CREATE,
+      licensePlate: '  b 1234   ab-c  ',
+      vehicleType: 'hatchback',
+    });
+    expect(body.licensePlate).toBe('B 1234 AB-C');
+    expect(body.vehicleType).toBe('hatchback');
+    expect(updateVehicleBodySchema.parse({ licensePlate: ' ' }).licensePlate).toBeNull();
+    expect(updateVehicleBodySchema.safeParse({ licensePlate: 'A'.repeat(33) }).success).toBe(false);
   });
 
   it('leaves the optional fields undefined when omitted and keeps null where it clears', () => {
@@ -147,12 +161,14 @@ describe('updateVehicleBodySchema', () => {
         'currentMileage',
         'customAnnualRatePct',
         'depreciationPreset',
+        'licensePlate',
         'make',
         'model',
         'name',
         'salvageFloorPct',
         'trim',
         'vehicleClass',
+        'vehicleType',
         'year',
       ].toSorted(),
     );

@@ -63,12 +63,16 @@ const ROW_SPAN_CLASSES: Record<number, string> = {
 };
 
 const colSpanClass = computed(() => COL_SPAN_CLASSES[props.widgetConfig.colSpan] ?? COL_SPAN_CLASSES[1]);
+const isLatestRecordsCompact = computed(
+  () => props.widgetConfig.widgetId === 'latest-records' && props.widgetConfig.config?.compact === true,
+);
 const effectiveRowSpan = computed(() =>
   getEffectiveDashboardRowSpan({
     widgetId: props.widgetConfig.widgetId,
     rowSpan: props.widgetConfig.rowSpan,
     isEditMode: props.isEditMode,
     isDataEmpty: latestRecordsEmpty.value,
+    isCompact: isLatestRecordsCompact.value,
   }),
 );
 const rowSpanClass = computed(() => ROW_SPAN_CLASSES[effectiveRowSpan.value] ?? '');
@@ -121,7 +125,7 @@ const isConfigChoiceActive = ({ option, value }: { option: WidgetConfigOption; v
                 v-for="size in def.allowedSizes"
                 :key="`${size.colSpan}x${size.rowSpan}`"
                 :class="[
-                  'focus-visible:ring-ring min-h-7 min-w-7 rounded px-2 py-1 text-xs transition-[color,background-color,transform] duration-200 ease-out active:scale-95 focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none',
+                  'focus-visible:ring-ring min-h-7 min-w-7 rounded px-2 py-1 text-xs transition-[color,background-color,transform] duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none active:scale-95 motion-reduce:transition-none',
                   isSizeActive(size) ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground',
                 ]"
                 :aria-pressed="isSizeActive(size)"
@@ -144,7 +148,7 @@ const isConfigChoiceActive = ({ option, value }: { option: WidgetConfigOption; v
                 v-for="choice in option.choices"
                 :key="choice.value"
                 :class="[
-                  'focus-visible:ring-ring min-h-7 min-w-7 rounded px-2 py-1 text-xs transition-[color,background-color,transform] duration-200 ease-out active:scale-95 focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none',
+                  'focus-visible:ring-ring min-h-7 min-w-7 rounded px-2 py-1 text-xs transition-[color,background-color,transform] duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none active:scale-95 motion-reduce:transition-none',
                   isConfigChoiceActive({ option, value: choice.value })
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-muted text-muted-foreground',

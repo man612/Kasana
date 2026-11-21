@@ -1,6 +1,8 @@
 export interface PortfolioSummaryModel {
   portfolioId: string;
   portfolioName: string;
+  /** Active holdings for which no market price is available. */
+  unpricedHoldingsCount?: number;
   /** Denominated in `currencyCode`. */
   totalCurrentValue: string;
   /** Denominated in `currencyCode`. */

@@ -1,22 +1,19 @@
 <script lang="ts" setup>
+import ContextualHelp from '@/components/common/contextual-help.vue';
 import { Button } from '@/components/lib/ui/button';
-import * as Popover from '@/components/lib/ui/popover';
 </script>
 
 <template>
-  <Popover.Popover>
-    <Popover.PopoverTrigger as-child>
-      <Button variant="link" class="text-foreground h-auto gap-1 p-0 font-medium underline decoration-dotted">
+  <ContextualHelp :title="$t('dialogs.loanPayment.sourceInfo.title')">
+    <template #trigger>
+      <Button variant="link" class="text-foreground h-auto p-0 font-medium underline decoration-dotted">
         {{ $t('dialogs.loanPayment.sourceInfo.trigger') }}
       </Button>
-    </Popover.PopoverTrigger>
-    <Popover.PopoverContent class="w-90 max-w-[calc(100vw-2rem)]" side="top" align="start">
-      <h3 class="mb-2 font-semibold">{{ $t('dialogs.loanPayment.sourceInfo.title') }}</h3>
-      <div class="text-muted-foreground space-y-2 text-sm">
-        <p>{{ $t('dialogs.loanPayment.sourceInfo.manualOnly') }}</p>
-        <p>{{ $t('dialogs.loanPayment.sourceInfo.whySynced') }}</p>
-        <p>{{ $t('dialogs.loanPayment.sourceInfo.howToLink') }}</p>
-      </div>
-    </Popover.PopoverContent>
-  </Popover.Popover>
+    </template>
+    <div class="space-y-2">
+      <p>{{ $t('dialogs.loanPayment.sourceInfo.manualOnly') }}</p>
+      <p>{{ $t('dialogs.loanPayment.sourceInfo.whySynced') }}</p>
+      <p>{{ $t('dialogs.loanPayment.sourceInfo.howToLink') }}</p>
+    </div>
+  </ContextualHelp>
 </template>

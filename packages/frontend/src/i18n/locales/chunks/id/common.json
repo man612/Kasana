@@ -1,5 +1,17 @@
 {
   "common": {
+    "connection": {
+      "offline": "Tidak ada koneksi internet. Periksa jaringan dan coba lagi.",
+      "unreachable": "Lajur. belum bisa dihubungi. Coba lagi beberapa saat.",
+      "serverUnavailable": "Layanan sedang mengalami gangguan. Coba lagi beberapa saat.",
+      "requestTimeout": "Permintaan terlalu lama. Coba lagi.",
+      "cachedData": "Informasi yang tampil mungkin belum terbaru."
+    },
+    "contextHelp": {
+      "title": "Penjelasan",
+      "description": "Panduan untuk pengaturan ini.",
+      "example": "Contoh"
+    },
     "loading": "Memuat...",
     "new": "Baru",
     "actions": {
@@ -56,6 +68,7 @@
       }
     },
     "errors": {
+      "initializationFailed": "Data aplikasi belum dapat dimuat. Periksa koneksi Anda.",
       "copyToClipboardFailed": "Gagal menyalin ke papan klip",
       "settingsSaveFailed": "Pengaturan gagal disimpan. Silakan coba lagi."
     },
@@ -125,6 +138,8 @@
       "other": "Lainnya"
     },
     "depreciationPresets": {
+      "straightLine": "Akuntansi garis lurus",
+      "manual": "Nilai manual",
       "classDefault": "Default kelas",
       "slow": "Lambat",
       "average": "Rata-rata",
@@ -193,6 +208,13 @@
     },
     "outOfWallet": "Di Luar Dompet",
     "dateSelector": {
+      "previousPage": "Halaman kalender sebelumnya",
+      "nextPage": "Halaman kalender berikutnya",
+      "calendarDateTitle": "Pilih tanggal",
+      "timeWheel": "Pilih jam dengan gulir",
+      "hours": "Jam",
+      "minutes": "Menit",
+      "chooseMonthYear": "Pilih bulan dan tahun, {month}",
       "dialogTitle": "Rentang tanggal",
       "dueDate": "Tanggal jatuh tempo",
       "quickSelect": "Pilih cepat",
@@ -235,7 +257,8 @@
       "invalidTime": "Isi jam dengan format 24 jam yang benar, misalnya 14:30.",
       "nowHelp": "Atur tanggal dan jam transaksi ke waktu saat ini. Waktu menggunakan zona waktu perangkat.",
       "numericInputHelp": "Tanggal, format tanggal/bulan/tahun",
-      "alreadyNow": "Sudah menunjukkan waktu saat ini."
+      "alreadyNow": "Sudah menunjukkan waktu saat ini.",
+      "rangeFilter": "Filter tanggal"
     },
     "appUpdate": {
       "title": "Pembaruan tersedia",
@@ -582,7 +605,7 @@
   },
   "transactionGroups": {
     "groupDialog": {
-      "editTitle": "Sunting Grup",
+      "editTitle": "Sunting grup",
       "nameLabel": "Nama",
       "noteLabel": "Catatan (opsional)",
       "notePlaceholder": "Catatan opsional...",
@@ -590,7 +613,7 @@
       "savingAction": "Simpan",
       "cancelButton": "Batal",
       "editAction": "Sunting",
-      "deleteAction": "Hapus Grup",
+      "deleteAction": "Hapus grup",
       "transactionsLabel": "Transaksi",
       "deleteGroupTitle": "Hapus grup",
       "deleteGroupDescription": "Apakah Anda yakin ingin menghapus \"{groupName}\"? Transaksinya tidak akan dihapus.",
@@ -598,16 +621,16 @@
       "removeTransactionDescription": "Ini akan menyisakan kurang dari 2 transaksi dalam grup, sehingga grup akan dihapus. Lanjutkan?",
       "removeTransactionDescriptionNormal": "Apakah Anda yakin ingin mengeluarkan transaksi ini dari grup?",
       "removeButtonText": "Keluarkan",
-      "removeAndDeleteButtonText": "Keluarkan & Hapus Grup",
-      "removeFromGroup": "Hapus dari grup",
-      "saveError": "Couldn't save the group",
-      "removeError": "Couldn't remove the transaction from the group",
+      "removeAndDeleteButtonText": "Keluarkan dan hapus grup",
+      "removeFromGroup": "Keluarkan dari grup",
+      "saveError": "Gagal menyimpan grup.",
+      "removeError": "Gagal mengeluarkan transaksi dari grup.",
       "manageTransactions": "Kelola",
-      "showMoreNote": "Show more",
-      "showLessNote": "Tampilkan lebih sedikit",
+      "showMoreNote": "Lihat catatan lengkap",
+      "showLessNote": "Ringkas catatan",
       "summary": {
         "transactions": "Transaksi",
-        "net": "Bersih",
+        "net": "Total bersih",
         "moneyIn": "Uang masuk",
         "moneyOut": "Uang keluar"
       }

@@ -3,7 +3,15 @@ import {
   type PersistedQuery,
   experimental_createQueryPersister,
 } from '@tanstack/query-persist-client-core';
-import { type Query, type QueryClient, type QueryFunctionContext, type QueryKey, hashKey } from '@tanstack/vue-query';
+import {
+  CancelledError,
+  type Query,
+  type QueryClient,
+  type QueryFunctionContext,
+  type QueryKey,
+  hashKey,
+  notifyManager,
+} from '@tanstack/vue-query';
 import { type UseStore, clear, createStore, del, entries, get, set } from 'idb-keyval';
 
 // Changing this strands every existing persisted row: `persisterGc` only scans keys
@@ -45,6 +53,7 @@ const persistedQueryStore: UseStore | undefined = isBrowserPersistenceAvailable(
 // Set when a wipe fails: the store may still hold another user's rows, so it is
 // neither read nor written until a later wipe succeeds.
 let isStoreUnwiped = false;
+let cacheGeneration = 0;
 
 // Every call fails soft: a corrupt IndexedDB (Chrome "UnknownError: Internal error.")
 // must degrade to unpersisted, or the post-auth fetches reject and block sign-in.
@@ -91,57 +100,58 @@ const scheduleWhenIdle = (task: () => void): void => {
   }
 };
 
-/**
- * The query-level persister function. Pass as the `persister` option (directly or
- * via `queryClient.setQueryDefaults`) on queries whose data is safe to restore
- * from disk. `undefined` when IndexedDB is unavailable – queries then run
- * unpersisted with no extra handling at the call site.
- *
- * A restored snapshot paints immediately, then is confirmed by one background
- * refetch on browser idle – deferred because a dashboard load already fans out
- * ~40-50 requests, and confirming immediately would put every persisted key back
- * on the critical path it was persisted to stay off. Persistence buys instant
- * paint, not fewer requests.
- *
- * Detected by whether `queryFn` ran: `persisterFn` calls it only when there's
- * nothing usable to restore. The deferred `query.fetch()` re-enters with
- * `state.data` already set, which fails that restore gate – so it runs `queryFn`
- * directly and never re-defers.
- */
-export const persistedQueryFn = persister
-  ? async <T, TQueryKey extends QueryKey>(
-      queryFn: (context: QueryFunctionContext<TQueryKey>) => T | Promise<T>,
-      context: QueryFunctionContext<TQueryKey>,
-      query: Query,
-    ): Promise<T> => {
-      let servedFromNetwork = false;
-      const trackedQueryFn = (ctx: QueryFunctionContext<TQueryKey>) => {
-        servedFromNetwork = true;
-        return queryFn(ctx);
-      };
+const createQueryPersister = (revalidate: boolean) => {
+  if (!persister) return undefined;
+  const storagePersister = persister;
 
-      const result = (await persister.persisterFn(trackedQueryFn, context, query)) as T;
+  return async <T, TQueryKey extends QueryKey>(
+    queryFn: (context: QueryFunctionContext<TQueryKey>) => T | Promise<T>,
+    context: QueryFunctionContext<TQueryKey>,
+    query: Query,
+  ): Promise<T> => {
+    const generation = cacheGeneration;
+    const updatesBeforeFetch = query.state.dataUpdateCount;
+    const isCurrentResult = () =>
+      generation === cacheGeneration &&
+      !isStoreUnwiped &&
+      query.state.fetchStatus === 'idle' &&
+      query.state.dataUpdateCount === updatesBeforeFetch + 1;
 
-      if (!servedFromNetwork) {
-        // Failures surface through the query's own error state; caught only so a
-        // rejected background fetch isn't an unhandled rejection.
-        scheduleWhenIdle(() => void query.fetch().catch(() => {}));
-      }
+    if (query.state.data === undefined) {
+      const restored = await storagePersister.retrieveQuery<T>(query.queryHash, (snapshot) => {
+        if (!isCurrentResult()) return;
+        query.setState({
+          dataUpdatedAt: snapshot.state.dataUpdatedAt,
+          errorUpdatedAt: snapshot.state.errorUpdatedAt,
+        });
+        if (!revalidate) return;
 
-      return result;
+        scheduleWhenIdle(() => {
+          if (!isCurrentResult()) return;
+          const freshness = Number(query.options.meta?.persistedFreshForMs ?? 0);
+          if (!query.state.isInvalidated && Date.now() - query.state.dataUpdatedAt < freshness) return;
+          void query.fetch(undefined, { cancelRefetch: false }).catch(() => {});
+        });
+      });
+      if (restored !== undefined && generation === cacheGeneration && !isStoreUnwiped) return restored;
     }
-  : undefined;
 
-/**
- * Persister for data that cannot change while a build is live, so a restored
- * snapshot needs no confirming request at all. `buster: __APP_VERSION__` refetches
- * it on the next deploy.
- *
- * Reserve this for genuinely immutable reference data. Anything a user, a cron, or
- * another device can write must use `persistedQueryFn` – a snapshot with no
- * revalidation is only correct if nothing can invalidate it.
- */
-export const persistedImmutableQueryFn = persister?.persisterFn;
+    if (generation !== cacheGeneration) throw new CancelledError({ silent: true });
+    const data = await queryFn(context);
+    // TanStack commits query.state after this function returns. A write from a
+    // canceled fetch or a previous identity must never repopulate IndexedDB.
+    notifyManager.schedule(() => {
+      if (isCurrentResult()) void storagePersister.persistQuery(query);
+    });
+    return data;
+  };
+};
+
+/** Paints a safe snapshot immediately and confirms it on idle once its freshness window expires. */
+export const persistedQueryFn = createQueryPersister(true);
+
+/** Only for reference data that stays immutable for the lifetime of a build. */
+export const persistedImmutableQueryFn = createQueryPersister(false);
 
 /**
  * Drops one query's persisted snapshot, matched exactly (no prefix matching).
@@ -168,12 +178,15 @@ export const collectPersistedQueryGarbage = async (): Promise<void> => {
  * reset on logout; resolves `false` when the wipe failed.
  */
 export const clearPersistedQueries = async (): Promise<boolean> => {
+  const generation = ++cacheGeneration;
   if (!persistedQueryStore) return true;
-  isStoreUnwiped = await clear(persistedQueryStore).then(
-    () => false,
+  isStoreUnwiped = true;
+  const wiped = await clear(persistedQueryStore).then(
     () => true,
+    () => false,
   );
-  return !isStoreUnwiped;
+  if (generation === cacheGeneration) isStoreUnwiped = !wiped;
+  return wiped;
 };
 
 /**

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
-import { vAnimateDialogHeight } from '@/composable/animate-dialog-height';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
@@ -122,10 +122,6 @@ const submit = async () => {
   }
 };
 
-watch(isOpen, (val) => {
-  if (!val) emit('close');
-});
-
 // Preserve the amounts separately between modes; notes/date always belong
 // to this adjustment, so switching presentation must never erase typed data.
 const amountByMode = ref<Record<'set-to' | 'adjust-by', number | null>>({ 'set-to': null, 'adjust-by': null });
@@ -137,15 +133,19 @@ watch(mode, (next, previous) => {
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen">
+  <ResponsiveDialog v-model:open="isOpen" :dismissible="!isPending" @closed="emit('close')">
     <template #title>{{ label('title') }}</template>
 
-    <div v-animate-dialog-height data-state="open" class="grid gap-4 py-2">
+    <div class="grid gap-4 py-2">
       <!-- Shared sliding selection for balance and vehicle value override. -->
-      <div class="border-border bg-muted/20 relative grid grid-cols-2 gap-1 rounded-lg border p-1" role="group" :aria-label="label('title')">
+      <div
+        class="border-border bg-muted/20 relative grid grid-cols-2 gap-1 rounded-lg border p-1"
+        role="group"
+        :aria-label="label('title')"
+      >
         <span
           aria-hidden="true"
-          class="bg-dialog pointer-events-none absolute top-1 bottom-1 left-1 rounded-md shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none"
+          class="bg-dialog pointer-events-none absolute top-1 bottom-1 left-1 rounded-md shadow-sm transition-transform duration-220 ease-out motion-reduce:transition-none"
           style="width: calc(50% - 6px)"
           :style="{ transform: mode === 'adjust-by' ? 'translateX(calc(100% + 4px))' : 'translateX(0)' }"
         />
@@ -180,40 +180,40 @@ watch(mode, (next, previous) => {
       />
 
       <!-- Direction toggle — Income/Expense with color coding -->
-      <Transition name="lajur-form-panel">
-      <div v-if="mode === 'adjust-by'" class="flex gap-1.5" role="group" :aria-label="label('adjustByAmount')">
-        <button
-          type="button"
-          :class="
-            cn(
-              'h-9 flex-1 cursor-pointer rounded-md px-3 text-sm font-medium transition-[background-color,color,box-shadow,transform] duration-200 ease-out motion-reduce:transition-none',
-              direction === 'income'
-                ? 'bg-green-500/15 text-green-600 ring-1 ring-green-500/30 dark:text-green-400'
-                : 'text-muted-foreground hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400',
-            )
-          "
-          :aria-pressed="direction === 'income'"
-          @click="direction = 'income'"
-        >
-          {{ label('income') }}
-        </button>
-        <button
-          type="button"
-          :class="
-            cn(
-              'h-9 flex-1 cursor-pointer rounded-md px-3 text-sm font-medium transition-[background-color,color,box-shadow,transform] duration-200 ease-out motion-reduce:transition-none',
-              direction === 'expense'
-                ? 'bg-red-500/15 text-red-600 ring-1 ring-red-500/30 dark:text-red-400'
-                : 'text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400',
-            )
-          "
-          :aria-pressed="direction === 'expense'"
-          @click="direction = 'expense'"
-        >
-          {{ label('expense') }}
-        </button>
-      </div>
-      </Transition>
+      <LayoutCollapse :open="mode === 'adjust-by'" class="-mt-4">
+        <div class="mt-4 flex gap-1.5" role="group" :aria-label="label('adjustByAmount')">
+          <button
+            type="button"
+            :class="
+              cn(
+                'h-9 flex-1 cursor-pointer rounded-md px-3 text-sm font-medium transition-[background-color,color,box-shadow,transform] duration-200 ease-out motion-reduce:transition-none',
+                direction === 'income'
+                  ? 'bg-green-500/15 text-green-600 ring-1 ring-green-500/30 dark:text-green-400'
+                  : 'text-muted-foreground hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-400',
+              )
+            "
+            :aria-pressed="direction === 'income'"
+            @click="direction = 'income'"
+          >
+            {{ label('income') }}
+          </button>
+          <button
+            type="button"
+            :class="
+              cn(
+                'h-9 flex-1 cursor-pointer rounded-md px-3 text-sm font-medium transition-[background-color,color,box-shadow,transform] duration-200 ease-out motion-reduce:transition-none',
+                direction === 'expense'
+                  ? 'bg-red-500/15 text-red-600 ring-1 ring-red-500/30 dark:text-red-400'
+                  : 'text-muted-foreground hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400',
+              )
+            "
+            :aria-pressed="direction === 'expense'"
+            @click="direction = 'expense'"
+          >
+            {{ label('expense') }}
+          </button>
+        </div>
+      </LayoutCollapse>
 
       <!-- Live preview panel — fixed min-height to prevent layout shift -->
       <div class="border-border bg-muted/20 flex min-h-[calc(2lh+2rem)] flex-col justify-center rounded-lg border p-4">
@@ -257,7 +257,8 @@ watch(mode, (next, previous) => {
       <InputField v-model="form.note" :label="label('transactionNote')" :placeholder="label('optionalNote')" />
     </div>
 
-    <template #footer>
+    <template #footer="{ close }">
+      <Button variant="outline" :disabled="isPending" @click="close">{{ t('common.actions.cancel') }}</Button>
       <Button :disabled="!isValid || isPending" @click="submit">
         {{ isPending ? label('saving') : label('confirm') }}
       </Button>
