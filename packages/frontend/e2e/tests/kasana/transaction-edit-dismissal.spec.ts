@@ -38,7 +38,7 @@ test('saves an edited transaction without a discard prompt and retains a failed 
     await page.getByText(original, { exact: true }).tap({ noWaitAfter: true });
 
     const form = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
-    const note = form.getByPlaceholder(/^(Catatan|Note)$/i);
+    const note = form.getByRole('textbox', { name: /^(Catatan|Note)$/i });
     const submit = form.getByRole('button', { name: /^(Sunting transaksi|Edit transaction)$/i });
     const discard = page.getByRole('alertdialog').filter({ hasText: /Tutup tanpa menyimpan|Close without saving/i });
     const endpoint = (url: URL) => url.pathname.endsWith(`/transactions/${transactionId}`);

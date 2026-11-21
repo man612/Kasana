@@ -56,16 +56,13 @@ test('combined category dialog, vehicle picker/disclaimer and fractional IDR cas
     expect(scrollRegions, 'Category picker should have one scrolling region').toBeLessThanOrEqual(1);
     await categories.getByRole('option').first().click();
     await expect(page.getByRole('dialog')).toHaveCount(1);
-    // The clear control is a sibling, never a nested button or another picker trigger.
-    const clear = category.locator('button').nth(1);
-    await expect(clear).toBeVisible();
-    expect(await clear.evaluate((element) => element.parentElement?.closest('button') === null)).toBe(true);
-    const clearLabel = await clear.getAttribute('aria-label');
-    if (!clearLabel) throw new Error('Category clear control must have an accessible name');
-    await clear.click();
-    await expect(category.getByRole('button', { name: clearLabel, exact: true })).toHaveCount(0);
-    await expect(category.locator('[data-test="split-toggle"]')).toBeVisible();
-    await expect(page.getByRole('dialog')).toHaveCount(1);
+    // Required categories can be replaced. Splitting remains a separate icon action.
+    await expect(category.getByRole('button', { name: /Hapus pilihan|Clear selection/i })).toHaveCount(0);
+    const split = category.locator('[data-test="split-toggle"]');
+    await expect(split).toBeVisible();
+    await expect(split).toHaveAttribute('aria-pressed', 'false');
+    expect(await split.evaluate((element) => element.parentElement?.closest('button') === null)).toBe(true);
+    await expect(transaction).toBeVisible();
     await page.keyboard.press('Escape');
 
     await page.goto('/accounts/vehicles/' + vehicleId);

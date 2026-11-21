@@ -287,13 +287,13 @@ test.describe('Vehicle header responsive geometry', () => {
             await expect(valuationGuide).toBeHidden();
 
             if (role === 'owner') {
-              const more = hero.getByRole('button', { name: LABELS[locale].more, exact: true });
-              const remove = page.getByRole('button', { name: LABELS[locale].delete, exact: true });
-              await expect(remove).toHaveCount(0);
+              const remove = hero.getByRole('button', { name: LABELS[locale].delete, exact: true });
+              await expect(remove).toBeVisible();
+              await expect(page.getByRole('alertdialog')).toHaveCount(0);
+              await expect(hero.getByRole('button', { name: LABELS[locale].more, exact: true })).toHaveCount(0);
               for (const action of [override, edit, remove]) {
                 const actionName = action === remove ? 'delete' : action === edit ? 'edit' : 'override';
                 interactionPhase = `${scale}x/${actionName}/activate`;
-                if (action === remove) await more.click();
                 await action.scrollIntoViewIfNeeded();
                 await action.focus();
                 await expect(action).toBeFocused();

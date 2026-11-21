@@ -91,20 +91,20 @@
 
         <div v-if="isOwner" class="flex min-w-0 flex-wrap items-center gap-1.5">
           <UiButton
-            class="min-h-11 max-w-full min-w-0 rounded-lg px-2.5 text-xs wrap-anywhere whitespace-normal"
+            class="min-h-[44px] max-w-full min-w-[44px] rounded-lg px-2.5 text-xs wrap-anywhere whitespace-normal"
             @click="isOverrideOpen = true"
             >{{ $t('pages.vehicleDetails.overrideValueButton') }}</UiButton
           >
           <UiButton
             variant="outline"
-            class="min-h-11 max-w-full min-w-0 rounded-lg px-2.5 text-xs wrap-anywhere whitespace-normal"
+            class="min-h-[44px] max-w-full min-w-[44px] rounded-lg px-2.5 text-xs wrap-anywhere whitespace-normal"
             @click="isEditOpen = true"
             >{{ $t('pages.vehicleDetails.editButton') }}</UiButton
           >
           <UiButton
             variant="ghost-destructive"
             size="icon"
-            class="size-11 shrink-0"
+            class="size-[44px] shrink-0"
             :aria-label="$t('pages.vehicleDetails.deleteTitle')"
             :title="$t('pages.vehicleDetails.deleteTitle')"
             @click="isDeleteOpen = true"
