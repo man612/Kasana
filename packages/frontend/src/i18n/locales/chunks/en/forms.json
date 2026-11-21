@@ -13,7 +13,7 @@
       "securityPlaceholder": "Select a security",
       "quantityLabel": "Quantity",
       "quantityPlaceholder": "0.00",
-      "priceLabel": "Price per share",
+      "priceLabel": "Price per unit",
       "pricePlaceholder": "0.00",
       "priceHelp": "Use 0 for staking rewards, airdrops or balance adjustments.",
       "feesLabel": "Fees (optional)",
@@ -52,7 +52,11 @@
         "previewUnavailable": "No market rate found for this date – enter the fee or the exchange rate manually.",
         "previewFetchFailed": "Couldn't load market rates. Check your connection or enter the rate manually.",
         "previewPlaceholder": "Preview appears here as you fill the form."
-      }
+      },
+      "invalidLots": "Enter a positive whole number of lots.",
+      "quantityShares": "Shares",
+      "quantityLots": "Lots",
+      "beiLotHelp": "One regular-market IDX lot is 100 shares. Enter the per-share price from your broker statement."
     },
     "portfolioSettings": {
       "nameLabel": "Portfolio name",

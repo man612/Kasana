@@ -19,11 +19,13 @@
       "baseCurrencyEquivalent": "≈ {value} dalam {code}",
       "loadError": "Gagal memuat ringkasan portofolio.",
       "metrics": {
-        "costBasis": "Dasar Biaya",
+        "costBasis": "Modal pada aset",
         "unrealized": "Belum Terealisasi",
         "realized": "Terealisasi",
-        "totalReturn": "Total Pengembalian"
-      }
+        "totalReturn": "Total Pengembalian",
+        "cash": "Saldo kas"
+      },
+      "totalGain": "untung/rugi total"
     },
     "cashBalances": {
       "title": "Saldo Kas",
@@ -87,7 +89,8 @@
         "totalCost": "Total Biaya",
         "marketValue": "Nilai Pasar",
         "unrealizedGain": "Keuntungan Belum Terealisasi",
-        "realizedGain": "Keuntungan Terealisasi"
+        "realizedGain": "Keuntungan Terealisasi",
+        "avgCost": "Harga rata-rata beli"
       },
       "transactions": {
         "loading": "Memuat transaksi…",
@@ -111,7 +114,8 @@
       "tryAgainLater": "Silakan coba lagi nanti",
       "emptyDescription": "Tambahkan transaksi pertama Anda untuk mulai melacak investasi Anda",
       "addFirstHolding": "Tambah kepemilikan pertama",
-      "importTransactions": "Atau impor dari file"
+      "importTransactions": "Atau impor dari file",
+      "noMarketPrice": "Harga pasar belum tersedia"
     },
     "transactionsList": {
       "title": "Transaksi",
@@ -151,6 +155,10 @@
       "deleteTransaction": {
         "tooltip": "Hapus transaksi"
       }
+    },
+    "sections": {
+      "summary": "Ringkasan",
+      "holdings": "Kepemilikan"
     }
   }
 }

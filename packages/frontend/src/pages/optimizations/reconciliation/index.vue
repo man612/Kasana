@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import OptimizationHelp from '../components/optimization-help.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/lib/ui/tabs';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
@@ -6,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { ROUTES_NAMES } from '@/routes';
 import { ArrowLeftIcon } from '@lucide/vue';
 import { useElementSize } from '@vueuse/core';
-import { computed, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import HistoryTab from './components/history-tab.vue';
@@ -24,6 +25,10 @@ const router = useRouter();
 const activeTab = computed<Tab>(() =>
   TAB_VALUES.includes(String(route.query.tab)) ? (route.query.tab as Tab) : TAB.transactions,
 );
+
+// Keep selection after the first visit without fetching every tab on entry.
+const visited = reactive(new Set<Tab>());
+watch(activeTab, (tab) => visited.add(tab), { immediate: true });
 
 const onTabChange = (value: string | number) => {
   router.replace({ query: { ...route.query, tab: String(value) } });
@@ -47,7 +52,7 @@ const isMobileMode = computed(() => pageWidth.value > 0 && pageWidth.value < MOB
     ref="pageRef"
     class="flex h-[calc(100dvh-var(--header-height))] min-h-0 flex-col gap-3 overflow-hidden p-4 max-md:h-[calc(100dvh-var(--header-height)-var(--bottom-navbar-height))] md:p-6"
   >
-    <div class="flex h-8 shrink-0 items-center gap-2">
+    <div class="flex min-h-9 shrink-0 items-center gap-2">
       <DesktopOnlyTooltip :content="$t('optimizations.backToOptimizations')">
         <Button variant="ghost" size="icon-sm" class="text-muted-foreground -ml-1 shrink-0" as-child>
           <RouterLink :to="{ name: ROUTES_NAMES.optimizations }" :aria-label="$t('optimizations.backToOptimizations')">
@@ -56,9 +61,10 @@ const isMobileMode = computed(() => pageWidth.value > 0 && pageWidth.value < MOB
         </Button>
       </DesktopOnlyTooltip>
 
-      <h1 class="truncate text-xl font-bold tracking-tight">
+      <h1 class="min-w-0 flex-1 text-lg leading-tight font-semibold tracking-tight">
         {{ $t('optimizations.reconciliation.title') }}
       </h1>
+      <OptimizationHelp feature="reconciliation" />
     </div>
 
     <Tabs
@@ -82,15 +88,15 @@ const isMobileMode = computed(() => pageWidth.value > 0 && pageWidth.value < MOB
       </TabsList>
 
       <TabsContent :value="TAB.transactions" :class="tabContentClass({ tab: TAB.transactions })">
-        <TransactionsTab :is-mobile-mode="isMobileMode" />
+        <TransactionsTab v-if="visited.has(TAB.transactions)" :is-mobile-mode="isMobileMode" />
       </TabsContent>
 
       <TabsContent :value="TAB.stuckPending" :class="tabContentClass({ tab: TAB.stuckPending })">
-        <StuckPendingTab :is-mobile-mode="isMobileMode" />
+        <StuckPendingTab v-if="visited.has(TAB.stuckPending)" :is-mobile-mode="isMobileMode" />
       </TabsContent>
 
       <TabsContent :value="TAB.history" :class="tabContentClass({ tab: TAB.history })">
-        <HistoryTab />
+        <HistoryTab v-if="visited.has(TAB.history)" />
       </TabsContent>
     </Tabs>
   </div>

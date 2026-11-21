@@ -53,8 +53,14 @@ const freshClient = () => new QueryClient({ defaultOptions: { queries: { retry: 
 
 // staleTime: Infinity throughout – the worst case for restore staleness, and what
 // several whitelisted call sites really declare.
-const fetchThrough = <T>(client: QueryClient, queryKey: QueryKey, queryFn: QueryFunction<T>) =>
-  client.fetchQuery({ queryKey, queryFn, persister: persistedQueryFn, staleTime: Infinity });
+const fetchThrough = <T>(client: QueryClient, queryKey: QueryKey, queryFn: QueryFunction<T>, persistedFreshForMs = 0) =>
+  client.fetchQuery({
+    queryKey,
+    queryFn,
+    persister: persistedQueryFn,
+    staleTime: Infinity,
+    meta: { persistedFreshForMs },
+  });
 
 const fetchThroughImmutable = <T>(client: QueryClient, queryKey: QueryKey, queryFn: QueryFunction<T>) =>
   client.fetchQuery({ queryKey, queryFn, persister: persistedImmutableQueryFn, staleTime: Infinity });
@@ -218,6 +224,47 @@ describe('query persister – restore behaviour across a reload', () => {
 
     // A cold fetch already went to the network; confirming it would be a duplicate.
     expect(calls).toBe(1);
+  });
+});
+
+describe('query persister – reference freshness and cache teardown', () => {
+  it.each([0, 300_001])('only revalidates reference data outside the freshness window (%s ms old)', async (age) => {
+    const queryKey = ['categories'];
+    await fetchThrough(freshClient(), queryKey, async () => [{ id: 1 }]);
+    await flushScheduler();
+
+    const storageKey = [...memory.keys()][0]!;
+    const entry = JSON.parse(memory.get(storageKey)!);
+    entry.state.dataUpdatedAt = Date.now() - age;
+    memory.set(storageKey, JSON.stringify(entry));
+
+    const queryFn = vi.fn(async () => [{ id: 2 }]);
+    const data = await fetchThrough(freshClient(), queryKey, queryFn, 300_000);
+    expect(data).toEqual([{ id: 1 }]);
+    await flushIdle();
+    expect(queryFn).toHaveBeenCalledTimes(age ? 1 : 0);
+  });
+
+  it('drops a scheduled revalidation after the cache is wiped', async () => {
+    const queryKey = ['accounts'];
+    await fetchThrough(freshClient(), queryKey, async () => [{ id: 1 }]);
+    await flushScheduler();
+
+    const client = freshClient();
+    const queryFn = vi.fn(async () => [{ id: 2 }]);
+    expect(await fetchThrough(client, queryKey, queryFn)).toEqual([{ id: 1 }]);
+    await persisterModule.resetQueryCaches(client);
+    await flushIdle();
+    expect(queryFn).not.toHaveBeenCalled();
+    expect(memory.size).toBe(0);
+  });
+
+  it('drops a scheduled write from an earlier identity', async () => {
+    const client = freshClient();
+    await fetchThrough(client, ['accounts'], async () => [{ id: 1 }]);
+    await persisterModule.resetQueryCaches(client);
+    await flushScheduler();
+    expect(memory.size).toBe(0);
   });
 });
 

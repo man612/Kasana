@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import DisplayCurrencySelect from '@/components/fields/display-currency-select.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import InputField from '@/components/fields/input-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
@@ -39,7 +38,6 @@ const form = reactive({
   name: '',
   portfolioType: PORTFOLIO_TYPE.investment as PORTFOLIO_TYPE,
   description: '',
-  displayCurrencyCode: null as string | null,
 });
 
 watch(
@@ -49,7 +47,6 @@ watch(
       form.name = p.name;
       form.portfolioType = p.portfolioType;
       form.description = p.description ?? '';
-      form.displayCurrencyCode = p.displayCurrencyCode ?? null;
     }
   },
   { immediate: true },
@@ -64,18 +61,18 @@ const isSubmitDisabled = computed(
     !form.name.trim() ||
     (form.name.trim() === props.portfolio.name &&
       form.portfolioType === props.portfolio.portfolioType &&
-      (form.description ?? '') === (props.portfolio.description ?? '') &&
-      form.displayCurrencyCode === (props.portfolio.displayCurrencyCode ?? null)),
+      form.description.trim() === (props.portfolio.description ?? '')),
 );
 
 const onSubmit = async () => {
+  if (isSubmitDisabled.value) return;
+
   try {
     const updated = await updateMutation.mutateAsync({
       portfolioId: props.portfolio.id,
       name: form.name.trim(),
       portfolioType: form.portfolioType,
-      description: form.description?.trim() || undefined,
-      displayCurrencyCode: form.displayCurrencyCode,
+      description: form.description.trim(),
     });
 
     addNotification({
@@ -117,8 +114,6 @@ const onSubmit = async () => {
         </Select.Select>
       </FieldLabel>
     </div>
-
-    <DisplayCurrencySelect v-model="form.displayCurrencyCode" :disabled="updateMutation.isPending.value || disabled" />
 
     <TextareaField
       v-model="form.description"

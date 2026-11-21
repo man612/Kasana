@@ -13,7 +13,7 @@
       "securityPlaceholder": "Pilih sekuritas",
       "quantityLabel": "Kuantitas",
       "quantityPlaceholder": "0.00",
-      "priceLabel": "Harga per Lembar",
+      "priceLabel": "Harga per unit",
       "pricePlaceholder": "0.00",
       "priceHelp": "Gunakan 0 untuk hadiah staking, airdrop, atau penyesuaian saldo.",
       "feesLabel": "Biaya (opsional)",
@@ -52,7 +52,11 @@
         "previewUnavailable": "Tidak ada nilai tukar pasar untuk tanggal ini – masukkan biaya atau nilai tukar secara manual.",
         "previewFetchFailed": "Tidak dapat memuat nilai tukar pasar. Periksa koneksi Anda atau masukkan nilai tukar secara manual.",
         "previewPlaceholder": "Pratinjau muncul di sini saat Anda mengisi formulir."
-      }
+      },
+      "invalidLots": "Masukkan jumlah lot bulat di atas nol.",
+      "quantityShares": "Lembar",
+      "quantityLots": "Lot",
+      "beiLotHelp": "Satu lot saham BEI berisi 100 lembar. Isi harga per lembar sesuai catatan broker."
     },
     "portfolioSettings": {
       "nameLabel": "Nama Portofolio",

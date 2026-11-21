@@ -90,6 +90,7 @@ test.describe('Portfolio Management', () => {
   });
 
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('preferred-locale', 'en'));
     await loginViaUI({ page, email: creds.email, password: creds.password });
     await seedTestData({ request: page.request });
 
@@ -102,7 +103,7 @@ test.describe('Portfolio Management', () => {
   test.describe('Holdings', () => {
     test('holding appears in table after API seeding', async ({ page }) => {
       await page.goto(`/portfolios/${portfolioId}`);
-      await page.waitForSelector('h1');
+      await page.getByRole('tab', { name: 'Holdings', exact: true }).click();
 
       await expect(page.locator('table').first()).toBeVisible({ timeout: 10_000 });
       await expect(page.locator('td').filter({ hasText: 'ETEST' }).first()).toBeVisible();

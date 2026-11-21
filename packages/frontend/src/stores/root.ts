@@ -20,7 +20,7 @@ export const useRootStore = defineStore('root', () => {
 
   const { isLoggedIn } = storeToRefs(authStore);
   const { user } = storeToRefs(userStore);
-  const { categories } = storeToRefs(categoriesStore);
+  const { isFetched: categoriesFetched } = storeToRefs(categoriesStore);
   const { isBaseCurrencyExists } = storeToRefs(currenciesStore);
 
   const fetchInitialData = async () => {
@@ -32,7 +32,7 @@ export const useRootStore = defineStore('root', () => {
         if (!user.value) await userStore.loadUser();
 
         await Promise.all([
-          ...(categories.value.length ? [] : [categoriesStore.loadCategories()]),
+          ...(categoriesFetched.value ? [] : [categoriesStore.loadCategories()]),
           currenciesStore.loadCurrencies(),
           ...(isBaseCurrencyExists.value ? [] : [currenciesStore.loadBaseCurrency()]),
           useBaseCurrencyChangeStatus().checkOnBoot(),

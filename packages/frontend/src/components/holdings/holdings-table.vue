@@ -2,6 +2,7 @@
 import PrecisionNumber from '@/components/common/precision-number.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import { isBeiStock } from '@/common/utils/investment-units';
 import InvestmentTransactionForm from '@/components/forms/investment-transaction-form.vue';
 import { Button } from '@/components/lib/ui/button';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
@@ -443,7 +444,7 @@ const theadLabelStyles = 'block max-w-32 truncate';
                     />
                   </td>
                   <td :class="[cellStyles, 'px-3 text-right tabular-nums']">
-                    {{ formatCurrency(getPrice(row.holding), row.holding.currencyCode) }}
+                    {{ row.holding.priceDate ? formatCurrency(getPrice(row.holding), row.holding.currencyCode) : '—' }}
                     <DesktopOnlyTooltip
                       v-if="isPriceStale({ holding: row.holding })"
                       content-class-name="max-w-60"
@@ -451,9 +452,15 @@ const theadLabelStyles = 'block max-w-32 truncate';
                     >
                       <div class="text-warning-text flex items-center justify-end gap-1 text-xs">
                         <ClockAlertIcon class="size-3" />
-                        {{ formatDate(row.holding.priceDate!, 'd MMM') }}
+                        {{ formatDate(row.holding.priceDate!, 'd MMM yyyy') }}
                       </div>
                     </DesktopOnlyTooltip>
+                    <span v-else-if="row.holding.priceDate" class="text-muted-foreground block text-xs">
+                      {{ formatDate(row.holding.priceDate, 'd MMM yyyy') }}
+                    </span>
+                    <span v-else class="text-muted-foreground block text-xs">
+                      {{ $t('portfolioDetail.holdingsTable.noMarketPrice') }}
+                    </span>
                   </td>
                   <td :class="[cellStyles, 'text-muted-foreground px-3 text-right tabular-nums']">
                     {{ formatCurrency(getAverageCost(row.holding), row.holding.currencyCode) }}
@@ -469,15 +476,18 @@ const theadLabelStyles = 'block max-w-32 truncate';
                   </td>
                   <td :class="[cellStyles, 'px-3 text-right font-medium tabular-nums']">
                     {{
-                      formatMoneyCell({
-                        holding: row.holding,
-                        native: Number(row.holding.marketValue || 0),
-                        display: row.holding.displayMarketValue,
-                      })
+                      row.holding.priceDate
+                        ? formatMoneyCell({
+                            holding: row.holding,
+                            native: Number(row.holding.marketValue || 0),
+                            display: row.holding.displayMarketValue,
+                          })
+                        : '—'
                     }}
                   </td>
                   <td :class="[cellStyles, 'px-3 text-right']">
                     <div
+                      v-if="row.holding.priceDate"
                       :class="getGainColorClass({ gainValue: getUnrealizedGain(row.holding).value })"
                       class="tabular-nums"
                     >
@@ -492,6 +502,7 @@ const theadLabelStyles = 'block max-w-32 truncate';
                       </div>
                       <div class="text-xs">{{ getUnrealizedGain(row.holding).percent.toFixed(2) }}%</div>
                     </div>
+                    <span v-else class="text-muted-foreground">—</span>
                   </td>
                   <td :class="[cellStyles, 'px-3 text-right']">
                     <div
@@ -555,6 +566,7 @@ const theadLabelStyles = 'block max-w-32 truncate';
               ? `${hh.security.name} (${hh.security.symbol})`
               : (hh.security?.symbol ?? 'Unknown'),
             currencyCode: hh.currencyCode,
+            isBeiStock: isBeiStock(hh.security ?? undefined),
           }))
         "
         :security-id="selectedHolding?.securityId ? String(selectedHolding.securityId) : undefined"

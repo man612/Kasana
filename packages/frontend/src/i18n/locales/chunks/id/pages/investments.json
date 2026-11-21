@@ -6,17 +6,18 @@
     "tryAgain": "Coba Lagi",
     "menu": {
       "view": "Lihat",
-      "delete": "Hapus"
+      "delete": "Hapus",
+      "actions": "Tindakan portofolio"
     },
     "card": {
       "hidden": "Tersembunyi",
       "portfolioType": "Portofolio {type}",
-      "costBasis": "Dasar biaya"
+      "costBasis": "Modal pada aset"
     },
     "empty": {
       "title": "Belum Ada Portofolio",
-      "description": "Buat portofolio investasi pertama Anda untuk mulai melacak kepemilikan, transaksi, dan kinerja.",
-      "createFirstButton": "Buat Portofolio Pertama Anda"
+      "description": "Portofolio mengelompokkan investasi yang kamu miliki. Misalnya, buat Saham Indonesia untuk mencatat pembelian, penjualan, dan saldo kas dari broker.",
+      "createFirstButton": "Buat portofolio"
     },
     "trash": {
       "title": "Tempat Sampah",
@@ -36,6 +37,17 @@
         "purged": "Portofolio dihapus secara permanen",
         "purgeError": "Gagal menghapus portofolio"
       }
+    },
+    "summary": {
+      "totalPortfolioValue": "Total nilai portofolio",
+      "totalCostBasis": "Modal pada aset yang masih dimiliki",
+      "unrealizedGainValue": "Untung atau rugi belum direalisasikan",
+      "realizedGainValue": "Untung atau rugi terealisasi",
+      "help": "Total mencakup nilai aset dan kas di portofolio aktif. Untung atau rugi belum direalisasikan berasal dari perubahan nilai aset yang masih kamu pegang.",
+      "refreshing": "Memperbarui ringkasan…",
+      "incomplete": "Ringkasan Rupiah belum tersedia. Buka portofolio untuk melihat nilai dalam mata uangnya.",
+      "contributions": "Lihat setoran dan penarikan",
+      "unpriced": "Nilai dan untung/rugi sementara. {count} kepemilikan belum memiliki harga pasar."
     }
   }
 }

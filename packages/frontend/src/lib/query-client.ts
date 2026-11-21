@@ -43,6 +43,9 @@ export const queryClient = new QueryClient({
     queries: {
       retry: shouldRetryQuery,
     },
+    // Writes are sent immediately or fail. Replaying them after reconnect
+    // requires an idempotent sync protocol.
+    mutations: { networkMode: 'always' },
   },
 });
 
@@ -54,9 +57,8 @@ export const queryClient = new QueryClient({
 // payee search term) persists as its own entry, and each prefix must avoid
 // overlapping a volatile sibling under the same global prefix.
 //
-// A restored snapshot is always confirmed by one background refetch on idle (see
-// `persistedQueryFn`), so a key needs no mutation-time freshness guarantee to belong
-// here – whatever wrote to it is picked up on the next load.
+// Financial snapshots are confirmed on idle. The small reference group below
+// can reuse a recent response between app launches.
 const PERSISTED_QUERY_KEY_PREFIXES: readonly QueryKey[] = [
   VUE_QUERY_CACHE_KEYS.userCurrencies,
   VUE_QUERY_CACHE_KEYS.baseCurrency,
@@ -80,12 +82,27 @@ const PERSISTED_QUERY_KEY_PREFIXES: readonly QueryKey[] = [
 // no confirming request (see `persistedImmutableQueryFn`).
 const IMMUTABLE_PERSISTED_QUERY_KEY_PREFIXES: readonly QueryKey[] = [VUE_QUERY_CACHE_KEYS.allCurrencies];
 
+const REFERENCE_FRESHNESS_MS = 5 * 60 * 1000;
+const FRESH_REFERENCE_KEYS: readonly QueryKey[] = [
+  VUE_QUERY_CACHE_KEYS.categoriesList,
+  VUE_QUERY_CACHE_KEYS.userCurrencies,
+  VUE_QUERY_CACHE_KEYS.accountGroups,
+  VUE_QUERY_CACHE_KEYS.payeesLookup,
+];
+const referenceKeys = new Set(FRESH_REFERENCE_KEYS);
+
 // Attach the persister centrally via query defaults so individual useQuery call
 // sites stay untouched. Per-call options still win over these defaults, and no
 // whitelisted call site sets its own `persister`.
 if (persistedQueryFn) {
   for (const queryKey of PERSISTED_QUERY_KEY_PREFIXES) {
-    queryClient.setQueryDefaults(queryKey, { persister: persistedQueryFn });
+    queryClient.setQueryDefaults(queryKey, {
+      persister: persistedQueryFn,
+      ...(referenceKeys.has(queryKey) && {
+        staleTime: REFERENCE_FRESHNESS_MS,
+        meta: { persistedFreshForMs: REFERENCE_FRESHNESS_MS },
+      }),
+    });
   }
 }
 

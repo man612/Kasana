@@ -68,7 +68,7 @@ const networkNavigation = async (event) => {
   } catch {
     // Navigations use the same offline page even when the server cannot answer.
   }
-  const fallback = await caches.match(OFFLINE_URL, { cacheName: CACHE_NAME });
+  const fallback = await caches.match(OFFLINE_URL, { cacheName: CACHE_NAME }).catch(() => undefined);
   if (!fallback) return originResponse ?? Response.error();
   if (!originResponse && self.navigator.onLine === false) return fallback;
 
@@ -96,7 +96,7 @@ self.addEventListener('fetch', (event) => {
   if (!IMMUTABLE_ASSET.test(url.pathname) || url.search || request.headers.has('Range')) return;
   const cacheTask = caches.open(CACHE_NAME).catch(() => null);
   const result = cacheTask.then(async (cache) => {
-    const cached = await cache?.match(request);
+    const cached = await cache?.match(request).catch(() => undefined);
     if (cached) return { response: cached };
     const response = await fetch(request);
     const write = cache && looksLikeAsset(response) ? putAsset(cache, request, response.clone()) : undefined;

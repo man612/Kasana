@@ -10,7 +10,7 @@
 
     <template v-else>
       <!-- Header Section with improved layout -->
-      <div class="mb-8">
+      <div class="mb-4">
         <!-- Back button row -->
         <div class="mb-4">
           <router-link
@@ -63,11 +63,19 @@
       </div>
 
       <!-- Main Content -->
-      <div v-if="portfolio" class="grid gap-6">
-        <PortfolioBalance :portfolio-id="portfolioId" />
-        <HoldingsSummary :portfolio-id="portfolioId" />
-        <PortfolioCashBalances :portfolio-id="portfolioId" :portfolio="portfolio" />
-      </div>
+      <Tabs v-if="portfolio" :key="portfolioId" default-value="summary" class="min-w-0">
+        <TabsList class="max-w-full">
+          <TabsTrigger value="summary">{{ $t('portfolioDetail.sections.summary') }}</TabsTrigger>
+          <TabsTrigger value="holdings">{{ $t('portfolioDetail.sections.holdings') }}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="summary" class="grid min-w-0 gap-4">
+          <PortfolioBalance :portfolio-id="portfolioId" />
+          <PortfolioCashBalances :portfolio-id="portfolioId" :portfolio="portfolio" />
+        </TabsContent>
+        <TabsContent value="holdings" class="min-w-0">
+          <HoldingsSummary :portfolio-id="portfolioId" />
+        </TabsContent>
+      </Tabs>
 
       <!-- Loading State -->
       <div v-else-if="isLoading" class="py-12 text-center">
@@ -99,6 +107,7 @@ import PortfolioLogo from '@/components/common/portfolio-logo.vue';
 import DeletePortfolioDialog from '@/components/dialogs/delete-portfolio-dialog.vue';
 import EditPortfolioDialog from '@/components/dialogs/edit-portfolio-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/lib/ui/tabs';
 import { usePortfolio, useUpdatePortfolio } from '@/composable/data-queries/portfolios';
 import { isResourceMissingError } from '@/js/errors';
 import { ROUTES_NAMES } from '@/routes/constants';

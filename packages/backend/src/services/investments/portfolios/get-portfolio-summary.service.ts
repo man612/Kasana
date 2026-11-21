@@ -20,6 +20,7 @@ interface GetPortfolioSummaryParams {
 interface PortfolioSummaryResult {
   portfolioId: string;
   portfolioName: string;
+  unpricedHoldingsCount: number;
   totalCurrentValue: string;
   totalCostBasis: string;
   unrealizedGainValue: string;
@@ -129,6 +130,7 @@ const getPortfolioSummaryImpl = async ({
     return {
       portfolioId,
       portfolioName: portfolio.name,
+      unpricedHoldingsCount: 0,
       totalCurrentValue: '0.00',
       totalCostBasis: '0.00',
       unrealizedGainValue: '0.00',
@@ -201,6 +203,7 @@ const getPortfolioSummaryImpl = async ({
   return {
     portfolioId,
     portfolioName: portfolio.name,
+    unpricedHoldingsCount: holdings.filter((holding) => Number(holding.quantity) > 0 && !holding.priceDate).length,
     totalCurrentValue: toDisplay(totalCurrentValueInBase),
     totalCostBasis: toDisplay(totalCostBasisInBase),
     unrealizedGainValue: toDisplay(totalUnrealizedGainInBase),

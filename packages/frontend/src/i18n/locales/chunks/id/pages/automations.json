@@ -216,10 +216,10 @@
     "applyToHistory": {
       "trigger": "Terapkan ke transaksi lama",
       "saveFirst": "Simpan perubahan terlebih dahulu",
-      "pickTitle": "Terapkan otomatisasi ke transaksi lama",
-      "pickHint": "Pilih aturan dan periksa transaksi yang cocok sebelum menerapkannya.",
+      "pickTitle": "Jalankan aturan pada transaksi lama",
+      "pickHint": "Pilih aturan dari Otomatisasi, periksa transaksi yang cocok, lalu tentukan catatan yang ingin diperbarui.",
       "title": "Terapkan “{name}” ke transaksi lama",
-      "noRules": "Belum ada otomatisasi.",
+      "noRules": "Belum ada aturan. Buat aturan di Otomatisasi, lalu kembali untuk memilih transaksi lama.",
       "summary": "{count} transaksi lama cocok dengan aturan ini",
       "moreMatches": "Hanya {shown} kecocokan terbaru yang ditampilkan. Terapkan pilihan ini, lalu periksa kembali.",
       "scanCapped": "Pencarian mencakup {limit} transaksi terbaru.",

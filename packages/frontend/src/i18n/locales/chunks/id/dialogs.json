@@ -35,13 +35,13 @@
     },
     "createPortfolio": {
       "title": "Buat Portofolio",
-      "description": "Buat portofolio investasi baru untuk melacak kepemilikan dan transaksi Anda.",
+      "description": "Kelompokkan investasi yang ingin kamu pantau. Portofolio baru memakai Rupiah.",
       "assetSupportNotice": "Saat ini mendukung saham, ETF, dan kripto. Obligasi, opsi & sekuritas lainnya ada di {roadmapLink} – bagikan apa yang Anda butuhkan melalui {feedbackLink}.",
       "assetSupportRoadmapLink": "pilih yang akan datang",
       "assetSupportFeedbackLink": "minta fitur",
       "form": {
         "nameLabel": "Nama portofolio",
-        "namePlaceholder": "Portofolio Investasi Saya",
+        "namePlaceholder": "Misalnya, Saham Indonesia",
         "typeLabel": "Jenis Portofolio",
         "typePlaceholder": "Pilih jenis portofolio",
         "portfolioTypes": {

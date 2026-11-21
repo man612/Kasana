@@ -2,7 +2,7 @@
 import { bulkScanTransferRecommendations, dismissTransferSuggestion, linkTransactions } from '@/api/transactions';
 import * as Dialog from '@/components/lib/ui/dialog';
 import * as Drawer from '@/components/lib/ui/drawer';
-import DocsLink from '@/components/common/docs-link.vue';
+import { ROUTES_NAMES } from '@/routes/constants';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Card } from '@/components/lib/ui/card';
@@ -22,18 +22,24 @@ import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import type { Period } from '@/composable/use-period-navigation';
 import { endOfDay, endOfMonth, isValid, parseISO, startOfDay, startOfMonth, subMonths } from 'date-fns';
 import { useRoute } from 'vue-router';
-import { SearchXIcon, SparklesIcon } from '@lucide/vue';
+import { ArrowLeftIcon, SearchXIcon, SparklesIcon } from '@lucide/vue';
 import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { createReusableTemplate, useLocalStorage, useResizeObserver } from '@vueuse/core';
-import { ApiErrorResponseError } from '@/js/errors';
+import OptimizationHelp from '../components/optimization-help.vue';
 
 import ExpenseListItem from './components/expense-list-item.vue';
 import ScanControls from './components/scan-controls.vue';
 import SuggestionsPanel from './components/suggestions-panel.vue';
 import DialogHeader from '@/components/lib/ui/dialog/DialogHeader.vue';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
+const formatScanDate = (date: string) =>
+  new Date(date).toLocaleDateString(locale.value, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 const { addSuccessNotification, addErrorNotification } = useNotificationCenter();
 const queryClient = useQueryClient();
 const SINGLE_PANEL_BREAKPOINT = 1023;
@@ -60,9 +66,17 @@ const period = ref<Period>(
 );
 const includeOutOfWallet = ref(false);
 const aiReview = useLocalStorage('optimizations:transfers:ai-review', false);
-// Automatic re-scans would spend the user's AI allowance behind their back, so only the Scan button runs one.
-const lastScanUsedAi = ref(false);
-const canAutoRescan = () => !lastScanUsedAi.value && !aiReview.value;
+const getScanFilters = () => ({
+  from: period.value.from.toISOString(),
+  to: period.value.to.toISOString(),
+  includeOutOfWallet: includeOutOfWallet.value,
+  aiReview: aiReview.value,
+});
+const appliedFilters = ref<ReturnType<typeof getScanFilters>>();
+const lastScanUsedAi = computed(() => Boolean(appliedFilters.value?.aiReview));
+const hasScanned = computed(() => appliedFilters.value !== undefined);
+const isScanning = ref(false);
+let scanGeneration = 0;
 
 // Accumulated scan results across pages
 const allItems = ref<BulkTransferScanItem[]>([]);
@@ -78,8 +92,7 @@ const selectedItem = computed<BulkTransferScanItem | null>(() => {
   return allItems.value[selectedItemIndex.value] ?? null;
 });
 
-const hasScanned = ref(false);
-const hasNextPage = computed(() => !lastScanUsedAi.value && allItems.value.length < totalCount.value);
+const hasNextPage = computed(() => !lastScanUsedAi.value && currentOffset.value < totalCount.value);
 
 // Manage transaction dialog
 const {
@@ -92,13 +105,6 @@ const {
   loanDialogProps,
   closeLoanDialog,
 } = useManageTransactionDialog();
-
-// Re-scan when either edit dialog closes (user may have edited amount/date)
-watch([isDialogVisible, isLoanDialogVisible], ([visible, loanVisible]) => {
-  if (!visible && !loanVisible && hasScanned.value && canAutoRescan()) {
-    freshScan();
-  }
-});
 
 // Desktop scrolls the list inside its panel; single-panel scrolls the whole page.
 const leftScrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
@@ -135,23 +141,27 @@ const { virtualRows, totalSize } = useVirtualizedInfiniteScroll<BulkTransferScan
 });
 
 async function loadNextPage() {
-  if (isFetchingPage.value) return;
+  const filters = appliedFilters.value;
+  if (!filters || !hasNextPage.value || isFetchingPage.value || isScanning.value || isActing.value) return;
+  const generation = scanGeneration;
   isFetchingPage.value = true;
 
   try {
     const data = await bulkScanTransferRecommendations({
-      from: period.value.from.toISOString(),
-      to: period.value.to.toISOString(),
-      includeOutOfWallet: includeOutOfWallet.value,
+      ...filters,
       offset: currentOffset.value,
       limit: PAGE_SIZE,
     });
 
-    allItems.value = [...allItems.value, ...data.items];
+    if (generation !== scanGeneration) return;
+    const existing = new Set(allItems.value.map(({ expense }) => expense.id));
+    allItems.value = [...allItems.value, ...data.items.filter(({ expense }) => !existing.has(expense.id))];
     totalCount.value = data.total;
-    currentOffset.value = allItems.value.length;
+    currentOffset.value += data.items.length;
+    if (!data.items.length) currentOffset.value = data.total;
   } catch {
-    addErrorNotification(t('optimizations.transferSuggestions.notifications.loadError'));
+    if (generation === scanGeneration)
+      addErrorNotification(t('optimizations.transferSuggestions.notifications.loadError'));
   } finally {
     isFetchingPage.value = false;
   }
@@ -160,65 +170,54 @@ async function loadNextPage() {
 const WEAK_CONFIDENCE = 70;
 const { getFeatureStatus } = useAiSettings();
 const showAiRescanHint = computed(() => {
-  if (lastScanUsedAi.value || !getFeatureStatus(AI_FEATURE.transferMatching)?.servedBy) return false;
+  if (!allItems.value.length || lastScanUsedAi.value || !getFeatureStatus(AI_FEATURE.transferMatching)?.servedBy)
+    return false;
   const weak = allItems.value.filter((item) => item.matches.every((m) => m.confidence < WEAK_CONFIDENCE)).length;
   return weak >= allItems.value.length / 4;
 });
 
 function rescanWithAi() {
+  if (isScanning.value || isActing.value) return;
   aiReview.value = true;
   scanFromScratch();
 }
 
-// Auto re-scans keep the stale list to avoid a flash; a user-started scan shows the loading state.
 function scanFromScratch() {
-  allItems.value = [];
-  totalCount.value = 0;
-  freshScan();
+  if (isActing.value) return;
+  void freshScan(getScanFilters());
 }
 
-// Fresh scan (resets pagination)
-const isScanning = ref(false);
-
-async function freshScan() {
+async function freshScan(filters: ReturnType<typeof getScanFilters>) {
   if (isScanning.value) return;
+  scanGeneration += 1;
   isScanning.value = true;
-  const usedAi = aiReview.value;
 
   try {
-    const data = await bulkScanTransferRecommendations({
-      from: period.value.from.toISOString(),
-      to: period.value.to.toISOString(),
-      includeOutOfWallet: includeOutOfWallet.value,
-      aiReview: usedAi,
-      offset: 0,
-      limit: PAGE_SIZE,
-    });
+    const data = await bulkScanTransferRecommendations({ ...filters, offset: 0, limit: PAGE_SIZE });
 
-    lastScanUsedAi.value = usedAi;
+    appliedFilters.value = filters;
     allItems.value = data.items;
     totalCount.value = data.total;
     currentOffset.value = data.items.length;
     selectedItemIndex.value = 0;
-    hasScanned.value = true;
-  } catch (error) {
-    addErrorNotification(
-      (usedAi && error instanceof ApiErrorResponseError && error.data.message) ||
-        t('optimizations.transferSuggestions.notifications.scanError'),
-    );
+  } catch {
+    addErrorNotification(t('optimizations.transferSuggestions.notifications.scanError'));
   } finally {
     isScanning.value = false;
   }
 }
-
-if (hasQueryPeriod) freshScan();
 
 // Link mutation
 const linkMutation = useMutation({
   mutationFn: ({ expenseId, incomeId }: { expenseId: string; incomeId: string }) =>
     linkTransactions({ ids: [[expenseId as RecordId, incomeId as RecordId]] }),
   onMutate: async ({ expenseId, incomeId }) => {
-    const previous = { items: [...allItems.value], total: totalCount.value };
+    const previous = {
+      items: allItems.value,
+      total: totalCount.value,
+      offset: currentOffset.value,
+      selected: selectedItemIndex.value,
+    };
 
     allItems.value = allItems.value
       .filter((item) => item.expense.id !== expenseId)
@@ -227,8 +226,9 @@ const linkMutation = useMutation({
         matches: item.matches.filter((m) => m.transaction.id !== incomeId),
       }))
       .filter((item) => item.matches.length > 0);
-    totalCount.value = Math.max(0, totalCount.value - 1);
-    currentOffset.value = allItems.value.length;
+    const removed = previous.items.length - allItems.value.length;
+    totalCount.value = Math.max(0, totalCount.value - removed);
+    currentOffset.value = Math.max(0, currentOffset.value - removed);
 
     if (selectedItemIndex.value >= allItems.value.length) {
       selectedItemIndex.value = Math.max(0, allItems.value.length - 1);
@@ -241,21 +241,18 @@ const linkMutation = useMutation({
   onSuccess: () => {
     addSuccessNotification(t('optimizations.transferSuggestions.notifications.linkSuccess'));
 
-    // Background re-fetch to recalculate confidence scores
-    if (canAutoRescan()) freshScan();
+    const filters = appliedFilters.value;
+    if (filters && !filters.aiReview) void freshScan(filters);
+    void queryClient.invalidateQueries({ queryKey: [VUE_QUERY_GLOBAL_PREFIXES.transactionChange] });
   },
   onError: (_err, _vars, context) => {
     if (context?.previous) {
       allItems.value = context.previous.items;
       totalCount.value = context.previous.total;
-      currentOffset.value = allItems.value.length;
+      currentOffset.value = context.previous.offset;
+      selectedItemIndex.value = context.previous.selected;
     }
     addErrorNotification(t('optimizations.transferSuggestions.notifications.linkError'));
-  },
-  onSettled: () => {
-    queryClient.invalidateQueries({
-      queryKey: [VUE_QUERY_GLOBAL_PREFIXES.transactionChange],
-    });
   },
 });
 
@@ -267,7 +264,12 @@ const skipMutation = useMutation({
       incomeTransactionId: incomeId as RecordId,
     }),
   onMutate: async ({ expenseId, incomeId }) => {
-    const previous = { items: [...allItems.value], total: totalCount.value };
+    const previous = {
+      items: allItems.value,
+      total: totalCount.value,
+      offset: currentOffset.value,
+      selected: selectedItemIndex.value,
+    };
 
     // Optimistic: remove the skipped match from the expense's matches
     allItems.value = allItems.value
@@ -283,8 +285,8 @@ const skipMutation = useMutation({
     // If expense lost all matches, decrement total
     if (allItems.value.length < previous.items.length) {
       totalCount.value = Math.max(0, totalCount.value - 1);
+      currentOffset.value = Math.max(0, currentOffset.value - 1);
     }
-    currentOffset.value = allItems.value.length;
 
     if (selectedItemIndex.value >= allItems.value.length) {
       selectedItemIndex.value = Math.max(0, allItems.value.length - 1);
@@ -299,16 +301,17 @@ const skipMutation = useMutation({
     if (context?.previous) {
       allItems.value = context.previous.items;
       totalCount.value = context.previous.total;
-      currentOffset.value = allItems.value.length;
+      currentOffset.value = context.previous.offset;
+      selectedItemIndex.value = context.previous.selected;
     }
     addErrorNotification(t('optimizations.transferSuggestions.notifications.skipError'));
   },
-  onSettled: () => {
-    queryClient.invalidateQueries({
-      queryKey: [VUE_QUERY_GLOBAL_PREFIXES.transactionChange],
-    });
-  },
 });
+
+const isActing = computed(() => linkMutation.isPending.value || skipMutation.isPending.value);
+const actionsDisabled = computed(() => isScanning.value || isFetchingPage.value);
+
+if (hasQueryPeriod) scanFromScratch();
 
 function handleSelectExpense(index: number) {
   selectedItemIndex.value = index;
@@ -318,10 +321,12 @@ function handleSelectExpense(index: number) {
 }
 
 function handleLink(payload: { expenseId: string; incomeId: string }) {
+  if (isActing.value || actionsDisabled.value) return;
   linkMutation.mutate(payload);
 }
 
 function handleSkip(payload: { expenseId: string; incomeId: string }) {
+  if (isActing.value || actionsDisabled.value) return;
   skipMutation.mutate(payload);
 }
 
@@ -340,18 +345,19 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
       )
     "
   >
-    <header class="flex shrink-0 flex-wrap items-end justify-between gap-3">
-      <div class="grid min-w-0 gap-1">
-        <p class="text-muted-foreground text-xs font-bold tracking-widest uppercase">{{ $t('optimizations.title') }}</p>
-        <h1 class="text-2xl font-bold tracking-tight">
+    <header class="flex shrink-0 items-start gap-2">
+      <Button variant="ghost" size="icon-sm" class="text-muted-foreground -ml-1 shrink-0" as-child>
+        <RouterLink :to="{ name: ROUTES_NAMES.optimizations }" :aria-label="$t('optimizations.backToOptimizations')">
+          <ArrowLeftIcon class="size-4" />
+        </RouterLink>
+      </Button>
+      <div class="grid min-w-0 flex-1 gap-1">
+        <h1 class="text-lg font-semibold tracking-tight">
           {{ $t('optimizations.cards.transfers.title') }}
         </h1>
         <p class="text-muted-foreground text-sm">{{ $t('optimizations.transferSuggestions.description') }}</p>
       </div>
-      <DocsLink
-        path="/transfers-and-refunds/link-existing-transactions/#find-pairs-with-transfer-matching"
-        class="text-sm font-semibold"
-      />
+      <OptimizationHelp feature="transfers" />
     </header>
 
     <!-- Main container — always rendered, holds either content or empty/initial/loading states -->
@@ -360,10 +366,19 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
         v-model:period="period"
         v-model:include-out-of-wallet="includeOutOfWallet"
         v-model:ai-review="aiReview"
-        :is-loading="isScanning"
+        :is-loading="isScanning || isActing"
         class="shrink-0"
         @scan="scanFromScratch"
       />
+
+      <p v-if="appliedFilters" class="text-muted-foreground border-b px-4 py-2 text-xs">
+        {{
+          $t('optimizations.transferSuggestions.appliedPeriod', {
+            from: formatScanDate(appliedFilters.from),
+            to: formatScanDate(appliedFilters.to),
+          })
+        }}
+      </p>
 
       <div
         v-if="hasScanned && totalCount > 0"
@@ -446,6 +461,7 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
             <SuggestionsPanel
               :selected-item="selectedItem"
               :is-linking="linkMutation.isPending.value"
+              :actions-disabled="actionsDisabled"
               :is-skipping="skipMutation.isPending.value"
               @link="handleLink"
               @skip="handleSkip"
@@ -514,6 +530,7 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
       <SuggestionsPanel
         :selected-item="selectedItem"
         :is-linking="linkMutation.isPending.value"
+        :actions-disabled="actionsDisabled"
         :is-skipping="skipMutation.isPending.value"
         @link="handleLink"
         @skip="handleSkip"
