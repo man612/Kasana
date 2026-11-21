@@ -176,7 +176,8 @@
       },
       "appliedPeriod": "Results for {from} – {to}",
       "matchScore": "{score}% match",
-      "matchBasis": "Different accounts, similar amounts and nearby dates. Matching currencies increase the score."
+      "matchBasis": "Different accounts, similar amounts and nearby dates. Matching currencies increase the score.",
+      "resultsNeedRefresh": "Transactions changed. Scan again for current suggestions."
     },
     "reconciliation": {
       "title": "Transactions reconciliation",

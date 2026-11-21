@@ -176,7 +176,8 @@
       },
       "appliedPeriod": "Hasil untuk {from} – {to}",
       "matchScore": "Kecocokan {score}%",
-      "matchBasis": "Rekening berbeda, nominal dan tanggal berdekatan. Mata uang yang sama menambah skor."
+      "matchBasis": "Rekening berbeda, nominal dan tanggal berdekatan. Mata uang yang sama menambah skor.",
+      "resultsNeedRefresh": "Transaksi berubah. Pindai kembali untuk memperbarui saran."
     },
     "reconciliation": {
       "title": "Periksa transaksi ganda dan tertunda",

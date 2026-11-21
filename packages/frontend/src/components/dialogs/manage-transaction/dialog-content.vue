@@ -173,6 +173,7 @@ const oppositeTransaction = computed(() => props.oppositeTransaction);
 
 const emit = defineEmits<{
   'close-modal': [];
+  committed: [];
   /** A user-initiated close must pass through the host's unsaved-changes guard. */
   'request-close': [];
   created: [result: { transaction: TransactionModel | undefined; attachmentsFailed: boolean }];
@@ -484,6 +485,7 @@ let isHandedOffToNextEntry = false;
 const hasPersisted = ref(false);
 const closeAfterCommit = () => {
   hasPersisted.value = true;
+  emit('committed');
   closeModal();
 };
 
@@ -493,6 +495,7 @@ const submitMutation = useSubmitTransaction({
     // Emitted for every creation submit: only a plain creation answers with the new row, and a
     // listener that prefilled the form needs to know when it did not get one.
     if (isFormCreation.value) emit('created', { transaction: created, attachmentsFailed: Boolean(attachmentsFailed) });
+    emit('committed');
     if (shouldKeepOpen) {
       addSuccessNotification(t('dialogs.manageTransaction.form.createMore.createdToast'));
       isHandedOffToNextEntry = true;

@@ -76,6 +76,7 @@ const appliedFilters = ref<ReturnType<typeof getScanFilters>>();
 const lastScanUsedAi = computed(() => Boolean(appliedFilters.value?.aiReview));
 const hasScanned = computed(() => appliedFilters.value !== undefined);
 const isScanning = ref(false);
+const resultsNeedRefresh = ref(false);
 let scanGeneration = 0;
 
 // Accumulated scan results across pages
@@ -147,6 +148,7 @@ async function loadNextPage() {
     !filters ||
     !hasNextPage.value ||
     pageLoadFailed.value ||
+    resultsNeedRefresh.value ||
     isFetchingPage.value ||
     isScanning.value ||
     isActing.value
@@ -205,20 +207,23 @@ function scanFromScratch() {
 
 async function freshScan(filters: ReturnType<typeof getScanFilters>) {
   if (isScanning.value) return;
-  scanGeneration += 1;
+  const generation = ++scanGeneration;
   isScanning.value = true;
 
   try {
     const data = await bulkScanTransferRecommendations({ ...filters, offset: 0, limit: PAGE_SIZE });
 
+    if (generation !== scanGeneration) return;
     appliedFilters.value = filters;
     allItems.value = data.items;
     totalCount.value = data.total;
     currentOffset.value = data.items.length;
     pageLoadFailed.value = false;
+    resultsNeedRefresh.value = false;
     selectedItemIndex.value = 0;
   } catch {
-    addErrorNotification(t('optimizations.transferSuggestions.notifications.scanError'));
+    if (generation === scanGeneration)
+      addErrorNotification(t('optimizations.transferSuggestions.notifications.scanError'));
   } finally {
     isScanning.value = false;
   }
@@ -326,7 +331,7 @@ const skipMutation = useMutation({
 });
 
 const isActing = computed(() => linkMutation.isPending.value || skipMutation.isPending.value);
-const actionsDisabled = computed(() => isScanning.value || isFetchingPage.value);
+const actionsDisabled = computed(() => isScanning.value || isFetchingPage.value || resultsNeedRefresh.value);
 
 if (hasQueryPeriod) scanFromScratch();
 
@@ -345,6 +350,16 @@ function handleLink(payload: { expenseId: string; incomeId: string }) {
 function handleSkip(payload: { expenseId: string; incomeId: string }) {
   if (isActing.value || actionsDisabled.value) return;
   skipMutation.mutate(payload);
+}
+
+function refreshAfterTransactionCommit() {
+  const filters = appliedFilters.value;
+  if (!filters) return;
+
+  scanGeneration += 1;
+  resultsNeedRefresh.value = true;
+  suggestionsDialogOpen.value = false;
+  if (!filters.aiReview) void freshScan(filters);
 }
 
 function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionModel | undefined) {
@@ -395,6 +410,10 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
             to: formatScanDate(appliedFilters.to),
           })
         }}
+      </p>
+
+      <p v-if="resultsNeedRefresh && !isScanning" class="text-warning-text border-b px-4 py-2 text-xs" role="status">
+        {{ $t('optimizations.transferSuggestions.resultsNeedRefresh') }}
       </p>
 
       <div
@@ -560,7 +579,12 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
 
     <!-- Manage transaction dialog -->
     <UseDialogTemplate>
-      <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" @request-close="closeDialog" />
+      <ManageTransactionDialogContent
+        v-bind="dialogProps"
+        @committed="refreshAfterTransactionCommit"
+        @close-modal="closeDialog"
+        @request-close="closeDialog"
+      />
     </UseDialogTemplate>
 
     <template v-if="isSinglePanel">
