@@ -46,8 +46,8 @@ vi.mock('@/stores', async () => {
   const { useUserStore: realUserStore } = await import('./user');
   return {
     useUserStore: realUserStore,
-    useCategoriesStore: () => ({ loadCategories: vi.fn() }),
-    useCurrenciesStore: () => ({ loadBaseCurrency: vi.fn() }),
+    useCategoriesStore: () => ({ loadCategories: vi.fn(), resetCategories: vi.fn() }),
+    useCurrenciesStore: () => ({ loadBaseCurrency: vi.fn(), loadCurrencies: vi.fn().mockResolvedValue(undefined) }),
   };
 });
 
