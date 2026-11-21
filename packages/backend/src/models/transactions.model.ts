@@ -196,6 +196,7 @@ export interface TransactionsAttributes {
   isPlanned: boolean;
   categorizationMeta: CategorizationMeta | null;
   payeeId: string | null;
+  payeeNameSnapshot: string | null;
   payeeLocked: boolean;
   paymentParentId: string | null;
   paymentAmount: Money | null;
@@ -398,6 +399,9 @@ export default class Transactions extends Model {
   @ForeignKey(() => Payees)
   @Column({ allowNull: true, type: DataType.UUID })
   payeeId!: RecordId | null;
+
+  @Column({ allowNull: true, type: DataType.STRING(200) })
+  payeeNameSnapshot!: string | null;
 
   @BelongsTo(() => Payees)
   payee!: Payees;

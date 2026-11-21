@@ -1,6 +1,6 @@
 <template>
   <Card class="@container/loan-summary">
-    <CardHeader class="pb-3">
+    <CardHeader class="px-4 pt-3 pb-2">
       <div class="flex items-start justify-between gap-3">
         <AccountLogoPicker :account-id="loan.id" class="size-10" />
         <div class="min-w-0 flex-1">
@@ -17,7 +17,7 @@
         >
       </div>
     </CardHeader>
-    <CardContent>
+    <CardContent class="px-4 pb-3">
       <!-- Active loans lead with the outstanding balance; paid-off loans surface that in the settled
            banner instead, so the card opens straight into the details grid. -->
       <template v-if="!isPaidOff">
@@ -27,6 +27,19 @@
         <div class="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
           <span>{{ $t('loans.detail.summary.outstanding') }}</span>
           <HintIcon :content="$t('loans.detail.summary.principalOnlyTooltip')" />
+        </div>
+        <div
+          v-if="nextDueDate || loan.loanDetails.plannedPayment != null"
+          class="border-border/65 mt-2 grid grid-cols-2 gap-2 border-t pt-2 text-sm wrap-anywhere"
+        >
+          <div v-if="nextDueDate">
+            <div class="text-muted-foreground text-xs">{{ $t('loans.list.scheduledPayment') }}</div>
+            <div class="font-medium">{{ nextDueDate }}</div>
+          </div>
+          <div v-if="loan.loanDetails.plannedPayment != null">
+            <div class="text-muted-foreground text-xs">{{ $t('loans.detail.projection.plannedPayment') }}</div>
+            <div class="font-medium tabular-nums">{{ nextPayment }}</div>
+          </div>
         </div>
       </template>
 
@@ -115,6 +128,7 @@ import { useI18n } from 'vue-i18n';
 
 import { getLoanDurationParts, getMonthsEarly } from '../utils/paid-off-stats';
 import { outstandingAmount } from '../utils/outstanding-amount';
+import { nextScheduledPayment } from '../utils/next-scheduled-payment';
 
 const props = defineProps<{ loan: LoanApi }>();
 
@@ -126,6 +140,20 @@ const aprDisplay = computed(() => `${props.loan.loanDetails.interestRate.toFixed
 
 const outstandingBalanceDisplay = computed(() =>
   formatAmountByCurrencyCode(outstandingAmount({ balance: props.loan.currentBalance }), props.loan.currencyCode),
+);
+
+const nextDueDate = computed(() => {
+  const date = nextScheduledPayment({
+    day: props.loan.loanDetails.paymentDayOfMonth,
+    starts: parseISO(props.loan.loanDetails.startDate),
+    today: new Date(),
+  });
+  return date ? formatDate(date, 'PPP') : null;
+});
+const nextPayment = computed(() =>
+  props.loan.loanDetails.plannedPayment == null
+    ? null
+    : formatAmountByCurrencyCode(props.loan.loanDetails.plannedPayment, props.loan.currencyCode),
 );
 
 const originalPrincipalDisplay = computed(() =>

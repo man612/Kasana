@@ -182,11 +182,12 @@ const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | n
                 type="number"
                 only-positive
                 class="w-32"
-                :placeholder="
+                :label="
                   modelValue.operator === 'between'
                     ? $t('automations.editor.minPlaceholder')
-                    : $t('automations.editor.amountPlaceholder')
+                    : $t('automations.fields.amount')
                 "
+                placeholder="0"
                 @update:model-value="
                   (value) => setAmountBound({ condition: modelValue as AmountCondition, key: 'min', value })
                 "
@@ -197,11 +198,12 @@ const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | n
                 type="number"
                 only-positive
                 class="w-32"
-                :placeholder="
+                :label="
                   modelValue.operator === 'between'
                     ? $t('automations.editor.maxPlaceholder')
-                    : $t('automations.editor.amountPlaceholder')
+                    : $t('automations.fields.amount')
                 "
+                placeholder="0"
                 @update:model-value="
                   (value) => setAmountBound({ condition: modelValue as AmountCondition, key: 'max', value })
                 "

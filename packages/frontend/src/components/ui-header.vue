@@ -27,6 +27,7 @@
             </Sheet.SheetTrigger>
             <Sheet.SheetContent
               data-mobile-sidebar
+              compact-close
               side="left"
               :overlay-class="[
                 'lajur-mobile-sidebar-overlay bg-black/60 duration-220 motion-reduce:animate-none!',

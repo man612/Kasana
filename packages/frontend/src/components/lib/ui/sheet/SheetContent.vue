@@ -21,6 +21,7 @@ interface SheetContentProps extends DialogContentProps {
   class?: HTMLAttributes['class'];
   side?: SheetVariants['side'];
   overlayClass?: HTMLAttributes['class'];
+  compactClose?: boolean;
 }
 
 defineOptions({
@@ -33,7 +34,7 @@ const emits = defineEmits<DialogContentEmits>();
 
 const delegatedProps = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { class: _, side, overlayClass: _overlayClass, ...delegated } = props;
+  const { class: _, side, overlayClass: _overlayClass, compactClose: _compactClose, ...delegated } = props;
 
   return delegated;
 });
@@ -67,10 +68,12 @@ const { t } = useI18n();
           'focus:ring-ring focus:ring-2 focus:ring-offset-2 focus:outline-hidden',
           'disabled:pointer-events-none',
           'data-[state=open]:bg-secondary',
+          compactClose &&
+            'top-[calc(env(safe-area-inset-top)+0.625rem)] right-[calc(env(safe-area-inset-right)+0.75rem)]',
         ]"
       >
-        <Button size="icon" variant="secondary" :aria-label="t('common.ui.close')">
-          <XIcon class="size-5" />
+        <Button size="icon" variant="secondary" :class="compactClose && 'size-11'" :aria-label="t('common.ui.close')">
+          <XIcon :class="compactClose ? 'size-3.5' : 'size-5'" aria-hidden="true" />
         </Button>
       </DialogClose>
     </DialogContent>

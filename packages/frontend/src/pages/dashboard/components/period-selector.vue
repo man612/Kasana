@@ -1,7 +1,7 @@
 <template>
   <div
     data-no-nav-swipe
-    class="grid w-full min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center max-md:touch-pan-y"
+    class="@container flex w-full min-w-0 items-center justify-center max-md:touch-pan-y"
     :style="{ '--period-direction': direction }"
     @touchstart.passive="onPeriodTouchStart"
     @touchend="onPeriodTouchEnd"
@@ -10,7 +10,7 @@
     <Button
       size="icon-sm"
       variant="ghost"
-      class="size-11"
+      class="size-11 shrink-0"
       :aria-label="$t('dashboard.periodSelector.previousPeriod')"
       @click="selectPrevPeriod"
     >
@@ -28,15 +28,19 @@
         <Button
           variant="ghost"
           size="sm"
-          class="min-h-11 min-w-0 justify-center gap-1.5 px-0 py-1 leading-tight font-medium whitespace-normal"
+          class="min-h-11 max-w-[calc(100cqi-5.5rem)] min-w-0 justify-center px-0 py-0 leading-tight font-medium"
           :aria-label="triggerText"
         >
-          <CalendarIcon class="size-3.5 shrink-0" aria-hidden="true" />
-          <span class="grid min-w-0 overflow-hidden text-center" aria-hidden="true">
+          <span
+            class="relative block max-w-full min-w-0 overflow-hidden text-center motion-safe:transition-[width] motion-safe:duration-200"
+            :style="{ width: labelWidth === undefined ? undefined : labelWidth + 'px' }"
+            aria-hidden="true"
+          >
+            <span :ref="observeLabel" class="invisible block w-max max-w-[calc(100cqi-5.5rem)] truncate">{{
+              triggerText
+            }}</span>
             <Transition name="period-label">
-              <span :key="triggerText" class="col-start-1 row-start-1 block min-w-0 self-center">{{
-                triggerText
-              }}</span>
+              <span :key="triggerText" class="absolute inset-0 truncate">{{ triggerText }}</span>
             </Transition>
           </span>
         </Button>
@@ -46,7 +50,7 @@
     <Button
       size="icon-sm"
       variant="ghost"
-      class="size-11"
+      class="size-11 shrink-0"
       :disabled="isNextDisabled"
       :aria-label="$t('dashboard.periodSelector.nextPeriod')"
       @click="selectNextPeriod"
@@ -56,7 +60,7 @@
     <Button
       size="icon-sm"
       variant="ghost"
-      class="absolute left-3 size-11 motion-safe:transition-opacity md:left-6"
+      class="absolute left-2 size-11 motion-safe:transition-opacity md:left-6"
       :class="isCurrentPayPeriod(period) && 'pointer-events-none opacity-0'"
       :disabled="isCurrentPayPeriod(period)"
       :aria-hidden="isCurrentPayPeriod(period)"
@@ -64,7 +68,7 @@
       :title="$t('dashboard.periodSelector.backToCurrent')"
       @click="period = getCurrentPayPeriod()"
     >
-      <CalendarCheckIcon class="size-3.5" aria-hidden="true" />
+      <RotateCcw class="size-3.5" aria-hidden="true" />
     </Button>
   </div>
 </template>
@@ -75,8 +79,8 @@ import { DateSelector, type DateSelectorPreset } from '@/components/lib/ui/date-
 import { useEarliestTransactionDate } from '@/composable/data-queries/earliest-transaction-date';
 import { getPayPeriod, usePeriodNavigation } from '@/composable/use-period-navigation';
 import { format as dateFnsFormat, endOfYear, isBefore, isSameDay, startOfYear, subMonths, subYears } from 'date-fns';
-import { CalendarIcon, ChevronLeft, ChevronRight, CalendarCheckIcon } from '@lucide/vue';
-import { computed, ref, watch } from 'vue';
+import { ChevronLeft, ChevronRight, RotateCcw } from '@lucide/vue';
+import { type ComponentPublicInstance, computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { type Period } from '../types';
@@ -124,6 +128,21 @@ const period = computed({
   get: () => props.modelValue,
   set: (value: Period) => emit('update:modelValue', value),
 });
+
+const labelWidth = ref<number>();
+let labelElement: Element | null = null;
+const labelObserver = new ResizeObserver(([entry]) => {
+  if (entry) labelWidth.value = Math.ceil(entry.contentRect.width);
+});
+const observeLabel = (element: Element | ComponentPublicInstance | null) => {
+  if (element === labelElement) return;
+  labelObserver.disconnect();
+  labelElement = element instanceof Element ? element : null;
+  if (!labelElement) return;
+  labelWidth.value = Math.ceil(labelElement.getBoundingClientRect().width);
+  labelObserver.observe(labelElement);
+};
+onBeforeUnmount(() => labelObserver.disconnect());
 
 const direction = ref(1);
 watch(

@@ -1,6 +1,6 @@
 <template>
   <ResponsiveDialog v-model:open="isOpen" custom-close :dismissible="!isPending">
-    <template #title>{{ isEdit ? $t('payees.actions.rename') : $t('payees.newPayeeButton') }}</template>
+    <template #title>{{ isEdit ? $t('payees.actions.edit') : $t('payees.newPayeeButton') }}</template>
     <template #default>
       <div class="flex flex-col gap-4">
         <InputField
@@ -34,12 +34,40 @@
           }}</span>
           <HintIcon :content="$t('payees.form.categorizationMode.fullExplanation')" />
         </div>
-        <SelectField
-          v-model="form.categorizationMode"
-          :values="categorizationModeOptions"
-          label-key="label"
-          value-key="value"
-        />
+        <Popover v-model:open="isModeOpen" modal>
+          <PopoverTrigger as-child>
+            <Button
+              type="button"
+              variant="outline"
+              class="min-h-11 w-full justify-between"
+              :aria-label="`${$t('payees.form.categorizationMode.label')}: ${activeModeLabel}`"
+            >
+              {{ activeModeLabel }}
+              <ChevronDownIcon class="size-4" aria-hidden="true" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
+            dim-backdrop
+            align="start"
+            class="w-(--reka-popover-trigger-width) max-w-[calc(100vw-1.5rem)] p-1"
+          >
+            <Button
+              v-for="option in categorizationModeOptions"
+              :key="option.value"
+              type="button"
+              variant="ghost"
+              class="min-h-11 w-full justify-between text-left whitespace-normal"
+              :aria-pressed="form.categorizationMode.value === option.value"
+              @click="
+                form.categorizationMode = option;
+                isModeOpen = false;
+              "
+            >
+              {{ option.label }}
+              <CheckIcon v-if="form.categorizationMode.value === option.value" class="size-4" aria-hidden="true" />
+            </Button>
+          </PopoverContent>
+        </Popover>
         <p class="text-muted-foreground -mt-2 text-xs">
           {{ activeModeHint }}
         </p>
@@ -47,7 +75,9 @@
     </template>
     <template #footer="{ close }">
       <Button variant="outline" :disabled="isPending" @click="close">{{ $t('common.actions.cancel') }}</Button>
-      <Button :disabled="!canSave" @click="handleSave">{{ $t('common.actions.save') }}</Button>
+      <Button :disabled="!canSave" @click="handleSave">{{
+        $t(isEdit ? 'payees.actions.saveChanges' : 'common.actions.save')
+      }}</Button>
     </template>
   </ResponsiveDialog>
 </template>
@@ -61,7 +91,8 @@ import type { FormattedCategory } from '@/common/types';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import CategorySelectField from '@/components/fields/category-select-field.vue';
 import InputField from '@/components/fields/input-field.vue';
-import SelectField from '@/components/fields/select-field.vue';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
+import { CheckIcon, ChevronDownIcon } from '@lucide/vue';
 import { Button } from '@/components/lib/ui/button';
 import { ApiErrorResponseError, isApiErrorWithCode } from '@/js/errors';
 import { captureException } from '@/lib/sentry';
@@ -182,7 +213,21 @@ const createMut = useCreatePayee();
 const updateMut = useUpdatePayee();
 const isPending = computed(() => createMut.isPending.value || updateMut.isPending.value);
 
-const canSave = computed(() => !!form.name.trim() && form.name.trim().length <= 200 && !isPending.value);
+const isModeOpen = ref(false);
+const activeModeLabel = computed(
+  () => categorizationModeOptions.value.find((option) => option.value === form.categorizationMode.value)?.label,
+);
+const canSave = computed(() => {
+  const name = form.name.trim();
+  if (!name || name.length > 200 || isPending.value) return false;
+  const original = props.payee;
+  return (
+    !original ||
+    name !== original.name ||
+    (form.category?.id ?? null) !== (original.defaultCategoryId ?? null) ||
+    form.categorizationMode.value !== (original.categorizationMode ?? CATEGORIZATION_MODE.enforce)
+  );
+});
 
 async function handleSave() {
   if (!canSave.value) return;

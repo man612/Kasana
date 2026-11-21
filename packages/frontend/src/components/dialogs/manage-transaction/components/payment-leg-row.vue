@@ -89,7 +89,6 @@ defineExpose({
             class="min-w-0 flex-1"
             :model-value="amount"
             embedded
-            :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
             :aria-label="$t('dialogs.manageTransaction.form.amountLabel')"
             :disabled="disabled || locked"
             :readonly="requireAccountBeforeAmount && !account"

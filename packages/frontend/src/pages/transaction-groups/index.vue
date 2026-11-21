@@ -1,56 +1,33 @@
 <script setup lang="ts">
 import * as transactionGroupsApi from '@/api/transaction-groups';
 import type { TransactionGroupResponse } from '@/api/transaction-groups';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/common/dropdown-menu';
+import TransactionGroupActions from '@/components/transactions-list/transaction-group-actions.vue';
 import TransactionGroupIcon from '@/components/transactions-list/group-icon.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Card } from '@/components/lib/ui/card';
 import InputField from '@/components/fields/input-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
-import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import ErrorState from '@/components/widgets/components/error-state.vue';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
-import {
-  invalidateTransactionGroupQueries,
-  syncTransactionGroupQueries,
-} from '@/composable/data-queries/transaction-groups';
+import { invalidateTransactionGroupQueries } from '@/composable/data-queries/transaction-groups';
 import { useFormatCurrency } from '@/composable/formatters';
-import { useNotificationCenter } from '@/components/notification-center';
-import { extractApiErrorMessage } from '@/js/errors';
 import { cn } from '@/lib/utils';
 import { useQueryClient, useQuery } from '@tanstack/vue-query';
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  ChevronsUpDownIcon,
-  EllipsisIcon,
-  GroupIcon,
-  PencilIcon,
-  SearchIcon,
-  Trash2Icon,
-} from '@lucide/vue';
+import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon, GroupIcon, SearchIcon } from '@lucide/vue';
 import { createReusableTemplate } from '@vueuse/core';
 import { computed, reactive, ref } from 'vue';
 import { format, parseISO } from 'date-fns';
 
-import EditGroupDialog from './edit-group-dialog.vue';
 import { DEFAULT_SORT_DIRECTION, type GroupSortDirection, type GroupSortField, sortGroups } from './sort-groups';
 import TransactionGroupDialog from './transaction-group-dialog.vue';
 import { useI18n } from 'vue-i18n';
 
 const SKELETON_ROW_COUNT = 5;
 const ROW_GRID =
-  'grid min-h-10 grid-cols-[minmax(0,1fr)_auto_36px] items-center gap-2 py-2 pr-1 pl-3 @2xl/groups:grid-cols-[minmax(0,1fr)_7rem_11.5rem_7.5rem_28px] @2xl/groups:gap-4 @2xl/groups:py-1.5 @2xl/groups:pr-2 @2xl/groups:pl-4';
+  'grid min-h-10 grid-cols-[minmax(0,1fr)_auto_44px] items-center gap-2 py-2 pr-1 pl-3 @2xl/groups:grid-cols-[minmax(0,1fr)_7rem_11.5rem_7.5rem_44px] @2xl/groups:gap-4 @2xl/groups:py-1.5 @2xl/groups:pr-2 @2xl/groups:pl-4';
 
 const { t } = useI18n();
 const queryClient = useQueryClient();
-const { addErrorNotification } = useNotificationCenter();
 const { formatBaseCurrency } = useFormatCurrency();
 
 const { data, isPending, isError, refetch } = useQuery({
@@ -139,44 +116,6 @@ const dialogState = reactive({
 const openGroupDialog = ({ group }: { group: TransactionGroupResponse }) => {
   dialogState.group = group;
   dialogState.isOpen = true;
-};
-
-const editState = reactive({
-  isOpen: false,
-  group: null as TransactionGroupResponse | null,
-});
-
-const openEdit = ({ group }: { group: TransactionGroupResponse }) => {
-  editState.group = group;
-  editState.isOpen = true;
-};
-
-// Delete confirmation
-const deleteState = reactive({
-  isOpen: false,
-  groupId: undefined as string | undefined,
-  groupName: '',
-});
-
-const confirmDelete = ({ group }: { group: TransactionGroupResponse }) => {
-  deleteState.groupId = group.id;
-  deleteState.groupName = group.name;
-  deleteState.isOpen = true;
-};
-
-const handleDelete = async () => {
-  const groupId = deleteState.groupId;
-  if (!groupId) return;
-  try {
-    await transactionGroupsApi.deleteTransactionGroup({
-      id: groupId,
-    });
-    await syncTransactionGroupQueries({ queryClient, groupId, group: null });
-  } catch (error) {
-    addErrorNotification(extractApiErrorMessage(error) || t('transactions.transactionGroups.groupsPage.deleteError'));
-  } finally {
-    deleteState.isOpen = false;
-  }
 };
 
 const formatDateRange = ({ group }: { group: TransactionGroupResponse }) => {
@@ -373,32 +312,7 @@ const formatPhoneCaption = ({ group }: { group: TransactionGroupResponse }) =>
             </div>
 
             <div class="relative z-10 flex justify-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    class="text-muted-foreground size-9 @2xl/groups:size-7"
-                    :aria-label="$t('transactions.transactionGroups.groupsPage.moreActions', { name: group.name })"
-                  >
-                    <EllipsisIcon class="size-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" class="min-w-44">
-                  <DropdownMenuItem @select="openEdit({ group })">
-                    <PencilIcon class="size-4" />
-                    {{ $t('transactionGroups.groupDialog.editAction') }}
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    class="text-destructive-text hover:bg-destructive-text/10 focus:bg-destructive-text/10 focus:text-destructive-text"
-                    @select="confirmDelete({ group })"
-                  >
-                    <Trash2Icon class="size-4" />
-                    {{ $t('transactionGroups.groupDialog.deleteAction') }}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <TransactionGroupActions :group-id="group.id" :name="group.name" />
             </div>
           </div>
         </template>
@@ -412,19 +326,5 @@ const formatPhoneCaption = ({ group }: { group: TransactionGroupResponse }) =>
       @deleted="invalidateGroups"
       @updated="invalidateGroups"
     />
-
-    <EditGroupDialog v-model:open="editState.isOpen" :group="editState.group" @saved="invalidateGroups" />
-
-    <ResponsiveAlertDialog
-      v-model:open="deleteState.isOpen"
-      :confirm-label="$t('common.actions.delete')"
-      confirm-variant="destructive"
-      @confirm="handleDelete"
-    >
-      <template #title>{{ $t('transactionGroups.groupDialog.deleteGroupTitle') }}</template>
-      <template #description>
-        {{ $t('transactionGroups.groupDialog.deleteGroupDescription', { groupName: deleteState.groupName }) }}
-      </template>
-    </ResponsiveAlertDialog>
   </div>
 </template>

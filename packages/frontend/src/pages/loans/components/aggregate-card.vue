@@ -1,7 +1,7 @@
 <template>
   <Card class="@container/loans-aggregate">
     <div
-      class="flex flex-col gap-4 p-4 @3xl/loans-aggregate:flex-row @3xl/loans-aggregate:items-start @3xl/loans-aggregate:gap-0"
+      class="flex flex-col gap-3 p-3 @3xl/loans-aggregate:flex-row @3xl/loans-aggregate:items-start @3xl/loans-aggregate:gap-0"
     >
       <div class="shrink-0 @3xl/loans-aggregate:pr-8">
         <div class="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase">
@@ -38,7 +38,7 @@
         </div>
       </div>
       <div
-        class="border-border/65 divide-border/55 grid min-w-0 flex-1 divide-y border-t @3xl/loans-aggregate:ml-auto @3xl/loans-aggregate:border-t-0 @3xl/loans-aggregate:border-l @3xl/loans-aggregate:pl-5"
+        class="border-border/65 divide-border/55 grid min-w-0 flex-1 grid-cols-2 gap-x-3 border-t @3xl/loans-aggregate:ml-auto @3xl/loans-aggregate:grid-cols-1 @3xl/loans-aggregate:divide-y @3xl/loans-aggregate:border-t-0 @3xl/loans-aggregate:border-l @3xl/loans-aggregate:pl-5"
       >
         <Metric :label="$t('loans.aggregate.monthlyObligation')" :value="monthlyObligationDisplay" />
         <Metric :label="$t('loans.aggregate.avgApr')" :value="avgAprDisplay" />

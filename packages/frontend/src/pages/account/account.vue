@@ -73,7 +73,7 @@
         </Card.CardContent>
       </Card.Card>
 
-      <Card.Card class="w-full max-w-150 pt-6">
+      <Card.Card class="w-full max-w-150 pt-3 md:pt-5">
         <Card.CardContent>
           <Tabs.Tabs default-value="records">
             <div class="@container/account-tx flex items-center gap-2">
@@ -111,6 +111,7 @@
                 >
                   <TransactionsList
                     animate-changes
+                    compact
                     :hasNextPage="hasNextPage"
                     :transactions="rawTransactionsList"
                     :isFetchingNextPage="isFetchingNextPage"

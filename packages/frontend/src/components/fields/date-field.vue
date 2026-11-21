@@ -1,13 +1,13 @@
 <template>
   <div
-    :class="{
-      'date-field--error': errorMessage,
-      'date-field--disabled': disabled,
-    }"
-    class="relative w-full flex-1"
+    class="relative"
+    :class="[
+      $slots.trigger ? 'max-w-full min-w-0' : 'w-full flex-1',
+      { 'date-field--error': errorMessage, 'date-field--disabled': disabled },
+    ]"
   >
     <Dialog.Dialog v-model:open="isPopoverOpen">
-      <FieldLabel :label="label" :only-template="Boolean($slots['label-right'])">
+      <FieldLabel v-if="!$slots.trigger" :label="label" :only-template="Boolean($slots['label-right'])">
         <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
         <template v-if="$slots['label-after']" #label-after>
           <slot name="label-after" />
@@ -136,81 +136,87 @@
           </div>
         </div>
         <FieldError :error-message="errorMessage" />
-        <Dialog.DialogContent
-          blur-overlay
-          class="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-105 gap-3 overflow-x-hidden overflow-y-auto p-4 sm:p-5"
-          data-testid="transaction-date-dialog"
-        >
-          <Dialog.DialogTitle class="pr-12 text-base font-semibold">
-            {{ i18n.global.t('common.dateSelector.dateTimeTitle') }}
-          </Dialog.DialogTitle>
-          <Dialog.DialogDescription class="text-muted-foreground pr-12 text-xs leading-relaxed">
-            {{ i18n.global.t('common.dateSelector.dateTimeHint') }}
-          </Dialog.DialogDescription>
-          <div class="flex min-w-0 justify-center">
-            <Calendar :key="calendarPageKey" v-model="localValue" v-bind="calendarOptions" mode="date" type="single" />
-          </div>
-          <div class="border-border grid gap-3 border-t pt-3">
-            <div class="text-muted-foreground flex items-center gap-2 text-xs">
-              <span class="size-2 shrink-0 rounded-full bg-slate-400" aria-hidden="true" />
-              {{ i18n.global.t('common.dateSelector.todayIndicator') }}: {{ todayLabel }}
-            </div>
-            <div v-if="mode !== 'date'" class="flex items-center justify-between gap-3">
-              <label for="lajur-popup-time" class="text-sm font-medium">
-                {{ i18n.global.t('common.dateSelector.timeLabel') }} ({{ timeZoneLabel }})
-              </label>
-              <input
-                id="lajur-popup-time"
-                :value="dialogTimeValue"
-                type="text"
-                inputmode="numeric"
-                maxlength="5"
-                placeholder="HH:mm"
-                class="border-input bg-input-background focus-visible:ring-ring h-9 w-24 rounded-md border px-2 text-center text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none"
-                data-testid="date-dialog-time-input"
-                @input="handleDialogTimeTyping"
-              />
-            </div>
-            <p v-if="dialogTimeError" class="text-destructive text-xs" role="alert">
-              {{ i18n.global.t('common.dateSelector.invalidTime') }}
-            </p>
-            <div class="flex min-h-9 flex-wrap items-center justify-end gap-2">
-              <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0 scale-95"
-                enter-to-class="opacity-100 scale-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100 scale-100"
-                leave-to-class="opacity-0 scale-95"
-              >
-                <Button
-                  v-if="!isDialogNow"
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  class="text-muted-foreground mr-auto px-2"
-                  data-testid="date-dialog-now"
-                  @click="setDialogNow"
-                >
-                  <Clock3Icon class="mr-1.5 size-3.5" />
-                  {{ i18n.global.t('common.dateSelector.nowQuick') }}
-                </Button>
-              </Transition>
-              <div class="ml-auto flex gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  data-testid="date-dialog-save"
-                  :disabled="dialogTimeError"
-                  @click="saveDialogDate"
-                >
-                  {{ i18n.global.t('common.dateSelector.saveDate') }}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Dialog.DialogContent>
       </FieldLabel>
+      <template v-else>
+        <Dialog.DialogTrigger as-child>
+          <slot name="trigger" :disabled="disabled || !isPopoverAvailable" />
+        </Dialog.DialogTrigger>
+        <FieldError :error-message="errorMessage" />
+      </template>
+      <Dialog.DialogContent
+        blur-overlay
+        class="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-105 gap-3 overflow-x-hidden overflow-y-auto p-4 sm:p-5"
+        data-testid="transaction-date-dialog"
+      >
+        <Dialog.DialogTitle class="pr-12 text-base font-semibold">
+          {{ i18n.global.t('common.dateSelector.dateTimeTitle') }}
+        </Dialog.DialogTitle>
+        <Dialog.DialogDescription class="text-muted-foreground pr-12 text-xs leading-relaxed">
+          {{ i18n.global.t('common.dateSelector.dateTimeHint') }}
+        </Dialog.DialogDescription>
+        <div class="flex min-w-0 justify-center">
+          <Calendar :key="calendarPageKey" v-model="localValue" v-bind="calendarOptions" mode="date" type="single" />
+        </div>
+        <div class="border-border grid gap-3 border-t pt-3">
+          <div class="text-muted-foreground flex items-center gap-2 text-xs">
+            <span class="size-2 shrink-0 rounded-full bg-slate-400" aria-hidden="true" />
+            {{ i18n.global.t('common.dateSelector.todayIndicator') }}: {{ todayLabel }}
+          </div>
+          <div v-if="mode !== 'date'" class="flex items-center justify-between gap-3">
+            <label for="lajur-popup-time" class="text-sm font-medium">
+              {{ i18n.global.t('common.dateSelector.timeLabel') }} ({{ timeZoneLabel }})
+            </label>
+            <input
+              id="lajur-popup-time"
+              :value="dialogTimeValue"
+              type="text"
+              inputmode="numeric"
+              maxlength="5"
+              placeholder="HH:mm"
+              class="border-input bg-input-background focus-visible:ring-ring h-9 w-24 rounded-md border px-2 text-center text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none"
+              data-testid="date-dialog-time-input"
+              @input="handleDialogTimeTyping"
+            />
+          </div>
+          <p v-if="dialogTimeError" class="text-destructive text-xs" role="alert">
+            {{ i18n.global.t('common.dateSelector.invalidTime') }}
+          </p>
+          <div class="flex min-h-9 flex-wrap items-center justify-end gap-2">
+            <Transition
+              enter-active-class="transition-all duration-200 ease-out"
+              enter-from-class="opacity-0 scale-95"
+              enter-to-class="opacity-100 scale-100"
+              leave-active-class="transition-all duration-150 ease-in"
+              leave-from-class="opacity-100 scale-100"
+              leave-to-class="opacity-0 scale-95"
+            >
+              <Button
+                v-if="!isDialogNow"
+                type="button"
+                variant="ghost"
+                size="sm"
+                class="text-muted-foreground mr-auto px-2"
+                data-testid="date-dialog-now"
+                @click="setDialogNow"
+              >
+                <Clock3Icon class="mr-1.5 size-3.5" />
+                {{ i18n.global.t('common.dateSelector.nowQuick') }}
+              </Button>
+            </Transition>
+            <div class="ml-auto flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                data-testid="date-dialog-save"
+                :disabled="dialogTimeError"
+                @click="saveDialogDate"
+              >
+                {{ i18n.global.t('common.dateSelector.saveDate') }}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Dialog.DialogContent>
     </Dialog.Dialog>
   </div>
 </template>
@@ -252,6 +258,7 @@ const props = withDefaults(
     hideInputTime?: boolean;
     /** Use a localized weekday+date trigger instead of the OS-dependent native date text. */
     showWeekday?: boolean;
+    liveOnOpen?: boolean;
   }>(),
   {
     label: undefined,
@@ -266,6 +273,7 @@ const props = withDefaults(
     clearable: false,
     hideInputTime: false,
     showWeekday: false,
+    liveOnOpen: false,
   },
 );
 
@@ -364,8 +372,9 @@ const saveDialogDate = () => {
 };
 watch(isPopoverOpen, (open) => {
   if (!open) return;
-  localValue.value = props.modelValue ?? new Date();
-  dialogTimeValue.value = format(props.modelValue ?? new Date(), 'HH:mm');
+  const selected = props.liveOnOpen ? new Date() : (props.modelValue ?? new Date());
+  localValue.value = selected;
+  dialogTimeValue.value = format(selected, 'HH:mm');
 });
 
 defineExpose({

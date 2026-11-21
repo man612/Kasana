@@ -27,7 +27,14 @@ import {
   type AutomationRefType,
   type RecordId,
 } from '@bt/shared/types';
-import { ArrowLeftIcon, ArrowRightIcon, HistoryIcon, PlayIcon, WandSparklesIcon, ZapIcon } from '@lucide/vue';
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  HistoryIcon,
+  ChevronDownIcon,
+  ListFilterIcon,
+  ListChecksIcon,
+} from '@lucide/vue';
 import { computed, reactive, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
@@ -169,7 +176,8 @@ const sentenceChips = computed(() =>
     },
   }),
 );
-const hasSentence = computed(() => sentenceChips.value.when.length > 0);
+const hasSentence = computed(() => sentenceChips.value.when.length > 0 && sentenceChips.value.then.length > 0);
+const previewOpen = ref(false);
 
 const areConditionsValid = computed(
   () => form.conditions.items.length > 0 && conditionErrors.value.every((error) => !error),
@@ -298,7 +306,8 @@ const confirmLeave = () => {
         @submit.prevent="handleSave"
         @focusout="showErrors = true"
       >
-        <Card :class="['flex flex-wrap items-end gap-x-5 gap-y-3 p-4', showErrors && formNameError && 'pb-7']">
+        <p class="text-muted-foreground max-w-prose text-sm leading-relaxed">{{ $t('automations.guide.intro') }}</p>
+        <Card :class="['flex flex-wrap items-end gap-x-5 gap-y-2 p-3', showErrors && formNameError && 'pb-7']">
           <InputField
             v-model="form.name"
             class="w-full min-w-0 @xl/editor:max-w-md @xl/editor:flex-1"
@@ -313,31 +322,8 @@ const confirmLeave = () => {
           </label>
         </Card>
 
-        <LayoutCollapse :open="hasSentence">
-          <div
-            class="border-border bg-card/50 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border border-dashed px-3 py-2.5"
-          >
-            <span class="text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
-              {{ $t('automations.chips.when') }}
-            </span>
-            <AutomationChipTrack
-              :chips="sentenceChips.when"
-              variant="when"
-              density="comfortable"
-              :match="form.conditions.match"
-            />
-            <template v-if="sentenceChips.then.length">
-              <ArrowRightIcon class="text-muted-foreground size-3.5 shrink-0" />
-              <span class="text-primary-text text-[11px] font-bold tracking-wider uppercase">
-                {{ $t('automations.chips.then') }}
-              </span>
-              <AutomationChipTrack :chips="sentenceChips.then" variant="then" density="comfortable" />
-            </template>
-          </div>
-        </LayoutCollapse>
-
         <div class="flex flex-col">
-          <RailSection :icon="ZapIcon" tone="when" connected>
+          <RailSection :icon="ListFilterIcon" tone="when" connected>
             <template #header>
               <div class="flex flex-wrap items-center gap-2 text-sm font-semibold">
                 {{ $t('automations.guide.conditionsTitle') }}
@@ -357,7 +343,7 @@ const confirmLeave = () => {
             <ConditionsBuilder v-model="form.conditions" :errors="showErrors ? conditionErrors : []" />
           </RailSection>
 
-          <RailSection :icon="WandSparklesIcon" tone="then" connected>
+          <RailSection :icon="ListChecksIcon" tone="then">
             <template #header>
               <div class="flex items-center gap-1 text-sm font-semibold">
                 {{ $t('automations.guide.actionsTitle') }}
@@ -369,14 +355,53 @@ const confirmLeave = () => {
             </template>
             <ActionsBuilder v-model="form.actions" :errors="showErrors ? actionErrors : []" />
           </RailSection>
-
-          <RailSection :icon="PlayIcon" tone="check">
-            <template #header>
-              <div class="text-sm font-semibold">{{ $t('automations.editor.preview.title') }}</div>
-            </template>
-            <PreviewPanel :conditions="normalizedConditions" :disabled="!areConditionsValid" />
-          </RailSection>
         </div>
+
+        <LayoutCollapse :open="hasSentence">
+          <div
+            class="border-border bg-card flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border px-3 py-2.5"
+          >
+            <h2 class="w-full text-sm font-semibold">{{ $t('automations.guide.summaryTitle') }}</h2>
+            <span class="text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
+              {{ $t('automations.chips.when') }}
+            </span>
+            <AutomationChipTrack
+              :chips="sentenceChips.when"
+              variant="when"
+              density="comfortable"
+              :match="form.conditions.match"
+            />
+            <template v-if="sentenceChips.then.length">
+              <ArrowRightIcon class="text-muted-foreground size-3.5 shrink-0" />
+              <span class="text-primary-text text-[11px] font-bold tracking-wider uppercase">
+                {{ $t('automations.chips.then') }}
+              </span>
+              <AutomationChipTrack :chips="sentenceChips.then" variant="then" density="comfortable" />
+            </template>
+          </div>
+        </LayoutCollapse>
+
+        <Card class="p-2">
+          <Button
+            type="button"
+            variant="ghost"
+            class="min-h-11 w-full justify-between text-left whitespace-normal"
+            :aria-expanded="previewOpen"
+            @click="previewOpen = !previewOpen"
+          >
+            {{ $t('automations.editor.preview.title') }}
+            <ChevronDownIcon
+              class="size-4 shrink-0 motion-safe:transition-transform"
+              :class="previewOpen && 'rotate-180'"
+              aria-hidden="true"
+            />
+          </Button>
+          <LayoutCollapse :open="previewOpen">
+            <div class="p-2">
+              <PreviewPanel :conditions="normalizedConditions" :disabled="!areConditionsValid" />
+            </div>
+          </LayoutCollapse>
+        </Card>
 
         <LayoutCollapse :open="Boolean(showErrors && formError)">
           <p class="text-destructive-text text-sm" role="alert">{{ formError }}</p>
@@ -385,7 +410,7 @@ const confirmLeave = () => {
       <footer
         class="bg-background/95 border-border grid shrink-0 grid-cols-1 items-center gap-2 border-t px-4 pt-3 pb-[max(.75rem,env(safe-area-inset-bottom))] md:flex md:justify-end md:px-6"
       >
-        <p class="text-muted-foreground min-h-4 text-xs md:mr-auto" :class="isValid && 'invisible'">
+        <p v-if="!isValid" class="text-muted-foreground text-xs md:mr-auto">
           {{ $t('automations.guide.incomplete') }}
         </p>
         <Button

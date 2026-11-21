@@ -116,7 +116,7 @@
                     <span
                       :key="selectedValue?.id ?? 'empty-category'"
                       class="flex min-w-0 flex-1 items-center gap-2"
-                      :class="selectedValue && !disabled && 'pe-5.5'"
+                      :class="clearable && selectedValue && !disabled && 'pe-5.5'"
                     >
                       <CategoryCircle
                         v-if="selectedValue"
@@ -137,7 +137,7 @@
               </Dialog.DialogTrigger>
               <Transition name="lajur-info-reveal">
                 <button
-                  v-if="selectedValue && !disabled"
+                  v-if="clearable && selectedValue && !disabled"
                   type="button"
                   class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-8 flex w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
                   :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
@@ -169,9 +169,6 @@
                 <HintIcon
                   :content="$t('fields.categorySelect.sharedOwnerNoticeTooltip', { owner: sharedOwnerHandle })"
                 />
-              </div>
-              <div v-if="unlistedIds" class="text-muted-foreground border-b px-3 py-2 text-xs" role="note">
-                {{ $t('fields.categorySelect.unlistedNotice') }}
               </div>
               <ListboxRoot :model-value="selectedValue" by="id" highlight-on-hover>
                 <ListboxFilter
@@ -215,7 +212,7 @@
                 <span
                   :key="selectedValue?.id ?? 'empty-category'"
                   class="flex min-w-0 flex-1 items-center gap-2"
-                  :class="selectedValue && !disabled && 'pe-5.5'"
+                  :class="clearable && selectedValue && !disabled && 'pe-5.5'"
                 >
                   <CategoryCircle
                     v-if="selectedValue"
@@ -238,7 +235,7 @@
             </button>
             <Transition name="lajur-info-reveal">
               <button
-                v-if="selectedValue && !disabled"
+                v-if="clearable && selectedValue && !disabled"
                 type="button"
                 class="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute inset-y-0 right-8 flex w-8 items-center justify-center rounded-md focus-visible:ring-2 focus-visible:outline-none"
                 :aria-label="$t('fields.categorySelect.clearSelectionLabel')"
@@ -294,10 +291,6 @@
         >
           <span>{{ $t('fields.categorySelect.sharedOwnerNotice', { owner: sharedOwnerHandle }) }}</span>
           <HintIcon :content="$t('fields.categorySelect.sharedOwnerNoticeTooltip', { owner: sharedOwnerHandle })" />
-        </div>
-
-        <div v-if="unlistedIds" class="text-muted-foreground mb-3 text-xs" role="note">
-          {{ $t('fields.categorySelect.unlistedNotice') }}
         </div>
 
         <ListboxRoot :model-value="selectedValue" by="id" highlight-on-hover class="flex min-h-0 flex-1 flex-col">
@@ -373,6 +366,7 @@ const props = withDefaults(
     placeholder?: string;
     errorMessage?: string;
     disabled?: boolean;
+    clearable?: boolean;
     /** Forwarded to inner CategoryCircle so icon inheritance walks the right tree. */
     categoriesMap?: Record<string, CategoryModel>;
     /**

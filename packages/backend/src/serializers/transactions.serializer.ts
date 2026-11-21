@@ -74,11 +74,13 @@ export interface TransactionApiResponse {
   /** Present on list reads only. */
   hasAttachments?: boolean;
   isPlanned: boolean;
+  isBalanceAdjustment?: boolean;
   /** Set when a bank transaction merged into this row while it was planned. */
   plannedMerge: { mergedAt: string } | null;
   /** Bank reported the row as PDNG/HOLD and has not booked it yet. */
   isPending: boolean;
   payeeId: string | null;
+  payeeNameSnapshot?: string;
   payeeLocked: boolean;
   /** How this tx's category was assigned (manual / ai / payee_rule / etc.). `null`
    *  means "no rule has stamped this row yet" — the AI categorization listener
@@ -283,9 +285,11 @@ export function serializeTransaction(
     refundLinked: tx.refundLinked,
     ...(tx.refundedAmount && { refundedAmount: centsToApiDecimal(tx.refundedAmount) }),
     isPlanned: tx.isPlanned ?? false,
+    ...(tx.externalData?.balanceAdjustment && { isBalanceAdjustment: true }),
     plannedMerge: extractPlannedMerge({ externalData: tx.externalData }),
     isPending: isPreBookingStatus({ status: getRawTransactionStatus({ externalData: tx.externalData }) }),
     payeeId: tx.payeeId ?? null,
+    ...(!tx.payeeId && tx.payeeNameSnapshot && { payeeNameSnapshot: tx.payeeNameSnapshot }),
     payeeLocked: tx.payeeLocked ?? false,
     categorizationMeta: tx.categorizationMeta ?? null,
     paymentParentId: tx.paymentParentId ?? null,

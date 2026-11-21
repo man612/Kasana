@@ -404,7 +404,7 @@ describe('Payees API', () => {
       expect(getResponse.statusCode).toBe(ERROR_CODES.NotFoundError);
     });
 
-    it('unlinks transactions but keeps them on delete', async () => {
+    it('preserves the last payee name and amount when unlinking transactions on delete', async () => {
       const account = await helpers.createAccount({ raw: true });
       const payee = await helpers.createPayee({
         payload: helpers.buildPayeePayload({ name: 'Linked Payee' }),
@@ -425,6 +425,9 @@ describe('Payees API', () => {
       const refetched = await helpers.getTransactionById({ id: tx!.id, raw: true });
       if (!refetched) throw new Error('Refetched transaction missing');
       expect(refetched.payeeId).toBeNull();
+      expect(refetched.payeeNameSnapshot).toBe(payee.name);
+      expect(refetched.amount).toBe(tx!.amount);
+      expect(refetched.categoryId).toBe(tx!.categoryId);
     });
   });
 

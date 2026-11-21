@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ContextualHelp from '@/components/common/contextual-help.vue';
+import { ROUTES_NAMES } from '@/routes';
 import { Button } from '@/components/lib/ui/button';
 import { CircleHelpIcon, LightbulbIcon } from '@lucide/vue';
 
@@ -17,7 +18,7 @@ defineProps<{ compactTrigger?: boolean }>();
         class="shrink-0"
       >
         <component :is="compactTrigger ? CircleHelpIcon : LightbulbIcon" class="size-4" aria-hidden="true" />
-        <template v-if="!compactTrigger">{{ $t('automations.mcpTip.trigger') }}</template>
+        <template v-if="!compactTrigger">{{ $t('automations.guide.title') }}</template>
       </Button>
     </template>
     <p>{{ $t('automations.guide.intro') }}</p>
@@ -31,8 +32,15 @@ defineProps<{ compactTrigger?: boolean }>();
       <p>{{ $t('automations.guide.example') }}</p>
       <p>{{ $t('automations.guide.exampleRun') }}</p>
     </div>
+    <div class="border-border bg-muted/40 space-y-1 rounded-md border p-3">
+      <p class="font-semibold">{{ $t('automations.guide.secondExampleTitle') }}</p>
+      <p>{{ $t('automations.guide.secondExample') }}</p>
+    </div>
     <p>{{ $t('automations.guide.noMatch') }}</p>
     <p>{{ $t('automations.guide.schedule') }}</p>
+    <RouterLink class="text-primary-text underline" :to="{ name: ROUTES_NAMES.plannedSubscriptions }">
+      {{ $t('automations.guide.openRecurring') }}
+    </RouterLink>
     <p class="text-muted-foreground">{{ $t('automations.guide.caution') }}</p>
     <slot />
   </ContextualHelp>

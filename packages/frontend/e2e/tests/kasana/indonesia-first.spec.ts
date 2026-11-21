@@ -223,32 +223,29 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await mobileNewTransaction.click();
       const mobileForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
       await expect(mobileForm).toBeVisible();
-      // At 320px, the date is on a separate row but its time remains
-      // directly editable, just like other transaction date-time fields.
       const amountDateStack = mobileForm.getByTestId('transaction-amount-date-stack');
       const primaryAmount = amountDateStack.locator('input[inputmode="decimal"]').first();
-      const mobileDateInput = amountDateStack.getByTestId('date-field-numeric-input');
+      const dateTrigger = amountDateStack.getByTestId('date-field-calendar-trigger');
       await expect(primaryAmount).toBeVisible();
-      await expect(mobileDateInput).toBeVisible();
-      await expect(amountDateStack).toHaveCSS('flex-direction', 'column');
-      // The sheet animates into the viewport with a transform. Two awaited
-      // boundingBox() calls can sample *different animation frames*, making
-      // correctly stacked fields look as though they overlap. Read both DOM
-      // rectangles in one browser evaluation (the same rendering snapshot).
-      // Keep the real geometry requirement: no overlap, even at 320px.
+      await expect(primaryAmount).toHaveAttribute('placeholder', '0');
+      await expect(dateTrigger).toBeVisible();
+      await expect(dateTrigger).toContainText(/\d{2}:\d{2}:\d{2}/);
+      // Read both rectangles in one animation frame while the sheet settles.
       await expect
-        .poll(
-          () =>
-            amountDateStack.evaluate((stack) => {
-              const amount = stack.querySelector<HTMLInputElement>('input[inputmode="decimal"]');
-              const date = stack.querySelector<HTMLInputElement>('[data-testid="date-field-numeric-input"]');
-              if (!amount || !date) return Number.NEGATIVE_INFINITY;
-              return date.getBoundingClientRect().top - amount.getBoundingClientRect().bottom;
-            }),
-          { message: '320px amount and date must be vertically separate', timeout: 8_000 },
+        .poll(() =>
+          amountDateStack.evaluate((stack) => {
+            const amount = stack.querySelector('input[inputmode="decimal"]');
+            const date = stack.querySelector('[data-testid="date-field-calendar-trigger"]');
+            if (!amount || !date) return Number.NEGATIVE_INFINITY;
+            return amount.getBoundingClientRect().top - date.getBoundingClientRect().bottom;
+          }),
         )
         .toBeGreaterThanOrEqual(4);
-      await expect(mobileForm.getByTestId('date-field-time-input')).toBeVisible();
+      await dateTrigger.click();
+      const dateDialog = page.getByTestId('transaction-date-dialog');
+      await expect(dateDialog.getByTestId('date-dialog-time-input')).toBeVisible();
+      await dateDialog.getByRole('button', { name: /Tutup|Close/i }).click();
+      await expect(dateDialog).toBeHidden();
 
       // Closing account selection without picking must clear its search filter.
       const accountPickerTrigger = mobileForm.locator('[data-test="account-select-trigger"]').first();

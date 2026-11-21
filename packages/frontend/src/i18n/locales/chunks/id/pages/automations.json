@@ -7,7 +7,7 @@
     "dragHint": "Seret untuk mengurutkan ulang",
     "toggleAriaLabel": "Aktifkan otomatisasi",
     "menuAriaLabel": "Tindakan otomatisasi",
-    "disabledPill": "Nonaktif",
+    "disabledPill": "Dijeda",
     "mcpTip": {
       "trigger": "Tips",
       "text": "Anda dapat mengelola otomatisasi dengan AI melalui koneksi MCP — minta AI untuk menata ulang aturan Anda, atau memeriksa duplikat dan konflik.",
@@ -22,7 +22,7 @@
     "pausedMissingRef": "Dijeda — {refType} \"{label}\" telah dihapus",
     "pausedMissingRefUnnamed": "Dijeda: {refType} yang dirujuk aturan ini telah dihapus",
     "matchStats": "{count} kecocokan · terakhir {date} | {count} kecocokan · terakhir {date}",
-    "matchStatsNever": "Belum pernah cocok",
+    "matchStatsNever": "Belum pernah dipakai",
     "loadError": "Tidak dapat memuat otomatisasi. Periksa koneksi Anda dan coba lagi.",
     "reorderDisabledFiltered": "Bersihkan filter status untuk mengurutkan ulang",
     "density": {
@@ -246,7 +246,7 @@
     },
     "guide": {
       "title": "Cara kerja otomatisasi",
-      "intro": "Otomatisasi adalah aturan yang kamu buat sekali agar Lajur. bisa merapikan transaksi baru dari sinkronisasi bank atau impor file. Aturan ini berjalan tanpa AI.",
+      "intro": "Otomatisasi merapikan transaksi baru dari sinkronisasi bank atau impor file. Kamu memilih transaksi yang cocok dan rincian yang ingin diisi. Aturan ini berjalan tanpa AI.",
       "choose": "Tentukan transaksi mana yang ingin dikenali, misalnya lewat kata tertentu di catatan atau rekening asalnya.",
       "act": "Pilih rincian yang ingin diubah: kategori, penerima, tag, atau catatan. Nominal dan saldo tetap sama.",
       "check": "Lihat transaksi yang cocok lewat Pratinjau, lalu simpan dan aktifkan aturan. Lajur. menjalankannya otomatis pada transaksi baru yang memenuhi syarat. Kamu hanya perlu mengonfirmasi jika ingin menerapkan aturan ke transaksi yang sudah tercatat.",
@@ -254,14 +254,18 @@
       "example": "Buat aturan bernama “Belanja minimarket”. Pada syarat, pilih Catatan, lalu isi “Indomaret” pada Memuat. Pada tindakan, pilih Atur kategori, lalu pilih Belanja Harian. Periksa Pratinjau dan simpan aturan dalam keadaan aktif.",
       "caution": "Aturan dapat mengganti rincian pada transaksi yang cocok. Transfer, transaksi terencana, dan transaksi manual biasa tidak diproses otomatis.",
       "advanced": "Pengaturan lanjutan untuk AI",
-      "conditionsTitle": "Transaksi mana yang cocok?",
+      "conditionsTitle": "Kapan aturan dipakai?",
       "conditionsHelp": "Pilih Catatan lalu masukkan “Indomaret”. Pilih “semua” jika setiap syarat harus terpenuhi.",
-      "actionsTitle": "Apa yang dilakukan Lajur.?",
+      "actionsTitle": "Apa yang ingin diisi?",
       "actionsHelp": "Contohnya, pilih Atur kategori lalu pilih Belanja Harian. Satu aturan bisa mengisi beberapa rincian sekaligus.",
       "incomplete": "Isi nama, syarat, dan tindakan agar bisa disimpan.",
       "exampleRun": "Pada impor berikutnya, masukkan mutasi yang berisi belanja dengan catatan “Indomaret”. Buka transaksi itu dan periksa bahwa kategorinya Belanja Harian. Jumlah transaksi yang cocok dan waktu pemakaian terakhir terlihat di daftar Otomatisasi.",
       "noMatch": "Kalau catatan tidak memuat kata tersebut, transaksi tidak diubah oleh aturan ini. Jika kategori yang dipakai aturan dihapus, aturan bisa dijeda. Buka Otomatisasi untuk melihat statusnya dan memilih kategori pengganti.",
-      "schedule": "Kalau kamu ingin mencatat tagihan sesuai jadwal, gunakan Pembayaran Berulang. Aturan Otomatisasi bekerja pada transaksi yang masuk dan memenuhi syarat. Aturan ini tidak membuat transaksi baru."
+      "schedule": "Gunakan Pembayaran Berulang untuk mencatat tagihan sesuai jadwal. Otomatisasi mengisi rincian pada transaksi yang sudah masuk. Bayar penyedia melalui rekening atau metode pembayaranmu.",
+      "summaryTitle": "Ringkasan aturan",
+      "secondExampleTitle": "Contoh tag langganan internet",
+      "secondExample": "Pilih rekening yang biasa dipakai dan isi “Internet” sebagai kata di catatan. Pilih Tambah tag, lalu pilih tag Langganan. Saat mutasi berikutnya masuk dari rekening itu dengan catatan yang cocok, tag ditambahkan. Buka transaksi untuk melihat tag dan daftar Otomatisasi untuk melihat kapan aturan terakhir dipakai.",
+      "openRecurring": "Buka Pembayaran Berulang"
     }
   }
 }

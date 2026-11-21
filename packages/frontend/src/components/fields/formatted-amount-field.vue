@@ -20,7 +20,7 @@
           type="text"
           inputmode="decimal"
           :value="displayValue"
-          :placeholder="placeholder"
+          :placeholder="placeholder ?? '0'"
           :disabled="disabled"
           :autofocus="autofocus"
           autocomplete="off"

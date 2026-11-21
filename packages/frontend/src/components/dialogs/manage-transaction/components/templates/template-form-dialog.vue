@@ -349,7 +349,6 @@ const confirmDelete = async () => {
           v-model="form.amount"
           :currency-code="form.account?.currencyCode ?? 'IDR'"
           :label="$t('dialogs.manageTransaction.form.amountLabel')"
-          :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
           :disabled="form.noAmount || form.keepAccount"
         >
           <template #iconTrailing>{{ form.account?.currencyCode }}</template>

@@ -137,6 +137,8 @@ export interface TransactionModel {
   /** Present on the list endpoint only; absent on create/update responses. */
   hasAttachments?: boolean;
   isPlanned: boolean;
+  /** Marks a balance correction that does not represent cash movement. */
+  isBalanceAdjustment?: boolean;
   /** Serializer-derived: set when a bank transaction merged into this row while it was planned. */
   plannedMerge?: { mergedAt: string } | null;
   /** Serializer-derived: the bank has not booked this row yet. */
@@ -145,6 +147,8 @@ export interface TransactionModel {
   categorizationMeta?: CategorizationMeta | null;
   /** Linked Payee. Null when no Payee resolved (raw merchant missing/unmatched). */
   payeeId?: RecordId | null;
+  /** Last known name after the live payee link was deleted. */
+  payeeNameSnapshot?: string;
   /**
    * Stops background Payee auto-linking from touching this row.
    *

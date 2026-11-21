@@ -21,34 +21,34 @@
       </RouterLink>
     </div>
 
-    <div v-else class="@container/vehicle grid min-w-0 grid-cols-1 gap-6 wrap-anywhere">
-      <section class="bg-card grid min-w-0 gap-4 rounded-2xl border p-5 @2xl/vehicle:p-7">
+    <div v-else class="@container/vehicle grid min-w-0 grid-cols-1 gap-3 wrap-anywhere @2xl/vehicle:gap-5">
+      <section class="bg-card grid min-w-0 gap-1.5 rounded-2xl border p-3 @2xl/vehicle:gap-3 @2xl/vehicle:p-6">
         <div class="flex min-w-0 items-start gap-3">
           <AccountLogoPicker
             v-if="isOwner"
             :account-id="vehicle.accountId"
             :fallback-icon="vehicleIcon"
-            class="size-11 shrink-0"
+            class="size-9 shrink-0"
           />
           <AccountLogo
             v-else-if="linkedAccount"
             :account="linkedAccount"
             :fallback-icon="vehicleIcon"
-            class="size-11 shrink-0"
+            class="size-9 shrink-0"
           />
           <div class="min-w-0 flex-1">
             <p class="text-muted-foreground text-xs">{{ vehicleTypeLabel }}</p>
             <h1 class="text-xl leading-tight font-semibold tracking-tight @2xl/vehicle:text-3xl">
               {{ vehicle.account.name || `${vehicle.make} ${vehicle.model}` }}
             </h1>
-            <p class="text-muted-foreground mt-1 text-sm">
+            <p class="text-muted-foreground text-xs">
               {{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model
               }}<span v-if="vehicle.trim"> · {{ vehicle.trim }}</span>
             </p>
           </div>
         </div>
 
-        <div class="border-border/65 grid min-w-0 gap-1 border-t pt-4">
+        <div class="grid min-w-0 gap-0.5">
           <div class="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-medium">
             <span>{{ $t('pages.vehicleDetails.currentValue') }}</span>
             <HintIcon :title="$t('pages.vehicleDetails.currentValue')" :content="valuationExplanation" />
@@ -89,37 +89,28 @@
           </div>
         </div>
 
-        <div v-if="isOwner" class="flex flex-wrap items-center gap-2">
-          <UiButton class="min-h-[44px] min-w-0 max-w-full whitespace-normal break-words text-center" @click="isOverrideOpen = true">{{
-            $t('pages.vehicleDetails.overrideValueButton')
-          }}</UiButton>
-          <UiButton variant="outline" class="min-h-[44px] min-w-0 max-w-full whitespace-normal break-words text-center" @click="isEditOpen = true">{{
-            $t('pages.vehicleDetails.editButton')
-          }}</UiButton>
-          <Popover v-model:open="isMoreOpen" modal>
-            <PopoverTrigger as-child>
-              <UiButton variant="ghost" class="min-h-[44px] min-w-0 max-w-full whitespace-normal break-words text-center">
-                <EllipsisIcon class="size-4" aria-hidden="true" />
-                {{ $t('common.actions.more') }}
-              </UiButton>
-            </PopoverTrigger>
-            <PopoverContent
-              dim-backdrop
-              align="end"
-              class="w-max max-w-[calc(100vw-1.5rem)] p-1"
-              @close-auto-focus="isDeleteOpen && $event.preventDefault()"
-            >
-              <UiButton
-                variant="ghost-destructive"
-                class="min-h-11 w-full justify-start whitespace-normal"
-                :aria-label="$t('pages.vehicleDetails.deleteTitle')"
-                @click="openDelete"
-              >
-                <Trash2Icon class="size-4" aria-hidden="true" />
-                {{ $t('pages.vehicleDetails.deleteConfirm') }}
-              </UiButton>
-            </PopoverContent>
-          </Popover>
+        <div v-if="isOwner" class="flex min-w-0 flex-wrap items-center gap-1.5">
+          <UiButton
+            class="min-h-11 max-w-full min-w-0 rounded-lg px-2.5 text-xs wrap-anywhere whitespace-normal"
+            @click="isOverrideOpen = true"
+            >{{ $t('pages.vehicleDetails.overrideValueButton') }}</UiButton
+          >
+          <UiButton
+            variant="outline"
+            class="min-h-11 max-w-full min-w-0 rounded-lg px-2.5 text-xs wrap-anywhere whitespace-normal"
+            @click="isEditOpen = true"
+            >{{ $t('pages.vehicleDetails.editButton') }}</UiButton
+          >
+          <UiButton
+            variant="ghost-destructive"
+            size="icon"
+            class="size-11 shrink-0"
+            :aria-label="$t('pages.vehicleDetails.deleteTitle')"
+            :title="$t('pages.vehicleDetails.deleteTitle')"
+            @click="isDeleteOpen = true"
+          >
+            <Trash2Icon class="size-4" aria-hidden="true" />
+          </UiButton>
         </div>
       </section>
 
@@ -129,12 +120,12 @@
           <TabsTrigger value="activity">{{ $t('pages.vehicleDetails.tabs.activity') }}</TabsTrigger>
           <TabsTrigger value="information">{{ $t('pages.vehicleDetails.tabs.information') }}</TabsTrigger>
         </TabsList>
-        <TabsContent value="summary" class="space-y-4">
+        <TabsContent value="summary" class="space-y-3">
           <!-- KPI strip -->
           <section
             class="bg-card divide-border/65 grid min-w-0 divide-y rounded-2xl border @lg/vehicle:auto-cols-fr @lg/vehicle:grid-flow-col @lg/vehicle:divide-x @lg/vehicle:divide-y-0"
           >
-            <div class="min-w-0 p-4">
+            <div class="min-w-0 px-3 py-2.5 @lg/vehicle:p-4">
               <div class="text-muted-foreground text-xs tracking-wider uppercase">
                 {{ $t('pages.vehicleDetails.purchasePrice') }}
               </div>
@@ -149,7 +140,7 @@
               <div class="text-muted-foreground mt-1 text-xs">{{ formatDisplayDate(vehicle.purchaseDate) }}</div>
             </div>
 
-            <div class="min-w-0 p-4">
+            <div class="min-w-0 px-3 py-2.5 @lg/vehicle:p-4">
               <div class="text-muted-foreground text-xs tracking-wider uppercase">
                 {{ $t('pages.vehicleDetails.totalDepreciation') }}
               </div>
@@ -159,7 +150,10 @@
                   :formatted="formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode)"
                   :class="depreciationDirection === 'down' ? 'text-app-expense-color' : 'text-app-income-color'"
                 />
-                <span data-testid="vehicle-kpi-percentage" class="text-muted-foreground text-sm font-normal whitespace-nowrap">
+                <span
+                  data-testid="vehicle-kpi-percentage"
+                  class="text-muted-foreground text-sm font-normal whitespace-nowrap"
+                >
                   {{ Math.abs(depreciationPercent).toFixed(1) }}%
                 </span>
               </div>
@@ -174,7 +168,10 @@
               </div>
             </div>
 
-            <div v-if="vehicle.depreciationPreset !== DEPRECIATION_PRESET.manual" class="min-w-0 p-4">
+            <div
+              v-if="vehicle.depreciationPreset !== DEPRECIATION_PRESET.manual"
+              class="min-w-0 px-3 py-2.5 @lg/vehicle:p-4"
+            >
               <div class="text-muted-foreground text-xs tracking-wider uppercase">
                 {{ $t('pages.vehicleDetails.projectedFiveYear') }}
               </div>
@@ -317,7 +314,6 @@ import PageWrapper from '@/components/common/page-wrapper.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import EditVehicleDialog from '@/components/dialogs/edit-vehicle-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/lib/ui/tabs';
 import { getVehicleTypeIcon } from '@/components/forms/vehicle-class-options';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
@@ -337,7 +333,7 @@ import { ROUTES_NAMES } from '@/routes/constants';
 import { useAccountsStore, useCurrenciesStore } from '@/stores';
 import { DEPRECIATION_PRESET } from '@bt/shared/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
-import { ArrowDownRightIcon, ArrowUpRightIcon, CarIcon, EllipsisIcon, Trash2Icon, TrendingDownIcon } from '@lucide/vue';
+import { ArrowDownRightIcon, ArrowUpRightIcon, CarIcon, Trash2Icon, TrendingDownIcon } from '@lucide/vue';
 import { addMonths, differenceInCalendarDays, parseISO } from 'date-fns';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
@@ -508,11 +504,6 @@ const valuationExplanation = computed(() =>
 const isOverrideOpen = ref(false);
 const isEditOpen = ref(false);
 const isDeleteOpen = ref(false);
-const isMoreOpen = ref(false);
-const openDelete = () => {
-  isDeleteOpen.value = true;
-  isMoreOpen.value = false;
-};
 
 const onOverrideClosed = () => {
   isOverrideOpen.value = false;

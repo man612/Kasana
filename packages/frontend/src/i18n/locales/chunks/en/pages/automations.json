@@ -7,7 +7,7 @@
     "dragHint": "Drag to reorder",
     "toggleAriaLabel": "Enable automation",
     "menuAriaLabel": "Automation actions",
-    "disabledPill": "Disabled",
+    "disabledPill": "Paused",
     "mcpTip": {
       "trigger": "Tips",
       "text": "You can manage automations with AI through an MCP connection — ask it to reorganize your rules, or check for duplicates and conflicts.",
@@ -22,7 +22,7 @@
     "pausedMissingRef": "Paused — {refType} \"{label}\" was deleted",
     "pausedMissingRefUnnamed": "Paused: a {refType} this rule referenced was deleted",
     "matchStats": "{count} match · last {date} | {count} matches · last {date}",
-    "matchStatsNever": "Never matched",
+    "matchStatsNever": "Never applied",
     "loadError": "Couldn't load automations. Check your connection and try again.",
     "reorderDisabledFiltered": "Clear the status filter to reorder",
     "density": {
@@ -261,7 +261,11 @@
       "incomplete": "Fill in the name, conditions, and actions to save.",
       "exampleRun": "Import a bank statement containing a purchase with “Indomaret” in its note. In Transactions, open the purchase and check that its category is Groceries. The rule’s match count and last run time appear in Automations.",
       "noMatch": "If the note does not contain the word, this rule leaves the transaction as it is. If a category used by the rule is deleted, the rule can be paused. Open Automations to review its status and choose a replacement.",
-      "schedule": "For a bill you want recorded on a calendar, use Recurring Payments. Automation rules organize eligible transactions that arrive. They do not create transactions on their own."
+      "schedule": "For a bill you want recorded on a calendar, use Recurring Payments. Automation rules organize eligible transactions that arrive. They do not create transactions on their own.",
+      "summaryTitle": "Rule summary",
+      "secondExampleTitle": "Example: tag an internet bill",
+      "secondExample": "Choose the account you use for internet bills and enter “Internet” as a word to look for in the note. Choose Add tags and select Subscriptions. When the next matching bank or imported transaction arrives, open it to see the tag. The Automations list shows when the rule last matched.",
+      "openRecurring": "Open recurring payments"
     }
   }
 }

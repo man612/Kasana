@@ -11,6 +11,8 @@ import { buildMapUrl } from '@/common/utils/map-url';
 import { isMacPlatform } from '@/common/utils/platform';
 import { findFormattedCategoryById } from '@/stores/categories/helpers';
 import { captureException } from '@/lib/sentry';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
+import TransactionTimeLabel from './components/transaction-time-label.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import OptionalRemoveButton from './components/optional-remove-button.vue';
 import CategorySelectField from '@/components/fields/category-select-field.vue';
@@ -61,7 +63,9 @@ import {
   ClipboardPasteIcon,
   CornerDownLeftIcon,
   ExternalLinkIcon,
+  CalendarClockIcon,
   InfoIcon,
+  PlusIcon,
   LayersIcon,
   LocateIcon,
   MapIcon,
@@ -786,6 +790,9 @@ watch(isSelectedAccountConnected, (isConnected) => {
 // them, so only a date the user edits after unchecking gets validated.
 const isDateUserTouched = ref(false);
 const wasPlannedUnchecked = ref(false);
+const usesLiveTransactionTime = computed(
+  () => isFormCreation.value && !form.value.isPlanned && !isDateUserTouched.value && !props.prefill?.time,
+);
 
 // Turning the mode off (or losing it to a type switch) strands the two things it had
 // unlocked: a connected account the picker no longer offers, and a future date. Clear both
@@ -1193,12 +1200,10 @@ const applySuggestedOriginalAmount = () => {
   }
 };
 
-// The field echoes every programmatic write back as an update, so an unchanged
-// value must not count as user input.
 const onDateUpdate = (value: Date) => {
+  isDateUserTouched.value = true;
   if (value.getTime() === form.value.time?.getTime()) return;
   form.value.time = value;
-  isDateUserTouched.value = true;
   touchField('form.time');
 };
 
@@ -1235,7 +1240,7 @@ const submit = ({ keepOpen = false }: { keepOpen?: boolean } = {}) => {
 
   shouldKeepOpen = isCreateMoreAvailable.value && (keepOpen || Boolean(props.createMore));
   submitMutation.mutate({
-    form: form.value,
+    form: usesLiveTransactionTime.value ? { ...form.value, time: new Date() } : form.value,
     isFormCreation: isFormCreation.value,
     isTransferTx: isTransferTx.value,
     isCurrenciesDifferent: isCurrenciesDifferent.value,
@@ -1340,6 +1345,18 @@ watch(isRefundAvailable, (isAvailable) => {
 const refundFieldRef = ref<InstanceType<typeof MarkAsRefundField> | null>(null);
 
 const moreOptionsRef = ref<HTMLElement | null>(null);
+const isAddDetailOpen = ref(false);
+let selectingDetail = false;
+
+const selectDetail = (onSelect: () => void) => {
+  selectingDetail = true;
+  isAddDetailOpen.value = false;
+  onSelect();
+};
+const restoreDetailFocus = (event: Event) => {
+  if (selectingDetail) event.preventDefault();
+  selectingDetail = false;
+};
 
 const {
   shown: shownFields,
@@ -1760,32 +1777,39 @@ onUnmounted(() => {
 
 <template>
   <DefineDateField>
-    <div>
-      <form-row>
-        <date-field
-          :model-value="form.time"
-          :disabled="isFormFieldsDisabled || !isEditableAsManual"
-          :label="$t('dialogs.manageTransaction.form.datetimeLabel')"
-          :error-message="timeErrorMessage"
-          :hide-input-time="false"
-          show-weekday
-          :calendar-options="{
-            maxDate: form.isPlanned ? undefined : new Date(),
-          }"
-          @update:model-value="onDateUpdate"
-        />
-
-        <Transition name="lajur-form-panel">
-          <PlannedUnlockHint v-if="isFormCreation && form.isPlanned">
-            {{ $t('dialogs.manageTransaction.form.plannedDatesUnlockedHint') }}
-          </PlannedUnlockHint>
-        </Transition>
-      </form-row>
-
-      <p v-if="isPreAnchorLoanPayment" class="text-muted-foreground -mt-1 px-1 text-xs">
-        {{ $t('dialogs.loanPayment.preAnchorHint') }}
-      </p>
+    <div class="mb-1 flex justify-end">
+      <DateField
+        :model-value="form.time"
+        :disabled="isFormFieldsDisabled || !isEditableAsManual"
+        :label="$t('dialogs.manageTransaction.form.datetimeLabel')"
+        :error-message="timeErrorMessage"
+        :live-on-open="usesLiveTransactionTime"
+        :calendar-options="{ maxDate: form.isPlanned ? undefined : new Date() }"
+        @update:model-value="onDateUpdate"
+      >
+        <template #trigger="{ disabled }">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            class="text-muted-foreground h-auto min-h-11 max-w-full gap-1.5 px-2 text-xs"
+            :disabled="disabled"
+            data-testid="date-field-calendar-trigger"
+          >
+            <CalendarClockIcon class="size-4 shrink-0" aria-hidden="true" />
+            <TransactionTimeLabel :value="form.time" :live="usesLiveTransactionTime" />
+          </Button>
+        </template>
+      </DateField>
     </div>
+    <Transition name="lajur-form-panel">
+      <PlannedUnlockHint v-if="isFormCreation && form.isPlanned">
+        {{ $t('dialogs.manageTransaction.form.plannedDatesUnlockedHint') }}
+      </PlannedUnlockHint>
+    </Transition>
+    <p v-if="isPreAnchorLoanPayment" class="text-muted-foreground px-1 text-xs">
+      {{ $t('dialogs.loanPayment.preAnchorHint') }}
+    </p>
   </DefineDateField>
 
   <DefinePaymentType>
@@ -1838,233 +1862,253 @@ onUnmounted(() => {
           @focusout="touchField('form.note')"
         />
       </FormRow>
-      <Transition name="kasana-feedback">
-        <FormRow v-if="!isLoanDestination && shownFields.tags" data-optional-field="tags">
-          <TagSelectField
-            v-model="form.tagIds"
-            :label="$t('dialogs.manageTransaction.form.tagsLabel')"
-            :disabled="isFormFieldsDisabled"
-          >
-            <template #label-right>
-              <OptionalRemoveButton
-                :label="t(optionalFieldNames.tags)"
+      <Transition name="lajur-flow-row">
+        <div v-if="!isLoanDestination && shownFields.tags" class="lajur-flow-row">
+          <div>
+            <FormRow data-optional-field="tags">
+              <TagSelectField
+                v-model="form.tagIds"
+                :label="$t('dialogs.manageTransaction.form.tagsLabel')"
                 :disabled="isFormFieldsDisabled"
-                @remove="requestOptionalRemoval('tags')"
-              />
-            </template>
-          </TagSelectField>
-        </FormRow>
-      </Transition>
-      <Transition name="kasana-feedback">
-        <div v-if="isAttachmentsAvailable && shownFields.attachments" data-optional-field="attachments">
-          <div class="-mb-1 flex justify-end">
-            <OptionalRemoveButton
-              :label="t(optionalFieldNames.attachments)"
-              :disabled="isFormFieldsDisabled"
-              @remove="requestOptionalRemoval('attachments')"
-            />
+              >
+                <template #label-right>
+                  <OptionalRemoveButton
+                    :label="t(optionalFieldNames.tags)"
+                    :disabled="isFormFieldsDisabled"
+                    @remove="requestOptionalRemoval('tags')"
+                  />
+                </template>
+              </TagSelectField>
+            </FormRow>
           </div>
-          <AttachmentsSection
-            v-model:pending="pendingAttachments"
-            :transaction-id="transaction?.id"
-            :mirror-transaction-id="isTransferTx ? oppositeTransaction?.id : undefined"
-            :disabled="isFormFieldsDisabled"
-          />
         </div>
       </Transition>
-      <Transition name="kasana-feedback">
-        <FormRow v-if="shownFields.externalUrl" data-optional-field="externalUrl">
-          <InputField
-            v-model="form.externalUrl"
-            type="url"
-            :placeholder="$t('dialogs.manageTransaction.form.externalUrlPlaceholder')"
-            :disabled="isFormFieldsDisabled"
-            :label="$t('dialogs.manageTransaction.form.externalUrlLabel')"
-            :error-message="externalUrlErrorMessage"
-            @blur="touchField('form.externalUrl')"
-            non-label-wrapper
-            trailing-icon-css-class="gap-0.5 px-1.5"
-            class="w-full [&_input]:w-full [&_input]:pr-20"
-          >
-            <template #iconTrailing>
-              <Transition mode="out-in" name="kasana-feedback">
-                <div v-if="!form.externalUrl?.trim()" key="paste" class="flex items-center">
-                  <DesktopOnlyTooltip :content="$t('dialogs.manageTransaction.form.externalUrlPaste')">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      :disabled="isFormFieldsDisabled || !canUseClipboard"
-                      :aria-label="$t('dialogs.manageTransaction.form.externalUrlPaste')"
-                      @click="pasteExternalUrl"
-                    >
-                      <ClipboardPasteIcon class="size-4" />
-                    </Button>
-                  </DesktopOnlyTooltip>
-                </div>
-                <div v-else key="actions" class="flex items-center gap-0.5">
-                  <DesktopOnlyTooltip :content="$t('dialogs.manageTransaction.form.externalUrlCopy')">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      :disabled="!canUseClipboard"
-                      :aria-label="$t('dialogs.manageTransaction.form.externalUrlCopy')"
-                      @click="copyExternalUrl"
-                    >
-                      <CopyIcon class="size-4" />
-                    </Button>
-                  </DesktopOnlyTooltip>
-                  <DesktopOnlyTooltip :content="$t('dialogs.manageTransaction.form.externalUrlClear')">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-sm"
-                      :disabled="isFormFieldsDisabled"
-                      :aria-label="$t('dialogs.manageTransaction.form.externalUrlClear')"
-                      @click="clearExternalUrl"
-                    >
-                      <XIcon class="size-4" />
-                    </Button>
-                  </DesktopOnlyTooltip>
-                </div>
-              </Transition>
-            </template>
-            <template #label-right>
-              <OptionalRemoveButton
-                :label="t(optionalFieldNames.externalUrl)"
-                :disabled="isFormFieldsDisabled"
-                @remove="requestOptionalRemoval('externalUrl')"
-              />
-            </template>
-            <template v-if="externalUrlHref" #label-after>
-              <DesktopOnlyTooltip :content="$t('common.transactions.record.externalLinkTooltip')">
-                <a
-                  :href="externalUrlHref"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  :aria-label="$t('common.transactions.record.externalLinkTooltip')"
-                  class="hover:text-foreground flex size-5 items-center justify-center"
-                >
-                  <ExternalLinkIcon class="size-3.5" />
-                </a>
-              </DesktopOnlyTooltip>
-            </template>
-          </InputField>
-        </FormRow>
-      </Transition>
-      <Transition name="kasana-feedback">
-        <FormRow v-if="shownFields.externalReference" data-optional-field="externalReference">
-          <InputField
-            v-model="form.externalReference"
-            :placeholder="$t('dialogs.manageTransaction.form.externalReferencePlaceholder')"
-            :disabled="isFormFieldsDisabled"
-            :label="$t('dialogs.manageTransaction.form.externalReferenceLabel')"
-            :error-message="externalReferenceErrorMessage"
-            @blur="touchField('form.externalReference')"
-            non-label-wrapper
-          >
-            <template #label-right>
-              <OptionalRemoveButton
-                :label="t(optionalFieldNames.externalReference)"
-                :disabled="isFormFieldsDisabled"
-                @remove="requestOptionalRemoval('externalReference')"
-              />
-            </template>
-          </InputField>
-        </FormRow>
-      </Transition>
-      <Transition name="kasana-feedback">
-        <FormRow v-if="shownFields.location" data-optional-field="location">
-          <FieldLabel :label="$t('dialogs.manageTransaction.form.location.label')" only-template>
-            <template v-if="locationMapUrl" #label-after>
-              <DesktopOnlyTooltip :content="$t('common.transactions.record.locationTooltip')">
-                <a
-                  :href="locationMapUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  :aria-label="$t('common.transactions.record.locationTooltip')"
-                  class="hover:text-foreground flex size-5 items-center justify-center"
-                >
-                  <MapPinIcon class="size-3.5" />
-                </a>
-              </DesktopOnlyTooltip>
-            </template>
-            <template #label-right>
-              <div class="flex items-center gap-1">
+      <Transition name="lajur-flow-row">
+        <div v-if="isAttachmentsAvailable && shownFields.attachments" class="lajur-flow-row">
+          <div>
+            <div data-optional-field="attachments">
+              <div class="-mb-1 flex justify-end">
                 <OptionalRemoveButton
-                  :label="t(optionalFieldNames.location)"
+                  :label="t(optionalFieldNames.attachments)"
                   :disabled="isFormFieldsDisabled"
-                  @remove="requestOptionalRemoval('location')"
+                  @remove="requestOptionalRemoval('attachments')"
                 />
-                <Button
-                  type="button"
-                  variant="ghost-primary"
-                  size="sm"
-                  class="h-6 px-2 text-xs"
-                  :disabled="isFormFieldsDisabled || isLocating"
-                  @click="useCurrentLocation"
-                >
-                  <LocateIcon class="size-3.5" />
-                  {{ $t('dialogs.manageTransaction.form.location.useCurrent') }}
-                </Button>
-                <DesktopOnlyTooltip
-                  v-if="isLocationFilled"
-                  :content="$t('dialogs.manageTransaction.form.location.clear')"
-                >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    class="size-6"
-                    :disabled="isFormFieldsDisabled"
-                    :aria-label="$t('dialogs.manageTransaction.form.location.clear')"
-                    @click="clearLocation"
-                  >
-                    <XIcon class="size-3.5" />
-                  </Button>
-                </DesktopOnlyTooltip>
               </div>
-            </template>
-            <div class="grid grid-cols-[1fr_1fr_auto] gap-2">
-              <InputField
-                v-model="form.latitude"
-                type="number"
-                :placeholder="$t('dialogs.manageTransaction.form.location.latitudePlaceholder')"
-                :aria-label="$t('dialogs.manageTransaction.form.location.latitudePlaceholder')"
+              <AttachmentsSection
+                v-model:pending="pendingAttachments"
+                :transaction-id="transaction?.id"
+                :mirror-transaction-id="isTransferTx ? oppositeTransaction?.id : undefined"
                 :disabled="isFormFieldsDisabled"
-                :error-message="latitudeErrorMessage"
-                @blur="touchField('form.latitude')"
               />
+            </div>
+          </div>
+        </div>
+      </Transition>
+      <Transition name="lajur-flow-row">
+        <div v-if="shownFields.externalUrl" class="lajur-flow-row">
+          <div>
+            <FormRow data-optional-field="externalUrl">
               <InputField
-                v-model="form.longitude"
-                type="number"
-                :placeholder="$t('dialogs.manageTransaction.form.location.longitudePlaceholder')"
-                :aria-label="$t('dialogs.manageTransaction.form.location.longitudePlaceholder')"
+                v-model="form.externalUrl"
+                type="url"
+                :placeholder="$t('dialogs.manageTransaction.form.externalUrlPlaceholder')"
                 :disabled="isFormFieldsDisabled"
-                :error-message="longitudeErrorMessage"
-                @blur="touchField('form.longitude')"
-              />
-              <DesktopOnlyTooltip :content="$t('dialogs.manageTransaction.form.location.pickOnMap')">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="icon"
-                  class="size-10 shrink-0 md:size-9"
-                  :disabled="isFormFieldsDisabled"
-                  :aria-label="$t('dialogs.manageTransaction.form.location.pickOnMap')"
-                  @click="isLocationPickerOpen = true"
-                >
-                  <MapIcon class="size-4" />
-                </Button>
-              </DesktopOnlyTooltip>
-            </div>
-            <div v-if="locationLabel" class="text-muted-foreground mt-1.5 flex items-center gap-1 text-xs">
-              <MapPinIcon class="size-3 shrink-0" />
-              <span class="truncate">{{ locationLabel }}</span>
-            </div>
-          </FieldLabel>
-        </FormRow>
+                :label="$t('dialogs.manageTransaction.form.externalUrlLabel')"
+                :error-message="externalUrlErrorMessage"
+                @blur="touchField('form.externalUrl')"
+                non-label-wrapper
+                trailing-icon-css-class="gap-0.5 px-1.5"
+                class="w-full [&_input]:w-full [&_input]:pr-20"
+              >
+                <template #iconTrailing>
+                  <Transition mode="out-in" name="kasana-feedback">
+                    <div v-if="!form.externalUrl?.trim()" key="paste" class="flex items-center">
+                      <DesktopOnlyTooltip :content="$t('dialogs.manageTransaction.form.externalUrlPaste')">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          :disabled="isFormFieldsDisabled || !canUseClipboard"
+                          :aria-label="$t('dialogs.manageTransaction.form.externalUrlPaste')"
+                          @click="pasteExternalUrl"
+                        >
+                          <ClipboardPasteIcon class="size-4" />
+                        </Button>
+                      </DesktopOnlyTooltip>
+                    </div>
+                    <div v-else key="actions" class="flex items-center gap-0.5">
+                      <DesktopOnlyTooltip :content="$t('dialogs.manageTransaction.form.externalUrlCopy')">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          :disabled="!canUseClipboard"
+                          :aria-label="$t('dialogs.manageTransaction.form.externalUrlCopy')"
+                          @click="copyExternalUrl"
+                        >
+                          <CopyIcon class="size-4" />
+                        </Button>
+                      </DesktopOnlyTooltip>
+                      <DesktopOnlyTooltip :content="$t('dialogs.manageTransaction.form.externalUrlClear')">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          :disabled="isFormFieldsDisabled"
+                          :aria-label="$t('dialogs.manageTransaction.form.externalUrlClear')"
+                          @click="clearExternalUrl"
+                        >
+                          <XIcon class="size-4" />
+                        </Button>
+                      </DesktopOnlyTooltip>
+                    </div>
+                  </Transition>
+                </template>
+                <template #label-right>
+                  <OptionalRemoveButton
+                    :label="t(optionalFieldNames.externalUrl)"
+                    :disabled="isFormFieldsDisabled"
+                    @remove="requestOptionalRemoval('externalUrl')"
+                  />
+                </template>
+                <template v-if="externalUrlHref" #label-after>
+                  <DesktopOnlyTooltip :content="$t('common.transactions.record.externalLinkTooltip')">
+                    <a
+                      :href="externalUrlHref"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      :aria-label="$t('common.transactions.record.externalLinkTooltip')"
+                      class="hover:text-foreground flex size-5 items-center justify-center"
+                    >
+                      <ExternalLinkIcon class="size-3.5" />
+                    </a>
+                  </DesktopOnlyTooltip>
+                </template>
+              </InputField>
+            </FormRow>
+          </div>
+        </div>
+      </Transition>
+      <Transition name="lajur-flow-row">
+        <div v-if="shownFields.externalReference" class="lajur-flow-row">
+          <div>
+            <FormRow data-optional-field="externalReference">
+              <InputField
+                v-model="form.externalReference"
+                :placeholder="$t('dialogs.manageTransaction.form.externalReferencePlaceholder')"
+                :disabled="isFormFieldsDisabled"
+                :label="$t('dialogs.manageTransaction.form.externalReferenceLabel')"
+                :error-message="externalReferenceErrorMessage"
+                @blur="touchField('form.externalReference')"
+                non-label-wrapper
+              >
+                <template #label-right>
+                  <OptionalRemoveButton
+                    :label="t(optionalFieldNames.externalReference)"
+                    :disabled="isFormFieldsDisabled"
+                    @remove="requestOptionalRemoval('externalReference')"
+                  />
+                </template>
+              </InputField>
+            </FormRow>
+          </div>
+        </div>
+      </Transition>
+      <Transition name="lajur-flow-row">
+        <div v-if="shownFields.location" class="lajur-flow-row">
+          <div>
+            <FormRow data-optional-field="location">
+              <FieldLabel :label="$t('dialogs.manageTransaction.form.location.label')" only-template>
+                <template v-if="locationMapUrl" #label-after>
+                  <DesktopOnlyTooltip :content="$t('common.transactions.record.locationTooltip')">
+                    <a
+                      :href="locationMapUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      :aria-label="$t('common.transactions.record.locationTooltip')"
+                      class="hover:text-foreground flex size-5 items-center justify-center"
+                    >
+                      <MapPinIcon class="size-3.5" />
+                    </a>
+                  </DesktopOnlyTooltip>
+                </template>
+                <template #label-right>
+                  <div class="flex items-center gap-1">
+                    <OptionalRemoveButton
+                      :label="t(optionalFieldNames.location)"
+                      :disabled="isFormFieldsDisabled"
+                      @remove="requestOptionalRemoval('location')"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost-primary"
+                      size="sm"
+                      class="h-6 px-2 text-xs"
+                      :disabled="isFormFieldsDisabled || isLocating"
+                      @click="useCurrentLocation"
+                    >
+                      <LocateIcon class="size-3.5" />
+                      {{ $t('dialogs.manageTransaction.form.location.useCurrent') }}
+                    </Button>
+                    <DesktopOnlyTooltip
+                      v-if="isLocationFilled"
+                      :content="$t('dialogs.manageTransaction.form.location.clear')"
+                    >
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        class="size-6"
+                        :disabled="isFormFieldsDisabled"
+                        :aria-label="$t('dialogs.manageTransaction.form.location.clear')"
+                        @click="clearLocation"
+                      >
+                        <XIcon class="size-3.5" />
+                      </Button>
+                    </DesktopOnlyTooltip>
+                  </div>
+                </template>
+                <div class="grid grid-cols-[1fr_1fr_auto] gap-2">
+                  <InputField
+                    v-model="form.latitude"
+                    type="number"
+                    :placeholder="$t('dialogs.manageTransaction.form.location.latitudePlaceholder')"
+                    :aria-label="$t('dialogs.manageTransaction.form.location.latitudePlaceholder')"
+                    :disabled="isFormFieldsDisabled"
+                    :error-message="latitudeErrorMessage"
+                    @blur="touchField('form.latitude')"
+                  />
+                  <InputField
+                    v-model="form.longitude"
+                    type="number"
+                    :placeholder="$t('dialogs.manageTransaction.form.location.longitudePlaceholder')"
+                    :aria-label="$t('dialogs.manageTransaction.form.location.longitudePlaceholder')"
+                    :disabled="isFormFieldsDisabled"
+                    :error-message="longitudeErrorMessage"
+                    @blur="touchField('form.longitude')"
+                  />
+                  <DesktopOnlyTooltip :content="$t('dialogs.manageTransaction.form.location.pickOnMap')">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      class="size-10 shrink-0 md:size-9"
+                      :disabled="isFormFieldsDisabled"
+                      :aria-label="$t('dialogs.manageTransaction.form.location.pickOnMap')"
+                      @click="isLocationPickerOpen = true"
+                    >
+                      <MapIcon class="size-4" />
+                    </Button>
+                  </DesktopOnlyTooltip>
+                </div>
+                <div v-if="locationLabel" class="text-muted-foreground mt-1.5 flex items-center gap-1 text-xs">
+                  <MapPinIcon class="size-3 shrink-0" />
+                  <span class="truncate">{{ locationLabel }}</span>
+                </div>
+              </FieldLabel>
+            </FormRow>
+          </div>
+        </div>
       </Transition>
       <LocationPickerDialog
         v-if="shownFields.location"
@@ -2073,30 +2117,33 @@ onUnmounted(() => {
         :longitude="form.longitude"
         @select="applyPickedLocation"
       />
-      <Transition name="kasana-feedback">
-        <FormRow v-if="!isTransferTx && shownFields.originalAmount" data-optional-field="originalAmount">
-          <AmountWithCurrencyField
-            v-model:amount="form.originalAmount"
-            v-model:currency="form.originalCurrency"
-            :currencies="systemCurrencies"
-            :option-label="currencyOptionLabel"
-            :label="$t('dialogs.manageTransaction.form.originalAmountLabel')"
-            :placeholder="$t('dialogs.manageTransaction.form.originalAmountPlaceholder')"
-            :disabled="isFormFieldsDisabled"
-            :suggest-visible="isOriginalAmountSuggestVisible"
-            :suggested-amount="suggestedOriginalAmount"
-            :suggested-date="form.time"
-            @apply-suggestion="applySuggestedOriginalAmount"
-          >
-            <template #label-right>
-              <OptionalRemoveButton
-                :label="t(optionalFieldNames.originalAmount)"
+      <Transition name="lajur-flow-row">
+        <div v-if="!isTransferTx && shownFields.originalAmount" class="lajur-flow-row">
+          <div>
+            <FormRow data-optional-field="originalAmount">
+              <AmountWithCurrencyField
+                v-model:amount="form.originalAmount"
+                v-model:currency="form.originalCurrency"
+                :currencies="systemCurrencies"
+                :option-label="currencyOptionLabel"
+                :label="$t('dialogs.manageTransaction.form.originalAmountLabel')"
                 :disabled="isFormFieldsDisabled"
-                @remove="requestOptionalRemoval('originalAmount')"
-              />
-            </template>
-          </AmountWithCurrencyField>
-        </FormRow>
+                :suggest-visible="isOriginalAmountSuggestVisible"
+                :suggested-amount="suggestedOriginalAmount"
+                :suggested-date="form.time"
+                @apply-suggestion="applySuggestedOriginalAmount"
+              >
+                <template #label-right>
+                  <OptionalRemoveButton
+                    :label="t(optionalFieldNames.originalAmount)"
+                    :disabled="isFormFieldsDisabled"
+                    @remove="requestOptionalRemoval('originalAmount')"
+                  />
+                </template>
+              </AmountWithCurrencyField>
+            </FormRow>
+          </div>
+        </div>
       </Transition>
       <!-- Refund linking on accounts shared *with* the caller isn't supported by the
            backend yet — hide the field rather than offering a button that errors on
@@ -2124,29 +2171,35 @@ onUnmounted(() => {
           :is-over-assigned="isRefundSharesOverAssigned"
         />
       </div>
-      <div v-if="addFieldChips.length" class="border-border bg-card/30 mt-4 rounded-lg border p-3">
-        <p class="text-foreground mb-1 text-sm font-medium">
-          {{ $t('dialogs.manageTransaction.form.addFieldsLabel') }}
-        </p>
-        <p class="text-muted-foreground mb-3 text-xs leading-relaxed">
-          {{ $t('dialogs.manageTransaction.form.addFieldsHint') }}
-        </p>
-        <div class="grid grid-cols-1 gap-2">
+      <Popover v-if="addFieldChips.length" v-model:open="isAddDetailOpen" modal>
+        <PopoverTrigger as-child>
+          <Button type="button" variant="outline" size="sm" class="mt-1 min-h-11 justify-start gap-2">
+            <PlusIcon class="size-4" aria-hidden="true" />
+            {{ $t('dialogs.manageTransaction.form.addFieldsLabel') }}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          dim-backdrop
+          align="start"
+          class="max-h-[min(55dvh,24rem)] w-max max-w-[calc(100vw-2rem)] overflow-y-auto p-1"
+          :aria-label="$t('dialogs.manageTransaction.form.addFieldsLabel')"
+          @close-auto-focus="restoreDetailFocus"
+        >
           <Button
             v-for="chip in addFieldChips"
             :key="chip.key"
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
-            class="min-h-9 w-full justify-start gap-2 rounded-md px-2.5 text-left text-xs font-medium whitespace-normal"
+            class="min-h-11 w-full justify-start gap-2 text-left whitespace-normal"
             :disabled="isFormFieldsDisabled"
-            @click="chip.onClick"
+            @click="selectDetail(chip.onClick)"
           >
-            <component :is="chip.icon" class="text-muted-foreground size-4 shrink-0" />
+            <component :is="chip.icon" class="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
             <span class="min-w-0 break-words">{{ $t(chip.labelKey) }}</span>
           </Button>
-        </div>
-      </div>
+        </PopoverContent>
+      </Popover>
     </div>
   </DefineMoreOptions>
 
@@ -2240,7 +2293,7 @@ onUnmounted(() => {
             <Transition mode="out-in" name="lajur-form-copy">
               <p
                 :key="currentTxType"
-                class="text-muted-foreground mb-5 flex items-start gap-2 px-0.5 text-xs leading-relaxed"
+                class="text-muted-foreground flex items-start gap-1.5 px-0.5 text-[11px] leading-relaxed"
                 data-testid="transaction-mode-help"
                 role="note"
               >
@@ -2259,9 +2312,8 @@ onUnmounted(() => {
           </div>
 
           <div ref="transactionModeFieldsRef">
-            <!-- CSS breakpoint controls stacking immediately, without waiting for the
-                 debounced JS mobile flag after a viewport rotation/resize. -->
-            <div data-testid="transaction-amount-date-stack" class="max-md:flex max-md:flex-col max-md:gap-y-2">
+            <div data-testid="transaction-amount-date-stack">
+              <ReuseDateField />
               <form-row>
                 <FormattedAmountField
                   ref="amountFieldRef"
@@ -2269,7 +2321,6 @@ onUnmounted(() => {
                   :currency-code="currencyCode"
                   :label="$t('dialogs.manageTransaction.form.amountLabel')"
                   :disabled="isMultiAccount || isFormFieldsDisabled || isAmountFieldDisabled"
-                  :placeholder="$t('dialogs.manageTransaction.form.amountPlaceholder')"
                   :error-message="isMultiAccount ? undefined : amountErrorMessage"
                   :autofocus="!hasUsedMultiAccount"
                   :title="
@@ -2283,7 +2334,6 @@ onUnmounted(() => {
                   </template>
                 </FormattedAmountField>
               </form-row>
-              <ReuseDateField v-if="isMobileView" />
             </div>
 
             <p v-if="wouldOverdrawLoanSource" class="text-warning-text -mt-1 px-1 text-xs">
@@ -2388,7 +2438,6 @@ onUnmounted(() => {
                         v-model="form.targetAmount"
                         :currency-code="targetCurrency?.currency?.code"
                         :disabled="isFormFieldsDisabled || isTargetAmountFieldDisabled"
-                        :placeholder="$t('dialogs.manageTransaction.form.targetAmountPlaceholder')"
                         :error-message="targetAmountErrorMessage"
                         @blur="touchField('form.targetAmount')"
                       >
@@ -2429,7 +2478,6 @@ onUnmounted(() => {
                         v-model="form.targetAmount"
                         :currency-code="targetCurrency?.currency?.code"
                         :disabled="isFormFieldsDisabled || isTargetAmountFieldDisabled"
-                        :placeholder="$t('dialogs.manageTransaction.form.targetAmountPlaceholder')"
                         :error-message="targetAmountErrorMessage"
                         @blur="touchField('form.targetAmount')"
                       >
@@ -2493,6 +2541,7 @@ onUnmounted(() => {
                   :label="$t('dialogs.manageTransaction.form.categoryLabel')"
                   :placeholder="$t('dialogs.manageTransaction.form.selectCategoryPlaceholder')"
                   :values="effectiveFormattedCategories"
+                  :clearable="false"
                   :unlisted-ids="unlistedCategoryIds"
                   :error-message="categoryErrorMessage"
                   :categories-map="isAccountSharedWithCaller ? effectiveCategoriesMap : undefined"
@@ -2508,10 +2557,13 @@ onUnmounted(() => {
                       :active="hasSplits"
                       :disabled="isFormFieldsDisabled || isMultiAccount"
                       :aria-label="$t('dialogs.manageTransaction.form.splitPillLabel')"
+                      :title="$t('dialogs.manageTransaction.form.splitPillLabel')"
+                      :aria-pressed="Boolean(hasSplits)"
+                      aria-haspopup="dialog"
+                      class="w-11 shrink-0 justify-center px-0"
                       @click="isSplitDialogOpen = true"
                     >
-                      <SplitIcon class="size-3.5" />
-                      {{ $t('dialogs.manageTransaction.form.splitPillLabel') }}
+                      <SplitIcon class="size-4" aria-hidden="true" />
                     </LabelPill>
                   </template>
                 </category-select-field>
@@ -2579,8 +2631,6 @@ onUnmounted(() => {
               </ResponsiveAlertDialog>
             </template>
 
-            <ReuseDateField v-if="!isMobileView" />
-
             <div
               :class="
                 isMobileView &&
@@ -2591,6 +2641,8 @@ onUnmounted(() => {
               <form-row v-if="!isTransferTx">
                 <payee-select-field
                   v-model="form.payeeId"
+                  manage-payees
+                  :historical-name="transaction?.payeeNameSnapshot"
                   :label="
                     $t(
                       currentTxType === FORM_TYPES.income

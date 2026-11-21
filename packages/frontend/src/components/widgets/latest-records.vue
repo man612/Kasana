@@ -247,6 +247,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
       <TransactionsList
         v-if="txMaxDisplay > 0"
         raw-list
+        compact
         expand-groups
         :group-preview-limit="3"
         :paginate="false"

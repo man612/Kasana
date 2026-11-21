@@ -1,6 +1,6 @@
 <template>
   <PageWrapper>
-    <div class="@container/loans-page mb-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
+    <div class="@container/loans-page mb-4 flex flex-wrap items-center justify-between gap-2">
       <h1 class="text-3xl font-semibold tracking-tight">{{ $t('loans.title') }}</h1>
 
       <CreateLoanDialog v-if="loansQuery.isSuccess.value && loans.length > 0">
@@ -42,7 +42,7 @@
       <AggregateCard v-if="trackedLoans.length" class="mb-6" :loans="trackedLoans" />
       <LoanList v-if="activeLoans.length" :loans="activeLoans" />
 
-      <section v-if="paidOffLoans.length" class="mt-8">
+      <section v-if="paidOffLoans.length" class="mt-5">
         <div class="mb-3 flex items-center gap-2 px-1">
           <h2 class="text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase">
             {{ $t('loans.paidOff.sectionTitle') }}
@@ -52,7 +52,7 @@
         <PaidOffLoanList :loans="paidOffLoans" />
       </section>
 
-      <section v-if="archivedLoans.length" class="mt-8">
+      <section v-if="archivedLoans.length" class="mt-5">
         <Collapsible v-model:open="isArchivedOpen">
           <CollapsibleTrigger
             class="focus-visible:ring-ring/40 flex w-full items-center gap-2 rounded px-1 focus-visible:ring-2 focus-visible:outline-none"

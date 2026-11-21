@@ -745,13 +745,27 @@ const moveChartWindow = ({ points }: { points: number }) => {
 
 let chartPointer: { id: number; x: number; y: number } | null = null;
 let ignoreChartClick = false;
+let chartTooltipTimer: ReturnType<typeof setTimeout> | undefined;
+let clearChartHover = () => {};
+const hideTouchTooltip = () => {
+  clearTimeout(chartTooltipTimer);
+  chartTooltipTimer = setTimeout(() => {
+    chartTooltipTimer = undefined;
+    cancelAnimationFrame(chartHoverFrame);
+    tooltip.visible = false;
+    clearChartHover();
+  }, 280);
+};
 const rememberChartPointer = (event: PointerEvent) => {
   if (!event.isPrimary || event.button !== 0) return;
+  clearTimeout(chartTooltipTimer);
+  chartTooltipTimer = undefined;
   chartPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
   ignoreChartClick = false;
 };
 const finishChartPointer = (event: PointerEvent) => {
   if (chartPointer?.id !== event.pointerId) return;
+  if (event.pointerType !== 'mouse') hideTouchTooltip();
   const dx = event.clientX - chartPointer.x;
   const dy = event.clientY - chartPointer.y;
   chartPointer = null;
@@ -763,7 +777,7 @@ const finishChartPointer = (event: PointerEvent) => {
 };
 const cancelChartPointer = () => {
   chartPointer = null;
-  tooltip.visible = false;
+  hideTouchTooltip();
 };
 const protectChartPan = (event: MouseEvent) => {
   if (!ignoreChartClick) return;
@@ -978,6 +992,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  clearTimeout(chartTooltipTimer);
   cancelAnimationFrame(chartRenderFrame);
   cancelAnimationFrame(chartHoverFrame);
   document.removeEventListener('click', handleDocumentClick);
@@ -1191,6 +1206,11 @@ const renderChart = () => {
     .attr('y2', innerHeight)
     .style('opacity', 0);
 
+  clearChartHover = () => {
+    hoverDot.style('opacity', 0);
+    hoverLine.style('opacity', 0);
+  };
+
   g.append('rect')
     .attr('class', 'overlay')
     .attr('width', innerWidth)
@@ -1201,14 +1221,23 @@ const renderChart = () => {
       hoverDot.style('opacity', 1);
       hoverLine.style('opacity', 0.5);
     })
-    .on('pointermove click', (event: MouseEvent) => {
+    .on('pointermove pointerdown', (event: PointerEvent) => {
+      if (!event.isPrimary || (event.pointerType !== 'mouse' && !(event.buttons & 1))) return;
       const interactionTarget = event.currentTarget;
       if (!(interactionTarget instanceof SVGRectElement)) return;
       cancelAnimationFrame(chartHoverFrame);
       chartHoverFrame = requestAnimationFrame(() => {
+        const [mouseX, mouseY] = d3.pointer(event, interactionTarget);
+        if (event.pointerType !== 'mouse' && chartPointer?.id === event.pointerId) {
+          if (mouseX < 0 || mouseX > innerWidth || mouseY < 0 || mouseY > innerHeight) {
+            if (chartTooltipTimer === undefined) hideTouchTooltip();
+            return;
+          }
+          clearTimeout(chartTooltipTimer);
+          chartTooltipTimer = undefined;
+        }
         hoverDot.style('opacity', 1);
         hoverLine.style('opacity', 0.5);
-        const [mouseX] = d3.pointer(event, interactionTarget);
         const x0 = xScale.invert(mouseX);
         const index = bisect(points, x0, 1);
         const d0 = points[index - 1];
@@ -1269,11 +1298,13 @@ const renderChart = () => {
       });
     })
     .on('pointerleave', (event: PointerEvent) => {
-      if (event.pointerType === 'touch') return;
+      if (event.pointerType !== 'mouse') {
+        hideTouchTooltip();
+        return;
+      }
       cancelAnimationFrame(chartHoverFrame);
       tooltip.visible = false;
-      hoverDot.style('opacity', 0);
-      hoverLine.style('opacity', 0);
+      clearChartHover();
     });
 
   // Spike markers — appended after overlay so they sit on top in SVG z-order

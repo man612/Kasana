@@ -13,7 +13,7 @@ import { ArrowRightIcon, GripVerticalIcon, HistoryIcon, MoreVerticalIcon, Pencil
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { format } from 'date-fns';
+import { useDateLocale } from '@/composable/use-date-locale';
 
 import AutomationChipTrack from './automation-chip-track.vue';
 import { type AutomationDensity, buildAutomationChips } from './automation-chips';
@@ -29,6 +29,7 @@ const props = defineProps<{
 const emit = defineEmits<{ delete: []; apply: []; select: [] }>();
 
 const { t } = useI18n();
+const { format } = useDateLocale();
 const router = useRouter();
 const { addErrorNotification, addNotification } = useNotificationCenter();
 
