@@ -69,6 +69,7 @@
       "createFirstButton": "Add your first loan"
     },
     "paidOff": {
+      "allSettled": "All tracked loans are paid off",
       "sectionTitle": "Paid off",
       "repaid": "Repaid",
       "opened": "Opened",

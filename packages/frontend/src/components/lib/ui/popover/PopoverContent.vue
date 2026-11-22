@@ -61,7 +61,7 @@ const lockedPosition = computed(() => (lockedSide.value ? { side: lockedSide.val
     >
       <div
         v-if="props.dimBackdrop && rootContext.open.value"
-        class="pointer-events-auto fixed inset-0 z-(--z-dialog) bg-black/60 backdrop-blur-[2px]"
+        class="lajur-scrim-menu lajur-scrim-blur pointer-events-auto fixed inset-0 z-(--z-dialog)"
         @pointerdown.stop
         @click.stop.prevent="rootContext.onOpenChange(false)"
         aria-hidden="true"

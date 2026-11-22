@@ -39,7 +39,14 @@
     </template>
 
     <template v-else-if="loans.length">
-      <AggregateCard v-if="trackedLoans.length" class="mb-6" :loans="trackedLoans" />
+      <AggregateCard v-if="activeLoans.length" class="mb-4" :loans="trackedLoans" />
+      <div
+        v-else-if="paidOffLoans.length"
+        class="bg-success/10 border-success/30 mb-4 flex items-center gap-2 rounded-xl border p-4"
+      >
+        <CircleCheckIcon class="text-success-text size-5 shrink-0" aria-hidden="true" />
+        <h2 class="text-sm font-semibold">{{ $t('loans.paidOff.allSettled') }}</h2>
+      </div>
       <LoanList v-if="activeLoans.length" :loans="activeLoans" />
 
       <section v-if="paidOffLoans.length" class="mt-5">
@@ -101,7 +108,7 @@ import UiButton from '@/components/lib/ui/button/Button.vue';
 import { Card, CardContent } from '@/components/lib/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/lib/ui/collapsible';
 import { useLoans } from '@/composable/data-queries/loans';
-import { ChevronDownIcon, HandCoinsIcon, PlusIcon } from '@lucide/vue';
+import { ChevronDownIcon, CircleCheckIcon, HandCoinsIcon, PlusIcon } from '@lucide/vue';
 import { computed, ref } from 'vue';
 
 import AggregateCard from './components/aggregate-card.vue';

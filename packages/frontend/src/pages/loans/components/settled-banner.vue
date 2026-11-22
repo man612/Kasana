@@ -1,9 +1,7 @@
 <template>
-  <div
-    class="border-app-income-color/30 from-app-income-color/12 @container/settled-banner rounded-xl border bg-linear-to-r to-transparent p-4 sm:p-5"
-  >
+  <div class="border-success/30 bg-success/10 @container/settled-banner rounded-xl border p-3 sm:p-4">
     <div
-      class="flex flex-col gap-4 @lg/settled-banner:flex-row @lg/settled-banner:items-center @lg/settled-banner:justify-between"
+      class="flex flex-col gap-2 @lg/settled-banner:flex-row @lg/settled-banner:items-center @lg/settled-banner:justify-between"
     >
       <!-- Identity: check icon + name + type/opened/closed line. -->
       <div class="flex min-w-0 items-start gap-3">
@@ -26,22 +24,22 @@
 
       <!-- Stats: repaid / estimated interest / duration, plus an "N mo early" pill when applicable. -->
       <div
-        class="flex flex-wrap items-center gap-x-6 gap-y-3 @lg/settled-banner:shrink-0 @lg/settled-banner:justify-end"
+        class="flex flex-wrap items-center gap-x-4 gap-y-2 @lg/settled-banner:shrink-0 @lg/settled-banner:justify-end"
       >
         <div>
-          <div class="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
+          <div class="text-muted-foreground text-xs font-medium">
             {{ $t('loans.paidOff.repaid') }}
           </div>
           <div class="mt-0.5 text-sm font-medium tabular-nums">{{ repaidDisplay }}</div>
         </div>
         <div>
-          <div class="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
+          <div class="text-muted-foreground text-xs font-medium">
             {{ $t('loans.paidOff.interestPaid') }}
           </div>
           <div class="mt-0.5 text-sm font-medium tabular-nums">{{ interestDisplay }}</div>
         </div>
         <div>
-          <div class="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
+          <div class="text-muted-foreground text-xs font-medium">
             {{ $t('loans.detail.paidOff.took') }}
           </div>
           <div class="mt-0.5 text-sm font-medium tabular-nums">{{ durationDisplay }}</div>

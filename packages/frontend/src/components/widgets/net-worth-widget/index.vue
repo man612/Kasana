@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useDateLocale } from '@/composable/use-date-locale';
 import HintIcon from '@/components/common/hint-icon.vue';
 import { ChartTooltipHeader, ChartTooltipRow } from '@/components/common/charts/chart-tooltip';
 import FitAmount from '@/components/common/fit-amount.vue';
@@ -10,7 +11,7 @@ import { useAnimatedNumber } from '@/composable/use-animated-number';
 import { calculatePercentageDifference } from '@/js/helpers/math/calculate-percentage-difference';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { ArrowDownRightIcon, ArrowUpRightIcon, CircleOffIcon, TrendingUpIcon } from '@lucide/vue';
-import { format, isSameMonth } from 'date-fns';
+import { isSameMonth } from 'date-fns';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -68,12 +69,13 @@ const deltaDiff = computed(() => {
   return Number(calculatePercentageDifference(currentDelta.value, prevDelta.value.delta).toFixed(1));
 });
 
+const { format } = useDateLocale();
 const periodLabel = computed(() => {
   const { from, to } = props.selectedPeriod;
   if (isSameMonth(from, to)) {
     return format(from, 'MMMM yyyy');
   }
-  return `${format(from, 'MMM d')} - ${format(to, 'MMM d, yyyy')}`;
+  return `${format(from, 'd MMM')} - ${format(to, 'PP')}`;
 });
 
 const excludedNames = computed(() =>

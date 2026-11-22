@@ -3,7 +3,6 @@ import { type BankConnection, listConnections } from '@/api/bank-data-providers'
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import BankProviderLogo from '@/components/common/bank-providers/bank-provider-logo.vue';
 import { Callout } from '@/components/lib/ui/callout';
-import { type PillTabItem, PillTabs } from '@/components/lib/ui/pill-tabs';
 import { Separator } from '@/components/lib/ui/separator';
 import * as Tabs from '@/components/lib/ui/tabs';
 import { useAccountAccess } from '@/composable/use-account-access';
@@ -19,7 +18,7 @@ import { ROUTES_NAMES } from '@/routes';
 import { ACCOUNT_TYPES, AccountModel, SHARE_PERMISSIONS } from '@bt/shared/types';
 import { useQuery } from '@tanstack/vue-query';
 import { AlertTriangleIcon, ExternalLinkIcon } from '@lucide/vue';
-import { computed, ref, toRef } from 'vue';
+import { computed, ref, toRef, useSlots } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import LoadTransactions from './load-transactions.vue';
@@ -48,9 +47,12 @@ const needsReauth = computed(() => isAccountNeedingReauth(props.account));
 const { isOwner, permission } = useAccountAccess(toRef(() => props.account));
 const canSeeSharingTab = computed(() => isOwner.value || permission.value === SHARE_PERMISSIONS.manage);
 
+const slots = useSlots();
 const activeTab = ref('details');
-const tabItems = computed<PillTabItem[]>(() => {
-  const items: PillTabItem[] = [{ value: 'details', label: t('pages.account.tabs.details') }];
+const tabItems = computed(() => {
+  const items: { value: string; label: string; icon?: typeof AlertTriangleIcon; iconClass?: string }[] = [
+    { value: 'details', label: t('pages.account.tabs.details') },
+  ];
   if (isOwner.value) {
     items.push(
       needsReauth.value
@@ -63,6 +65,7 @@ const tabItems = computed<PillTabItem[]>(() => {
         : { value: 'integrations', label: t('pages.account.tabs.integrations') },
     );
   }
+  if (slots.history) items.splice(1, 0, { value: 'records', label: t('pages.account.rightPanel.transactions') });
   if (canSeeSharingTab.value) items.push({ value: 'sharing', label: t('pages.account.tabs.sharing') });
   items.push({ value: 'settings', label: t('pages.account.tabs.settings') });
   return items;
@@ -71,9 +74,17 @@ const tabItems = computed<PillTabItem[]>(() => {
 
 <template>
   <Tabs.Tabs v-model="activeTab">
-    <PillTabs v-model="activeTab" :items="tabItems" class="mt-4 w-full" />
+    <Tabs.TabsList class="mt-3 flex w-full justify-start overflow-x-auto">
+      <Tabs.TabsTrigger v-for="tab in tabItems" :key="tab.value" :value="tab.value" class="min-h-9 shrink-0">
+        <component :is="tab.icon" v-if="tab.icon" class="mr-1 size-4" :class="tab.iconClass" aria-hidden="true" />
+        {{ tab.label }}
+      </Tabs.TabsTrigger>
+    </Tabs.TabsList>
 
     <AccountDetailsTab tab-name="details" :account="account" />
+    <Tabs.TabsContent v-if="$slots.history" value="records">
+      <slot name="history" />
+    </Tabs.TabsContent>
 
     <Tabs.TabsContent value="settings">
       <div class="grid gap-4 pt-6">

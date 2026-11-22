@@ -29,7 +29,7 @@ const delegatedProps = computed(() => {
   <AlertDialogPortal>
     <AlertDialogOverlay
       @click.stop.prevent="props.onBackdropClick?.()"
-      class="lajur-confirmation-backdrop fixed inset-0 z-(--z-over-dialog) bg-black/65 backdrop-blur-[2px]"
+      class="lajur-confirmation-backdrop lajur-scrim-dialog lajur-scrim-blur fixed inset-0 z-(--z-over-dialog)"
     />
     <AlertDialogContent
       v-bind="{ ...delegatedProps, ...emitsAsProps }"
@@ -48,7 +48,7 @@ const delegatedProps = computed(() => {
 <style scoped>
 @media (prefers-reduced-motion: no-preference) {
   .lajur-confirmation-surface[data-state='open'] {
-    animation: confirmation-enter 270ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: confirmation-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .lajur-confirmation-surface[data-state='closed'] {
@@ -57,7 +57,7 @@ const delegatedProps = computed(() => {
   }
 
   .lajur-confirmation-backdrop[data-state='open'] {
-    animation: confirmation-dim 270ms ease-out both;
+    animation: confirmation-dim 220ms ease-out both;
   }
 
   .lajur-confirmation-backdrop[data-state='closed'] {

@@ -45,6 +45,7 @@ import {
   sortCategoryRows,
 } from './sort-category-rows';
 import { useCategorySpendingData } from './use-category-spending-data';
+import ErrorState from '../components/error-state.vue';
 
 const { t } = useI18n();
 const { addErrorNotification } = useNotificationCenter();
@@ -79,12 +80,13 @@ const { isOn: showTrend, setFlag: setShowTrend } = useWidgetConfigFlag({
   saveErrorKey: 'errors.api.unexpectedError',
 });
 
-const { spendingByCategory, trendByCategory, isTrendFetching, isFetching, hasData } = useCategorySpendingData({
-  selectedPeriod: () => props.selectedPeriod,
-  categoryIds: selectedCategoryIds,
-  includePlanned,
-  showTrend,
-});
+const { spendingByCategory, trendByCategory, isTrendFetching, isFetching, hasData, isError, refetch } =
+  useCategorySpendingData({
+    selectedPeriod: () => props.selectedPeriod,
+    categoryIds: selectedCategoryIds,
+    includePlanned,
+    showTrend,
+  });
 
 const categoryRows = computed(() =>
   selectedCategoryIds.value.map((catId) => {
@@ -400,7 +402,13 @@ const navigateToTransactions = ({ categoryId }: { categoryId: string }) => {
       </Popover>
     </template>
 
-    <template v-if="isInitialLoading">
+    <ErrorState
+      v-if="selectedCategoryIds.length > 0 && isError && !hasData"
+      :message="t('errors.api.unexpectedError')"
+      @retry="refetch"
+    />
+
+    <template v-else-if="isInitialLoading">
       <div class="-mx-2 flex flex-col gap-2">
         <div v-for="n in visibleSlots" :key="n" class="flex h-9 items-center gap-2 rounded-md px-3">
           <div class="bg-muted size-5 animate-pulse rounded-full" />

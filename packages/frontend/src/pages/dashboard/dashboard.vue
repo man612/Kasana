@@ -7,10 +7,10 @@
     <LayoutCollapse
       v-if="!hasNoAccounts"
       :open="!(isEditMode && isMobileView)"
-      class="sticky top-(--header-height) z-(--z-navbar) order-first -mx-6 -mt-1 [overflow-anchor:none]"
+      class="sticky top-(--header-height) z-(--z-navbar) order-first -mx-6 [overflow-anchor:none]"
     >
       <div
-        class="bg-background/95 supports-backdrop-filter:bg-background/80 relative mb-2 grid min-h-11 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center border-b px-2 backdrop-blur md:grid-cols-[minmax(0,1fr)_minmax(0,26rem)_minmax(0,1fr)] md:px-6"
+        class="bg-background/95 supports-backdrop-filter:bg-background/80 relative mb-2 grid h-12 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center border-b px-2 backdrop-blur md:grid-cols-[minmax(0,1fr)_minmax(0,26rem)_minmax(0,1fr)] md:px-6"
         :class="isScrolled ? 'md:bg-card/95 dark:md:bg-background/95' : 'md:border-transparent'"
         data-testid="dashboard-period-bar"
       >

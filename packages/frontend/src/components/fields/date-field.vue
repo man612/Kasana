@@ -100,7 +100,7 @@
               autocomplete="off"
               maxlength="5"
               placeholder="HH:mm"
-              aria-label="Jam dan menit (format 24 jam)"
+              :aria-label="i18n.global.t('common.dateSelector.timeLabel')"
               class="border-input bg-input-background focus-visible:ring-ring h-10 w-[4.9rem] rounded-md border px-2 text-center text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none md:h-9"
               :disabled="disabled"
               data-testid="date-field-time-input"
@@ -180,62 +180,33 @@
             <input
               :id="timeInputId"
               :value="dialogTimeValue"
-              type="text"
-              inputmode="numeric"
-              maxlength="5"
+              :type="usesNativeTime ? 'time' : 'text'"
+              :inputmode="usesNativeTime ? undefined : 'numeric'"
+              :maxlength="usesNativeTime ? undefined : 5"
               placeholder="HH:mm"
               class="border-input bg-input-background focus-visible:ring-ring h-9 w-24 rounded-md border px-2 text-center text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none"
               data-testid="date-dialog-time-input"
+              @click="showNativeTimePicker"
               @input="handleDialogTimeTyping"
             />
-          </div>
-          <Button
-            v-if="mode !== 'date'"
-            type="button"
-            variant="ghost"
-            size="sm"
-            class="text-muted-foreground mt-1 gap-2"
-            :aria-expanded="showWheel"
-            @click="toggleTimeWheel"
-          >
-            <Clock3Icon class="size-4" aria-hidden="true" />
-            {{ i18n.global.t('common.dateSelector.timeWheel') }}
-          </Button>
-          <div
-            v-if="mode !== 'date' && showWheel"
-            ref="wheelGroup"
-            class="mx-auto mb-2 flex max-w-48 items-center gap-2"
-          >
-            <TimeWheel v-model="wheelHours" :limit="24" :label="i18n.global.t('common.dateSelector.hours')" />
-            <span aria-hidden="true">:</span>
-            <TimeWheel v-model="wheelMinutes" :limit="60" :label="i18n.global.t('common.dateSelector.minutes')" />
           </div>
           <p v-if="dialogTimeError" class="text-destructive text-xs" role="alert">
             {{ i18n.global.t('common.dateSelector.invalidTime') }}
           </p>
         </div>
         <div class="border-border flex min-h-9 flex-wrap items-center justify-end gap-2 border-t pt-3">
-          <Transition
-            enter-active-class="transition-all duration-200 ease-out"
-            enter-from-class="opacity-0 scale-95"
-            enter-to-class="opacity-100 scale-100"
-            leave-active-class="transition-all duration-150 ease-in"
-            leave-from-class="opacity-100 scale-100"
-            leave-to-class="opacity-0 scale-95"
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            class="text-muted-foreground mr-auto min-h-10 px-2"
+            :disabled="!isWithinCalendarBounds(clock)"
+            data-testid="date-dialog-now"
+            @click="setDialogNow"
           >
-            <Button
-              v-if="!isDialogNow"
-              type="button"
-              variant="ghost"
-              size="sm"
-              class="text-muted-foreground mr-auto px-2"
-              data-testid="date-dialog-now"
-              @click="setDialogNow"
-            >
-              <Clock3Icon class="mr-1.5 size-3.5" />
-              {{ i18n.global.t('common.dateSelector.nowQuick') }}
-            </Button>
-          </Transition>
+            <Clock3Icon class="size-4" />
+            {{ i18n.global.t('common.dateSelector.nowQuick') }}
+          </Button>
           <div class="ml-auto flex gap-2">
             <Button type="button" variant="outline" size="sm" @click="isPopoverOpen = false">
               {{ i18n.global.t('common.actions.cancel') }}
@@ -258,7 +229,6 @@
 
 <script setup lang="ts">
 import FieldError from '@/components/fields/components/field-error.vue';
-import TimeWheel from '@/components/fields/components/time-wheel.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Calendar } from '@/components/lib/ui/calendar';
@@ -267,8 +237,8 @@ import { i18n } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { format, getDate, getMonth, getYear, parse, set, startOfDay } from 'date-fns';
 import { CalendarClockIcon, Clock3Icon, XIcon } from '@lucide/vue';
-import { computed, nextTick, ref, useId, useTemplateRef, watch } from 'vue';
-import { useDocumentVisibility, useIntervalFn } from '@vueuse/core';
+import { computed, ref, useId, watch } from 'vue';
+import { useDocumentVisibility, useIntervalFn, useMediaQuery } from '@vueuse/core';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { getDateFnsLocale } from '@/composable/use-date-locale';
 import { getLocalTimeZoneLabel } from '@/common/utils/indonesian-time';
@@ -380,7 +350,6 @@ const isSameMinute = (date: Date | null | undefined, time: string, now: Date) =>
   date!.getDate() === now.getDate() &&
   time === format(now, 'HH:mm');
 const isNowInField = computed(() => isSameMinute(props.modelValue, timeValue.value, clock.value));
-const isDialogNow = computed(() => isSameMinute(localValue.value, dialogTimeValue.value, clock.value));
 
 const timeValue = ref(props.modelValue ? format(props.modelValue, 'HH:mm') : '');
 const dialogTimeValue = ref(props.modelValue ? format(props.modelValue, 'HH:mm') : format(new Date(), 'HH:mm'));
@@ -391,28 +360,24 @@ const parsedTime = (text: string) => {
   return { hours: hours!, minutes: minutes! };
 };
 const dialogTimeError = computed(() => props.mode !== 'date' && !parsedTime(dialogTimeValue.value));
-const showWheel = ref(false);
-const wheelGroup = useTemplateRef<HTMLElement>('wheelGroup');
-const wheelHours = ref(0);
-const wheelMinutes = ref(0);
-const padTime = (value: number) => String(value).padStart(2, '0');
-function alignTimeWheel() {
-  const time = parsedTime(dialogTimeValue.value);
-  if (!time) return;
-  wheelHours.value = time.hours;
-  wheelMinutes.value = time.minutes;
-}
-async function toggleTimeWheel() {
-  if (!showWheel.value) alignTimeWheel();
-  showWheel.value = !showWheel.value;
-  if (showWheel.value) {
-    await nextTick();
-    wheelGroup.value?.scrollIntoView?.({ block: 'nearest' });
+const isTouchPointer = useMediaQuery('(pointer: coarse)');
+const nativeTimeUnavailable = ref(false);
+const usesNativeTime = computed(
+  () =>
+    isTouchPointer.value && !nativeTimeUnavailable.value && typeof HTMLInputElement.prototype.showPicker === 'function',
+);
+
+function showNativeTimePicker(event: MouseEvent) {
+  if (!usesNativeTime.value) return;
+  const input = event.currentTarget as HTMLInputElement;
+  try {
+    input.showPicker();
+  } catch {
+    // Embedded browsers can expose showPicker but reject opening the OS surface.
+    nativeTimeUnavailable.value = true;
   }
 }
-watch([wheelHours, wheelMinutes], ([hours, minutes]) => {
-  if (showWheel.value) dialogTimeValue.value = `${padTime(hours)}:${padTime(minutes)}`;
-});
+
 const isWithinCalendarBounds = (value: Date | null) => {
   if (!isValidDate(value)) return false;
   const day = +startOfDay(value);
@@ -430,13 +395,14 @@ const handleTimeTyping = (event: Event) => {
   timeValue.value = readTypedTime(event);
 };
 const handleDialogTimeTyping = (event: Event) => {
-  dialogTimeValue.value = readTypedTime(event);
-  if (showWheel.value) alignTimeWheel();
+  dialogTimeValue.value = usesNativeTime.value ? (event.target as HTMLInputElement).value : readTypedTime(event);
 };
 const commitTimeInput = () => {
   const nextTime = parsedTime(timeValue.value);
+  if (isPopoverOpen.value) return;
   if (nextTime) {
     const base = props.modelValue ?? new Date();
+    if (props.modelValue && timeValue.value === format(base, 'HH:mm')) return;
     emit('update:modelValue', set(base, { ...nextTime, seconds: 0, milliseconds: 0 }));
   } else timeValue.value = props.modelValue ? format(props.modelValue, 'HH:mm') : '';
 };
@@ -446,7 +412,6 @@ const setDialogNow = () => {
   localValue.value = now;
   dialogTimeValue.value = format(now, 'HH:mm');
   draftClock = now;
-  if (showWheel.value) alignTimeWheel();
   // Force the calendar viewport back to the current month/year, not just the
   // selected date when the user had browsed elsewhere.
   calendarPageKey.value += 1;
@@ -463,7 +428,6 @@ const saveDialogDate = () => {
   isPopoverOpen.value = false;
 };
 watch(isPopoverOpen, (open) => {
-  showWheel.value = false;
   if (!open) return;
   const selected = props.liveOnOpen ? new Date() : (props.modelValue ?? new Date());
   localValue.value = selected;
@@ -485,18 +449,21 @@ const handleLocalInputUpdate = (event: Event) => {
 
   // Only emit the date if it's a valid date string
   const date = inputVal ? parseInput({ value: inputVal }) : null;
-  if (date && isWithinCalendarBounds(date)) emit('update:modelValue', date);
+  if (!isPopoverOpen.value && date && isWithinCalendarBounds(date) && date.getTime() !== props.modelValue?.getTime()) {
+    emit('update:modelValue', date);
+  }
   // For invalid intermediate states, don't emit anything
   // This prevents validation errors during typing
 };
 
 const handleBlur = (event: Event) => {
+  if (isPopoverOpen.value) return;
   const inputVal = (event.target as HTMLInputElement).value;
 
   // On blur, validate the final input value
   const date = inputVal ? parseInput({ value: inputVal }) : null;
   if (date && isWithinCalendarBounds(date)) {
-    emit('update:modelValue', date);
+    if (date.getTime() !== props.modelValue?.getTime()) emit('update:modelValue', date);
   } else if (inputVal) {
     // Invalid date - revert to last valid value
     inputValue.value = props.modelValue ? toDisplayInput(props.modelValue) : '';

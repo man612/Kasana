@@ -219,8 +219,13 @@ const handleApply = () => {
           <AutomationChipTrack :chips="chips.then" variant="then" density="comfortable" />
         </div>
 
-        <p v-if="matches.length" class="text-muted-foreground text-xs">
-          {{ $t('automations.applyToHistory.summary', { count: preview.data.value.matchedCount }) }}
+        <p class="text-muted-foreground text-xs" role="status">
+          {{
+            $t('automations.editor.preview.summary', {
+              matched: preview.data.value.matchedCount,
+              scanned: preview.data.value.scannedCount,
+            })
+          }}
         </p>
 
         <p v-if="preview.data.value.matchedCount > matches.length" class="text-warning-text text-xs">

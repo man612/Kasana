@@ -3,13 +3,17 @@
     data-transaction-row
     :data-divider="showDivider || undefined"
     :class="[
-      'group/row hover:bg-muted/50 relative grid w-full cursor-pointer items-center gap-2 rounded-md px-2 transition-colors',
-      compact ? 'py-1.5' : 'py-2',
+      'group/row hover:bg-muted/50 relative grid w-full items-start gap-2 rounded-md px-2 transition-colors',
+      compact ? 'py-1.5 [--row-icon:2rem]' : 'py-2 [--row-icon:2.25rem]',
+      asButton && 'focus-visible:ring-ring cursor-pointer focus-visible:ring-2 focus-visible:outline-none',
       showCheckbox ? 'grid-cols-[auto_minmax(0,1fr)_fit-content(46%)]' : 'grid-cols-[minmax(0,1fr)_fit-content(46%)]',
       showCheckbox && 'has-checkbox',
     ]"
-    aria-haspopup="true"
-    @click="transactionEmit"
+    :tabindex="asButton ? 0 : undefined"
+    :aria-haspopup="asButton ? 'dialog' : undefined"
+    @keydown.enter.self.prevent="asButton && transactionEmit()"
+    @keydown.space.self.prevent="asButton && transactionEmit()"
+    @click="asButton && transactionEmit()"
   >
     <!-- Selection checkbox -->
     <label v-if="showCheckbox" class="-my-1 -ml-2 flex items-center justify-center self-stretch px-3" @click.stop>
@@ -25,10 +29,10 @@
       <div v-else class="size-4" />
     </label>
 
-    <div class="flex min-w-0 items-center gap-2">
-      <template v-if="!isTransferTransaction && !linkTarget && !isBalanceCorrection && category">
-        <div class="relative grid size-6 shrink-0 place-items-center">
-          <CategoryCircle :category="category" />
+    <div class="grid min-w-0 grid-cols-[var(--row-icon)_minmax(0,1fr)] items-start gap-2">
+      <div class="bg-muted relative grid size-(--row-icon) place-items-center rounded-lg">
+        <template v-if="!isTransferTransaction && !linkTarget && !isBalanceCorrection && category">
+          <CategoryCircle :category="category" row-icon />
           <ResponsiveTooltip v-if="showAccount && accountFrom" :content="accountFrom.name" :delay-duration="100">
             <!-- Backing tracks the row's hover fill so the badge's cut-out never shows as a halo. -->
             <span
@@ -41,25 +45,25 @@
               <AccountLogo :account="accountFrom" solid class="size-3.5 rounded-sm ring-0" />
             </span>
           </ResponsiveTooltip>
-        </div>
-      </template>
+        </template>
+        <AccountLogo v-else-if="rowAccount" :account="rowAccount" class="size-full rounded-lg" />
+        <ArrowRight v-else class="text-muted-foreground size-4" aria-hidden="true" />
+      </div>
 
-      <div class="w-full min-w-0 text-left">
+      <div class="w-full min-w-0 self-center text-left">
         <template v-if="isLoadingGroupedTransfer">
           <!-- Loading skeleton: known leg renders on its side (source left, dest
                right); the still-loading opposite leg is a placeholder. -->
           <div class="mb-1 flex items-center gap-1.5">
             <div v-if="ownLegIsIncome" class="h-4 w-20 animate-pulse rounded bg-white/10"></div>
             <template v-else>
-              <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-6 shrink-0" />
-              <span class="text-sm font-medium tracking-wide">
+              <span class="text-sm font-medium">
                 {{ accountFrom?.name }}
               </span>
             </template>
             <ArrowRight :size="14" class="opacity-60" />
             <template v-if="ownLegIsIncome">
-              <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-6 shrink-0" />
-              <span class="text-sm font-medium tracking-wide">
+              <span class="text-sm font-medium">
                 {{ accountFrom?.name }}
               </span>
             </template>
@@ -68,27 +72,24 @@
         </template>
         <template v-else-if="shouldShowGroupedTransfer">
           <div class="flex min-w-0 items-center gap-1.5 text-sm">
-            <AccountLogo v-if="transferFromAccount" :account="transferFromAccount" class="size-6 shrink-0" />
             <span class="min-w-0 truncate">{{
               transferFromAccount?.name ?? $t('common.transactions.record.hiddenAccount')
             }}</span>
             <ArrowRight :size="14" class="shrink-0 opacity-60" />
-            <AccountLogo v-if="transferToAccount" :account="transferToAccount" class="size-6 shrink-0" />
+            <AccountLogo v-if="transferToAccount" :account="transferToAccount" class="size-4 shrink-0" />
             <span class="min-w-0 truncate">{{
               transferToAccount?.name ?? $t('common.transactions.record.hiddenAccount')
             }}</span>
           </div>
         </template>
         <div v-else-if="isBalanceCorrection" class="flex min-w-0 items-center gap-2">
-          <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-6 shrink-0" />
           <div class="min-w-0">
             <div class="truncate text-sm">{{ accountFrom?.name }}</div>
           </div>
         </div>
         <template v-else-if="linkTarget">
           <div :class="['flex items-center gap-1.5', compact && 'min-w-0']">
-            <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-6 shrink-0" />
-            <span class="line-clamp-1 text-sm tracking-wider">
+            <span class="line-clamp-1 text-sm">
               {{ accountFrom?.name }}
             </span>
             <ArrowRight :size="14" :class="['shrink-0 opacity-60', linkTarget.flowsToAccount && 'rotate-180']" />
@@ -96,13 +97,13 @@
               v-if="linkTarget.logoSelection"
               v-bind="toLogoDisplayProps({ selection: linkTarget.logoSelection })"
               :name="linkTarget.name"
-              class="size-6 shrink-0"
+              class="size-4 shrink-0"
             />
             <component :is="linkTarget.icon" v-else :size="14" class="text-app-transfer-color shrink-0" />
             <div v-if="linkTarget.isLoading" class="h-4 w-16 animate-pulse rounded bg-white/10" />
             <template v-else>
               <span
-                class="line-clamp-1 text-sm tracking-wider"
+                class="line-clamp-1 text-sm"
                 :class="{ 'text-muted-foreground line-through': linkTarget.isDeleted }"
               >
                 {{ linkTarget.name }}
@@ -112,11 +113,10 @@
           </div>
         </template>
         <template v-else-if="isTransferTransaction">
-          <div :class="['flex items-center gap-1.5 text-sm tracking-wider', compact && 'min-w-0']">
-            <AccountLogo v-if="accountFrom" :account="accountFrom" class="size-6 shrink-0" />
+          <div :class="['flex items-center gap-1.5 text-sm', compact && 'min-w-0']">
             <span class="line-clamp-1">{{ transferFromLabel }}</span>
             <ArrowRight :size="14" :class="['shrink-0 opacity-60', ownLegIsIncome && 'rotate-180']" />
-            <AccountLogo v-if="accountTo" :account="accountTo" class="size-6 shrink-0" />
+            <AccountLogo v-if="accountTo" :account="accountTo" class="size-4 shrink-0" />
             <span class="line-clamp-1">{{ transferToLabel }}</span>
           </div>
         </template>
@@ -214,7 +214,7 @@
         </div>
       </div>
     </div>
-    <div class="min-w-0">
+    <div class="min-w-0 self-center">
       <div
         :class="[
           'text-amount truncate text-right tabular-nums',
@@ -225,9 +225,13 @@
       >
         {{ rowAmount }}
       </div>
-      <div v-if="!hideDate" class="text-muted-foreground text-right text-xs">
-        {{ formateDate(transaction.time) }}
-      </div>
+      <time
+        v-if="rowTimeLabel"
+        :datetime="new Date(transaction.time).toISOString()"
+        class="text-muted-foreground block text-right text-xs tabular-nums"
+      >
+        {{ rowTimeLabel }}
+      </time>
     </div>
   </div>
 </template>
@@ -260,7 +264,7 @@ import {
   TRANSACTION_TYPES,
   TransactionModel,
 } from '@bt/shared/types';
-import { format } from 'date-fns';
+import { formatTransactionRowTime } from './transaction-row-time';
 import {
   ArrowRight,
   BriefcaseIcon,
@@ -306,6 +310,7 @@ const props = withDefaults(
     showDivider?: boolean;
     /** Set where a parent already shows the date, e.g. a single-day group. */
     hideDate?: boolean;
+    showTime?: boolean;
     /** Set where planned rows already sit under their own collapsible header. */
     hidePlannedMarker?: boolean;
     hideRefundMarker?: boolean;
@@ -479,7 +484,16 @@ const transferToLabel = computed(() => {
   return accountTo.value?.name ?? t('common.transactions.record.hiddenAccount');
 });
 
-const formateDate = (date: string | number | Date) => format(new Date(date), 'd MMM y');
+const rowAccount = computed(() =>
+  shouldShowGroupedTransfer.value ? (transferFromAccount.value ?? accountFrom.value) : accountFrom.value,
+);
+const rowTimeLabel = computed(() =>
+  formatTransactionRowTime({
+    value: transaction.value.time,
+    hideDate: props.hideDate,
+    showTime: props.showTime,
+  }),
+);
 
 const transactionEmit = () => {
   emit('record-click', [transaction.value, oppositeTransferTransaction.value ?? undefined]);
@@ -555,14 +569,14 @@ const rowCaption = computed(() => {
 <style scoped>
 [data-transaction-row]:is([data-divider], :has(+ [data-transaction-row]))::after {
   position: absolute;
-  inset-inline: 2.5rem 0.5rem;
+  inset-inline: calc(var(--row-icon) + 1rem) 0.5rem;
   inset-block-end: 0;
   height: 1px;
   pointer-events: none;
-  background-color: color-mix(in srgb, var(--border) 65%, transparent);
+  background-color: color-mix(in srgb, var(--border) 90%, transparent);
   content: '';
 }
 [data-transaction-row].has-checkbox::after {
-  inset-inline-start: 5.25rem;
+  inset-inline-start: calc(var(--row-icon) + 3.5rem);
 }
 </style>

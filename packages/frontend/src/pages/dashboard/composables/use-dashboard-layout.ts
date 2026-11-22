@@ -4,7 +4,7 @@ import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { trackAnalyticsEvent } from '@/lib/posthog';
 import { useUserStore } from '@/stores/user';
-import { useLocalStorage } from '@vueuse/core';
+import { StorageSerializers, useLocalStorage } from '@vueuse/core';
 import { cloneDeep } from 'lodash-es';
 import { computed, nextTick, ref, watch } from 'vue';
 
@@ -12,11 +12,14 @@ export function useDashboardLayout() {
   const { data: settings, isPending: isSettingsPending, patchAsync } = useUserSettings();
   const user = useUserStore();
 
-  const cachedLayout = useLocalStorage<DashboardWidgetConfig[]>(
+  const cachedLayout = useLocalStorage<DashboardWidgetConfig[] | null>(
     computed(() => `dashboard-layout:user:${user.user?.id ?? 'none'}`),
-    [],
+    null,
+    { serializer: StorageSerializers.object },
   );
-  const layoutReady = computed(() => Boolean(settings.value || cachedLayout.value.length || !isSettingsPending.value));
+  const layoutReady = computed(
+    () => Boolean(settings.value) || cachedLayout.value !== null || !isSettingsPending.value,
+  );
 
   const isEditMode = ref(false);
   const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
@@ -27,14 +30,12 @@ export function useDashboardLayout() {
 
     if (settings.value) {
       // Settings loaded — use API data or default
-      const layout = saved && saved.length > 0 ? saved : DEFAULT_DASHBOARD_LAYOUT;
+      const layout = saved ?? DEFAULT_DASHBOARD_LAYOUT;
       return layout.filter((w) => w.widgetId in WIDGET_REGISTRY);
     }
 
     // Still loading — use cached layout for accurate skeletons
-    return (cachedLayout.value.length ? cachedLayout.value : DEFAULT_DASHBOARD_LAYOUT).filter(
-      (w) => w.widgetId in WIDGET_REGISTRY,
-    );
+    return (cachedLayout.value ?? DEFAULT_DASHBOARD_LAYOUT).filter((w) => w.widgetId in WIDGET_REGISTRY);
   });
 
   watch(
@@ -81,13 +82,27 @@ export function useDashboardLayout() {
     });
   };
 
-  const saveLayout = async () => {
-    await patchAsync({ dashboard: { widgets: draftWidgets.value } });
-    trackAnalyticsEvent({
-      event: 'dashboard_layout_saved',
-      properties: { widget_count: draftWidgets.value.length },
+  let saveQueue = Promise.resolve();
+  const queueLayoutUpdate = (update: () => Promise<void>) => {
+    const owner = user.user?.id;
+    const save = saveQueue.then(async () => {
+      if (owner === undefined || owner !== user.user?.id) return;
+      await update();
     });
-    exitEditMode();
+    saveQueue = save.catch(() => {});
+    return save;
+  };
+
+  const saveLayout = () => {
+    const widgets = cloneDeep(draftWidgets.value);
+    return queueLayoutUpdate(async () => {
+      await patchAsync({ dashboard: { widgets } });
+      trackAnalyticsEvent({
+        event: 'dashboard_layout_saved',
+        properties: { widget_count: widgets.length },
+      });
+      exitEditMode();
+    });
   };
 
   const cancelEdit = () => {
@@ -119,26 +134,19 @@ export function useDashboardLayout() {
     }
   };
 
-  const saveWidgetConfigDirect = async ({
-    widgetId,
-    config,
-  }: {
-    widgetId: string;
-    config: Record<string, unknown>;
-  }) => {
-    if (!settings.value) return;
-
-    const widgets = cloneDeep(activeWidgets.value);
-    const widget = widgets.find((w) => w.widgetId === widgetId);
-    if (widget) {
+  const saveWidgetConfigDirect = ({ widgetId, config }: { widgetId: string; config: Record<string, unknown> }) =>
+    queueLayoutUpdate(async () => {
+      if (!settings.value) return;
+      const widgets = cloneDeep(activeWidgets.value);
+      const widget = widgets.find((entry) => entry.widgetId === widgetId);
+      if (!widget) return;
       widget.config = { ...widget.config, ...config };
       await patchAsync({ dashboard: { widgets } });
       trackAnalyticsEvent({
         event: 'dashboard_widget_config_saved',
         properties: { widget_id: widgetId },
       });
-    }
-  };
+    });
 
   return {
     isEditMode,

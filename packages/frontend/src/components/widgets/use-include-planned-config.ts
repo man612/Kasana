@@ -2,7 +2,7 @@ import type { DashboardWidgetConfig } from '@/api/user-settings';
 import { useNotificationCenter } from '@/components/notification-center';
 import { i18n } from '@/i18n';
 import { ApiErrorResponseError } from '@/js/errors';
-import { type Ref, computed, inject } from 'vue';
+import { type Ref, computed, inject, ref } from 'vue';
 
 /**
  * For widgets that count pending planned transactions unless their config opts out: a missing
@@ -54,10 +54,12 @@ export const useWidgetConfigFlag = ({
   key,
   saveErrorKey,
   defaultValue = true,
+  optimistic = false,
 }: {
   key: string;
   saveErrorKey: string;
   defaultValue?: boolean;
+  optimistic?: boolean;
 }) => {
   const widgetConfigRef = inject<Ref<DashboardWidgetConfig> | null>('dashboard-widget-config', null);
   const saveWidgetConfig =
@@ -67,13 +69,17 @@ export const useWidgetConfigFlag = ({
 
   const notifySaveError = useConfigSaveError({ fallbackKey: saveErrorKey });
 
-  const isOn = computed<boolean>(() =>
-    readWidgetConfigFlag({ config: widgetConfigRef?.value?.config, key, defaultValue }),
+  const pending = ref<boolean>();
+  let revision = 0;
+  const isOn = computed<boolean>(
+    () => pending.value ?? readWidgetConfigFlag({ config: widgetConfigRef?.value?.config, key, defaultValue }),
   );
 
   const setFlag = async ({ value }: { value: boolean }) => {
     if (!saveWidgetConfig || !widgetConfigRef?.value) return;
 
+    const current = ++revision;
+    if (optimistic) pending.value = value;
     try {
       await saveWidgetConfig({
         widgetId: widgetConfigRef.value.widgetId,
@@ -81,6 +87,8 @@ export const useWidgetConfigFlag = ({
       });
     } catch (error) {
       notifySaveError({ error });
+    } finally {
+      if (current === revision) pending.value = undefined;
     }
   };
 

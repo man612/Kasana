@@ -69,6 +69,7 @@
       "createFirstButton": "Tambah pinjaman pertama"
     },
     "paidOff": {
+      "allSettled": "Semua pinjaman yang dipantau sudah lunas",
       "sectionTitle": "Lunas",
       "repaid": "Dilunasi",
       "opened": "Dibuka",

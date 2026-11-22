@@ -1,6 +1,6 @@
 <template>
   <PageWrapper>
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+    <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
       <UiButton variant="ghost" size="sm" class="-ml-2" @click="goBack">
         <ChevronLeftIcon class="size-4" />
         {{ $t('loans.detail.backToList') }}
@@ -34,7 +34,7 @@
     </template>
 
     <template v-else>
-      <div class="@container/loans-detail grid gap-4">
+      <div class="@container/loans-detail grid gap-3">
         <ArchivedBanner v-if="isArchived" :loan="loan" />
         <SettledBanner v-if="isPaidOff" :loan="loan" />
         <Tabs default-value="summary">

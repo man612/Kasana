@@ -22,7 +22,7 @@
     </div>
 
     <div v-else class="@container/vehicle grid min-w-0 grid-cols-1 gap-3 wrap-anywhere @2xl/vehicle:gap-5">
-      <section class="bg-card grid min-w-0 gap-1.5 rounded-2xl border p-3 @2xl/vehicle:gap-3 @2xl/vehicle:p-6">
+      <section class="bg-card grid min-w-0 gap-3 rounded-xl border p-4 @2xl/vehicle:gap-3 @2xl/vehicle:p-6">
         <div class="flex min-w-0 items-start gap-3">
           <AccountLogoPicker
             v-if="isOwner"
@@ -55,7 +55,7 @@
           </div>
           <VehicleAmount
             :formatted="formatAmountByCurrencyCode(vehicle.account.currentBalance, currencyCode)"
-            class="max-w-full min-w-0 text-3xl font-semibold tracking-tight tabular-nums @2xl/vehicle:text-5xl"
+            class="max-w-full min-w-0 text-2xl font-semibold tracking-tight tabular-nums @2xl/vehicle:text-4xl"
           />
           <span v-if="showRefValue" class="text-muted-foreground text-sm tabular-nums">
             ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(refCurrentBalance, baseCurrencyCode)" />
@@ -91,13 +91,13 @@
 
         <div v-if="isOwner" class="flex min-w-0 flex-wrap items-center gap-1.5">
           <UiButton
-            class="min-h-[44px] max-w-full min-w-[44px] rounded-lg px-2.5 text-xs wrap-anywhere whitespace-normal"
+            class="min-h-[44px] max-w-full min-w-[44px] rounded-lg px-2.5 text-sm wrap-anywhere whitespace-normal"
             @click="isOverrideOpen = true"
             >{{ $t('pages.vehicleDetails.overrideValueButton') }}</UiButton
           >
           <UiButton
             variant="outline"
-            class="min-h-[44px] max-w-full min-w-[44px] rounded-lg px-2.5 text-xs wrap-anywhere whitespace-normal"
+            class="min-h-[44px] max-w-full min-w-[44px] rounded-lg px-2.5 text-sm wrap-anywhere whitespace-normal"
             @click="isEditOpen = true"
             >{{ $t('pages.vehicleDetails.editButton') }}</UiButton
           >

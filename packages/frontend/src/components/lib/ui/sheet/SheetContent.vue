@@ -49,7 +49,7 @@ const { t } = useI18n();
     <DialogOverlay
       :class="
         cn(
-          'fixed inset-0 z-(--z-dialog) bg-black/80',
+          'lajur-scrim-dialog fixed inset-0 z-(--z-dialog) motion-reduce:animate-none!',
           'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
           props.overlayClass,
         )
@@ -73,7 +73,7 @@ const { t } = useI18n();
         ]"
       >
         <Button size="icon" variant="secondary" :class="compactClose && 'size-11'" :aria-label="t('common.ui.close')">
-          <XIcon :class="compactClose ? 'size-3.5' : 'size-5'" aria-hidden="true" />
+          <XIcon :class="compactClose ? 'size-3' : 'size-5'" aria-hidden="true" />
         </Button>
       </DialogClose>
     </DialogContent>

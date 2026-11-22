@@ -609,6 +609,25 @@
   }
 }
 
+/* Shared scrim policy. Anchored menus use the lighter layer, dialogs use the stronger layer. */
+.lajur-scrim-dialog {
+  background-color: rgb(0 0 0 / 70%);
+}
+.lajur-scrim-menu {
+  background-color: rgb(0 0 0 / 36%);
+}
+.lajur-scrim-blur {
+  backdrop-filter: blur(2px);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .lajur-scrim-blur {
+    backdrop-filter: none;
+  }
+  .lajur-scrim-menu {
+    background-color: rgb(0 0 0 / 48%);
+  }
+}
+
 /* Payee, account and payment-leg regions exit/enter independently.
    Does not discard reactive form state or change financial values. */
 .lajur-form-panel-enter-active,

@@ -69,6 +69,7 @@
       "createFirstButton": "Додати перший кредит"
     },
     "paidOff": {
+      "allSettled": "Усі відстежувані кредити погашено",
       "sectionTitle": "Погашені",
       "repaid": "Погашено",
       "opened": "Відкрито",

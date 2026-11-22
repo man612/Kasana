@@ -1358,7 +1358,7 @@ const selectDetail = (onSelect: () => void) => {
   onSelect();
 };
 const restoreDetailFocus = (event: Event) => {
-  if (selectingDetail) event.preventDefault();
+  if (selectingDetail && !isMobileView.value) event.preventDefault();
   selectingDetail = false;
 };
 
@@ -1381,7 +1381,14 @@ const {
   onReveal: async ({ field }) => {
     await nextTick();
     const fieldElement = moreOptionsRef.value?.querySelector(`[data-optional-field="${field}"]`);
-    (fieldElement?.querySelector('input') ?? fieldElement?.querySelector('button'))?.focus();
+    if (!fieldElement) return;
+    if (isMobileView.value) {
+      // A programmatic focus into an input while the menu is closing opens and
+      // then dismisses the software keyboard. Reveal the field before a deliberate tap.
+      fieldElement.scrollIntoView({ block: 'nearest' });
+      return;
+    }
+    (fieldElement.querySelector('input') ?? fieldElement.querySelector('button'))?.focus();
   },
 });
 
@@ -1784,7 +1791,7 @@ onUnmounted(() => {
 
 <template>
   <DefineDateField>
-    <div class="mb-1 flex justify-end">
+    <div class="ml-auto min-w-0">
       <DateField
         :model-value="form.time"
         :disabled="isFormFieldsDisabled || !isEditableAsManual"
@@ -1809,9 +1816,6 @@ onUnmounted(() => {
         </template>
       </DateField>
     </div>
-    <p v-if="isPreAnchorLoanPayment" class="text-muted-foreground px-1 text-xs">
-      {{ $t('dialogs.loanPayment.preAnchorHint') }}
-    </p>
   </DefineDateField>
 
   <DefinePaymentType>
@@ -2323,7 +2327,6 @@ onUnmounted(() => {
 
           <div ref="transactionModeFieldsRef">
             <div data-testid="transaction-amount-date-stack">
-              <ReuseDateField />
               <form-row>
                 <FormattedAmountField
                   ref="amountFieldRef"
@@ -2339,6 +2342,7 @@ onUnmounted(() => {
                   @update:model-value="form.amount = $event"
                   @blur="onAmountBlur"
                 >
+                  <template #label-right><ReuseDateField /></template>
                   <template #iconTrailing>
                     <CurrencyChip v-if="currencyCode && currencyCode !== 'IDR'" :code="currencyCode" />
                   </template>
@@ -2346,6 +2350,9 @@ onUnmounted(() => {
               </form-row>
             </div>
 
+            <p v-if="isPreAnchorLoanPayment" class="text-muted-foreground px-1 text-xs">
+              {{ $t('dialogs.loanPayment.preAnchorHint') }}
+            </p>
             <p v-if="wouldOverdrawLoanSource" class="text-warning-text -mt-1 px-1 text-xs">
               {{ $t('dialogs.loanPayment.overdrawWarning', { account: form.account?.name ?? '' }) }}
             </p>

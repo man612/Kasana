@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useDateLocale } from '@/composable/use-date-locale';
 import HintIcon from '@/components/common/hint-icon.vue';
 import { useFormatCurrency } from '@/composable/formatters';
 import { useAnimatedNumber } from '@/composable/use-animated-number';
@@ -21,12 +22,13 @@ import { cn } from '@/lib/utils';
 import { ROUTES_NAMES } from '@/routes/constants';
 import IncludePlannedMenuItem from '@/components/widgets/components/include-planned-menu-item.vue';
 import { useIncludePlannedConfig, useWidgetConfigFlag } from '@/components/widgets/use-include-planned-config';
-import { format, isFuture, isSameMonth, parseISO } from 'date-fns';
+import { isFuture, isSameMonth, parseISO } from 'date-fns';
 import { ArrowDownRightIcon, ArrowUpRightIcon, WalletIcon } from '@lucide/vue';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import EmptyState from '../components/empty-state.vue';
+import ErrorState from '../components/error-state.vue';
 import LoadingState from '../components/loading-state.vue';
 import WidgetWrapper from '../components/widget-wrapper.vue';
 import { buildSavingsRateLine, computeSavingsRate } from './helpers';
@@ -62,6 +64,8 @@ const {
   hasPrevData,
   isFetching,
   isInitialLoading,
+  isError,
+  retry,
   isCurrentEmpty,
   isEmpty,
 } = useCashFlowData({ selectedPeriod: () => props.selectedPeriod, excludedCategoryIds, includePlanned });
@@ -92,12 +96,13 @@ const expensePercent = computed(() => {
 // Percentage change vs previous period
 const netFlowDiff = computed(() => Number(calculatePercentageDifference(netFlow.value, prevNetFlow.value).toFixed(1)));
 
+const { format } = useDateLocale();
 const periodLabel = computed(() => {
   const { from, to } = props.selectedPeriod;
   if (isSameMonth(from, to)) {
     return format(from, 'MMMM yyyy');
   }
-  return `${format(from, 'MMM d')} - ${format(to, 'MMM d, yyyy')}`;
+  return `${format(from, 'd MMM')} - ${format(to, 'PP')}`;
 });
 
 const isPositiveFlow = computed(() => netFlow.value >= 0);
@@ -135,7 +140,7 @@ const trendBars = computed(() => {
 
   return trendBuckets.value.map((p) => {
     const isSingleMonth = isSameMonth(p.from, p.to);
-    const label = isSingleMonth ? format(p.from, 'MMM') : `${format(p.from, 'MMM d')} - ${format(p.to, 'MMM d')}`;
+    const label = isSingleMonth ? format(p.from, 'MMM') : `${format(p.from, 'd MMM')} - ${format(p.to, 'd MMM')}`;
     const shortLabel = isSingleMonth ? format(p.from, 'MMM') : format(p.from, 'MMM yy');
 
     return {
@@ -213,7 +218,9 @@ const savingsLineLabel = computed(() => {
       </ExcludeCategoriesMenu>
     </template>
 
-    <template v-if="isInitialLoading">
+    <ErrorState v-if="isError" :message="$t('errors.api.unexpectedError')" @retry="retry" />
+
+    <template v-else-if="isInitialLoading">
       <LoadingState />
     </template>
 

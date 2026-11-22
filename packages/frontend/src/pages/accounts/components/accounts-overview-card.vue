@@ -1,11 +1,11 @@
 <template>
   <Card>
     <div
-      class="grid min-w-0 gap-4 p-4 @[40rem]/accounts-page:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] @[40rem]/accounts-page:items-start @[40rem]/accounts-page:gap-6 @[40rem]/accounts-page:p-5"
+      class="grid min-w-0 gap-3 p-4 @[40rem]/accounts-page:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] @[40rem]/accounts-page:items-start @[40rem]/accounts-page:gap-6 @[40rem]/accounts-page:p-5"
     >
       <div class="min-w-0">
         <div class="flex items-center gap-1">
-          <h2 class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+          <h2 class="text-muted-foreground text-xs font-semibold">
             {{ $t('accounts.overview.totalBalance') }}
           </h2>
           <HintIcon

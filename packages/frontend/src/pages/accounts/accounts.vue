@@ -1,8 +1,8 @@
 <template>
   <PageWrapper>
     <div class="@container/accounts-page">
-      <div class="mb-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
-        <h1 class="text-3xl font-semibold tracking-tight">{{ $t('accounts.title') }}</h1>
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <h1 class="text-2xl font-semibold tracking-tight @md/accounts-page:text-3xl">{{ $t('accounts.title') }}</h1>
 
         <!-- Wide: both buttons inline. Narrow: collapse into a kebab menu so the actions
              never wrap onto their own row. Popover-with-dialog-trigger mirrors the sidebar. -->

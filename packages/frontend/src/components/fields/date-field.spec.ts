@@ -78,6 +78,22 @@ describe('DateField with explicit calendar confirmation and 24-hour time input',
     expect(wrapper.emitted('update:modelValue')).toBeUndefined();
   });
 
+  it('does not reset saved seconds when the unchanged direct time field loses focus', async () => {
+    const wrapper = mountField({ modelValue: new Date(2026, 10, 12, 10, 2, 35) });
+    await wrapper.get('[data-testid="date-field-time-input"]').trigger('blur');
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+  });
+
+  it('keeps Now visible and only changes the draft until Save', async () => {
+    const wrapper = mountField({ modelValue: initial });
+    (wrapper.vm as unknown as { open: () => void }).open();
+    await wrapper.vm.$nextTick();
+    const now = wrapper.get('[data-testid="date-dialog-now"]');
+    await now.trigger('click');
+    expect(wrapper.find('[data-testid="date-dialog-now"]').exists()).toBe(true);
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+  });
+
   it('displays a manual HH:mm field rather than a native AM/PM dropdown', async () => {
     const wrapper = mountField({ modelValue: initial });
     expect(wrapper.find('input[type="datetime-local"]').exists()).toBe(false);

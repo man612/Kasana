@@ -2,12 +2,13 @@
 import type { DashboardWidgetConfig } from '@/api/user-settings';
 import { Button } from '@/components/lib/ui/button';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
+import WidgetUnavailable from '@/components/widgets/components/widget-unavailable.vue';
 import WidgetSkeleton from '@/components/widgets/components/widget-skeleton.vue';
 import type { WidgetConfigOption, WidgetSize } from '@/components/widgets/widget-registry';
 import { WIDGET_REGISTRY } from '@/components/widgets/widget-registry';
 import { cn } from '@/lib/utils';
 import { GripVerticalIcon, XIcon } from '@lucide/vue';
-import { computed, defineAsyncComponent, provide, ref, toRef, watch } from 'vue';
+import { computed, defineAsyncComponent, h, provide, ref, toRef, watch } from 'vue';
 
 import type { Period } from '../types';
 import { getEffectiveDashboardRowSpan } from './dashboard-widget-layout';
@@ -43,11 +44,16 @@ watch(
 
 const def = computed(() => WIDGET_REGISTRY[props.widgetConfig.widgetId]);
 
+const loadAttempt = ref(0);
 const asyncComponent = computed(() => {
+  const attempt = loadAttempt.value;
   if (!def.value) return null;
   return defineAsyncComponent({
     loader: def.value.component,
     loadingComponent: WidgetSkeleton,
+    errorComponent: {
+      render: () => h(WidgetUnavailable, { onRetry: () => (loadAttempt.value = attempt + 1) }),
+    },
   });
 });
 

@@ -60,11 +60,11 @@ const bodyClass = computed(() =>
   cn(
     'min-w-0 flex-1',
     'transition-opacity duration-200 motion-reduce:transition-none',
-    !props.rule.isEnabled && 'opacity-55',
+    !props.rule.isEnabled && 'opacity-75',
   ),
 );
 
-const eyebrowClass = 'text-[10px] font-extrabold tracking-wider uppercase @md/automations:hidden';
+const eyebrowClass = 'text-xs font-semibold @md/automations:hidden';
 
 // Below @md each group is a stacked, bordered panel with its eyebrow as a header; at @md and in
 // compact density the groups collapse back into a single inline row.
@@ -129,7 +129,7 @@ const handleMenuAction = ({ close, action }: { close: () => void; action: 'edit'
     <div class="-ml-3 flex w-8 shrink-0 flex-col self-stretch" :class="density === 'compact' ? '-my-1.5' : '-my-3'">
       <span
         class="bg-muted text-foreground flex size-8 shrink-0 items-center justify-center rounded-br-md text-sm font-semibold tabular-nums"
-        :class="{ 'opacity-55': !rule.isEnabled }"
+        :class="{ 'opacity-75': !rule.isEnabled }"
       >
         {{ position ?? '·' }}
       </span>
@@ -224,7 +224,7 @@ const handleMenuAction = ({ close, action }: { close: () => void; action: 'edit'
 
       <div
         class="mt-1 flex flex-col gap-1 @md/automations:mt-1.5 @md/automations:flex-row @md/automations:items-center @md/automations:gap-1.5"
-        :class="[density === 'compact' && 'flex-row items-center', !rule.isEnabled && 'opacity-55']"
+        :class="[density === 'compact' && 'flex-row items-center', !rule.isEnabled && 'opacity-75']"
       >
         <div v-if="chips.when.length" :class="groupClass">
           <span :class="[eyebrowClass, 'text-muted-foreground', density === 'compact' && 'hidden']">

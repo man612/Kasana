@@ -22,7 +22,7 @@
 .calendar .vc-weeks {
   @apply flex w-full flex-col space-y-2 [&>_div]:grid [&>_div]:grid-cols-7;
 }
-.calendar .vc-day:has(.vc-highlights) {
+.calendar:not(.calendar--month-navigation) .vc-day:has(.vc-highlights) {
   @apply bg-accent overflow-hidden first:rounded-l-md last:rounded-r-md;
 }
 .calendar .vc-day.is-today:not(:has(.vc-day-layer)) {
@@ -224,4 +224,14 @@
 }
 .calendar--month-navigation .vc-day-content {
   @apply size-[min(2.25rem,10vw)];
+}
+
+.calendar--month-navigation .vc-highlight-bg-solid {
+  @apply bg-transparent;
+}
+.calendar--month-navigation .vc-day.is-today:not(:has(.vc-day-layer)) {
+  @apply bg-transparent;
+}
+.calendar--month-navigation .vc-day.is-today .vc-day-content:not(.vc-highlight-content-solid) {
+  @apply ring-border font-semibold ring-1;
 }

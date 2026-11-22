@@ -35,7 +35,12 @@ export function useCategorySpendingData({
 
   const isEnabled = computed(() => isAppInitialized.value && categoryIds.value.length > 0);
 
-  const { data: spendingData, isFetching } = useQuery({
+  const {
+    data: spendingData,
+    isFetching,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: computed(() => [
       ...VUE_QUERY_CACHE_KEYS.widgetCategorySpendingTracker,
       periodQueryKey.value,
@@ -119,6 +124,8 @@ export function useCategorySpendingData({
     trendByCategory,
     isTrendFetching,
     isFetching,
+    isError,
+    refetch,
     hasData,
   };
 }

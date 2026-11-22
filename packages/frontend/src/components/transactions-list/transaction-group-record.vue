@@ -5,7 +5,7 @@ import { transactionGroupDetailQuery } from '@/composable/data-queries/transacti
 import { type TransactionModel, dedupeTransferLegs } from '@bt/shared/types';
 import { ChevronDownIcon } from '@lucide/vue';
 import { useQuery } from '@tanstack/vue-query';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { computed, ref, useId, watch } from 'vue';
 
 import { isTransactionTimeInRange, type TransactionTimeRange } from './time-sections';
@@ -32,6 +32,7 @@ const props = defineProps<{
   expandable?: boolean;
   previewLimit?: number;
   timeRange?: TransactionTimeRange;
+  groupedByDay?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -73,6 +74,12 @@ const hasMoreMembers = computed(
 );
 
 const dateRange = computed(() => {
+  if (
+    props.groupedByDay &&
+    props.group.members.length === props.group.transactionCount &&
+    isSameDay(props.group.dateFrom, props.group.dateTo)
+  )
+    return undefined;
   const from = format(props.group.dateFrom, 'd MMM');
   const to = format(props.group.dateTo, 'd MMM yyyy');
   const fromFull = format(props.group.dateFrom, 'd MMM yyyy');
@@ -94,8 +101,8 @@ const dateRange = computed(() => {
         <span class="min-w-0 flex-1">
           <span class="block truncate font-semibold">{{ group.groupName }}</span>
           <span class="text-muted-foreground block truncate text-xs font-normal">
-            {{ group.transactionCount }} {{ $t('transactionGroups.transactionGroupRecord.transactionCountLabel') }} ·
-            {{ dateRange }}
+            {{ group.transactionCount }} {{ $t('transactionGroups.transactionGroupRecord.transactionCountLabel') }}
+            <template v-if="dateRange"> · {{ dateRange }}</template>
           </span>
         </span>
       </Button>
@@ -134,6 +141,7 @@ const dateRange = computed(() => {
           v-for="(member, index) in visibleMembers"
           :key="member.id"
           :tx="member"
+          :show-time="groupedByDay && !dateRange"
           :index="index"
           @record-click="emit('record-click', $event)"
         />

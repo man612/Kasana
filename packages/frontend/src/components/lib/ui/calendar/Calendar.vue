@@ -94,17 +94,19 @@ const vCalendarSlots = computed(() =>
 
 <template>
   <div class="relative">
-    <div v-if="$attrs.mode !== 'time' && !monthNavigation" class="absolute top-3 z-1 flex w-full justify-between px-4">
+    <div v-if="$attrs.mode !== 'time'" class="pointer-events-none absolute top-2 z-1 flex w-full justify-between px-3">
       <button
         type="button"
-        :class="cn(buttonVariants({ variant: 'outline' }), 'size-7 bg-transparent p-0 opacity-50 hover:opacity-100')"
+        :class="cn(buttonVariants({ variant: 'outline' }), 'pointer-events-auto size-9 bg-transparent p-0 text-muted-foreground hover:text-foreground')"
+        :aria-label="i18n.global.t('common.dateSelector.previousPage')"
         @click="handleNav('prev')"
       >
         <ChevronLeft class="size-4" />
       </button>
       <button
         type="button"
-        :class="cn(buttonVariants({ variant: 'outline' }), 'size-7 bg-transparent p-0 opacity-50 hover:opacity-100')"
+        :class="cn(buttonVariants({ variant: 'outline' }), 'pointer-events-auto size-9 bg-transparent p-0 text-muted-foreground hover:text-foreground')"
+        :aria-label="i18n.global.t('common.dateSelector.nextPage')"
         @click="handleNav('next')"
       >
         <ChevronRight class="size-4" />
@@ -121,6 +123,7 @@ const vCalendarSlots = computed(() =>
       :class="{ 'calendar--month-navigation': monthNavigation }"
       :trim-weeks="!monthNavigation"
       :nav-visibility="monthNavigation ? 'click' : undefined"
+      :first-day-of-week="monthNavigation && calendarLocale === 'id' ? 2 : undefined"
       :transition="'slide-h'"
       :columns="columns"
     >

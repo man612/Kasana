@@ -119,6 +119,11 @@
       }
     },
     "editor": {
+      "steps": {
+        "conditions": "Kondisi yang harus cocok",
+        "actions": "Tindakan yang dijalankan",
+        "preview": "Coba aturan"
+      },
       "titleNew": "Buat otomatisasi",
       "titleEdit": "Sunting otomatisasi",
       "back": "Kembali ke otomatisasi",
@@ -169,6 +174,10 @@
         "confirm": "Buang perubahan"
       },
       "preview": {
+        "scope": "Pratinjau memeriksa transaksi impor atau sinkronisasi yang memenuhi syarat.",
+        "after": "Perubahan yang direncanakan",
+        "notApplied": "Belum diterapkan. Hasil akhir mengikuti transaksi dan aturan yang memenuhi syarat.",
+        "before": "Contoh transaksi saat ini",
         "title": "Periksa transaksi yang cocok",
         "run": "Lihat pratinjau",
         "hint": "Lengkapi syarat untuk melihat transaksi yang cocok. Pratinjau tidak mengubah transaksi.",

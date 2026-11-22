@@ -178,6 +178,7 @@ const sentenceChips = computed(() =>
 );
 const hasSentence = computed(() => sentenceChips.value.when.length > 0 && sentenceChips.value.then.length > 0);
 const previewOpen = ref(false);
+const previewId = useId();
 
 const areConditionsValid = computed(
   () => form.conditions.items.length > 0 && conditionErrors.value.every((error) => !error),
@@ -326,7 +327,7 @@ const confirmLeave = () => {
           <RailSection :icon="ListFilterIcon" tone="when" connected>
             <template #header>
               <div class="flex flex-wrap items-center gap-2 text-sm font-semibold">
-                {{ $t('automations.guide.conditionsTitle') }}
+                {{ $t('automations.editor.steps.conditions') }}
                 <HintIcon
                   :title="$t('automations.guide.conditionsTitle')"
                   :content="$t('automations.guide.conditionsHelp')"
@@ -346,7 +347,7 @@ const confirmLeave = () => {
           <RailSection :icon="ListChecksIcon" tone="then">
             <template #header>
               <div class="flex items-center gap-1 text-sm font-semibold">
-                {{ $t('automations.guide.actionsTitle') }}
+                {{ $t('automations.editor.steps.actions') }}
                 <HintIcon
                   :title="$t('automations.guide.actionsTitle')"
                   :content="$t('automations.guide.actionsHelp')"
@@ -362,7 +363,7 @@ const confirmLeave = () => {
             class="border-border bg-card flex flex-wrap items-center gap-x-2.5 gap-y-1.5 rounded-lg border px-3 py-2.5"
           >
             <h2 class="w-full text-sm font-semibold">{{ $t('automations.guide.summaryTitle') }}</h2>
-            <span class="text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
+            <span class="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
               {{ $t('automations.chips.when') }}
             </span>
             <AutomationChipTrack
@@ -373,7 +374,7 @@ const confirmLeave = () => {
             />
             <template v-if="sentenceChips.then.length">
               <ArrowRightIcon class="text-muted-foreground size-3.5 shrink-0" />
-              <span class="text-primary-text text-[11px] font-bold tracking-wider uppercase">
+              <span class="text-primary-text text-xs font-semibold tracking-wider uppercase">
                 {{ $t('automations.chips.then') }}
               </span>
               <AutomationChipTrack :chips="sentenceChips.then" variant="then" density="comfortable" />
@@ -387,18 +388,24 @@ const confirmLeave = () => {
             variant="ghost"
             class="min-h-11 w-full justify-between text-left whitespace-normal"
             :aria-expanded="previewOpen"
+            :aria-controls="previewId"
             @click="previewOpen = !previewOpen"
           >
-            {{ $t('automations.editor.preview.title') }}
+            {{ $t('automations.editor.steps.preview') }}
             <ChevronDownIcon
               class="size-4 shrink-0 motion-safe:transition-transform"
               :class="previewOpen && 'rotate-180'"
               aria-hidden="true"
             />
           </Button>
-          <LayoutCollapse :open="previewOpen">
+          <LayoutCollapse :id="previewId" :open="previewOpen">
             <div class="p-2">
-              <PreviewPanel :conditions="normalizedConditions" :disabled="!areConditionsValid" />
+              <PreviewPanel
+                :conditions="normalizedConditions"
+                :actions="form.actions"
+                :action-chips="sentenceChips.then"
+                :disabled="!areConditionsValid"
+              />
             </div>
           </LayoutCollapse>
         </Card>

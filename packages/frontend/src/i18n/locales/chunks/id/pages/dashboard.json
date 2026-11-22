@@ -8,12 +8,16 @@
     },
     "widgets": {
       "common": {
+        "loadError": "Widget gagal dimuat.",
+        "staleData": "Sebagian data belum bisa diperbarui.",
         "includePlanned": "Sertakan transaksi terencana",
         "includePlannedTooltip": "Hitung transaksi terencana yang tertunda dalam angka widget ini.",
         "includePlannedSaveError": "Tidak dapat menyimpan pengaturan transaksi terencana. Silakan coba lagi."
       },
       "balanceTrend": {
         "presentation": {
+          "component": "Komponen saldo",
+          "details": "Detail tren",
           "summary": "Ringkasan",
           "graph": "Grafik",
           "label": "Tampilan Tren Saldo",
@@ -70,7 +74,7 @@
           "loans": "Pinjaman:"
         },
         "today": "Hari ini",
-        "vsPreviousPeriod": "vs periode sebelumnya",
+        "vsPreviousPeriod": "Dibanding periode lalu",
         "spikePanel": {
           "accounts": "Akun",
           "portfolios": "Portofolio",
@@ -516,6 +520,7 @@
       "loadFailed": "Couldn't load recurring payments"
     },
     "latestRecords": {
+      "otherRows": "{count} item lainnya",
       "collapse": "Ringkas transaksi terbaru",
       "expand": "Perluas transaksi terbaru",
       "compactSaveError": "Gagal menyimpan tampilan ringkas. Coba lagi.",

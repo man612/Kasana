@@ -48,11 +48,12 @@ const describedByAttrs = useDescribedByAttrs();
 
 <template>
   <DrawerPortal>
-    <DrawerOverlay :class="dimBackdrop && 'z-(--z-over-dialog) bg-black/60 backdrop-blur-[2px]'" />
+    <DrawerOverlay :class="dimBackdrop && 'lajur-scrim-blur z-(--z-over-dialog)'" />
     <DrawerContent
       v-animate-dialog-height="Boolean(adaptiveHeight)"
       v-bind="{ ...forwarded, ...describedByAttrs, ...$attrs }"
       :style="sheetStyle"
+      :data-keyboard-resize="keyboard ? '' : undefined"
       :class="
         cn(
           'bg-dialog fixed inset-x-0 bottom-0 z-(--z-dialog) mt-24 flex h-auto max-h-[95vh] flex-col rounded-t-[10px] border pb-[env(safe-area-inset-bottom)]',

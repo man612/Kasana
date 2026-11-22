@@ -68,7 +68,7 @@
       :title="$t('dashboard.periodSelector.backToCurrent')"
       @click="period = getCurrentPayPeriod()"
     >
-      <RotateCcw class="size-3.5" aria-hidden="true" />
+      <RotateCcw class="size-4" aria-hidden="true" />
     </Button>
   </div>
 </template>

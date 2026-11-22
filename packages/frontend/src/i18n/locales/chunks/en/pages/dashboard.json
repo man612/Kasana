@@ -8,12 +8,16 @@
     },
     "widgets": {
       "common": {
+        "loadError": "Could not load the widget.",
+        "staleData": "Some data could not be refreshed.",
         "includePlanned": "Include planned transactions",
         "includePlannedTooltip": "Count pending planned transactions in this widget's numbers.",
         "includePlannedSaveError": "Couldn't save the planned transactions setting. Please try again."
       },
       "balanceTrend": {
         "presentation": {
+          "component": "Balance component",
+          "details": "Trend details",
           "summary": "Summary",
           "graph": "Chart",
           "label": "Balance trend view",
@@ -70,7 +74,7 @@
           "loans": "Loans:"
         },
         "today": "Today",
-        "vsPreviousPeriod": "vs previous period",
+        "vsPreviousPeriod": "Compared with the previous period",
         "spikePanel": {
           "accounts": "Accounts",
           "portfolios": "Portfolios",
@@ -516,6 +520,7 @@
       "loadFailed": "Couldn't load recurring payments"
     },
     "latestRecords": {
+      "otherRows": "{count} more item | {count} more items",
       "collapse": "Collapse latest transactions",
       "expand": "Expand latest transactions",
       "compactSaveError": "Could not save the compact view. Try again.",

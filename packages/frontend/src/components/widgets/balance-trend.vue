@@ -1,44 +1,7 @@
 <template>
-  <WidgetWrapper :is-fetching="isWidgetDataFetching" class="min-h-0">
+  <WidgetWrapper :is-fetching="isWidgetDataFetching" class="@container/balance min-h-0">
     <template #title>
-      <div class="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-        <span>{{ $t('dashboard.widgets.balanceTrend.title') }}</span>
-        <div data-no-nav-swipe class="w-full min-w-0 touch-pan-x overflow-x-auto overscroll-x-contain pb-0.5 sm:hidden">
-          <div
-            ref="filterRow"
-            class="relative flex w-max gap-1"
-            role="group"
-            :aria-label="$t('dashboard.widgets.balanceTrend.title')"
-          >
-            <span
-              v-if="indicator.width"
-              aria-hidden="true"
-              class="bg-primary pointer-events-none absolute inset-y-0 left-0 rounded-lg motion-safe:transition-[transform,width] motion-safe:duration-200"
-              :style="{ width: `${indicator.width}px`, transform: `translateX(${indicator.left}px)` }"
-            />
-            <Button
-              v-for="option in balanceTypeOptions"
-              :key="option.value"
-              type="button"
-              variant="ghost"
-              size="sm"
-              class="text-muted-foreground aria-pressed:text-primary-foreground relative shrink-0 rounded-lg px-2.5 text-xs aria-pressed:hover:bg-transparent"
-              :aria-pressed="selectedBalanceType.value === option.value"
-              @click="selectedBalanceType = option"
-            >
-              {{ option.label }}
-            </Button>
-          </div>
-        </div>
-        <SelectField
-          v-model="selectedBalanceType"
-          :values="balanceTypeOptions"
-          value-key="value"
-          label-key="label"
-          class="hidden w-35 text-xs sm:block"
-          :disabled="isWidgetDataFetching"
-        />
-      </div>
+      {{ $t('dashboard.widgets.balanceTrend.title') }}
     </template>
     <template v-if="widgetConfigRef" #action>
       <BalanceTrendSettingsPopover :is-projection-active="projection !== null" />
@@ -46,16 +9,32 @@
     <template v-if="isInitialLoading">
       <LoadingState />
     </template>
+    <template v-else-if="balanceHistoryError && isDataEmpty">
+      <WidgetUnavailable @retry="refetchBalanceHistory()" />
+    </template>
     <template v-else-if="isDataEmpty">
       <EmptyState>
         <ChartLineIcon class="size-12 opacity-60" />
       </EmptyState>
     </template>
     <template v-else>
-      <!-- Stats row - two columns with space between -->
+      <SelectField
+        :model-value="selectedBalanceType"
+        :values="balanceTypeOptions"
+        @update:model-value="selectBalanceType"
+        value-key="value"
+        label-key="label"
+        :aria-label="$t('dashboard.widgets.balanceTrend.presentation.component')"
+        :placeholder="$t('dashboard.widgets.balanceTrend.presentation.component')"
+        class="mb-2 max-w-56"
+      />
+      <p v-if="balanceHistoryError" class="text-warning-text mb-2 text-xs" role="status">
+        {{ $t('dashboard.widgets.common.staleData') }}
+        <Button variant="link" size="sm" @click="refetchBalanceHistory()">{{ $t('common.actions.retry') }}</Button>
+      </p>
       <div
         ref="statsRow"
-        class="mb-3 grid grid-cols-1 items-start gap-2 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] sm:gap-4"
+        class="mb-2 grid min-w-0 grid-cols-1 gap-2 @md/balance:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]"
       >
         <div class="min-w-0">
           <p class="text-muted-foreground text-xs font-medium">{{ metricLabel }}</p>
@@ -69,9 +48,8 @@
 
         <!-- Right: Comparison -->
         <div class="flex min-w-0 flex-col items-start gap-1 sm:items-end">
-          <div class="flex max-w-full items-center gap-1.5 sm:w-full">
+          <div v-if="balancesDiffAbsolute !== null" class="flex max-w-full items-center gap-1.5">
             <FitAmount
-              v-if="balancesDiffAbsolute !== null"
               :value="balancesDiffAbsolute"
               signed
               class="max-w-full text-sm font-semibold tracking-tight sm:flex-1 sm:text-right"
@@ -81,8 +59,9 @@
                 'text-muted-foreground': comparisonTone === 0,
               }"
             />
-            <span v-else class="text-muted-foreground flex-1 text-right text-sm">—</span>
+
             <span
+              v-if="balancesDiff !== null"
               class="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold"
               :class="{
                 'bg-app-expense-color/15 text-app-expense-color': comparisonTone < 0,
@@ -93,7 +72,7 @@
               {{ balancesDiff === null ? '—' : `${balancesDiff > 0 ? '+' : ''}${balancesDiff}%` }}
             </span>
           </div>
-          <div class="text-muted-foreground text-xs tracking-tight">
+          <div v-if="balancesDiffAbsolute !== null" class="text-muted-foreground text-xs tracking-tight">
             {{ $t('dashboard.widgets.balanceTrend.vsPreviousPeriod') }}
           </div>
         </div>
@@ -115,132 +94,162 @@
         <template #date>{{ projectionThroughDate }}</template>
       </i18n-t>
 
-      <PillTabs
-        v-model="presentation"
-        size="sm"
-        class="mb-2"
-        :items="presentationOptions"
-        role="group"
-        :aria-label="$t('dashboard.widgets.balanceTrend.presentation.label')"
-        data-testid="balance-trend-presentation"
-      />
-      <LayoutCollapse :open="presentation === 'summary'" class="shrink-0">
-        <div data-testid="balance-trend-summary" class="grid gap-2 pb-1 text-xs">
-          <p class="text-muted-foreground leading-relaxed">{{ metricDescription }}</p>
-          <dl v-if="summaryStats" class="border-border/60 grid grid-cols-2 gap-3 border-t pt-2">
-            <div class="min-w-0">
-              <dt class="text-muted-foreground">{{ $t('dashboard.widgets.balanceTrend.presentation.periodStart') }}</dt>
-              <dd><FitAmount :value="summaryStats.start" class="pt-0.5 text-sm font-medium" /></dd>
-            </div>
-            <div class="min-w-0">
-              <dt class="text-muted-foreground">
-                {{ $t('dashboard.widgets.balanceTrend.presentation.periodChange') }}
-              </dt>
-              <dd><FitAmount :value="summaryStats.change" signed class="pt-0.5 text-sm font-medium" /></dd>
-            </div>
-          </dl>
-        </div>
-      </LayoutCollapse>
-      <LayoutCollapse :open="presentation === 'graph'" class="min-h-0" :class="presentation === 'graph' && 'flex-1'">
-        <div ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative min-h-32 w-full flex-1 sm:min-h-44">
-          <svg
-            ref="svgRef"
-            class="focus-visible:ring-ring h-full w-full touch-pan-y focus-visible:ring-2 focus-visible:outline-none"
-            role="group"
-            :aria-label="$t('dashboard.widgets.balanceTrend.title')"
-            :aria-describedby="canPanChart ? chartPanHelpId : undefined"
-            :tabindex="canPanChart ? 0 : undefined"
-            @pointerdown="rememberChartPointer"
-            @pointerup="finishChartPointer"
-            @pointercancel="cancelChartPointer"
-            @click.capture="protectChartPan"
-            @keydown.left.prevent="moveChartWindow({ points: -CHART_WINDOW_POINTS })"
-            @keydown.right.prevent="moveChartWindow({ points: CHART_WINDOW_POINTS })"
-          ></svg>
-
-          <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
-          <Teleport to="body">
-            <Transition name="lajur-chart-tooltip">
-              <div
-                v-show="tooltip.visible && !spikePanel.visible"
-                ref="tooltipRef"
-                class="pointer-events-none fixed isolate z-(--z-chart-floating) max-w-[calc(100vw-1.25rem)] [@media(pointer:coarse)]:motion-safe:transition-[left,top] [@media(pointer:coarse)]:motion-safe:duration-150"
-                :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
-              >
-                <ChartTooltip>
-                  <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
-
-                  <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
-                    <template #value>
-                      {{ formatTooltipMoney(row.value)
-                      }}<span
-                        v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
-                        class="ml-1 text-xs font-medium"
-                        :class="deltaColorClass(row.delta)"
-                        >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
-                      >
-                    </template>
-                  </ChartTooltipRow>
-
-                  <ChartTooltipDivider v-if="tooltipComponentRows.length" />
-
-                  <ChartTooltipRow
-                    total
-                    :label="
-                      selectedBalanceType.value === 'total'
-                        ? $t('dashboard.widgets.balanceTrend.tooltip.total')
-                        : metricLabel
-                    "
-                    :value="formatTooltipMoney(tooltip.totalBalance)"
-                  />
-
-                  <div
-                    v-if="tooltip.hasDelta"
-                    class="mt-1 text-xs font-semibold tabular-nums"
-                    :class="deltaColorClass(usesLoanBalance ? -tooltip.deltaAbsolute : tooltip.deltaAbsolute)"
-                  >
-                    {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
-                    ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
-                  </div>
-                </ChartTooltip>
-              </div>
-            </Transition>
-          </Teleport>
-
-          <!-- Spike transactions panel -->
-          <SpikeTransactionsPanel
-            ref="spikePanelRef"
-            :visible="spikePanel.visible"
-            :x="spikePanel.x"
-            :y="spikePanel.y"
-            :spike-date="spikeDateLabel"
-            :delta-absolute="spikePanel.spikePoint?.deltaAbsolute ?? 0"
-            :delta-percent="spikePanel.spikePoint?.deltaPercent ?? 0"
-            :is-positive="spikePanel.spikePoint ? spikePanel.spikePoint.isPositive !== usesLoanBalance : true"
-            :transactions="spikeTransactions ?? []"
-            :is-loading="isSpikeTransactionsLoading"
-            :is-portfolio-mode="isPortfolioMode"
-            :accounts-delta="spikePanel.accountsDelta"
-            :portfolios-delta="spikePanel.portfoliosDelta"
-            :selected-balance-type="selectedBalanceType.value"
-            :currency-code="baseCurrency?.currency?.code"
-            @close="closeSpikePanel"
-            @see-all="navigateToSpikeTransactions"
+      <Button
+        type="button"
+        variant="ghost"
+        class="hover:bg-muted/40 mb-1 grid h-auto min-h-20 w-full gap-1 rounded-lg px-2 py-1 text-left"
+        :aria-expanded="showDetails"
+        :aria-controls="detailsId"
+        @click="showDetails = !showDetails"
+      >
+        <svg
+          v-if="miniTrend"
+          viewBox="0 0 300 48"
+          class="text-primary-text h-12 w-full"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path
+            :d="miniTrend.path"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            vector-effect="non-scaling-stroke"
           />
-        </div>
-        <div v-if="canPanChart" class="flex flex-wrap items-center justify-between gap-x-2 px-2 text-xs">
-          <p :id="chartPanHelpId" class="text-muted-foreground">{{ $t('dashboard.widgets.balanceTrend.panHint') }}</p>
-          <Button
-            v-if="chartWindowStart !== null"
-            type="button"
-            size="sm"
-            variant="ghost"
-            @click="chartWindowStart = null"
-          >
-            {{ $t('dashboard.widgets.balanceTrend.showFullRange') }}
-          </Button>
-        </div>
-      </LayoutCollapse>
+          <circle :cx="miniTrend.end.x" :cy="miniTrend.end.y" r="2.5" fill="currentColor" />
+        </svg>
+        <span class="flex w-full items-center justify-between gap-2">
+          <span>{{ $t('dashboard.widgets.balanceTrend.presentation.details') }}</span>
+          <ChevronDownIcon
+            class="text-muted-foreground size-4 motion-safe:transition-transform"
+            :class="showDetails && 'rotate-180'"
+            aria-hidden="true"
+          />
+        </span>
+      </Button>
+      <section :id="detailsId" class="flex min-h-0 flex-col">
+        <LayoutCollapse :open="showDetails" class="shrink-0">
+          <div data-testid="balance-trend-summary" class="grid gap-2 pb-1 text-xs">
+            <p class="text-muted-foreground leading-relaxed">{{ metricDescription }}</p>
+            <dl v-if="summaryStats" class="border-border/60 grid grid-cols-2 gap-3 border-t pt-2">
+              <div class="min-w-0">
+                <dt class="text-muted-foreground">
+                  {{ $t('dashboard.widgets.balanceTrend.presentation.periodStart') }}
+                </dt>
+                <dd><FitAmount :value="summaryStats.start" class="pt-0.5 text-sm font-medium" /></dd>
+              </div>
+              <div class="min-w-0">
+                <dt class="text-muted-foreground">
+                  {{ $t('dashboard.widgets.balanceTrend.presentation.periodChange') }}
+                </dt>
+                <dd><FitAmount :value="summaryStats.change" signed class="pt-0.5 text-sm font-medium" /></dd>
+              </div>
+            </dl>
+          </div>
+        </LayoutCollapse>
+        <LayoutCollapse :open="showDetails" class="min-h-0" :class="showDetails && 'flex-1'">
+          <div ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative min-h-32 w-full flex-1 sm:min-h-44">
+            <svg
+              ref="svgRef"
+              class="focus-visible:ring-ring h-full w-full touch-pan-y focus-visible:ring-2 focus-visible:outline-none"
+              role="group"
+              :aria-label="$t('dashboard.widgets.balanceTrend.title')"
+              :aria-describedby="canPanChart ? chartPanHelpId : undefined"
+              :tabindex="canPanChart ? 0 : undefined"
+              @pointerdown="rememberChartPointer"
+              @pointerup="finishChartPointer"
+              @pointercancel="cancelChartPointer"
+              @click.capture="protectChartPan"
+              @keydown.left.prevent="moveChartWindow({ points: -CHART_WINDOW_POINTS })"
+              @keydown.right.prevent="moveChartWindow({ points: CHART_WINDOW_POINTS })"
+            ></svg>
+
+            <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
+            <Teleport to="body">
+              <Transition name="lajur-chart-tooltip">
+                <div
+                  v-show="tooltip.visible && !spikePanel.visible"
+                  ref="tooltipRef"
+                  class="pointer-events-none fixed isolate z-(--z-chart-floating) max-w-[calc(100vw-1.25rem)] [@media(pointer:coarse)]:motion-safe:transition-[left,top] [@media(pointer:coarse)]:motion-safe:duration-150"
+                  :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
+                >
+                  <ChartTooltip>
+                    <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
+
+                    <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
+                      <template #value>
+                        {{ formatTooltipMoney(row.value)
+                        }}<span
+                          v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
+                          class="ml-1 text-xs font-medium"
+                          :class="deltaColorClass(row.delta)"
+                          >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
+                        >
+                      </template>
+                    </ChartTooltipRow>
+
+                    <ChartTooltipDivider v-if="tooltipComponentRows.length" />
+
+                    <ChartTooltipRow
+                      total
+                      :label="
+                        selectedBalanceType.value === 'total'
+                          ? $t('dashboard.widgets.balanceTrend.tooltip.total')
+                          : metricLabel
+                      "
+                      :value="formatTooltipMoney(tooltip.totalBalance)"
+                    />
+
+                    <div
+                      v-if="tooltip.hasDelta"
+                      class="mt-1 text-xs font-semibold tabular-nums"
+                      :class="deltaColorClass(usesLoanBalance ? -tooltip.deltaAbsolute : tooltip.deltaAbsolute)"
+                    >
+                      {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
+                      ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
+                    </div>
+                  </ChartTooltip>
+                </div>
+              </Transition>
+            </Teleport>
+
+            <!-- Spike transactions panel -->
+            <SpikeTransactionsPanel
+              ref="spikePanelRef"
+              :visible="spikePanel.visible"
+              :x="spikePanel.x"
+              :y="spikePanel.y"
+              :spike-date="spikeDateLabel"
+              :delta-absolute="spikePanel.spikePoint?.deltaAbsolute ?? 0"
+              :delta-percent="spikePanel.spikePoint?.deltaPercent ?? 0"
+              :is-positive="spikePanel.spikePoint ? spikePanel.spikePoint.isPositive !== usesLoanBalance : true"
+              :transactions="spikeTransactions ?? []"
+              :is-loading="isSpikeTransactionsLoading"
+              :is-portfolio-mode="isPortfolioMode"
+              :accounts-delta="spikePanel.accountsDelta"
+              :portfolios-delta="spikePanel.portfoliosDelta"
+              :selected-balance-type="selectedBalanceType.value"
+              :currency-code="baseCurrency?.currency?.code"
+              @close="closeSpikePanel"
+              @see-all="navigateToSpikeTransactions"
+            />
+          </div>
+          <div v-if="canPanChart" class="flex flex-wrap items-center justify-between gap-x-2 px-2 text-xs">
+            <p :id="chartPanHelpId" class="text-muted-foreground">{{ $t('dashboard.widgets.balanceTrend.panHint') }}</p>
+            <Button
+              v-if="chartWindowStart !== null"
+              type="button"
+              size="sm"
+              variant="ghost"
+              @click="chartWindowStart = null"
+            >
+              {{ $t('dashboard.widgets.balanceTrend.showFullRange') }}
+            </Button>
+          </div>
+        </LayoutCollapse>
+      </section>
       <!-- Accessible numerical alternative to hovering the SVG. Sampled evenly,
            always including the first and latest real balance observations. -->
       <section class="border-border/60 mt-3 border-t pt-2 text-xs">
@@ -314,7 +323,6 @@ import {
   ChartTooltipRow,
 } from '@/components/common/charts/chart-tooltip';
 import LayoutCollapse from '@/components/common/layout-collapse.vue';
-import { PillTabs } from '@/components/lib/ui/pill-tabs';
 import FitAmount from '@/components/common/fit-amount.vue';
 import { Button } from '@/components/lib/ui/button';
 import SelectField from '@/components/fields/select-field.vue';
@@ -334,10 +342,10 @@ import { formatLargeNumber } from '@/js/helpers';
 import { compareBalancePeriods } from './compare-balance-periods';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { loadCombinedBalanceTrendData } from '@/services/stats';
-import { useAccountsStore, useCurrenciesStore } from '@/stores';
+import { useAccountsStore, useCurrenciesStore, useUserStore } from '@/stores';
 import { SORT_DIRECTIONS } from '@bt/shared/types';
 import { useQuery } from '@tanstack/vue-query';
-import { usePreferredReducedMotion, useResizeObserver } from '@vueuse/core';
+import { useLocalStorage, usePreferredReducedMotion, useResizeObserver } from '@vueuse/core';
 import * as d3 from 'd3';
 import { differenceInDays, endOfDay, format, min, startOfDay, subDays, parseISO } from 'date-fns';
 import { ChartLineIcon, ChartNoAxesCombinedIcon, ChevronDownIcon } from '@lucide/vue';
@@ -354,6 +362,7 @@ import { type BalanceProjection, buildBalanceProjection } from './balance-trend-
 import BalanceTrendSettingsPopover from './components/balance-trend-settings-popover.vue';
 import { readIncludePlanned } from './use-include-planned-config';
 import EmptyState from './components/empty-state.vue';
+import WidgetUnavailable from './components/widget-unavailable.vue';
 import LoadingState from './components/loading-state.vue';
 import SpikeTransactionsPanel from './components/spike-transactions-panel.vue';
 import WidgetWrapper from './components/widget-wrapper.vue';
@@ -505,7 +514,12 @@ const fetchPeriod = computed(() => ({
   to: min([props.selectedPeriod.to, new Date()]),
 }));
 
-const { data: balanceHistory, isFetching: isBalanceHistoryFetching } = useQuery({
+const {
+  data: balanceHistory,
+  isFetching: isBalanceHistoryFetching,
+  isError: balanceHistoryError,
+  refetch: refetchBalanceHistory,
+} = useQuery({
   queryKey: [...VUE_QUERY_CACHE_KEYS.widgetBalanceTrend, periodQueryKey],
   queryFn: () => loadCombinedBalanceTrendData(fetchPeriod.value),
   staleTime: Infinity,
@@ -560,9 +574,7 @@ watch(
   { immediate: true },
 );
 
-const isDataEmpty = computed(
-  () => !balanceHistory.value || balanceHistory.value.every((i) => getEffectiveTotal(i) === 0),
-);
+const isDataEmpty = computed(() => !balanceHistory.value?.length);
 
 // True when the user has any venture activity reflected in the loaded series.
 // Gates the venture tooltip row and the venture option in the balance-type
@@ -691,11 +703,26 @@ watch(hasLoanData, (val) => {
   }
 });
 
-const presentation = ref('summary');
-const presentationOptions = computed(() => [
-  { value: 'summary', label: t('dashboard.widgets.balanceTrend.presentation.summary') },
-  { value: 'graph', label: t('dashboard.widgets.balanceTrend.presentation.graph') },
-]);
+const showDetails = ref(false);
+const detailsId = useId();
+const user = useUserStore();
+const preferredBalanceType = useLocalStorage(
+  computed(() => `dashboard-balance-type:${user.user?.id ?? 'anonymous'}`),
+  'total',
+);
+watch(
+  [balanceTypeOptions, preferredBalanceType],
+  ([options, preferred]) => {
+    const option = options.find(({ value }) => value === preferred) ?? options[0];
+    if (option && selectedBalanceType.value.value !== option.value) selectedBalanceType.value = option;
+  },
+  { immediate: true },
+);
+function selectBalanceType(option: BalanceTypeOption | null) {
+  if (!option) return;
+  selectedBalanceType.value = option;
+  preferredBalanceType.value = option.value;
+}
 const usesLoanBalance = computed(() => selectedBalanceType.value.value === 'loans');
 const metricLabel = computed(() =>
   t(`dashboard.widgets.balanceTrend.presentation.metrics.${selectedBalanceType.value.value}.label`),
@@ -752,6 +779,23 @@ const chartData = computed(() => {
       totalBalance: effectiveTotal,
     };
   });
+});
+const miniTrend = computed(() => {
+  const points = chartData.value.filter((point) => Number.isFinite(point.value));
+  if (!points.length) return null;
+  const first = points[0]!;
+  const last = points.at(-1)!;
+  const [low = 0, high = 0] = d3.extent(points, ({ value }) => value);
+  const scaleX = d3.scaleLinear().domain([first.date, last.date]).range([4, 296]);
+  const scaleY = d3.scaleLinear().domain([low, high]).range([42, 6]);
+  return {
+    path:
+      d3
+        .line<(typeof points)[number]>()
+        .x(({ date }) => scaleX(date))
+        .y(({ value }) => scaleY(value))(points) ?? '',
+    end: { x: scaleX(last.date), y: scaleY(last.value) },
+  };
 });
 const summaryStats = computed(() => {
   const first = chartData.value[0];
@@ -1049,7 +1093,7 @@ let chartRenderFrame = 0;
 let chartHoverFrame = 0;
 const renderChart = () => {
   cancelAnimationFrame(chartHoverFrame);
-  if (presentation.value !== 'graph' || !svgRef.value || !containerRef.value || chartData.value.length === 0) return;
+  if (!showDetails.value || !svgRef.value || !containerRef.value || chartData.value.length === 0) return;
 
   const points = chartWindow.value ?? chartData.value;
   const visibleProjection = chartWindow.value ? null : projection.value;
@@ -1523,18 +1567,8 @@ const balancesDiff = computed(() => balanceComparison.value.percent);
 const balancesDiffAbsolute = computed(() => balanceComparison.value.absolute);
 const comparisonTone = computed(() => Math.sign(balancesDiffAbsolute.value ?? 0) * (usesLoanBalance.value ? -1 : 1));
 
-const filterRow = ref<HTMLElement | null>(null);
 const statsRow = ref<HTMLElement | null>(null);
-const indicator = reactive({ left: 0, width: 0 });
 const motion = usePreferredReducedMotion();
-const measureIndicator = () => {
-  const button = filterRow.value?.querySelector<HTMLElement>('[aria-pressed="true"]');
-  if (!button) return;
-  indicator.left = button.offsetLeft;
-  indicator.width = button.offsetWidth;
-};
-useResizeObserver(filterRow, measureIndicator);
-watch([selectedBalanceType, balanceTypeOptions], measureIndicator, { flush: 'post' });
 
 const scheduleChartRender = () => {
   if (chartRenderFrame) return;
@@ -1545,17 +1579,7 @@ const scheduleChartRender = () => {
 };
 useResizeObserver(containerRef, scheduleChartRender);
 watch(
-  [
-    svgRef,
-    chartData,
-    actualDataPeriod,
-    currentTheme,
-    spikePoints,
-    chartXAxisEnd,
-    projection,
-    chartWindow,
-    presentation,
-  ],
+  [svgRef, chartData, actualDataPeriod, currentTheme, spikePoints, chartXAxisEnd, projection, chartWindow, showDetails],
   () => {
     closeSpikePanel();
     tooltip.visible = false;

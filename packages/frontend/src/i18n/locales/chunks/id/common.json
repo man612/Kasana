@@ -522,7 +522,7 @@
     "sessionExpiredNotice": "Sesi demo Anda telah berakhir. Buat akun gratis untuk melanjutkan, atau masuk di bawah jika Anda sudah memiliki akun."
   },
   "billing": {
-    "seePlans": "See plans",
+    "seePlans": "Lihat paket",
     "trialStartFailed": "Couldn't start the free trial. Try again.",
     "updatePaymentMethod": "Update your payment method",
     "planRequired": {
@@ -531,8 +531,8 @@
       "hint": "Your current plan doesn't include this feature. Upgrade to unlock it."
     },
     "banner": {
-      "trial": "{count} day left in your trial · {link} | {count} days left in your trial · {link}",
-      "readOnly": "Your trial has ended. You can view and export your data; subscribe to keep editing. {link}",
+      "trial": "Masa uji coba tersisa {count} hari · {link}",
+      "readOnly": "Masa uji coba berakhir. Anda bisa melihat dan mengekspor data. Berlangganan untuk kembali menyunting. {link}",
       "subscriptionEnded": "Your subscription has ended. {link} to keep editing your data.",
       "pastDue": "Your last payment failed. {link} to keep your plan."
     }
