@@ -138,7 +138,7 @@ for (const currency of ['IDR', 'USD']) {
             .locator('section')
             .filter({ has: page.getByRole('heading', { name: 'Amount readability', exact: true }) })
             .first();
-          const amount = hero.locator('.text-3xl').first();
+          const amount = hero.getByTestId('vehicle-estimated-amount');
           await expect(amount).toBeVisible();
           await page.evaluate(() => document.fonts.ready);
           const initialFont = await page.evaluate(() =>
@@ -217,7 +217,7 @@ for (const currency of ['IDR', 'USD']) {
               .locator('section')
               .filter({ has: page.getByRole('heading', { name: 'Amount readability', exact: true }) })
               .first();
-            const amount = hero.locator('.text-3xl').first();
+            const amount = hero.getByTestId('vehicle-estimated-amount');
             await expect(amount).toBeVisible();
             const metrics = () =>
               page.evaluate(() => ({

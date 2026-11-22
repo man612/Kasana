@@ -174,7 +174,7 @@
         "confirm": "Buang perubahan"
       },
       "preview": {
-        "scope": "Pratinjau memeriksa transaksi impor atau sinkronisasi yang memenuhi syarat.",
+        "scope": "Pratinjau memeriksa transaksi yang memenuhi syarat dari impor, sinkronisasi, atau API dengan Otomatisasi aktif.",
         "after": "Perubahan yang direncanakan",
         "notApplied": "Belum diterapkan. Hasil akhir mengikuti transaksi dan aturan yang memenuhi syarat.",
         "before": "Contoh transaksi saat ini",
@@ -183,7 +183,7 @@
         "hint": "Lengkapi syarat untuk melihat transaksi yang cocok. Pratinjau tidak mengubah transaksi.",
         "summary": "{matched} dari {scanned} transaksi terakhir yang dapat dikenai aturan ini",
         "empty": "Tidak ada kecocokan",
-        "stale": "Kondisi berubah sejak pratinjau ini dijalankan.",
+        "stale": "Aturan berubah sejak pratinjau terakhir. Jalankan lagi untuk melihat hasil terbaru.",
         "error": "Tidak dapat menjalankan pratinjau. Silakan coba lagi."
       },
       "errors": {

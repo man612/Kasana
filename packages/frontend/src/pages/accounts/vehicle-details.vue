@@ -55,6 +55,7 @@
           </div>
           <VehicleAmount
             :formatted="formatAmountByCurrencyCode(vehicle.account.currentBalance, currencyCode)"
+            data-testid="vehicle-estimated-amount"
             class="max-w-full min-w-0 text-2xl font-semibold tracking-tight tabular-nums @2xl/vehicle:text-4xl"
           />
           <span v-if="showRefValue" class="text-muted-foreground text-sm tabular-nums">

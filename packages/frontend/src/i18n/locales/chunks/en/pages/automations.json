@@ -174,7 +174,7 @@
         "confirm": "Discard changes"
       },
       "preview": {
-        "scope": "The preview checks eligible imported or synced transactions.",
+        "scope": "The preview checks eligible imported or synced transactions and API transactions with automations enabled.",
         "after": "Proposed changes",
         "notApplied": "These changes have not been applied. Eligibility still applies to each transaction.",
         "before": "Current transaction examples",
@@ -183,7 +183,7 @@
         "hint": "Finish the rule to preview which transactions it would match.",
         "summary": "{matched} of the last {scanned} transactions this rule could apply to",
         "empty": "No matches",
-        "stale": "Conditions changed since this preview ran.",
+        "stale": "The rule changed since this preview ran. Run it again for updated results.",
         "error": "Could not run the preview. Please try again."
       },
       "errors": {

@@ -90,3 +90,5 @@ Scrim ringan hanya pada pilihan yang memanfaatkan lapisan modal. Pemisahan ini m
 - Smoke bawaan `e2e/tests/kasana/indonesia-first.spec.ts` dua kali mencapai timeout pada percobaan pertama. Satu timeout tercatat saat click di pengaturan umum, satu saat menunggu respons Quick Start. Uji terfokus pada Select yang sama kemudian lulus pada dasar dan kandidat dengan jarak pemicu sekitar 6 px, dan fokus kembali setelah Escape. Status suite keseluruhan mengikuti CI pada draft PR #65.
 
 [Bukti visual sembilan layar](./audit-uiux-mobile-2026-11-22.jpg)
+
+Smoke CI pertama mencatat 32 lulus dan 16 gagal karena tes nominal kendaraan mencari kelas tipografi `.text-3xl` lama. Nominal estimasi sekarang memiliki pengenal tes khusus. Tes tetap mengukur setiap digit, label aksesibel, persentase, dan overflow di IDR/USD serta native browser zoom 200%. [Run pertama](https://github.com/man612/Kasana/actions/runs/45056568392)
