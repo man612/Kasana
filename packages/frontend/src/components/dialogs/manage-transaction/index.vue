@@ -118,7 +118,7 @@ const startNextEntry = async ({ prefill }: { prefill: TransactionPrefill }) => {
       adaptive-height
       intrinsic-height-motion
       custom-indicator
-      class="h-[min(92dvh,48rem)]"
+      class="max-h-[min(92dvh,48rem)]"
       @pointer-down-outside="interceptDismiss"
       @escape-key-down="interceptDismiss"
     >

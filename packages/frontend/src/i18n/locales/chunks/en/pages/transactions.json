@@ -1,5 +1,19 @@
 {
   "transactions": {
+    "readView": {
+      "income": "Income",
+      "expense": "Expense",
+      "transfer": "Transfer",
+      "loan": "Loan payment",
+      "adjustment": "Balance adjustment",
+      "planned": "Planned",
+      "pending": "Pending",
+      "accounts": "Accounts",
+      "method": "Payment method",
+      "reference": "Reference",
+      "link": "External link",
+      "location": "Location"
+    },
     "filters": {
       "filtersLabel": "Filters",
       "selectFilters": "Select filters",

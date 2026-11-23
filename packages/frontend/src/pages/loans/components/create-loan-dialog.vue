@@ -37,14 +37,13 @@ const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen" fit-keyboard dialog-content-class="sm:max-w-2xl">
+  <ResponsiveDialog v-model:open="isOpen" centered-title fit-keyboard dialog-content-class="sm:max-w-2xl">
     <template #trigger>
       <slot />
     </template>
 
     <template #header-actions><FormFieldHelp topic="loanOverview" header /></template>
     <template #title>{{ $t('loans.dialog.createTitle') }}</template>
-    <template #description>{{ $t('loans.dialog.createDescription') }}</template>
 
     <LoanForm
       ref="loanFormRef"

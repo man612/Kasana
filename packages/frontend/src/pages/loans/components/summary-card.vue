@@ -10,18 +10,15 @@
             }}<template v-if="loan.loanDetails.lenderName"> · {{ loan.loanDetails.lenderName }}</template>
           </p>
         </div>
-        <span
-          v-if="isPaidOff"
-          class="bg-success/15 text-success-text shrink-0 rounded-full px-2 py-1 text-xs font-medium"
-          >{{ $t('loans.detail.paidOffBadge') }}</span
-        >
       </div>
     </CardHeader>
     <CardContent class="px-4 pb-3">
       <!-- Active loans lead with the outstanding balance; paid-off loans surface that in the settled
            banner instead, so the card opens straight into the details grid. -->
       <template v-if="!isPaidOff">
-        <div class="text-app-expense-color text-3xl font-semibold tracking-tight wrap-anywhere tabular-nums">
+        <div
+          class="text-app-expense-color text-2xl font-semibold tracking-tight wrap-anywhere tabular-nums @sm/loan-summary:text-3xl"
+        >
           {{ outstandingBalanceDisplay }}
         </div>
         <div class="text-muted-foreground mt-1 flex items-center gap-1 text-xs">

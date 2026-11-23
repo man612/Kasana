@@ -124,11 +124,11 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
 <template>
   <CardHeader class="px-4 pt-3 pb-2 md:px-6 md:pt-5 md:pb-3">
     <div class="flex flex-col">
-      <div class="flex w-full items-center justify-between gap-2">
+      <div class="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <div class="flex min-w-0 items-center gap-3">
           <!-- Account logo — hover reveals the edit affordance (owner only) -->
-          <AccountLogoPicker v-if="isOwner" :account-id="account.id" class="size-10 shrink-0" />
-          <AccountLogo v-else :account="account" class="size-10 shrink-0" />
+          <AccountLogoPicker v-if="isOwner" :account-id="account.id" class="size-9 shrink-0 md:size-10" />
+          <AccountLogo v-else :account="account" class="size-9 shrink-0 md:size-10" />
 
           <!-- Account name — click to open rename popover (owner only) -->
           <Popover.Popover v-if="isOwner" :open="formEditingPopoverOpen" @update:open="onPopoverOpenChange">

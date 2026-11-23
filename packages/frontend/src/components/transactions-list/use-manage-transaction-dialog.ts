@@ -17,6 +17,7 @@ import { storeToRefs } from 'pinia';
 import { computed, ref, shallowRef } from 'vue';
 
 interface DialogProps {
+  loanAccount?: AccountModel;
   transaction: TransactionModel | undefined;
   oppositeTransaction: TransactionModel | undefined;
 }
@@ -34,7 +35,7 @@ interface LoanDialogProps {
  * - Transfer normalization (determines which side is primary vs opposite)
  * - Compact dialog detection (for portfolio transfers)
  */
-export function useManageTransactionDialog() {
+export function useManageTransactionDialog({ detailsFirst = false } = {}) {
   const { accountsRecord } = storeToRefs(useAccountsStore());
   const { addErrorNotification } = useNotificationCenter();
 
@@ -86,12 +87,14 @@ export function useManageTransactionDialog() {
     const loanAccount = accountsRecord.value[loanTx.accountId];
     if (!loanAccount || loanAccount.accountCategory !== ACCOUNT_CATEGORIES.loan) return false;
 
-    loanDialogProps.value = {
-      loanAccount,
-      transaction: sourceTx,
-      oppositeTransaction: loanTx,
-    };
-    isLoanDialogVisible.value = true;
+    const incoming = { loanAccount, transaction: sourceTx, oppositeTransaction: loanTx };
+    if (detailsFirst) {
+      dialogProps.value = incoming;
+      isDialogVisible.value = true;
+    } else {
+      loanDialogProps.value = incoming;
+      isLoanDialogVisible.value = true;
+    }
     return true;
   };
 

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { animateDialogMutation } from '@/composable/animate-dialog-height';
 import CurrencyChip from '@/components/common/currency-chip.vue';
 import { getExchangeRatePair } from '@/api/currencies';
 import { loadTransactionById } from '@/api/transactions';
@@ -174,6 +175,7 @@ const oppositeTransaction = computed(() => props.oppositeTransaction);
 const emit = defineEmits<{
   'close-modal': [];
   committed: [];
+  deleted: [];
   /** A user-initiated close must pass through the host's unsaved-changes guard. */
   'request-close': [];
   created: [result: { transaction: TransactionModel | undefined; attachmentsFailed: boolean }];
@@ -387,6 +389,12 @@ watch(
   },
   { flush: 'post' },
 );
+const transactionBody = ref<HTMLElement | null>(null);
+const resizeTransaction = (update: () => void) =>
+  void animateDialogMutation(
+    isMobileView.value ? (transactionBody.value?.closest<HTMLElement>('[data-vaul-drawer]') ?? null) : null,
+    update,
+  );
 const isMultiAccount = computed(() => form.value.paymentLegs !== undefined);
 const lastPaymentLegs = ref<FormPaymentLeg[]>([]);
 watch(
@@ -414,19 +422,20 @@ const setPaymentLegs = (legs: FormPaymentLeg[]) => {
   if (!isMultiAccount.value) return;
   form.value.paymentLegs = legs.length ? legs : undefined;
 };
-const disableMultiAccount = () => {
-  // Sum created legs into the main amount only after the operator confirms.
-  // Existing bank-linked transactions are not silently rewritten.
-  if (isEditableAsManual.value) {
-    form.value.amount = sumMainWithCreatedLegs({
-      mainAmount: form.value.amount,
-      legs: form.value.paymentLegs ?? [],
-      mainCurrencyCode: form.value.account?.currencyCode,
-    });
-  }
-  form.value.paymentLegs = undefined;
-  showLegErrors.value = false;
-};
+const disableMultiAccount = () =>
+  resizeTransaction(() => {
+    // Sum created legs into the main amount only after the operator confirms.
+    // Existing bank-linked transactions are not silently rewritten.
+    if (isEditableAsManual.value) {
+      form.value.amount = sumMainWithCreatedLegs({
+        mainAmount: form.value.amount,
+        legs: form.value.paymentLegs ?? [],
+        mainCurrencyCode: form.value.account?.currencyCode,
+      });
+    }
+    form.value.paymentLegs = undefined;
+    showLegErrors.value = false;
+  });
 const toggleMultiAccount = () => {
   if (isMultiAccount.value) {
     if (form.value.paymentLegs?.some((leg) => leg.account || leg.amount != null || leg.isLinked)) {
@@ -435,8 +444,10 @@ const toggleMultiAccount = () => {
     }
     disableMultiAccount();
   } else {
-    showLegErrors.value = false;
-    form.value.paymentLegs = [{ account: null, amount: null }];
+    resizeTransaction(() => {
+      showLegErrors.value = false;
+      form.value.paymentLegs = [{ account: null, amount: null }];
+    });
   }
 };
 const splitsTotal = computed(() => {
@@ -506,7 +517,12 @@ const submitMutation = useSubmitTransaction({
   },
 });
 const unlinkMutation = useUnlinkTransactions({ onSuccess: closeAfterCommit });
-const deleteMutation = useDeleteTransaction({ onSuccess: closeAfterCommit });
+const deleteMutation = useDeleteTransaction({
+  onSuccess: () => {
+    emit('deleted');
+    closeAfterCommit();
+  },
+});
 const isDeleteConfirmOpen = ref(false);
 
 const isLoading = computed(
@@ -1277,7 +1293,9 @@ const selectTransactionType = (type: FORM_TYPES, disabled = false) => {
   // A template pins a type, so a type change drops the pill but keeps what the user is
   // looking at: restoring the snapshot would undo the fields they came here to edit.
   if (templating.applied.value && type !== form.value.type) templating.detach();
-  form.value.type = type;
+  resizeTransaction(() => {
+    form.value.type = type;
+  });
   if (pristineCreation) {
     void nextTick(() => {
       initialFormFingerprint.value = trackedFormFingerprint();
@@ -1317,16 +1335,17 @@ const refundFieldRef = ref<InstanceType<typeof MarkAsRefundField> | null>(null);
 
 const moreOptionsRef = ref<HTMLElement | null>(null);
 const isAddDetailOpen = ref(false);
-let selectingDetail = false;
-
+let afterDetailClose: (() => void) | undefined;
 const selectDetail = (onSelect: () => void) => {
-  selectingDetail = true;
+  afterDetailClose = onSelect;
   isAddDetailOpen.value = false;
-  onSelect();
 };
 const restoreDetailFocus = (event: Event) => {
-  if (selectingDetail && !isMobileView.value) event.preventDefault();
-  selectingDetail = false;
+  const reveal = afterDetailClose;
+  afterDetailClose = undefined;
+  if (!reveal) return;
+  if (!isMobileView.value) event.preventDefault();
+  void nextTick(reveal);
 };
 
 const {
@@ -2171,6 +2190,7 @@ onUnmounted(() => {
         </PopoverTrigger>
         <PopoverContent
           dim-backdrop
+          dim-parent
           align="start"
           class="max-h-[min(55dvh,24rem)] w-max max-w-[calc(100vw-2rem)] overflow-y-auto p-1"
           :aria-label="$t('dialogs.manageTransaction.form.addFieldsLabel')"
@@ -2199,6 +2219,7 @@ onUnmounted(() => {
   <VehicleLinkedView v-else-if="isVehicleLinkedView" :transaction="$props.transaction!" @close-modal="closeModal" />
   <div
     v-else
+    ref="transactionBody"
     class="grid min-h-0 grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden rounded-t-xl"
     @keydown="onKeydown"
   >
@@ -2216,7 +2237,7 @@ onUnmounted(() => {
     />
     <div class="mb-2 flex items-center justify-between px-6 py-2.5">
       <div class="flex min-w-0 items-center">
-        <DialogTitle class="shrink-0">
+        <DialogTitle class="shrink-0" tabindex="-1" data-transaction-heading>
           <span class="text-xl">
             {{
               isReadOnly
@@ -2280,25 +2301,27 @@ onUnmounted(() => {
               class="mb-2"
               @change-tx-type="selectTransactionType"
             />
-            <Transition mode="out-in" name="lajur-form-copy">
-              <p
-                :key="currentTxType"
-                class="text-muted-foreground flex items-start gap-1.5 px-0.5 text-[11px] leading-relaxed"
-                data-testid="transaction-mode-help"
-                role="note"
-              >
-                <InfoIcon class="mt-0.5 size-3.5 shrink-0" />
-                {{
-                  $t(
-                    currentTxType === FORM_TYPES.expense
-                      ? 'dialogs.manageTransaction.typeSelector.expenseHint'
-                      : currentTxType === FORM_TYPES.income
-                        ? 'dialogs.manageTransaction.typeSelector.incomeHint'
-                        : 'dialogs.manageTransaction.typeSelector.transferHint',
-                  )
-                }}
-              </p>
-            </Transition>
+            <div class="lajur-transaction-mode-copy relative grid">
+              <Transition name="lajur-form-copy">
+                <p
+                  :key="currentTxType"
+                  class="text-muted-foreground col-start-1 row-start-1 flex items-start gap-1.5 px-0.5 text-[11px] leading-relaxed"
+                  data-testid="transaction-mode-help"
+                  role="note"
+                >
+                  <InfoIcon class="mt-0.5 size-3.5 shrink-0" />
+                  {{
+                    $t(
+                      currentTxType === FORM_TYPES.expense
+                        ? 'dialogs.manageTransaction.typeSelector.expenseHint'
+                        : currentTxType === FORM_TYPES.income
+                          ? 'dialogs.manageTransaction.typeSelector.incomeHint'
+                          : 'dialogs.manageTransaction.typeSelector.transferHint',
+                    )
+                  }}
+                </p>
+              </Transition>
+            </div>
           </div>
 
           <div ref="transactionModeFieldsRef">

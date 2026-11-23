@@ -1,11 +1,11 @@
 <template>
   <PageWrapper>
     <div class="@container/loans-page mb-4 flex flex-wrap items-center justify-between gap-2">
-      <h1 class="text-3xl font-semibold tracking-tight">{{ $t('loans.title') }}</h1>
+      <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ $t('loans.title') }}</h1>
 
       <CreateLoanDialog v-if="loansQuery.isSuccess.value && loans.length > 0">
-        <UiButton>
-          <PlusIcon class="size-4" />
+        <UiButton class="min-h-11">
+          <PlusIcon class="size-4" aria-hidden="true" />
           {{ $t('loans.addButton.label') }}
         </UiButton>
       </CreateLoanDialog>
@@ -42,7 +42,7 @@
       <AggregateCard v-if="activeLoans.length" class="mb-4" :loans="trackedLoans" />
       <div
         v-else-if="paidOffLoans.length"
-        class="bg-success/10 border-success/30 mb-4 flex items-center gap-2 rounded-xl border p-4"
+        class="bg-success/10 border-success/30 mb-4 flex items-center gap-2 rounded-xl border px-3 py-2.5"
       >
         <CircleCheckIcon class="text-success-text size-5 shrink-0" aria-hidden="true" />
         <h2 class="text-sm font-semibold">{{ $t('loans.paidOff.allSettled') }}</h2>

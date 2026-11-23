@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Button } from '@/components/lib/ui/button';
 import { TRANSACTION_TIME_GROUPINGS, type TransactionTimeGrouping } from '@bt/shared/types';
+import { Switch } from '@/components/lib/ui/switch';
 import { CheckIcon, Clock3Icon } from '@lucide/vue';
 import { computed, useId } from 'vue';
 
@@ -44,20 +45,17 @@ const choose = (option: TransactionTimeGrouping) => {
       />
       {{ $t(`transactions.timeGrouping.${option}`) }}
     </Button>
-    <Button
-      type="button"
-      size="sm"
-      :variant="isTimeRequired || showTime ? 'soft-primary' : 'outline'"
-      class="mx-2 min-h-10 rounded-full font-medium"
-      :aria-pressed="isTimeRequired || showTime"
-      :aria-disabled="isTimeRequired || undefined"
-      :aria-describedby="isTimeRequired ? timeReasonId : undefined"
-      :class="isTimeRequired && 'opacity-55'"
-      @click="!isTimeRequired && (showTime = !showTime)"
-    >
-      <Clock3Icon class="size-4" aria-hidden="true" />
-      {{ $t('transactions.timeGrouping.showTime') }}
-    </Button>
+    <label class="flex min-h-11 items-center gap-2 px-2 text-sm" :for="timeReasonId + '-switch'">
+      <Clock3Icon class="text-muted-foreground size-4" aria-hidden="true" />
+      <span class="flex-1">{{ $t('transactions.timeGrouping.showTime') }}</span>
+      <Switch
+        :id="timeReasonId + '-switch'"
+        :model-value="isTimeRequired || showTime"
+        :disabled="isTimeRequired"
+        :aria-describedby="isTimeRequired ? timeReasonId : undefined"
+        @update:model-value="showTime = $event"
+      />
+    </label>
     <p v-if="isTimeRequired" :id="timeReasonId" class="sr-only">
       {{ $t('transactions.timeGrouping.timeRequired') }}
     </p>

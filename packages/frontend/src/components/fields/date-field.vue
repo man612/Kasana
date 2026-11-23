@@ -197,17 +197,19 @@
           </p>
         </div>
         <div class="border-border flex flex-wrap items-center justify-between gap-1 border-t pt-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            class="text-muted-foreground min-h-11 px-2"
-            :disabled="!isWithinCalendarBounds(clock)"
-            data-testid="date-dialog-now"
-            @click="setDialogNow"
-          >
-            {{ i18n.global.t('common.dateSelector.nowQuick') }}
-          </Button>
+          <LayoutCollapse :open="showDialogNow">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="text-muted-foreground min-h-11 px-2"
+              :disabled="!showDialogNow"
+              data-testid="date-dialog-now"
+              @click="setDialogNow"
+            >
+              {{ i18n.global.t('common.dateSelector.nowQuick') }}
+            </Button>
+          </LayoutCollapse>
           <div class="ml-auto flex gap-2">
             <Button type="button" variant="outline" size="sm" class="min-h-11" @click="isPopoverOpen = false">
               {{ i18n.global.t('common.actions.cancel') }}
@@ -217,7 +219,7 @@
               size="sm"
               class="min-h-11"
               data-testid="date-dialog-save"
-              :disabled="dialogTimeError || !isWithinCalendarBounds(localValue)"
+              :disabled="dialogTimeError || !dialogChanged || !isWithinCalendarBounds(localValue)"
               @click="saveDialogDate"
             >
               {{ i18n.global.t('common.actions.save') }}
@@ -230,6 +232,7 @@
 </template>
 
 <script setup lang="ts">
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import { Button } from '@/components/lib/ui/button';
@@ -361,6 +364,20 @@ const parsedTime = (text: string) => {
   const [hours, minutes] = text.split(':').map(Number);
   return { hours: hours!, minutes: minutes! };
 };
+const dialogInitial = ref<Date | null>(null);
+const dialogReferenceNow = ref(new Date());
+const matchesDialogDate = (reference: Date | null) =>
+  Boolean(
+    reference &&
+    localValue.value &&
+    (props.mode === 'date'
+      ? +startOfDay(localValue.value) === +startOfDay(reference)
+      : isSameMinute(localValue.value, dialogTimeValue.value, reference)),
+  );
+const dialogChanged = computed(() => !matchesDialogDate(dialogInitial.value));
+const showDialogNow = computed(
+  () => isWithinCalendarBounds(dialogReferenceNow.value) && !matchesDialogDate(dialogReferenceNow.value),
+);
 const dialogTimeError = computed(() => props.mode !== 'date' && !parsedTime(dialogTimeValue.value));
 const isTouchPointer = useMediaQuery('(pointer: coarse)');
 const nativeTimeUnavailable = ref(false);
@@ -412,6 +429,7 @@ const applyNow = () => emit('update:modelValue', new Date());
 const setDialogNow = () => {
   const now = new Date();
   localValue.value = now;
+  dialogReferenceNow.value = now;
   dialogTimeValue.value = format(now, 'HH:mm');
   draftClock = now;
   // Force the calendar viewport back to the current month/year, not just the
@@ -421,7 +439,7 @@ const setDialogNow = () => {
 let draftClock = new Date();
 const saveDialogDate = () => {
   const date = localValue.value;
-  if (!date || !isWithinCalendarBounds(date) || dialogTimeError.value) return;
+  if (!date || !dialogChanged.value || !isWithinCalendarBounds(date) || dialogTimeError.value) return;
   const time = props.mode === 'date' ? { hours: 0, minutes: 0 } : parsedTime(dialogTimeValue.value);
   if (!time) return;
   const seconds =
@@ -432,6 +450,8 @@ const saveDialogDate = () => {
 watch(isPopoverOpen, (open) => {
   if (!open) return;
   const selected = props.liveOnOpen ? new Date() : (props.modelValue ?? new Date());
+  dialogInitial.value = props.liveOnOpen ? selected : (props.modelValue ?? null);
+  dialogReferenceNow.value = new Date();
   localValue.value = selected;
   draftClock = selected;
   dialogTimeValue.value = format(selected, 'HH:mm');

@@ -27,6 +27,7 @@ const props = withDefaults(
     dialogContentClass?: HTMLAttributes['class'];
     drawerContentClass?: HTMLAttributes['class'];
     customClose?: boolean;
+    centeredTitle?: boolean;
     fitKeyboard?: boolean;
     intrinsicHeightMotion?: boolean;
     raised?: boolean;
@@ -142,13 +143,16 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
           class="mb-2 px-0 pb-0"
           :class="
             $slots['header-actions']
-              ? 'grid grid-cols-[minmax(0,1fr)_auto] items-start pt-2 text-left'
+              ? props.centeredTitle
+                ? 'grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center pt-2 text-center'
+                : 'grid grid-cols-[minmax(0,1fr)_auto] items-start pt-2 text-left'
               : 'pt-6 text-center'
           "
         >
+          <span v-if="props.centeredTitle && $slots['header-actions']" aria-hidden="true" />
           <div :class="$slots['header-actions'] ? 'min-w-0' : 'contents'">
             <Drawer.DrawerTitle><slot name="title" /></Drawer.DrawerTitle>
-            <Drawer.DrawerDescription><slot name="description" /></Drawer.DrawerDescription>
+            <Drawer.DrawerDescription v-if="$slots.description"><slot name="description" /></Drawer.DrawerDescription>
           </div>
           <DialogHeaderActions v-if="$slots['header-actions']" :close="hasDrawerClose ? close : undefined">
             <slot name="header-actions" />
@@ -195,12 +199,17 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
         </template>
         <template v-else-if="$slots.title || $slots.description">
           <Dialog.DialogHeader
-            class="mb-4 text-left"
-            :class="$slots['header-actions'] && 'grid grid-cols-[minmax(0,1fr)_auto] items-start'"
+            class="mb-4"
+            :class="
+              props.centeredTitle
+                ? 'grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center text-center'
+                : $slots['header-actions'] && 'grid grid-cols-[minmax(0,1fr)_auto] items-start text-left'
+            "
           >
+            <span v-if="props.centeredTitle" aria-hidden="true" />
             <div :class="$slots['header-actions'] ? 'min-w-0' : 'contents'">
               <Dialog.DialogTitle><slot name="title" /></Dialog.DialogTitle>
-              <Dialog.DialogDescription><slot name="description" /></Dialog.DialogDescription>
+              <Dialog.DialogDescription v-if="$slots.description"><slot name="description" /></Dialog.DialogDescription>
             </div>
             <DialogHeaderActions v-if="$slots['header-actions']" :close="hasDialogClose ? close : undefined">
               <slot name="header-actions" />

@@ -32,7 +32,7 @@ export const pillTabsContainerVariants = cva(
 );
 
 export const pillTabsIndicatorVariants = cva(
-  'bg-card dark:bg-background absolute rounded-md shadow-sm transition-all duration-200 ease-out',
+  'bg-card dark:bg-background absolute rounded-md shadow-sm transition-[left,width] duration-200 ease-out motion-reduce:transition-none',
   {
     variants: {
       size: {

@@ -1,18 +1,30 @@
 <template>
-  <Transition name="kasana-feedback">
+  <LayoutCollapse v-if="animated" :open="Boolean(errorMessage)">
+    <p class="text-destructive-text mt-1 ml-2 text-xs" role="alert">{{ visibleMessage }}</p>
+  </LayoutCollapse>
+  <Transition v-else name="kasana-feedback">
     <p v-if="errorMessage" :class="cn('text-destructive-text mt-1 ml-2 text-xs', attrs.class as string)">
-    {{ errorMessage }}
-  </p>
+      {{ errorMessage }}
+    </p>
   </Transition>
 </template>
 
 <script lang="ts" setup>
 import { cn } from '@/lib/utils';
-import { useAttrs } from 'vue';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
+import { ref, useAttrs, watch } from 'vue';
 
 const attrs = useAttrs();
 
-defineProps<{
+const props = defineProps<{
+  animated?: boolean;
   errorMessage?: string | null;
 }>();
+const visibleMessage = ref(props.errorMessage);
+watch(
+  () => props.errorMessage,
+  (message) => {
+    if (message) visibleMessage.value = message;
+  },
+);
 </script>

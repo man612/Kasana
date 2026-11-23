@@ -54,11 +54,11 @@ const isInitialBalanceEditable = computed(
 
 <template>
   <Tabs.TabsContent :value="tabName">
-    <div class="grid gap-4 py-6 text-sm">
-      <div class="flex items-center justify-between gap-2">
+    <div class="grid gap-3 py-4 text-sm">
+      <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-center gap-2">
         <span>{{ t('pages.account.details.creditLimit') }}</span>
 
-        <div class="flex items-center gap-1.5">
+        <div class="flex min-w-0 items-center justify-end gap-1.5 text-right wrap-anywhere [&>button]:shrink-0">
           <span>{{ formatUIAmount(account.creditLimit, { currency: currencyCode }) }}</span>
 
           <CreditLimitEditPopover v-if="isOwner" :account="account" :currency-code="currencyCode" />
@@ -66,20 +66,20 @@ const isInitialBalanceEditable = computed(
       </div>
       <Separator />
 
-      <div class="flex items-center justify-between gap-2">
+      <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-center gap-2">
         <span>{{ t('pages.account.details.initialBalance') }}</span>
 
-        <div class="flex items-center gap-1.5">
+        <div class="flex min-w-0 items-center justify-end gap-1.5 text-right wrap-anywhere [&>button]:shrink-0">
           <span>{{ formatUIAmount(account.initialBalance, { currency: currencyCode }) }}</span>
 
           <InitialBalanceEditPopover v-if="isInitialBalanceEditable" :account="account" :currency-code="currencyCode" />
         </div>
       </div>
       <Separator />
-      <div class="flex items-center justify-between gap-2">
+      <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-center gap-2">
         <span>{{ t('pages.account.details.accountCategory') }}</span>
 
-        <div class="flex items-center gap-1.5">
+        <div class="flex min-w-0 items-center justify-end gap-1.5 text-right wrap-anywhere [&>button]:shrink-0">
           <span class="capitalize">
             {{ t(ACCOUNT_CATEGORIES_TRANSLATION_KEYS[account.accountCategory]) }}
           </span>
@@ -88,10 +88,10 @@ const isInitialBalanceEditable = computed(
         </div>
       </div>
       <Separator />
-      <div class="flex items-center justify-between gap-2">
+      <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-center gap-2">
         <span>{{ t('pages.account.details.defaultPaymentType') }}</span>
 
-        <div class="flex items-center gap-1.5">
+        <div class="flex min-w-0 items-center justify-end gap-1.5 text-right wrap-anywhere [&>button]:shrink-0">
           <span>{{ t(defaultPaymentTypeLabelKey) }}</span>
 
           <AccountDefaultPaymentTypeEditPopover v-if="isOwner" :account="account" />
@@ -101,10 +101,10 @@ const isInitialBalanceEditable = computed(
 
       <Collapsible.Collapsible v-model:open="isOpen">
         <Collapsible.CollapsibleTrigger class="w-full">
-          <div class="flex items-center justify-between gap-2">
+          <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-center gap-2">
             <span>{{ t('pages.account.details.currency') }}</span>
 
-            <div class="flex min-w-0 items-center gap-1.5 text-right">
+            <div class="flex min-w-0 items-center justify-end gap-1.5 text-right wrap-anywhere">
               <span>{{ currencyCode }}</span>
               <span v-if="currenciesMap[account.currencyCode]?.isDefaultCurrency">
                 {{ t('pages.account.details.main') }}
@@ -122,7 +122,7 @@ const isInitialBalanceEditable = computed(
           <div class="grid gap-2 pt-4 pl-4">
             <Separator />
 
-            <div class="flex items-center justify-between gap-2">
+            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-center gap-2">
               <span>{{ t('pages.account.details.exchangeRate') }}</span>
 
               {{ currenciesMap[account.currencyCode]?.exchangeRate }}
@@ -130,7 +130,7 @@ const isInitialBalanceEditable = computed(
 
             <Separator />
 
-            <div class="flex items-center justify-between gap-2">
+            <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] items-center gap-2">
               <span>{{ t('pages.account.details.exchangeRateLiveUpdate') }}</span>
 
               {{

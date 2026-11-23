@@ -73,11 +73,15 @@ const { t } = useI18n();
       >
         <Button
           size="icon"
-          :variant="compactClose ? 'ghost' : 'secondary'"
-          :class="compactClose && 'lajur-sheet-close text-muted-foreground size-11 rounded-full'"
+          variant="secondary"
+          :class="compactClose && 'lajur-sheet-close size-11 rounded-full'"
           :aria-label="t('common.ui.close')"
         >
-          <XIcon :class="compactClose ? 'size-3.5' : 'size-5'" aria-hidden="true" />
+          <XIcon
+            :class="compactClose ? 'size-4' : 'size-5'"
+            :stroke-width="compactClose ? 2.15 : 2"
+            aria-hidden="true"
+          />
         </Button>
       </DialogClose>
     </DialogContent>

@@ -298,28 +298,23 @@
     <BulkActionDialogs :actions="bulkActions" />
 
     <TransactionDetailsModal
-      v-slot="{ requestClose }"
+      v-slot="{ requestClose, transaction, oppositeTransaction, committed, finish }"
       v-model:open="isDialogVisible"
+      v-bind="dialogProps"
       :session="editSession"
       :mobile="isMobileMode"
       :is-compact="isCompactDialog"
     >
       <ManageTransactionDialogContent
         ref="editSession"
-        v-bind="dialogProps"
-        @close-modal="closeDialog"
+        :transaction="transaction"
+        :opposite-transaction="oppositeTransaction"
+        @committed="committed"
+        @deleted="closeDialog"
+        @close-modal="finish"
         @request-close="requestClose"
       />
     </TransactionDetailsModal>
-
-    <LoanPaymentDialog
-      v-if="loanDialogProps.loanAccount"
-      :open="isLoanDialogVisible"
-      :loan-account="loanDialogProps.loanAccount"
-      :transaction="loanDialogProps.transaction"
-      :opposite-transaction="loanDialogProps.oppositeTransaction"
-      @update:open="(value) => !value && closeLoanDialog()"
-    />
   </div>
 </template>
 
@@ -382,7 +377,6 @@ const DETAILS_COLUMN_WIDTH_PX = 40;
 const ManageTransactionDialogContent = defineAsyncComponent(
   () => import('@/components/dialogs/manage-transaction/dialog-content.vue'),
 );
-const LoanPaymentDialog = defineAsyncComponent(() => import('@/pages/loans/components/loan-payment-dialog/index.vue'));
 
 const props = defineProps<{
   transactions: TransactionModel[];
@@ -436,17 +430,8 @@ const columnCount = computed(() => props.visibleColumns.length + 2);
 const { byId: payeeById } = usePayeeLookup();
 
 // Transaction detail dialog; transfer_to_loan rows route to the loan dialog instead
-const {
-  isDialogVisible,
-  editSession,
-  dialogProps,
-  isCompactDialog,
-  handleRecordClick,
-  closeDialog,
-  isLoanDialogVisible,
-  loanDialogProps,
-  closeLoanDialog,
-} = useManageTransactionDialog();
+const { isDialogVisible, editSession, dialogProps, isCompactDialog, handleRecordClick, closeDialog } =
+  useManageTransactionDialog({ detailsFirst: true });
 
 // Selection, eligibility, bulk mutations and dialog state — shared with the list view.
 const bulkActions = useBulkTransactionActions({

@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import { Button, buttonVariants } from '@/components/lib/ui/button';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { useDateLocale } from '@/composable/use-date-locale';
 import { i18n } from '@/i18n';
 import { cn } from '@/lib/utils';
-import { useVModel } from '@vueuse/core';
-import { ChevronDown, ChevronLeft, ChevronRight } from '@lucide/vue';
+import { useResizeObserver, useVModel } from '@vueuse/core';
+import { ChevronLeft, ChevronRight } from '@lucide/vue';
 import { getMonth, getYear, isDate, isValid, set, startOfMonth } from 'date-fns';
 import { DatePicker } from 'v-calendar';
 import { computed, nextTick, onMounted, ref, useId, useSlots, watch } from 'vue';
@@ -76,6 +77,11 @@ function handleNav(direction: 'prev' | 'next') {
 const { format } = useDateLocale();
 const isMonthPickerOpen = ref(false);
 const navigationYear = ref<number | ''>('');
+const navigationMonth = ref(0);
+const choosingYear = ref(false);
+const selectedYear = ref<HTMLElement | null>(null);
+const yearWindowStart = ref(1);
+const YEAR_PAGE_SIZE = 48;
 const yearInputId = useId();
 const firstPage = computed(() => calendarRef.value?.pages[0]);
 const displayedMonth = computed(() =>
@@ -85,9 +91,35 @@ const displayedMonth = computed(() =>
 );
 const dateInMonth = ({ year, month }: { year: number; month: number }) =>
   set(startOfMonth(new Date()), { year, month, date: 1 });
+const monthLabel = ref<HTMLElement | null>(null);
+const titleWidth = ref<number>();
+useResizeObserver(monthLabel, ([entry]) => {
+  if (entry) titleWidth.value = Math.ceil(entry.contentRect.width);
+});
 const monthTitle = computed(() => format(dateInMonth(displayedMonth.value), 'MMMM yyyy'));
 const minYear = computed(() => (props.minDate && isValid(props.minDate) ? getYear(props.minDate) : 1));
 const maxYear = computed(() => (props.maxDate && isValid(props.maxDate) ? getYear(props.maxDate) : 9999));
+const years = computed(() => {
+  const count = Math.min(YEAR_PAGE_SIZE, maxYear.value - yearWindowStart.value + 1);
+  return Array.from({ length: count }, (_, index) => yearWindowStart.value + index);
+});
+const changeYearPage = (direction: number) => {
+  yearWindowStart.value = Math.max(
+    minYear.value,
+    Math.min(maxYear.value, yearWindowStart.value + direction * YEAR_PAGE_SIZE),
+  );
+};
+const toggleYearPicker = async () => {
+  choosingYear.value = !choosingYear.value;
+  if (!choosingYear.value || typeof navigationYear.value !== 'number') return;
+  yearWindowStart.value = Math.max(
+    minYear.value,
+    Math.min(navigationYear.value - 24, maxYear.value - YEAR_PAGE_SIZE + 1),
+  );
+  await nextTick();
+  selectedYear.value?.focus({ preventScroll: true });
+  selectedYear.value?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+};
 const months = Array.from({ length: 12 }, (_, month) => month);
 const monthNumber = ({ year, month }: { year: number; month: number }) => year * 12 + month;
 const boundaryMonth = (date: Date | undefined, fallback: number) =>
@@ -99,10 +131,19 @@ const isMonthAllowed = (month: number) => {
   return candidate >= boundaryMonth(props.minDate, -Infinity) && candidate <= boundaryMonth(props.maxDate, Infinity);
 };
 watch(isMonthPickerOpen, (open) => {
-  if (open) navigationYear.value = displayedMonth.value.year;
+  if (!open) return;
+  navigationYear.value = displayedMonth.value.year;
+  navigationMonth.value = displayedMonth.value.month;
+  choosingYear.value = false;
 });
-const selectMonth = (month: number) => {
-  if (typeof navigationYear.value !== 'number' || !isMonthAllowed(month)) return;
+const monthPickerChanged = computed(
+  () =>
+    (navigationMonth.value !== displayedMonth.value.month || navigationYear.value !== displayedMonth.value.year) &&
+    isMonthAllowed(navigationMonth.value),
+);
+const saveMonth = () => {
+  const month = navigationMonth.value;
+  if (typeof navigationYear.value !== 'number' || !monthPickerChanged.value) return;
   const destination = dateInMonth({ year: navigationYear.value, month });
   void calendarRef.value?.move(destination);
   isMonthPickerOpen.value = false;
@@ -144,7 +185,7 @@ const vCalendarSlots = computed(() =>
   <div class="relative min-w-0" :class="{ 'w-full': monthNavigation }">
     <div
       v-if="monthNavigation"
-      class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1"
+      class="mx-auto flex w-fit max-w-full items-center justify-center gap-1"
       data-testid="calendar-month-header"
     >
       <Button
@@ -163,72 +204,135 @@ const vCalendarSlots = computed(() =>
           <Button
             type="button"
             variant="ghost"
-            class="h-auto min-h-11 min-w-0 gap-1 whitespace-normal"
+            class="h-auto min-h-11 min-w-0 overflow-hidden px-3 whitespace-nowrap motion-safe:transition-[width] motion-safe:duration-200"
+            :style="titleWidth ? { width: `calc(${titleWidth}px + 1.5rem)` } : undefined"
             :aria-label="i18n.global.t('common.dateSelector.chooseMonthYear', { month: monthTitle })"
             data-testid="calendar-month-trigger"
           >
-            <span class="min-w-0 text-balance">{{ monthTitle }}</span>
-            <ChevronDown class="size-3.5 shrink-0" aria-hidden="true" />
+            <span ref="monthLabel" class="inline-block w-max shrink-0">{{ monthTitle }}</span>
           </Button>
         </Dialog.DialogTrigger>
         <Dialog.DialogContent
           raised
           blur-overlay
+          custom-close
           class="w-[calc(100%-1.5rem)] max-w-sm overflow-y-auto p-3 sm:p-5"
           data-testid="calendar-month-picker"
           @open-auto-focus="focusMonthPicker"
         >
-          <Dialog.DialogTitle class="pr-11 text-base font-semibold" tabindex="-1" data-calendar-picker-title>
+          <Dialog.DialogTitle class="text-base font-semibold" tabindex="-1" data-calendar-picker-title>
             {{ i18n.global.t('common.dateSelector.monthYearTitle') }}
           </Dialog.DialogTitle>
-          <div class="my-1 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1">
+          <div class="my-1 flex items-center justify-center gap-1">
             <Button
               type="button"
               variant="ghost"
               size="icon"
               class="size-11"
               :aria-label="i18n.global.t('common.dateSelector.previousYear')"
-              :disabled="typeof navigationYear !== 'number' || navigationYear <= minYear || navigationYear > maxYear"
+              :disabled="typeof navigationYear !== 'number' || navigationYear <= minYear"
               @click="typeof navigationYear === 'number' && navigationYear--"
               ><ChevronLeft class="size-4" aria-hidden="true"
             /></Button>
-            <label :for="yearInputId" class="sr-only">{{ i18n.global.t('common.dateSelector.year') }}</label>
-            <input
-              :id="yearInputId"
-              v-model.number="navigationYear"
-              type="number"
-              inputmode="numeric"
-              :min="minYear"
-              :max="maxYear"
-              step="1"
-              class="border-input bg-input-background focus-visible:ring-ring h-11 w-full min-w-0 rounded-md border px-2 text-center text-base tabular-nums focus-visible:ring-2 focus-visible:outline-none"
-            />
+            <Button
+              type="button"
+              variant="outline"
+              class="min-h-11 tabular-nums"
+              :aria-expanded="choosingYear"
+              :aria-label="i18n.global.t('common.dateSelector.year')"
+              @click="toggleYearPicker"
+              >{{ navigationYear }}</Button
+            >
             <Button
               type="button"
               variant="ghost"
               size="icon"
               class="size-11"
               :aria-label="i18n.global.t('common.dateSelector.nextYear')"
-              :disabled="typeof navigationYear !== 'number' || navigationYear < minYear || navigationYear >= maxYear"
+              :disabled="typeof navigationYear !== 'number' || navigationYear >= maxYear"
               @click="typeof navigationYear === 'number' && navigationYear++"
               ><ChevronRight class="size-4" aria-hidden="true"
             /></Button>
           </div>
+          <LayoutCollapse :open="choosingYear">
+            <div class="space-y-2 pb-2">
+              <label :for="yearInputId" class="sr-only">{{ i18n.global.t('common.dateSelector.year') }}</label>
+              <input
+                :id="yearInputId"
+                v-model.number="navigationYear"
+                type="number"
+                inputmode="numeric"
+                :min="minYear"
+                :max="maxYear"
+                step="1"
+                class="border-input bg-input-background focus-visible:ring-ring h-11 w-full rounded-md border px-2 text-center text-base focus-visible:ring-2 focus-visible:outline-none"
+              />
+              <div class="flex items-center justify-between gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  :disabled="yearWindowStart <= minYear"
+                  :aria-label="i18n.global.t('common.dateSelector.previousPage')"
+                  @click="changeYearPage(-1)"
+                >
+                  <ChevronLeft class="size-4" aria-hidden="true" />
+                </Button>
+                <span class="text-muted-foreground text-sm">{{ years[0] }}–{{ years.at(-1) }}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  :disabled="yearWindowStart + YEAR_PAGE_SIZE > maxYear"
+                  :aria-label="i18n.global.t('common.dateSelector.nextPage')"
+                  @click="changeYearPage(1)"
+                >
+                  <ChevronRight class="size-4" aria-hidden="true" />
+                </Button>
+              </div>
+              <div class="grid max-h-36 grid-cols-4 gap-1 overflow-y-auto overscroll-contain">
+                <Button
+                  v-for="year in years"
+                  :key="year"
+                  type="button"
+                  :variant="year === navigationYear ? 'soft-primary' : 'ghost'"
+                  :aria-pressed="year === navigationYear"
+                  class="min-h-11 px-1 tabular-nums"
+                  :ref="
+                    (element) => {
+                      if (year === navigationYear && element && '$el' in element) selectedYear = element.$el;
+                    }
+                  "
+                  @click="
+                    navigationYear = year;
+                    choosingYear = false;
+                  "
+                  >{{ year }}</Button
+                >
+              </div>
+            </div>
+          </LayoutCollapse>
           <div class="grid grid-cols-3 gap-1">
             <Button
               v-for="month in months"
               :key="month"
               type="button"
-              :variant="
-                displayedMonth.month === month && displayedMonth.year === navigationYear ? 'soft-primary' : 'ghost'
-              "
-              :aria-pressed="displayedMonth.month === month && displayedMonth.year === navigationYear"
+              :variant="navigationMonth === month ? 'soft-primary' : 'ghost'"
+              :aria-pressed="navigationMonth === month"
               :aria-label="format(dateInMonth({ year: displayedMonth.year, month }), 'MMMM')"
               :disabled="!isMonthAllowed(month)"
               class="min-h-11 min-w-0 px-1 whitespace-normal"
-              @click="selectMonth(month)"
+              @click="navigationMonth = month"
               >{{ format(dateInMonth({ year: displayedMonth.year, month }), 'MMM') }}</Button
             >
+          </div>
+          <div class="border-border mt-2 flex justify-end gap-2 border-t pt-2">
+            <Button type="button" size="sm" variant="outline" class="min-h-11" @click="isMonthPickerOpen = false">
+              {{ i18n.global.t('common.actions.cancel') }}
+            </Button>
+            <Button type="button" size="sm" class="min-h-11" :disabled="!monthPickerChanged" @click="saveMonth">
+              {{ i18n.global.t('common.actions.save') }}
+            </Button>
           </div>
         </Dialog.DialogContent>
       </Dialog.Dialog>

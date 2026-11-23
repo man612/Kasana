@@ -36,6 +36,9 @@ test('saves an edited transaction without a discard prompt and retains a failed 
     await page.context().addCookies((await api.storageState()).cookies);
     await page.goto('/transactions', { waitUntil: 'domcontentloaded' });
     await page.getByText(original, { exact: true }).tap({ noWaitAfter: true });
+    const details = page.getByTestId('transaction-read-view');
+    await expect(details.getByText(original, { exact: true })).toBeVisible();
+    await details.getByRole('button', { name: /^(Sunting|Edit)$/i }).tap({ noWaitAfter: true });
 
     const form = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
     const note = form.getByRole('textbox', { name: /^(Catatan|Note)$/i });
@@ -81,7 +84,7 @@ test('saves an edited transaction without a discard prompt and retains a failed 
     await saved;
     await expect(form).toBeHidden();
     await expect(discard).toBeHidden();
-    await expect(page.getByText(updated, { exact: true })).toBeVisible();
+    await expect(details.getByText(updated, { exact: true })).toBeVisible();
   } finally {
     await api.dispose();
   }

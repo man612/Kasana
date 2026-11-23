@@ -43,7 +43,7 @@ const props = defineProps<{
   oppositeTransaction?: TransactionModel;
 }>();
 
-const emit = defineEmits<{ 'close-modal': [] }>();
+const emit = defineEmits<{ 'close-modal': []; committed: [] }>();
 
 const { t } = useI18n();
 const { txTargetableSourceAccountsActiveFirst, accountsRecord } = storeToRefs(useAccountsStore());
@@ -141,8 +141,20 @@ const wouldOverdrawSource = computed(() => {
 
 const { addSuccessNotification, addErrorNotification } = useNotificationCenter();
 
-const submitMutation = useSubmitTransaction({ onSuccess: () => emit('close-modal') });
+const submitMutation = useSubmitTransaction({
+  onSuccess: () => {
+    emit('committed');
+    emit('close-modal');
+  },
+});
 const deleteMutation = useDeleteTransaction({ onSuccess: () => emit('close-modal') });
+const currentDraft = () =>
+  [form.value.account?.id, form.value.amount, form.value.targetAmount, form.value.time.getTime()].join(':');
+const originalDraft = currentDraft();
+defineExpose({
+  hasUnsavedChanges: () => originalDraft !== currentDraft(),
+  isSaving: () => submitMutation.isPending.value || deleteMutation.isPending.value,
+});
 const unlinkMutation = useUnlinkLoanPayment();
 
 const isLoading = computed(
@@ -311,7 +323,7 @@ const unlinkPayment = () => {
   <div class="flex max-h-[90dvh] min-h-0 flex-col overflow-hidden rounded-t-xl">
     <div class="bg-app-transfer-color h-3 shrink-0 rounded-t-lg" />
     <div class="mb-2 flex shrink-0 items-center justify-between px-6 py-3">
-      <DialogTitle>
+      <DialogTitle tabindex="-1" data-transaction-heading>
         <span class="text-2xl">
           {{ isEdit ? $t('dialogs.loanPayment.editTitle') : $t('dialogs.loanPayment.createTitle') }}
         </span>

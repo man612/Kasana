@@ -1,5 +1,19 @@
 {
   "transactions": {
+    "readView": {
+      "income": "Дохід",
+      "expense": "Витрата",
+      "transfer": "Переказ",
+      "loan": "Платіж за позикою",
+      "adjustment": "Коригування балансу",
+      "planned": "Заплановано",
+      "pending": "Очікує",
+      "accounts": "Рахунки",
+      "method": "Спосіб оплати",
+      "reference": "Номер посилання",
+      "link": "Зовнішнє посилання",
+      "location": "Місце"
+    },
     "filters": {
       "filtersLabel": "Фільтри",
       "selectFilters": "Вибрати фільтри",

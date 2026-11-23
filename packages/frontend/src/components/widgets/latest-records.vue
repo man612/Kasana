@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import LayoutCollapse from '@/components/common/layout-collapse.vue';
-import { useTransactionsDisplay } from '@/components/transactions-list/use-transactions-display';
+import { isGroupRow, useTransactionsDisplay } from '@/components/transactions-list/use-transactions-display';
 import { createReusableTemplate, useResizeObserver } from '@vueuse/core';
 import { type SubscriptionListItem } from '@/api/subscriptions';
 import { loadTransactions as apiLoadTransactions } from '@/api/transactions';
@@ -18,11 +18,11 @@ import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import TransactionsList from '@/components/transactions-list/transactions-list.vue';
 import SubscriptionMarkPaidDialog from '@/pages/planned/subscriptions/components/subscription-mark-paid-dialog.vue';
 import { ROUTES_NAMES } from '@/routes/constants';
-import { useRootStore } from '@/stores';
+import { useCurrenciesStore, useRootStore } from '@/stores';
 import { useQuery } from '@tanstack/vue-query';
 import { ArrowUpRightIcon, ChevronDownIcon, ListIcon } from '@lucide/vue';
 import { differenceInCalendarDays, isAfter, parseISO } from 'date-fns';
-import { SUBSCRIPTION_PERIOD_STATUSES } from '@bt/shared/types';
+import { SUBSCRIPTION_PERIOD_STATUSES, TRANSACTION_TRANSFER_NATURE, TRANSACTION_TYPES } from '@bt/shared/types';
 import { storeToRefs } from 'pinia';
 import type { Ref } from 'vue';
 import { computed, inject, nextTick, ref, useId, watch } from 'vue';
@@ -143,6 +143,35 @@ const { displayTransactions } = useTransactionsDisplay({
   transactions: pastTransactions,
   maxDisplay: txMaxDisplay,
 });
+const { baseCurrency } = storeToRefs(useCurrenciesStore());
+const compactCashFlow = computed(() => {
+  const code = baseCurrency.value?.currency?.code;
+  if (!code || txMaxDisplay.value <= 0) return null;
+  const items = displayTransactions.value.flatMap((item) => (isGroupRow(item) ? item.members.slice(0, 3) : [item]));
+  const eligible = items.filter(
+    (record) =>
+      !record.isPlanned &&
+      !record.isPending &&
+      !record.isBalanceAdjustment &&
+      !record.paymentParentId &&
+      record.transferNature === TRANSACTION_TRANSFER_NATURE.not_transfer,
+  );
+  if (!eligible.length) return null;
+  let income = 0;
+  let expense = 0;
+  for (const record of eligible) {
+    const amount =
+      record.currencyCode === code
+        ? (record.paymentTotal ?? record.amount)
+        : record.refCurrencyCode === code && record.paymentTotal == null
+          ? record.refAmount
+          : undefined;
+    if (amount === undefined || !Number.isFinite(amount)) return null;
+    if (record.transactionType === TRANSACTION_TYPES.income) income += amount;
+    else expense += amount;
+  }
+  return { income, expense };
+});
 const visibleTransactionRows = computed(() => (txMaxDisplay.value > 0 ? displayTransactions.value.length : 0));
 const listId = useId();
 const [DefineScheduledRow, UseScheduledRow] = createReusableTemplate<{ sub: SubscriptionListItem }>();
@@ -261,13 +290,13 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
       </div>
     </div>
   </DefineScheduledRow>
-  <WidgetWrapper class="max-h-[min(65dvh,26rem)]" :is-fetching="isFetching" :fit-content="compact">
+  <WidgetWrapper class="max-h-[min(65dvh,26rem)]" :is-fetching="isFetching" fit-content>
     <template #title>
       {{ $t('dashboard.widgets.latestTransactions.title') }}
     </template>
     <template #action>
       <DesktopOnlyTooltip
-        v-if="!compact && !isDataEmpty && !isInitialLoading"
+        v-if="!isDataEmpty && !isInitialLoading"
         :content="$t('widgets.latestRecords.goToTransactions')"
       >
         <span class="inline-flex">
@@ -290,7 +319,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
       <UiButton
         v-if="widgetConfigRef && !isDataEmpty && !isInitialLoading"
         type="button"
-        :size="compact ? 'sm' : 'icon-sm'"
+        size="sm"
         variant="ghost"
         class="text-muted-foreground min-h-11 shrink-0 px-1"
         :aria-label="$t(compact ? 'widgets.latestRecords.expand' : 'widgets.latestRecords.collapse')"
@@ -300,7 +329,16 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
         data-testid="latest-transactions-compact-toggle"
         @click="setCompact({ value: !compact })"
       >
-        <span v-if="compact">{{ $t('widgets.latestRecords.details') }}</span>
+        <span class="grid shrink-0 text-xs">
+          <span class="invisible col-start-1 row-start-1" aria-hidden="true">{{
+            $t('widgets.latestRecords.details')
+          }}</span>
+          <Transition name="lajur-form-copy">
+            <span :key="String(compact)" class="col-start-1 row-start-1">
+              {{ $t(compact ? 'widgets.latestRecords.details' : 'widgets.latestRecords.collapse') }}
+            </span>
+          </Transition>
+        </span>
         <ChevronDownIcon
           class="size-4 motion-safe:transition-transform"
           :class="!compact && 'rotate-180'"
@@ -327,24 +365,43 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
         <UiButton variant="link" size="sm" @click="retryQueries">{{ $t('common.actions.retry') }}</UiButton>
       </p>
       <LayoutCollapse :open="compact" class="shrink-0">
-        <dl data-testid="latest-transactions-compact-summary" class="grid gap-1 px-1 pb-1 text-sm">
-          <div class="flex flex-wrap items-baseline justify-between gap-x-2">
-            <dt class="text-muted-foreground">{{ $t('widgets.latestRecords.recordsShown') }}</dt>
-            <dd class="font-semibold tabular-nums">{{ visibleTransactionRows }}</dd>
+        <section data-testid="latest-transactions-compact-summary" class="grid gap-2 px-1 pb-1 text-sm">
+          <div v-if="compactCashFlow">
+            <p class="text-muted-foreground mb-1 text-xs">{{ $t('widgets.latestRecords.cashFlowSample') }}</p>
+            <dl class="grid gap-1">
+              <div class="flex flex-wrap items-baseline justify-between gap-x-2">
+                <dt>{{ $t('dashboard.widgets.expensesStructure.metric.income') }}</dt>
+                <dd class="text-app-income-color font-semibold tabular-nums">
+                  {{ formatBaseCurrency(compactCashFlow.income) }}
+                </dd>
+              </div>
+              <div class="flex flex-wrap items-baseline justify-between gap-x-2">
+                <dt>{{ $t('dashboard.widgets.expensesStructure.metric.expenses') }}</dt>
+                <dd class="text-app-expense-color font-semibold tabular-nums">
+                  {{ formatBaseCurrency(compactCashFlow.expense) }}
+                </dd>
+              </div>
+            </dl>
           </div>
-          <div v-if="scheduledItems.length" class="flex flex-wrap items-baseline justify-between gap-x-2">
-            <dt class="text-muted-foreground">{{ $t('widgets.latestRecords.paymentsDue') }}</dt>
-            <dd class="font-semibold tabular-nums">{{ scheduledItems.length }}</dd>
-          </div>
-        </dl>
+          <dl v-else class="grid gap-1">
+            <div class="flex flex-wrap items-baseline justify-between gap-x-2">
+              <dt class="text-muted-foreground">{{ $t('widgets.latestRecords.recordsShown') }}</dt>
+              <dd class="font-semibold tabular-nums">{{ visibleTransactionRows }}</dd>
+            </div>
+            <div v-if="scheduledItems.length" class="flex flex-wrap items-baseline justify-between gap-x-2">
+              <dt class="text-muted-foreground">{{ $t('widgets.latestRecords.paymentsDue') }}</dt>
+              <dd class="font-semibold tabular-nums">{{ scheduledItems.length }}</dd>
+            </div>
+          </dl>
+        </section>
       </LayoutCollapse>
 
-      <LayoutCollapse :id="listId" :open="!compact" class="min-h-0" :class="!compact && 'flex-1'">
+      <LayoutCollapse :id="listId" :open="!compact" class="min-h-0">
         <div class="relative h-full max-h-[min(55dvh,22rem)] min-h-0">
           <ScrollArea
             ref="listRef"
-            class="h-full max-h-[min(55dvh,22rem)] min-h-0"
-            viewport-class="px-1 md:overscroll-contain-if-scrollable"
+            class="max-h-[min(55dvh,22rem)] min-h-0"
+            viewport-class="max-h-[min(55dvh,22rem)] px-1 md:overscroll-contain-if-scrollable"
             :scroll-y="onListScroll"
           >
             <div ref="listContent">

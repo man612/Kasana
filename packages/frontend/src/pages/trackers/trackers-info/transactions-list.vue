@@ -36,7 +36,6 @@ import { useTrackerSuggestions } from './smart-tracking/use-tracker-suggestions'
 const ManageTransactionDialogContent = defineAsyncComponent(
   () => import('@/components/dialogs/manage-transaction/dialog-content.vue'),
 );
-const LoanPaymentDialog = defineAsyncComponent(() => import('@/pages/loans/components/loan-payment-dialog/index.vue'));
 
 const props = defineProps<{ tracker: TrackerModel; canWrite: boolean }>();
 const emit = defineEmits<{ openSettings: [] }>();
@@ -132,17 +131,8 @@ const { virtualRows, totalSize } = useVirtualizedInfiniteScroll({
   getItemKey: (index) => flatTransactions.value[index]?.id ?? `loader-${index}`,
 });
 
-const {
-  isDialogVisible,
-  editSession,
-  dialogProps,
-  isCompactDialog,
-  handleRecordClick,
-  closeDialog,
-  isLoanDialogVisible,
-  loanDialogProps,
-  closeLoanDialog,
-} = useManageTransactionDialog();
+const { isDialogVisible, editSession, dialogProps, isCompactDialog, handleRecordClick, closeDialog } =
+  useManageTransactionDialog({ detailsFirst: true });
 
 const relink = useMutation({
   mutationFn: ({ transactionIds }: { transactionIds: string[] }) =>
@@ -340,26 +330,22 @@ const handleUnlink = () =>
     </div>
 
     <TransactionDetailsModal
-      v-slot="{ requestClose }"
+      v-slot="{ requestClose, transaction, oppositeTransaction, committed, finish }"
       v-model:open="isDialogVisible"
+      v-bind="dialogProps"
       :session="editSession"
       :mobile="isMobile"
       :is-compact="isCompactDialog"
     >
       <ManageTransactionDialogContent
         ref="editSession"
-        v-bind="dialogProps"
-        @close-modal="closeDialog"
+        :transaction="transaction"
+        :opposite-transaction="oppositeTransaction"
+        @committed="committed"
+        @deleted="closeDialog"
+        @close-modal="finish"
         @request-close="requestClose"
       />
     </TransactionDetailsModal>
-    <LoanPaymentDialog
-      v-if="loanDialogProps.loanAccount"
-      :open="isLoanDialogVisible"
-      :loan-account="loanDialogProps.loanAccount"
-      :transaction="loanDialogProps.transaction"
-      :opposite-transaction="loanDialogProps.oppositeTransaction"
-      @update:open="(value) => !value && closeLoanDialog()"
-    />
   </div>
 </template>

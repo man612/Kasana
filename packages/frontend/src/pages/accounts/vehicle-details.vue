@@ -41,14 +41,14 @@
             <h1 class="text-xl leading-tight font-semibold tracking-tight @2xl/vehicle:text-3xl">
               {{ vehicle.account.name || `${vehicle.make} ${vehicle.model}` }}
             </h1>
-            <p class="text-muted-foreground text-xs">
+            <p class="text-muted-foreground text-sm">
               {{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model
               }}<span v-if="vehicle.trim"> · {{ vehicle.trim }}</span>
             </p>
           </div>
         </div>
 
-        <div class="grid min-w-0 gap-0.5">
+        <div class="border-border/60 grid min-w-0 gap-1 border-t pt-3">
           <div class="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-medium">
             <span>{{ $t('pages.vehicleDetails.currentValue') }}</span>
             <HintIcon :title="$t('pages.vehicleDetails.currentValue')" :content="valuationExplanation" />
@@ -90,7 +90,7 @@
           </div>
         </div>
 
-        <div v-if="isOwner" class="flex min-w-0 flex-wrap items-center gap-1.5">
+        <div v-if="isOwner" class="flex min-w-0 flex-wrap items-center gap-2">
           <UiButton
             class="min-h-[44px] max-w-full min-w-[44px] rounded-lg px-2.5 text-sm wrap-anywhere whitespace-normal"
             @click="isOverrideOpen = true"

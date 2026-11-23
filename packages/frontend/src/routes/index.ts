@@ -197,6 +197,7 @@ const routes: RouteRecordRaw[] = [
             path: 'recurring-payments/:id',
             name: ROUTES_NAMES.plannedSubscriptionDetails,
             component: () => import('@/pages/planned/subscriptions/subscription-details.vue'),
+            meta: { i18nChunks: ['pages/transactions'] },
           },
           {
             path: 'trackers',

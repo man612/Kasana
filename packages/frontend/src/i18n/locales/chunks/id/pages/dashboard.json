@@ -551,6 +551,7 @@
       "overdueBadge": "Terlambat",
       "scheduledBadge": "Terjadwal",
       "payAction": "Tandai dibayar",
+      "cashFlowSample": "Arus kas dari catatan terbaru yang tampil",
       "recordsShown": "Catatan terbaru di widget",
       "paymentsDue": "Pembayaran jatuh tempo",
       "details": "Lihat rincian",

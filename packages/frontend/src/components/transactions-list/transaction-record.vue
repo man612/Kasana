@@ -231,7 +231,11 @@
         class="text-muted-foreground block text-right text-xs tabular-nums"
       >
         <span v-if="rowDateLabel" class="block">{{ rowDateLabel }}</span>
-        <span v-if="rowTimeLabel" class="block">{{ rowTimeLabel }}</span>
+        <Transition name="lajur-flow-row">
+          <span v-if="rowTimeLabel" class="lajur-flow-row">
+            <span>{{ rowTimeLabel }}</span>
+          </span>
+        </Transition>
       </time>
     </div>
   </div>

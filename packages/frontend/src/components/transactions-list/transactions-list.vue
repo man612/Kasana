@@ -49,7 +49,6 @@ const ManageTransactionDialogContent = defineAsyncComponent(
 const TransactionGroupDialog = defineAsyncComponent(
   () => import('@/pages/transaction-groups/transaction-group-dialog.vue'),
 );
-const LoanPaymentDialog = defineAsyncComponent(() => import('@/pages/loans/components/loan-payment-dialog/index.vue'));
 
 const props = withDefaults(
   defineProps<{
@@ -165,17 +164,8 @@ const hasRowDivider = (index: number) => {
 
 // Transaction detail dialog (Dialog on desktop, Drawer on mobile). transfer_to_loan
 // pairs route to a separate, simpler loan dialog with its own visibility flag.
-const {
-  isDialogVisible,
-  editSession,
-  dialogProps,
-  isCompactDialog,
-  handleRecordClick,
-  closeDialog,
-  isLoanDialogVisible,
-  loanDialogProps,
-  closeLoanDialog,
-} = useManageTransactionDialog();
+const { isDialogVisible, editSession, dialogProps, isCompactDialog, handleRecordClick, closeDialog } =
+  useManageTransactionDialog({ detailsFirst: true });
 
 // Scroll / virtualizer setup
 const inheritedScrollContainer = useScrollAreaContainer(props.scrollAreaId);
@@ -546,16 +536,20 @@ watchEffect(() => {
     <UseRows v-else />
 
     <TransactionDetailsModal
-      v-slot="{ requestClose }"
+      v-slot="{ requestClose, transaction, oppositeTransaction, committed, finish }"
       v-model:open="isDialogVisible"
+      v-bind="dialogProps"
       :session="editSession"
       :mobile="isMobile"
       :is-compact="isCompactDialog"
     >
       <ManageTransactionDialogContent
         ref="editSession"
-        v-bind="dialogProps"
-        @close-modal="closeDialog"
+        :transaction="transaction"
+        :opposite-transaction="oppositeTransaction"
+        @committed="committed"
+        @deleted="closeDialog"
+        @close-modal="finish"
         @request-close="requestClose"
       />
     </TransactionDetailsModal>
@@ -572,16 +566,6 @@ watchEffect(() => {
           iconColor: groupDialogPreview.iconColor,
         }
       "
-    />
-
-    <!-- Dedicated loan-payment dialog: opens for transfer_to_loan rows -->
-    <LoanPaymentDialog
-      v-if="loanDialogProps.loanAccount"
-      :open="isLoanDialogVisible"
-      :loan-account="loanDialogProps.loanAccount"
-      :transaction="loanDialogProps.transaction"
-      :opposite-transaction="loanDialogProps.oppositeTransaction"
-      @update:open="(value) => !value && closeLoanDialog()"
     />
   </div>
 </template>

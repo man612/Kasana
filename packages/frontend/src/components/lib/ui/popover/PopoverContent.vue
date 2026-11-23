@@ -23,6 +23,8 @@ const props = withDefaults(
       lockSide?: boolean;
       /** Dim the page behind this menu without stealing outside-tap dismissal. */
       dimBackdrop?: boolean;
+      /** Focused menus inside dialogs dim the parent as well as the page. */
+      dimParent?: boolean;
     }
   >(),
   {
@@ -33,7 +35,7 @@ const props = withDefaults(
 );
 const emits = defineEmits<PopoverContentEmits>();
 
-const forwarded = useForwardPropsEmits(reactiveOmit(props, 'lockSide', 'dimBackdrop'), emits);
+const forwarded = useForwardPropsEmits(reactiveOmit(props, 'lockSide', 'dimBackdrop', 'dimParent'), emits);
 
 const rootContext = injectPopoverRootContext();
 const lockedSide = ref<PopoverContentProps['side']>();
@@ -53,7 +55,11 @@ const lockedPosition = computed(() => (lockedSide.value ? { side: lockedSide.val
 
 <template>
   <PopoverPortal>
-    <MenuScrim :open="dimBackdrop && rootContext.open.value" :anchor="rootContext.triggerElement.value" />
+    <MenuScrim
+      :open="dimBackdrop && rootContext.open.value"
+      :anchor="rootContext.triggerElement.value"
+      :dim-parent="dimParent"
+    />
     <PopoverContent
       v-bind="{ ...forwarded, ...$attrs, ...lockedPosition }"
       :collision-padding="12"

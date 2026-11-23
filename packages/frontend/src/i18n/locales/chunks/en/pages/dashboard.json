@@ -551,6 +551,7 @@
       "overdueBadge": "Overdue",
       "scheduledBadge": "Scheduled",
       "payAction": "Mark paid",
+      "cashFlowSample": "Cash flow in the latest records shown",
       "recordsShown": "Shown in this widget",
       "paymentsDue": "Payments due or overdue",
       "details": "Show details",

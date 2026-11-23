@@ -6,18 +6,27 @@
       class="shadow-header border-border @container/header-bar flex items-center justify-between border-b px-4 py-2 sm:px-6"
     >
       <div class="flex items-center gap-4">
-        <Button
-          v-if="backDestination"
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          class="shrink-0"
-          :aria-label="$t('common.actions.back')"
-          :title="$t('common.actions.back')"
-          @click="goBack"
+        <div
+          class="lajur-header-back-slot -mr-4 grid shrink-0"
+          :data-open="Boolean(backDestination)"
+          :inert="!backDestination"
         >
-          <ArrowLeftIcon class="size-4" />
-        </Button>
+          <div class="min-w-0 overflow-hidden">
+            <div class="flex w-max pr-4">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                class="shrink-0"
+                :aria-label="$t('common.actions.back')"
+                :title="$t('common.actions.back')"
+                @click="goBack"
+              >
+                <ArrowLeftIcon class="size-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
         <template v-if="isMobileView">
           <Sheet.Sheet :open="isMobileSheetOpen" @update:open="isMobileSheetOpen = $event">
             <Sheet.SheetTrigger as-child>

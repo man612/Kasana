@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ROUTES_NAMES } from '@/routes/constants';
 import { Button } from '@/components/lib/ui/button';
 import { computed, onErrorCaptured, onScopeDispose, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -8,6 +9,21 @@ const router = useRouter();
 const failedPath = ref<string>();
 const renderFailed = ref(false);
 const attempt = ref(0);
+const direction = ref('kasana-page');
+const detailRoutes = new Set<string>([
+  ROUTES_NAMES.account,
+  ROUTES_NAMES.accountsVehicleDetails,
+  ROUTES_NAMES.loanDetail,
+]);
+const stopDirection = router.afterEach((to, from, failure) => {
+  if (failure || to.matched[1]?.path === from.matched[1]?.path) return;
+  direction.value = detailRoutes.has(String(to.name))
+    ? 'lajur-detail-forward'
+    : detailRoutes.has(String(from.name))
+      ? 'lajur-detail-back'
+      : 'kasana-page';
+});
+onScopeDispose(stopDirection);
 const routeKey = computed(() => `${route.matched[1]?.path ?? route.path}:${attempt.value}`);
 
 const stopListening = router.onError((_error, to) => {
@@ -48,7 +64,7 @@ const finishLeave = (_element: Element, done: () => void) => done();
     <Button type="button" variant="outline" @click="retry">{{ $t('common.actions.retry') }}</Button>
   </section>
   <RouterView v-if="!renderFailed" v-slot="{ Component }">
-    <Transition name="kasana-page" @leave="finishLeave">
+    <Transition :name="direction" @leave="finishLeave">
       <div v-if="Component" :key="routeKey" data-testid="route-page">
         <component :is="Component" />
       </div>

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { observeDialogHeight } from './animate-dialog-height';
+import { animateDialogMutation, observeDialogHeight } from './animate-dialog-height';
 
 type Notify = (height: number) => void;
 
@@ -119,5 +119,36 @@ describe('dialog height transitions', () => {
       expect.objectContaining({ duration: 190 }),
     );
     cleanup();
+  });
+
+  it('retargets a discrete resize from the painted size during rapid changes', async () => {
+    const { el, animate, cancel, cleanup } = mountDialog();
+    document.body.append(el);
+    let height = 300;
+    vi.spyOn(el, 'getBoundingClientRect').mockImplementation(() => new DOMRect(0, 0, 320, height));
+    await Promise.race([
+      animateDialogMutation(el, () => {
+        height = 380;
+      }),
+      Promise.resolve(),
+    ]);
+    expect(animate).toHaveBeenCalledWith(
+      [{ height: '300px' }, { height: '380px' }],
+      expect.objectContaining({ duration: 190 }),
+    );
+    height = 335;
+    await Promise.race([
+      animateDialogMutation(el, () => {
+        height = 270;
+      }),
+      Promise.resolve(),
+    ]);
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(animate).toHaveBeenLastCalledWith(
+      [{ height: '335px' }, { height: '270px' }],
+      expect.objectContaining({ duration: 190 }),
+    );
+    cleanup();
+    el.remove();
   });
 });

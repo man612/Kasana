@@ -1,5 +1,19 @@
 {
   "transactions": {
+    "readView": {
+      "income": "Pemasukan",
+      "expense": "Pengeluaran",
+      "transfer": "Transfer",
+      "loan": "Pembayaran pinjaman",
+      "adjustment": "Penyesuaian saldo",
+      "planned": "Terencana",
+      "pending": "Tertunda",
+      "accounts": "Rekening",
+      "method": "Metode pembayaran",
+      "reference": "Nomor referensi",
+      "link": "Tautan eksternal",
+      "location": "Lokasi"
+    },
     "filters": {
       "filtersLabel": "Filter",
       "selectFilters": "Pilih filter",

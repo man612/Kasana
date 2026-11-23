@@ -308,14 +308,14 @@ const confirmLeave = () => {
         @focusout="showErrors = true"
       >
         <p class="text-muted-foreground max-w-prose text-sm leading-relaxed">{{ $t('automations.guide.intro') }}</p>
-        <Card :class="['flex flex-wrap items-end gap-x-5 gap-y-2 p-3', showErrors && formNameError && 'pb-7']">
+        <Card class="grid items-start gap-x-5 gap-y-3 p-3 @xl/editor:grid-cols-[minmax(0,1fr)_auto]">
           <InputField
             v-model="form.name"
             class="w-full min-w-0 @xl/editor:max-w-md @xl/editor:flex-1"
             :label="$t('automations.editor.nameLabel')"
             :placeholder="$t('automations.editor.namePlaceholder')"
             :error-message="showErrors ? (formNameError ?? undefined) : undefined"
-            error-placement="absolute"
+            error-placement="animated"
           />
           <label for="automation-enabled" class="flex h-10 shrink-0 items-center gap-2 text-sm md:h-9">
             <Switch id="automation-enabled" v-model="form.isEnabled" />

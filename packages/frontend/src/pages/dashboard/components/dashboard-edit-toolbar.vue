@@ -34,7 +34,7 @@ const emit = defineEmits<{
         :aria-label="$t('dashboard.editMode.customize')"
         @click="emit('enter')"
       >
-        <SlidersHorizontalIcon :class="['block size-3.5 shrink-0', !isCompact && 'mr-1.5']" />
+        <SlidersHorizontalIcon :class="isCompact ? 'size-3' : 'size-3.5'" aria-hidden="true" />
         <span :class="isCompact && 'sr-only'">{{ $t('dashboard.editMode.customize') }}</span>
       </Button>
     </Transition>
