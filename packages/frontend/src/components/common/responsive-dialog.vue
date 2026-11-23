@@ -202,7 +202,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
             class="mb-4"
             :class="
               props.centeredTitle
-                ? 'grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center text-center'
+                ? 'grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center pr-0 text-center sm:text-center'
                 : $slots['header-actions'] && 'grid grid-cols-[minmax(0,1fr)_auto] items-start text-left'
             "
           >

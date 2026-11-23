@@ -168,6 +168,25 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await expect(page).toHaveURL(new RegExp(`/loans/${loanId}$`));
     await page.locator('.shadow-header').getByRole('button', { name: 'Kembali', exact: true }).click();
     await expect(page).toHaveURL(/\/loans$/);
+    const viewport = page.viewportSize();
+    if (viewport) {
+      await page.setViewportSize({ width: 1024, height: viewport.height });
+      await page.getByRole('button', { name: 'Tambah pinjaman', exact: true }).first().click();
+      const createDialog = page.getByRole('dialog', { name: 'Tambah pinjaman', exact: true });
+      const title = createDialog.getByRole('heading', { name: 'Tambah pinjaman', exact: true });
+      await expect(title).toHaveCSS('text-align', 'center');
+      await expect
+        .poll(async () => {
+          const dialogBox = await createDialog.boundingBox();
+          const titleBox = await title.boundingBox();
+          if (!dialogBox || !titleBox) return Infinity;
+          return Math.abs(dialogBox.x + dialogBox.width / 2 - titleBox.x - titleBox.width / 2);
+        })
+        .toBeLessThan(2);
+      await createDialog.getByRole('button', { name: 'Batal', exact: true }).click();
+      await expect(createDialog).toBeHidden();
+      await page.setViewportSize(viewport);
+    }
     await page.goto('/transactions/automations/new');
     await expect(page.locator('.shadow-header')).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
