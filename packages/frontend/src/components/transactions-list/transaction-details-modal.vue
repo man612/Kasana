@@ -20,6 +20,7 @@ const LoanPaymentForm = defineAsyncComponent(async () => {
 
 const [DefineBody, UseBody] = createReusableTemplate();
 const open = defineModel<boolean>('open', { required: true });
+const emit = defineEmits<{ committed: [] }>();
 
 const props = defineProps<{
   /**
@@ -86,6 +87,7 @@ const refreshDetail = async () => {
 };
 const onCommit = () => {
   committed = true;
+  emit('committed');
 };
 const finishEditing = () => {
   if (!open.value) return;

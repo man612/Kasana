@@ -462,7 +462,7 @@ const isPeriodActionPending = computed(
 // Open the transaction linked to a period in the canonical manage-transaction dialog.
 const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const { isDialogVisible, editSession, dialogProps, isCompactDialog, handleRecordClick, closeDialog } =
-  useManageTransactionDialog({ detailsFirst: true });
+  useManageTransactionDialog();
 const isOpeningTransaction = ref(false);
 
 async function openTransaction({ transactionId }: { transactionId: string }) {

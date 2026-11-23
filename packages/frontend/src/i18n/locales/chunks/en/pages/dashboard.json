@@ -524,6 +524,7 @@
     "latestRecords": {
       "otherRows": "{count} more item | {count} more items",
       "collapse": "Collapse latest transactions",
+      "collapseLabel": "Collapse",
       "expand": "Expand latest transactions",
       "compactSaveError": "Could not save the compact view. Try again.",
       "visibleRows": "{count} recent transaction row | {count} recent transaction rows",

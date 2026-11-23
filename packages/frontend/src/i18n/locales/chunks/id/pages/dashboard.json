@@ -524,6 +524,7 @@
     "latestRecords": {
       "otherRows": "{count} item lainnya",
       "collapse": "Ringkas transaksi terbaru",
+      "collapseLabel": "Ringkas",
       "expand": "Perluas transaksi terbaru",
       "compactSaveError": "Gagal menyimpan tampilan ringkas. Coba lagi.",
       "visibleRows": "{count} baris transaksi terbaru",

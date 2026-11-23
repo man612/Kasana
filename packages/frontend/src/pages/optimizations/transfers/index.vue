@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { bulkScanTransferRecommendations, dismissTransferSuggestion, linkTransactions } from '@/api/transactions';
-import * as Dialog from '@/components/lib/ui/dialog';
-import * as Drawer from '@/components/lib/ui/drawer';
 import { ROUTES_NAMES } from '@/routes/constants';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import { Button } from '@/components/lib/ui/button';
@@ -12,6 +10,7 @@ import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import { useScrollAreaContainer } from '@/composable/scroll-area-container';
 import { useNotificationCenter } from '@/components/notification-center';
+import TransactionDetailsModal from '@/components/transactions-list/transaction-details-modal.vue';
 import { useManageTransactionDialog } from '@/components/transactions-list/use-manage-transaction-dialog';
 import { cn } from '@/lib/utils';
 import { VUE_QUERY_GLOBAL_PREFIXES } from '@/common/const/vue-query';
@@ -25,7 +24,7 @@ import { useRoute } from 'vue-router';
 import { ArrowLeftIcon, SearchXIcon, SparklesIcon } from '@lucide/vue';
 import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { createReusableTemplate, useLocalStorage, useResizeObserver } from '@vueuse/core';
+import { useLocalStorage, useResizeObserver } from '@vueuse/core';
 import OptimizationHelp from '../components/optimization-help.vue';
 
 import ExpenseListItem from './components/expense-list-item.vue';
@@ -48,9 +47,6 @@ const isSinglePanel = useWindowBreakpoints(SINGLE_PANEL_BREAKPOINT);
 const ManageTransactionDialogContent = defineAsyncComponent(
   () => import('@/components/dialogs/manage-transaction/dialog-content.vue'),
 );
-const LoanPaymentDialog = defineAsyncComponent(() => import('@/pages/loans/components/loan-payment-dialog/index.vue'));
-
-const [UseDialogTemplate, SlotContent] = createReusableTemplate();
 
 const PAGE_SIZE = 20;
 
@@ -97,16 +93,8 @@ const selectedItem = computed<BulkTransferScanItem | null>(() => {
 const hasNextPage = computed(() => !lastScanUsedAi.value && currentOffset.value < totalCount.value);
 
 // Manage transaction dialog
-const {
-  isDialogVisible,
-  dialogProps,
-  isCompactDialog,
-  handleRecordClick,
-  closeDialog,
-  isLoanDialogVisible,
-  loanDialogProps,
-  closeLoanDialog,
-} = useManageTransactionDialog();
+const { isDialogVisible, editSession, dialogProps, isCompactDialog, handleRecordClick, closeDialog } =
+  useManageTransactionDialog();
 
 // Desktop scrolls the list inside its panel; single-panel scrolls the whole page.
 const leftScrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
@@ -583,50 +571,24 @@ function handleTransactionClick(tx: TransactionModel, oppositeTx: TransactionMod
       />
     </ResponsiveDialog>
 
-    <!-- Manage transaction dialog -->
-    <UseDialogTemplate>
+    <TransactionDetailsModal
+      v-slot="{ requestClose, transaction, oppositeTransaction, committed, finish }"
+      v-model:open="isDialogVisible"
+      v-bind="dialogProps"
+      :session="editSession"
+      :mobile="isSinglePanel"
+      :is-compact="isCompactDialog"
+      @committed="refreshAfterTransactionCommit"
+    >
       <ManageTransactionDialogContent
-        v-bind="dialogProps"
-        @committed="refreshAfterTransactionCommit"
-        @close-modal="closeDialog"
-        @request-close="closeDialog"
+        ref="editSession"
+        :transaction="transaction"
+        :opposite-transaction="oppositeTransaction"
+        @committed="committed"
+        @deleted="closeDialog"
+        @close-modal="finish"
+        @request-close="requestClose"
       />
-    </UseDialogTemplate>
-
-    <template v-if="isSinglePanel">
-      <Drawer.Drawer v-model:open="isDialogVisible">
-        <Drawer.DrawerContent custom-indicator>
-          <Drawer.DrawerTitle class="sr-only">{{ $t('transactions.list.detailsTitle') }}</Drawer.DrawerTitle>
-          <Drawer.DrawerDescription class="sr-only">{{
-            $t('transactions.list.detailsDescription')
-          }}</Drawer.DrawerDescription>
-          <SlotContent />
-        </Drawer.DrawerContent>
-      </Drawer.Drawer>
-    </template>
-    <template v-else>
-      <Dialog.Dialog v-model:open="isDialogVisible">
-        <Dialog.DialogContent
-          custom-close
-          :class="cn('max-h-[90dvh] w-full overflow-hidden p-0', isCompactDialog ? 'max-w-lg' : 'max-w-225')"
-        >
-          <Dialog.DialogTitle class="sr-only">{{ $t('transactions.list.detailsTitle') }}</Dialog.DialogTitle>
-          <Dialog.DialogDescription class="sr-only">{{
-            $t('transactions.list.detailsDescription')
-          }}</Dialog.DialogDescription>
-          <SlotContent />
-        </Dialog.DialogContent>
-      </Dialog.Dialog>
-    </template>
-
-    <!-- Dedicated loan-payment dialog: handleRecordClick routes transfer_to_loan rows here. -->
-    <LoanPaymentDialog
-      v-if="loanDialogProps.loanAccount"
-      :open="isLoanDialogVisible"
-      :loan-account="loanDialogProps.loanAccount"
-      :transaction="loanDialogProps.transaction"
-      :opposite-transaction="loanDialogProps.oppositeTransaction"
-      @update:open="(value) => !value && closeLoanDialog()"
-    />
+    </TransactionDetailsModal>
   </div>
 </template>

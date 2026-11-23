@@ -2,6 +2,7 @@ import { expect, test, type APIRequestContext } from '@playwright/test';
 
 import {
   apiPatch,
+  apiPost,
   completeOnboarding,
   createAccount,
   createAuthenticatedApiContext,
@@ -222,6 +223,28 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await expect(exit).toBeVisible();
     await exit.click();
     await expect(exit).toBeHidden();
+  });
+
+  test('reads a loan payment from its activity before opening the loan editor', async ({ page }) => {
+    const transactionId = extractId(
+      await createTransaction({ request: api, accountId, amount: 8000, note: 'Cicilan fixture regresi' }),
+    );
+    await apiPost({
+      request: api,
+      path: `/api/v1/loans/${loanId}/link-payments`,
+      data: { transactionIds: [transactionId] },
+    });
+
+    await page.goto(`/loans/${loanId}`);
+    await page.getByRole('tab', { name: 'Aktivitas', exact: true }).click();
+    await page.locator('[data-transaction-row]').first().click();
+    const details = page.getByTestId('transaction-read-view');
+    await expect(details.getByText('Dompet regresi Lajur.', { exact: true })).toBeVisible();
+    await expect(details.getByText('Pinjaman regresi Lajur.', { exact: true })).toBeVisible();
+    await details.getByRole('button', { name: 'Sunting', exact: true }).click();
+    await expect(details).toBeHidden();
+    await page.getByRole('button', { name: 'Tutup', exact: true }).click();
+    await expect(details).toBeVisible();
   });
 
   test('updates the document language when the user changes locale', async ({ page }) => {

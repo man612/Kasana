@@ -431,7 +431,7 @@ const { byId: payeeById } = usePayeeLookup();
 
 // Transaction detail dialog; transfer_to_loan rows route to the loan dialog instead
 const { isDialogVisible, editSession, dialogProps, isCompactDialog, handleRecordClick, closeDialog } =
-  useManageTransactionDialog({ detailsFirst: true });
+  useManageTransactionDialog();
 
 // Selection, eligibility, bulk mutations and dialog state — shared with the list view.
 const bulkActions = useBulkTransactionActions({

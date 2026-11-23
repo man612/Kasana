@@ -132,7 +132,7 @@ const { virtualRows, totalSize } = useVirtualizedInfiniteScroll({
 });
 
 const { isDialogVisible, editSession, dialogProps, isCompactDialog, handleRecordClick, closeDialog } =
-  useManageTransactionDialog({ detailsFirst: true });
+  useManageTransactionDialog();
 
 const relink = useMutation({
   mutationFn: ({ transactionIds }: { transactionIds: string[] }) =>

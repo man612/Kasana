@@ -335,7 +335,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
           }}</span>
           <Transition name="lajur-form-copy">
             <span :key="String(compact)" class="col-start-1 row-start-1">
-              {{ $t(compact ? 'widgets.latestRecords.details' : 'widgets.latestRecords.collapse') }}
+              {{ $t(compact ? 'widgets.latestRecords.details' : 'widgets.latestRecords.collapseLabel') }}
             </span>
           </Transition>
         </span>

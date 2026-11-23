@@ -165,7 +165,7 @@ const hasRowDivider = (index: number) => {
 // Transaction detail dialog (Dialog on desktop, Drawer on mobile). transfer_to_loan
 // pairs route to a separate, simpler loan dialog with its own visibility flag.
 const { isDialogVisible, editSession, dialogProps, isCompactDialog, handleRecordClick, closeDialog } =
-  useManageTransactionDialog({ detailsFirst: true });
+  useManageTransactionDialog();
 
 // Scroll / virtualizer setup
 const inheritedScrollContainer = useScrollAreaContainer(props.scrollAreaId);

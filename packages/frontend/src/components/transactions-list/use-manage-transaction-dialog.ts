@@ -22,12 +22,6 @@ interface DialogProps {
   oppositeTransaction: TransactionModel | undefined;
 }
 
-interface LoanDialogProps {
-  loanAccount: AccountModel | undefined;
-  transaction: TransactionModel | undefined;
-  oppositeTransaction: TransactionModel | undefined;
-}
-
 /**
  * Manages the transaction detail dialog state:
  * - Open/close state
@@ -35,23 +29,13 @@ interface LoanDialogProps {
  * - Transfer normalization (determines which side is primary vs opposite)
  * - Compact dialog detection (for portfolio transfers)
  */
-export function useManageTransactionDialog({ detailsFirst = false } = {}) {
+export function useManageTransactionDialog() {
   const { accountsRecord } = storeToRefs(useAccountsStore());
   const { addErrorNotification } = useNotificationCenter();
 
   const isDialogVisible = ref(false);
   const editSession = shallowRef<TransactionDialogSession | null>(null);
   const dialogProps = ref<DialogProps>({
-    transaction: undefined,
-    oppositeTransaction: undefined,
-  });
-
-  // Loan payments get a simplified dialog (no note/tags/payment-type/link section).
-  // Same click handler routes here for transfer_to_loan pairs; both legs are needed
-  // to populate the source and loan-side amounts.
-  const isLoanDialogVisible = ref(false);
-  const loanDialogProps = ref<LoanDialogProps>({
-    loanAccount: undefined,
     transaction: undefined,
     oppositeTransaction: undefined,
   });
@@ -75,7 +59,7 @@ export function useManageTransactionDialog({ detailsFirst = false } = {}) {
     return tx.accountType !== ACCOUNT_TYPES.system;
   };
 
-  // Routes a transfer_to_loan pair to the loan dialog: the income leg names the
+  // Routes a transfer_to_loan pair to the loan editor: the income leg names the
   // loan, the expense leg carries the source account/amount. Falls back to the
   // regular dialog if the opposite leg hasn't loaded yet.
   const tryRouteToLoanDialog = (baseTx: TransactionModel, oppositeTx: TransactionModel | undefined): boolean => {
@@ -87,14 +71,8 @@ export function useManageTransactionDialog({ detailsFirst = false } = {}) {
     const loanAccount = accountsRecord.value[loanTx.accountId];
     if (!loanAccount || loanAccount.accountCategory !== ACCOUNT_CATEGORIES.loan) return false;
 
-    const incoming = { loanAccount, transaction: sourceTx, oppositeTransaction: loanTx };
-    if (detailsFirst) {
-      dialogProps.value = incoming;
-      isDialogVisible.value = true;
-    } else {
-      loanDialogProps.value = incoming;
-      isLoanDialogVisible.value = true;
-    }
+    dialogProps.value = { loanAccount, transaction: sourceTx, oppositeTransaction: loanTx };
+    isDialogVisible.value = true;
     return true;
   };
 
@@ -159,10 +137,6 @@ export function useManageTransactionDialog({ detailsFirst = false } = {}) {
     isDialogVisible.value = false;
   };
 
-  const closeLoanDialog = () => {
-    isLoanDialogVisible.value = false;
-  };
-
   return {
     isDialogVisible,
     editSession,
@@ -170,8 +144,5 @@ export function useManageTransactionDialog({ detailsFirst = false } = {}) {
     isCompactDialog,
     handleRecordClick,
     closeDialog,
-    isLoanDialogVisible,
-    loanDialogProps,
-    closeLoanDialog,
   };
 }
