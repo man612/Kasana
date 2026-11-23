@@ -32,9 +32,14 @@ if (!import.meta.env.DEV) {
   });
 }
 
-// Localizes every date-fns call that passes no explicit locale. The default is read at call
-// time, so a value cached in a computed keeps the previous language until it recomputes.
-watchEffect(() => setDefaultOptions({ locale: getDateFnsLocale() }), { flush: 'sync' });
+// Keep assistive technology and the default date formatter in the active app language.
+watchEffect(
+  () => {
+    document.documentElement.lang = i18n.global.locale.value;
+    setDefaultOptions({ locale: getDateFnsLocale() });
+  },
+  { flush: 'sync' },
+);
 
 // Initialize locale from localStorage/browser
 const initialLocale = initializeLocale();

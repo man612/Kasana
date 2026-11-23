@@ -180,4 +180,16 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await exit.click();
     await expect(exit).toBeHidden();
   });
+
+  test('updates the document language when the user changes locale', async ({ page }) => {
+    await page.goto('/settings/language');
+    const documentRoot = page.locator('html');
+    await expect(documentRoot).toHaveAttribute('lang', 'id');
+    await page.getByRole('button', { name: /^English/ }).click();
+    await expect(documentRoot).toHaveAttribute('lang', 'en');
+    await page.getByRole('button', { name: /^Українська/ }).click();
+    await expect(documentRoot).toHaveAttribute('lang', 'uk');
+    await page.getByRole('button', { name: /^Bahasa/ }).click();
+    await expect(documentRoot).toHaveAttribute('lang', 'id');
+  });
 });
