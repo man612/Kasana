@@ -10,6 +10,7 @@
           class="lajur-header-back-slot -mr-4 grid shrink-0"
           :data-open="Boolean(backDestination)"
           :inert="!backDestination"
+          :aria-hidden="!backDestination || undefined"
         >
           <div class="min-w-0 overflow-hidden">
             <div class="flex w-max pr-4">
@@ -233,6 +234,7 @@ const isSettingsRoute = computed(() => String(route.name ?? '').startsWith(ROUTE
 const detailParents: Record<string, string> = {
   [ROUTES_NAMES.account]: ROUTES_NAMES.accounts,
   [ROUTES_NAMES.accountsVehicleDetails]: ROUTES_NAMES.accounts,
+  [ROUTES_NAMES.loanDetail]: ROUTES_NAMES.loans,
   [ROUTES_NAMES.investmentAccount]: ROUTES_NAMES.investments,
   [ROUTES_NAMES.budgetPlan]: ROUTES_NAMES.budget,
   [ROUTES_NAMES.plannedSubscriptionDetails]: ROUTES_NAMES.plannedSubscriptions,

@@ -1,6 +1,13 @@
 <template>
   <LayoutCollapse v-if="animated" :open="Boolean(errorMessage)">
-    <p class="text-destructive-text mt-1 ml-2 text-xs" role="alert">{{ visibleMessage }}</p>
+    <p
+      v-if="visibleMessage"
+      class="text-destructive-text mt-1 ml-2 text-xs"
+      :role="errorMessage ? 'alert' : undefined"
+      :aria-hidden="!errorMessage || undefined"
+    >
+      {{ visibleMessage }}
+    </p>
   </LayoutCollapse>
   <Transition v-else name="kasana-feedback">
     <p v-if="errorMessage" :class="cn('text-destructive-text mt-1 ml-2 text-xs', attrs.class as string)">

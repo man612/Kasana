@@ -5,6 +5,7 @@ import {
   completeOnboarding,
   createAccount,
   createAuthenticatedApiContext,
+  createLoan,
   createTransaction,
   extractId,
 } from '../../helpers/api-client';
@@ -14,6 +15,7 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
   test.use({ viewport: { width: 390, height: 844 }, timezoneId: 'Asia/Jakarta' });
   let api: APIRequestContext;
   let accountId: string;
+  let loanId: string;
 
   test.beforeAll(async ({ playwright }) => {
     api = await createAuthenticatedApiContext({
@@ -28,6 +30,9 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
       initialBalance: 1_000_000,
     });
     accountId = extractId(account);
+    loanId = extractId(
+      await createLoan({ request: api, name: 'Pinjaman regresi Lajur.', currencyCode: 'IDR', balance: 120_000 }),
+    );
     await createTransaction({ request: api, accountId, amount: 12000, note: 'Catatan fixture regresi' });
     await apiPatch({
       request: api,
@@ -146,7 +151,7 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await expect(rowTime).toContainText('WIB');
   });
 
-  test('keeps the account route mounted on browser back and uses the focused automation shell', async ({ page }) => {
+  test('keeps detail navigation usable and validation in the focused automation shell', async ({ page }) => {
     const pageErrors: string[] = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
     await page.goto('/accounts');
@@ -158,10 +163,23 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
       await page.goBack();
       await expect(account).toBeVisible();
     }
+    await page.goto('/loans');
+    await page.getByText('Pinjaman regresi Lajur.', { exact: true }).first().click();
+    await expect(page).toHaveURL(new RegExp(`/loans/${loanId}$`));
+    await page.locator('.shadow-header').getByRole('button', { name: 'Kembali', exact: true }).click();
+    await expect(page).toHaveURL(/\/loans$/);
     await page.goto('/transactions/automations/new');
     await expect(page.locator('.shadow-header')).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Simpan', exact: true })).toBeVisible();
+    const name = page.getByRole('textbox', { name: /Nama otomatisasi/i });
+    await name.focus();
+    await name.press('Tab');
+    const error = page.getByRole('alert').filter({ hasText: /Masukkan nama/i });
+    await expect(error).toBeVisible();
+    await name.fill('Aturan uji valid');
+    await expect(error).toBeHidden();
+    await name.fill('');
     await page.getByRole('link', { name: /Kembali/i }).click();
     await expect(page.locator('.shadow-header')).toBeVisible();
     expect(pageErrors).toEqual([]);
