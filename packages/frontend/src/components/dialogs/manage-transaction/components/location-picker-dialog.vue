@@ -323,6 +323,7 @@ onUnmounted(() => {
   <ResponsiveDialog
     v-model:open="isOpen"
     no-internal-scroll
+    show-close-with-footer
     dialog-content-class="sm:max-w-xl"
     drawer-content-class="max-h-[92dvh]"
   >

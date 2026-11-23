@@ -114,7 +114,7 @@ const retry = () => {
     </template>
 
     <template v-else-if="isEmpty">
-      <EmptyState>
+      <EmptyState :message="$t('dashboard.widgets.plannedOverview.empty')">
         <CalendarClockIcon class="size-32" />
       </EmptyState>
     </template>

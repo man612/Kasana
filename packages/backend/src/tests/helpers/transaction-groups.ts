@@ -7,12 +7,16 @@ import { makeRequest } from './common';
 export interface CreateTransactionGroupPayload {
   name: string;
   note?: string | null;
+  icon?: string | null;
+  iconColor?: string | null;
   transactionIds: string[];
 }
 
 export interface UpdateTransactionGroupPayload {
   name?: string;
   note?: string | null;
+  icon?: string | null;
+  iconColor?: string | null;
 }
 
 export interface RemoveTransactionsFromGroupResult {

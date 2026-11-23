@@ -37,11 +37,7 @@ import TransactionGroups, { dissolveUndersizedGroups } from '@models/transaction
 import TransactionSplits from '@models/transaction-splits.model';
 import TransactionTags from '@models/transaction-tags.model';
 import { hasBalanceRelevantChange } from '@models/transactions-balance-relevance';
-import {
-  liveOrExternalTransactionSql,
-  liveTransactionExistsSql,
-  trashedWhere,
-} from '@models/transactions-query/deletion-where';
+import { liveOrExternalTransactionSql, trashedWhere } from '@models/transactions-query/deletion-where';
 import {
   BalanceAdjustmentsPolicy,
   CompletenessPolicy,
@@ -118,22 +114,24 @@ export const prepareTXInclude = ({
   return include;
 };
 
-// Top-level only: the literal hardcodes the "transactionGroups" alias. transactionCount is the
-// group's live membership size (trashed members excluded), not the members in the current fetch window.
+// The alias is top-level. Count and latest time describe the whole live group,
+// even when the current cursor page only includes one member.
 const groupsInclude = (): Includeable => ({
   model: TransactionGroups,
   through: { attributes: [] },
   attributes: [
     'id',
     'name',
+    'icon',
+    'iconColor',
     [
       literal(`(
-        SELECT COUNT(*)::int
-        FROM "TransactionGroupItems"
-        WHERE "TransactionGroupItems"."groupId" = "transactionGroups"."id"
-          AND ${liveTransactionExistsSql({ idColumnSql: '"TransactionGroupItems"."transactionId"' })}
+        SELECT jsonb_build_object('count', COUNT(*)::int, 'latestTime', MAX(member.time))
+        FROM "TransactionGroupItems" item
+        JOIN "Transactions" member ON member.id = item."transactionId" AND member."deletedAt" IS NULL
+        WHERE item."groupId" = "transactionGroups"."id"
       )`),
-      'transactionCount',
+      'liveMembership',
     ],
   ],
   required: false,
@@ -194,6 +192,7 @@ export interface TransactionsAttributes {
   isPlanned: boolean;
   categorizationMeta: CategorizationMeta | null;
   payeeId: string | null;
+  payeeNameSnapshot: string | null;
   payeeLocked: boolean;
   paymentParentId: string | null;
   paymentAmount: Money | null;
@@ -396,6 +395,9 @@ export default class Transactions extends Model {
   @ForeignKey(() => Payees)
   @Column({ allowNull: true, type: DataType.UUID })
   payeeId!: RecordId | null;
+
+  @Column({ allowNull: true, type: DataType.STRING(200) })
+  payeeNameSnapshot!: string | null;
 
   @BelongsTo(() => Payees)
   payee!: Payees;

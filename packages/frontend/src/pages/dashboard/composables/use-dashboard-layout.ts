@@ -1,17 +1,28 @@
 import type { DashboardWidgetConfig } from '@/api/user-settings';
 import { DEFAULT_DASHBOARD_LAYOUT, WIDGET_REGISTRY } from '@/components/widgets/widget-registry';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { trackAnalyticsEvent } from '@/lib/posthog';
-import { useLocalStorage } from '@vueuse/core';
+import { useUserStore } from '@/stores/user';
+import { StorageSerializers, useLocalStorage } from '@vueuse/core';
 import { cloneDeep } from 'lodash-es';
 import { computed, nextTick, ref, watch } from 'vue';
 
 export function useDashboardLayout() {
-  const { data: settings, patchAsync } = useUserSettings();
+  const { data: settings, isPending: isSettingsPending, patchAsync } = useUserSettings();
+  const user = useUserStore();
 
-  const cachedLayout = useLocalStorage<DashboardWidgetConfig[]>('dashboard-layout', DEFAULT_DASHBOARD_LAYOUT);
+  const cachedLayout = useLocalStorage<DashboardWidgetConfig[] | null>(
+    computed(() => `dashboard-layout:user:${user.user?.id ?? 'none'}`),
+    null,
+    { serializer: StorageSerializers.object },
+  );
+  const layoutReady = computed(
+    () => Boolean(settings.value) || cachedLayout.value !== null || !isSettingsPending.value,
+  );
 
   const isEditMode = ref(false);
+  const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
   const draftWidgets = ref<DashboardWidgetConfig[]>([]);
 
   const activeWidgets = computed<DashboardWidgetConfig[]>(() => {
@@ -19,19 +30,23 @@ export function useDashboardLayout() {
 
     if (settings.value) {
       // Settings loaded — use API data or default
-      const layout = saved && saved.length > 0 ? saved : DEFAULT_DASHBOARD_LAYOUT;
+      const layout = saved ?? DEFAULT_DASHBOARD_LAYOUT;
       return layout.filter((w) => w.widgetId in WIDGET_REGISTRY);
     }
 
     // Still loading — use cached layout for accurate skeletons
-    return cachedLayout.value.filter((w) => w.widgetId in WIDGET_REGISTRY);
+    return (cachedLayout.value ?? DEFAULT_DASHBOARD_LAYOUT).filter((w) => w.widgetId in WIDGET_REGISTRY);
   });
 
-  watch(activeWidgets, (layout) => {
-    if (settings.value) {
-      cachedLayout.value = layout;
-    }
-  });
+  watch(
+    activeWidgets,
+    (layout) => {
+      if (settings.value && user.user) {
+        cachedLayout.value = layout;
+      }
+    },
+    { immediate: true },
+  );
 
   const displayWidgets = computed(() => (isEditMode.value ? draftWidgets.value : activeWidgets.value));
 
@@ -46,35 +61,52 @@ export function useDashboardLayout() {
     trackAnalyticsEvent({ event: 'dashboard_edit_opened' });
   };
 
-  const exitEditMode = () => {
+  const exitEditMode = ({ resetDraft = false }: { resetDraft?: boolean } = {}) => {
+    const exit = () => {
+      isEditMode.value = false;
+      if (resetDraft) draftWidgets.value = [];
+    };
     const reducedMotion =
       typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const transitionHost = document as Document & {
       startViewTransition?: (callback: () => Promise<void>) => unknown;
     };
-    if (reducedMotion || typeof transitionHost.startViewTransition !== 'function') {
-      isEditMode.value = false;
+    if (isMobile.value || reducedMotion || typeof transitionHost.startViewTransition !== 'function') {
+      exit();
       return;
     }
     // Capture both layouts after Vue paints to avoid abrupt widget flicker.
     transitionHost.startViewTransition(async () => {
-      isEditMode.value = false;
+      exit();
       await nextTick();
     });
   };
 
-  const saveLayout = async () => {
-    await patchAsync({ dashboard: { widgets: draftWidgets.value } });
-    trackAnalyticsEvent({
-      event: 'dashboard_layout_saved',
-      properties: { widget_count: draftWidgets.value.length },
+  let saveQueue = Promise.resolve();
+  const queueLayoutUpdate = (update: () => Promise<void>) => {
+    const owner = user.user?.id;
+    const save = saveQueue.then(async () => {
+      if (owner === undefined || owner !== user.user?.id) return;
+      await update();
     });
-    exitEditMode();
+    saveQueue = save.catch(() => {});
+    return save;
+  };
+
+  const saveLayout = () => {
+    const widgets = cloneDeep(draftWidgets.value);
+    return queueLayoutUpdate(async () => {
+      await patchAsync({ dashboard: { widgets } });
+      trackAnalyticsEvent({
+        event: 'dashboard_layout_saved',
+        properties: { widget_count: widgets.length },
+      });
+      exitEditMode();
+    });
   };
 
   const cancelEdit = () => {
-    draftWidgets.value = [];
-    isEditMode.value = false;
+    exitEditMode({ resetDraft: true });
   };
 
   const removeWidget = ({ widgetId }: { widgetId: string }) => {
@@ -102,30 +134,24 @@ export function useDashboardLayout() {
     }
   };
 
-  const saveWidgetConfigDirect = async ({
-    widgetId,
-    config,
-  }: {
-    widgetId: string;
-    config: Record<string, unknown>;
-  }) => {
-    if (!settings.value) return;
-
-    const widgets = cloneDeep(activeWidgets.value);
-    const widget = widgets.find((w) => w.widgetId === widgetId);
-    if (widget) {
+  const saveWidgetConfigDirect = ({ widgetId, config }: { widgetId: string; config: Record<string, unknown> }) =>
+    queueLayoutUpdate(async () => {
+      if (!settings.value) return;
+      const widgets = cloneDeep(activeWidgets.value);
+      const widget = widgets.find((entry) => entry.widgetId === widgetId);
+      if (!widget) return;
       widget.config = { ...widget.config, ...config };
       await patchAsync({ dashboard: { widgets } });
       trackAnalyticsEvent({
         event: 'dashboard_widget_config_saved',
         properties: { widget_id: widgetId },
       });
-    }
-  };
+    });
 
   return {
     isEditMode,
     activeWidgets,
+    layoutReady,
     draftWidgets,
     displayWidgets,
     availableWidgets,

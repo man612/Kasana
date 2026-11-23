@@ -9,18 +9,22 @@
   <!-- Loaded State -->
   <div v-else-if="hasValue" class="space-y-1.5">
     <!-- Total Value -->
-    <p class="text-2xl font-bold tracking-tight">
+    <p class="text-xl font-semibold tracking-tight break-words tabular-nums">
       {{ formattedValue }}
     </p>
 
     <!-- Unrealized Gain/Loss -->
-    <div v-if="summary" class="flex items-center gap-1.5" :class="gainColorClass">
+    <div v-if="summary && !summary.unpricedHoldingsCount" class="flex items-center gap-1.5" :class="gainColorClass">
       <component :is="gainIcon" class="size-3.5" />
       <span class="text-sm font-medium">
         {{ unrealizedGainFormatted }}
       </span>
       <span class="text-xs opacity-80"> ({{ unrealizedPercentFormatted }}) </span>
     </div>
+
+    <p v-else-if="summary?.unpricedHoldingsCount" class="text-warning-text text-xs">
+      {{ $t('investments.summary.unpriced', { count: summary.unpricedHoldingsCount }) }}
+    </p>
 
     <!-- Cost Basis -->
     <p v-if="summary" class="text-muted-foreground text-xs">
@@ -29,60 +33,37 @@
   </div>
 
   <!-- No Data -->
-  <div v-else class="text-2xl font-bold tracking-tight">-</div>
+  <div v-else class="text-xl font-semibold tracking-tight break-words tabular-nums">-</div>
 </template>
 
 <script setup lang="ts">
-import { usePortfolioSummaries } from '@/composable/data-queries/portfolio-summary';
 import { useFormatCurrency } from '@/composable/formatters';
-import type { UserCurrencyModel } from '@bt/shared/types';
+import type { PortfolioSummaryModel } from '@bt/shared/types/investments/portfolio-summary.model';
 import { TrendingDownIcon, TrendingUpIcon } from '@lucide/vue';
 import { computed } from 'vue';
 
-const props = defineProps<{
-  portfolioId: string;
-  currencies: UserCurrencyModel[];
-}>();
+const { summary } = defineProps<{ summary?: PortfolioSummaryModel; isFetching: boolean }>();
+const { formatAmountByCurrencyCode } = useFormatCurrency();
 
-const { data: summaries, isFetching } = usePortfolioSummaries();
-const summary = computed(() => summaries.value?.find((item) => item.portfolioId === props.portfolioId));
-const { formatCompactAmount } = useFormatCurrency();
-
-const hasValue = computed(
-  () => summary.value && summary.value.totalPortfolioValue !== undefined && summary.value.totalPortfolioValue !== null,
-);
-
-const findUserCurrency = (currencyCode: string) =>
-  props.currencies.find((c) => c.currency?.code === currencyCode.toUpperCase());
-
-const formatCurrency = ({ amount, currencyCode }: { amount: number; currencyCode: string }) => {
-  const userCurrency = findUserCurrency(currencyCode);
-  return formatCompactAmount(amount, userCurrency?.currencyCode ?? currencyCode);
-};
+const hasValue = computed(() => summary?.totalPortfolioValue != null);
 
 const formattedValue = computed(() => {
-  if (!summary.value) return '';
-  return formatCurrency({
-    amount: Number(summary.value.totalPortfolioValue),
-    currencyCode: summary.value.currencyCode,
-  });
+  if (!summary) return '';
+  return formatAmountByCurrencyCode(Number(summary.totalPortfolioValue), summary.currencyCode);
 });
 
 const formattedCostBasis = computed(() => {
-  if (!summary.value) return '';
-  return formatCurrency({
-    amount: Number(summary.value.totalCostBasis),
-    currencyCode: summary.value.currencyCode,
-  });
+  if (!summary) return '';
+  return formatAmountByCurrencyCode(Number(summary.totalCostBasis), summary.currencyCode);
 });
 
-const unrealizedGainValue = computed(() => (summary.value ? Number(summary.value.unrealizedGainValue) : 0));
-const unrealizedGainPercent = computed(() => (summary.value ? Number(summary.value.unrealizedGainPercent) : 0));
+const unrealizedGainValue = computed(() => (summary ? Number(summary.unrealizedGainValue) : 0));
+const unrealizedGainPercent = computed(() => (summary ? Number(summary.unrealizedGainPercent) : 0));
 
 const unrealizedGainFormatted = computed(() => {
-  if (!summary.value) return '';
+  if (!summary) return '';
   const sign = unrealizedGainValue.value >= 0 ? '+' : '';
-  return `${sign}${formatCurrency({ amount: unrealizedGainValue.value, currencyCode: summary.value.currencyCode })}`;
+  return `${sign}${formatAmountByCurrencyCode(unrealizedGainValue.value, summary.currencyCode)}`;
 });
 
 const unrealizedPercentFormatted = computed(() => {

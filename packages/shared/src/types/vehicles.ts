@@ -26,6 +26,8 @@ export enum DEPRECIATION_PRESET {
   average = 'average',
   fast = 'fast',
   custom = 'custom',
+  straightLine = 'straight-line',
+  manual = 'manual',
 }
 
 /**
@@ -64,3 +66,72 @@ export const PRESET_MULTIPLIERS = {
   average: 1.0,
   fast: 1.3,
 } as const;
+
+/** Empty catalogue metadata on existing rows keeps their original class and valuation profile. */
+export const VEHICLE_TYPES = {
+  motorcycle: { group: 'motorcycles', vehicleClass: VEHICLE_CLASS.motorcycle },
+  scooter: { group: 'motorcycles', vehicleClass: VEHICLE_CLASS.motorcycle },
+  automatic: { group: 'motorcycles', vehicleClass: VEHICLE_CLASS.motorcycle },
+  sportBike: { group: 'motorcycles', vehicleClass: VEHICLE_CLASS.motorcycle },
+  underbone: { group: 'motorcycles', vehicleClass: VEHICLE_CLASS.motorcycle },
+  trail: { group: 'motorcycles', vehicleClass: VEHICLE_CLASS.motorcycle },
+  cruiser: { group: 'motorcycles', vehicleClass: VEHICLE_CLASS.motorcycle },
+  touring: { group: 'motorcycles', vehicleClass: VEHICLE_CLASS.motorcycle },
+  electricBike: { group: 'motorcycles', vehicleClass: VEHICLE_CLASS.ev },
+  sedan: { group: 'cars', vehicleClass: VEHICLE_CLASS.sedan },
+  hatchback: { group: 'cars', vehicleClass: VEHICLE_CLASS.sedan },
+  suv: { group: 'cars', vehicleClass: VEHICLE_CLASS.suv },
+  mpv: { group: 'cars', vehicleClass: VEHICLE_CLASS.suv },
+  pickup: { group: 'cars', vehicleClass: VEHICLE_CLASS.truck },
+  van: { group: 'cars', vehicleClass: VEHICLE_CLASS.truck },
+  ev: { group: 'cars', vehicleClass: VEHICLE_CLASS.ev },
+  hybrid: { group: 'cars', vehicleClass: VEHICLE_CLASS.sedan },
+  sportCar: { group: 'cars', vehicleClass: VEHICLE_CLASS.luxury },
+  classicCar: { group: 'cars', vehicleClass: null },
+  bus: { group: 'commercial', vehicleClass: null },
+  minibus: { group: 'commercial', vehicleClass: null },
+  taxi: { group: 'commercial', vehicleClass: null },
+  angkot: { group: 'commercial', vehicleClass: null },
+  truck: { group: 'commercial', vehicleClass: VEHICLE_CLASS.truck },
+  emergency: { group: 'commercial', vehicleClass: null },
+  heavyEquipment: { group: 'commercial', vehicleClass: null },
+  bicycle: { group: 'mobility', vehicleClass: null },
+  ebike: { group: 'mobility', vehicleClass: null },
+  wheelchair: { group: 'mobility', vehicleClass: null },
+  powerchair: { group: 'mobility', vehicleClass: null },
+  mobilityScooter: { group: 'mobility', vehicleClass: null },
+  kickScooter: { group: 'mobility', vehicleClass: null },
+  ship: { group: 'watercraft', vehicleClass: null },
+  boat: { group: 'watercraft', vehicleClass: null },
+  yacht: { group: 'watercraft', vehicleClass: null },
+  helicopter: { group: 'aircraft', vehicleClass: null },
+  plane: { group: 'aircraft', vehicleClass: null },
+  jet: { group: 'aircraft', vehicleClass: null },
+  ufo: { group: 'fictional', vehicleClass: null },
+  rocket: { group: 'fictional', vehicleClass: null },
+  trex: { group: 'fictional', vehicleClass: null },
+  velociraptor: { group: 'fictional', vehicleClass: null },
+  triceratops: { group: 'fictional', vehicleClass: null },
+  other: { group: 'other', vehicleClass: null },
+} as const;
+
+export type VehicleType = keyof typeof VEHICLE_TYPES;
+
+export const VEHICLE_PLATE_MAX_LENGTH = 32;
+export const normalizeVehiclePlate = (value: string) => value.trim().replace(/\s+/g, ' ').toUpperCase();
+
+export type VehicleValuationProfile = {
+  vehicleClass: VEHICLE_CLASS;
+  preset: DEPRECIATION_PRESET;
+  customAnnualRatePct: number | null;
+  salvageFloorPct: number;
+};
+
+/** An effective-dated change starts a new curve from the value recorded at that time. */
+export interface VehicleValuationRevision {
+  effectiveAt: string;
+  anchorCents: number;
+  previousProfile: VehicleValuationProfile;
+}
+
+export type VehicleValuationSegment = VehicleValuationProfile & { date: string; value: number };

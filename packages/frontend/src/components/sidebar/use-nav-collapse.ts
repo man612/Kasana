@@ -4,17 +4,15 @@ import { computed } from 'vue';
 type NavSection = 'accounts' | 'transactions' | 'planned';
 
 export const useSidebarNavCollapse = createSharedComposable(() => {
-  const openSection = useLocalStorage<NavSection | null>('sidebar:nav-open-section', null);
+  const legacy = useLocalStorage<NavSection | null>('sidebar:nav-open-section', null);
+  const openSections = useLocalStorage<NavSection[]>('sidebar:nav-open-sections', legacy.value ? [legacy.value] : []);
 
   const sectionOpen = (section: NavSection) =>
     computed<boolean>({
-      get: () => openSection.value === section,
+      get: () => openSections.value.includes(section),
       set: (val) => {
-        if (val) {
-          openSection.value = section;
-        } else if (openSection.value === section) {
-          openSection.value = null;
-        }
+        const remaining = openSections.value.filter((item) => item !== section);
+        openSections.value = val ? [...remaining, section] : remaining;
       },
     });
 
@@ -22,9 +20,9 @@ export const useSidebarNavCollapse = createSharedComposable(() => {
     isAccountsOpen: sectionOpen('accounts'),
     isTransactionsOpen: sectionOpen('transactions'),
     isPlannedOpen: sectionOpen('planned'),
-    hasAnyOpen: computed(() => openSection.value !== null),
+    hasAnyOpen: computed(() => openSections.value.length > 0),
     collapseAll: () => {
-      openSection.value = null;
+      openSections.value = [];
     },
   };
 });

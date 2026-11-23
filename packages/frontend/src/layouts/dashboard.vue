@@ -6,7 +6,7 @@
     @touchcancel="clearDashboardTouch"
   >
     <div
-      v-if="!isMobileView && !isSettingsRoute"
+      v-if="!isMobileView && !isSettingsRoute && !isFocusPage"
       class="relative h-full shrink-0 overflow-hidden transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
       :class="isCollapsed ? 'w-16' : 'w-75'"
     >
@@ -17,30 +17,41 @@
     </div>
 
     <ScrollArea ref="scrollAreaRef" class="flex-1" scrollbar-class="z-40" :scroll-area-id="SCROLL_AREA_IDS.dashboard">
-      <ui-header class="bg-card dark:bg-background sticky top-0 z-30" />
+      <ui-header v-if="!isFocusPage" class="bg-card dark:bg-background sticky top-0 z-30" />
 
       <template v-if="isAppInitialized">
-        <div class="max-md:pb-4">
-          <router-view v-slot="{ Component, route }">
-            <Transition name="kasana-page" mode="out-in">
-              <component :is="Component" :key="route.matched[1]?.path ?? route.path" />
-            </Transition>
-          </router-view>
+        <div :class="!isFocusPage && route.name !== ROUTES_NAMES.transactions && 'max-md:pb-4'">
+          <RoutePageOutlet />
         </div>
       </template>
+      <div v-else-if="initializationFailed" class="grid justify-items-start gap-3 p-6">
+        <p role="status">{{ $t('common.errors.initializationFailed') }}</p>
+        <Button type="button" variant="outline" @click="rootStore.fetchInitialData">{{
+          $t('common.actions.retry')
+        }}</Button>
+      </div>
+      <div v-else class="mx-auto grid w-full max-w-5xl gap-3 p-4" aria-busy="true" data-testid="dashboard-startup">
+        <div class="bg-muted h-10 rounded-lg motion-safe:animate-pulse" aria-hidden="true" />
+        <div
+          v-for="index in 3"
+          :key="index"
+          class="bg-muted/75 h-32 rounded-xl border motion-safe:animate-pulse"
+          aria-hidden="true"
+        />
+      </div>
     </ScrollArea>
 
-    <template v-if="isMobileView">
+    <template v-if="isMobileView && !isFocusPage">
       <BottomNavbar />
     </template>
 
     <!-- Quick Start Onboarding Sidebar (desktop only) -->
-    <template v-if="!isMobileView">
+    <template v-if="!isMobileView && !isFocusPage">
       <QuickStartSidebar />
     </template>
 
     <!-- Quick Start Onboarding (mobile: floating trigger + drawer) -->
-    <template v-if="isMobileView">
+    <template v-if="isMobileView && !isFocusPage">
       <QuickStartTrigger />
       <QuickStartPanel />
     </template>
@@ -54,7 +65,9 @@
 <script lang="ts" setup>
 import { useHead } from '@unhead/vue';
 import BottomNavbar from '@/components/bottom-navbar.vue';
+import RoutePageOutlet from '@/components/common/route-page-outlet.vue';
 import ShareInvitationDialog from '@/components/dialogs/share-invitation-dialog.vue';
+import { Button } from '@/components/lib/ui/button';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import { QuickStartPanel, QuickStartSidebar, QuickStartTrigger } from '@/components/quick-start';
@@ -69,7 +82,7 @@ import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-br
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useCurrenciesStore, useOnboardingStore, useRootStore } from '@/stores';
 import { storeToRefs } from 'pinia';
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 useHead({
@@ -85,25 +98,43 @@ const idleEnabled = useIdleEnabled();
 const { isCollapsed } = useSidebarCollapsed();
 // The settings page owns a fully functional navigator; hide the main sidebar there.
 const isSettingsRoute = computed(() => String(route.name ?? '').startsWith(ROUTES_NAMES.settings));
+const isFocusPage = computed(() => route.meta.focusPage === true);
 const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile, {
   wait: 50,
 });
 
-const primarySwipeRoutes = [ROUTES_NAMES.home, ROUTES_NAMES.accounts, ROUTES_NAMES.transactions, ROUTES_NAMES.analytics];
+const primarySwipeRoutes = [
+  ROUTES_NAMES.home,
+  ROUTES_NAMES.accounts,
+  ROUTES_NAMES.transactions,
+  ROUTES_NAMES.analytics,
+];
 const scrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
 let dashboardTouch: { x: number; y: number } | null = null;
-const clearDashboardTouch = () => { dashboardTouch = null; };
+const clearDashboardTouch = () => {
+  dashboardTouch = null;
+};
 const onDashboardTouchStart = (event: TouchEvent) => {
-  const isHome = String(route.name ?? '') === ROUTES_NAMES.home;
-  if (!isMobileView.value || (!isHome && !mobilePageSwipeEnabled.value)
-    || isMobileSheetOpen.value || event.touches.length !== 1) return;
+  if (
+    isFocusPage.value ||
+    !isMobileView.value ||
+    !mobilePageSwipeEnabled.value ||
+    isMobileSheetOpen.value ||
+    event.touches.length !== 1
+  )
+    return;
   const touch = event.touches[0]!;
   // Avoid the OS back-gesture edge and don't intercept buttons, fields, charts,
   // interactive widgets, or horizontal carousels.
-  if (touch.clientX < 24 || touch.clientX > window.innerWidth - 24) return;
-  if (touch.clientX > 84 && !mobilePageSwipeEnabled.value) return;
+  if (touch.clientX <= 62 || touch.clientX > window.innerWidth - 24) return;
   const target = event.target;
-  if (target instanceof Element && target.closest('button, input, select, textarea, a, nav, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe]')) return;
+  if (
+    target instanceof Element &&
+    target.closest(
+      'button, input, select, textarea, a, nav, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe]',
+    )
+  )
+    return;
   if (document.querySelector('[role="dialog"][data-state="open"], [aria-modal="true"]')) return;
   dashboardTouch = { x: touch.clientX, y: touch.clientY };
 };
@@ -111,31 +142,32 @@ const onDashboardTouchEnd = (event: TouchEvent) => {
   if (!dashboardTouch || event.changedTouches.length !== 1) return;
   const start = dashboardTouch;
   dashboardTouch = null;
+  if (isMobileSheetOpen.value) return;
   const touch = event.changedTouches[0]!;
   const dx = touch.clientX - start.x;
   const dy = touch.clientY - start.y;
   if (Math.abs(dx) <= 100 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
-  if (dx > 0 && String(route.name ?? '') === ROUTES_NAMES.home) {
-    isMobileSheetOpen.value = true;
-    return;
-  }
-  if (!mobilePageSwipeEnabled.value || start.x <= 84) return;
   const current = primarySwipeRoutes.indexOf(String(route.name) as typeof ROUTES_NAMES.home);
   if (current < 0) return;
   const next = current + (dx < 0 ? 1 : -1);
   if (next >= 0 && next < primarySwipeRoutes.length) void router.push({ name: primarySwipeRoutes[next]! });
 };
 
+const scrollPositions = new Map<string, number>();
 watch(
-  () => route.fullPath,
-  () => {
-    if (scrollAreaRef.value?.viewportRef?.viewportElement) {
-      scrollAreaRef.value.viewportRef.viewportElement.scrollTop = 0;
-    }
+  () => route.path,
+  async (current, previous) => {
+    const viewport = scrollAreaRef.value?.viewportRef?.viewportElement;
+    if (!viewport) return;
+    scrollPositions.delete(previous);
+    scrollPositions.set(previous, viewport.scrollTop);
+    if (scrollPositions.size > 30) scrollPositions.delete(scrollPositions.keys().next().value!);
+    await nextTick();
+    if (route.path === current) viewport.scrollTop = scrollPositions.get(current) ?? 0;
   },
 );
 
-const { isAppInitialized } = storeToRefs(rootStore);
+const { isAppInitialized, initializationFailed } = storeToRefs(rootStore);
 const { isBaseCurrencyExists } = storeToRefs(userCurrenciesStore);
 
 // The base-currency guard must run the instant the app is ready — it decides

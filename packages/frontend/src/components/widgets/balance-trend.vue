@@ -1,33 +1,7 @@
 <template>
-  <WidgetWrapper :is-fetching="isWidgetDataFetching" class="min-h-0 sm:min-h-80">
+  <WidgetWrapper :is-fetching="isWidgetDataFetching" class="@container/balance min-h-0" fit-content>
     <template #title>
-      <div class="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
-        <span>{{ $t('dashboard.widgets.balanceTrend.title') }}</span>
-        <!-- Mobile: visible segmented choices avoid a tall select + floating menu.
-             Additional sections scroll horizontally without changing the chart. -->
-        <div class="flex w-full min-w-0 gap-1 overflow-x-auto overscroll-x-contain pb-0.5 touch-pan-x sm:hidden" role="group" :aria-label="$t('dashboard.widgets.balanceTrend.title')">
-          <button
-            v-for="option in balanceTypeOptions"
-            :key="option.value"
-            type="button"
-            class="min-h-9 shrink-0 whitespace-nowrap rounded-lg px-2.5 text-xs font-medium transition-[background-color,color,transform] duration-180 active:scale-[0.97] motion-reduce:transition-none"
-            :class="selectedBalanceType.value === option.value ? 'bg-primary text-primary-foreground' : 'bg-muted/60 text-muted-foreground hover:text-foreground'"
-            :aria-pressed="selectedBalanceType.value === option.value"
-            :disabled="isWidgetDataFetching"
-            @click="selectedBalanceType = option"
-          >
-            {{ option.label }}
-          </button>
-        </div>
-        <SelectField
-          v-model="selectedBalanceType"
-          :values="balanceTypeOptions"
-          value-key="value"
-          label-key="label"
-          class="hidden w-35 text-xs sm:block"
-          :disabled="isWidgetDataFetching"
-        />
-      </div>
+      {{ $t('dashboard.widgets.balanceTrend.title') }}
     </template>
     <template v-if="widgetConfigRef" #action>
       <BalanceTrendSettingsPopover :is-projection-active="projection !== null" />
@@ -35,40 +9,55 @@
     <template v-if="isInitialLoading">
       <LoadingState />
     </template>
+    <template v-else-if="balanceHistoryError && isDataEmpty">
+      <WidgetUnavailable @retry="refetchBalanceHistory()" />
+    </template>
     <template v-else-if="isDataEmpty">
       <EmptyState>
         <ChartLineIcon class="size-12 opacity-60" />
       </EmptyState>
     </template>
     <template v-else>
-      <!-- Stats row - two columns with space between -->
-      <div class="max-xs:px-1 mb-2 flex flex-wrap items-start justify-between gap-2 sm:mb-4 sm:gap-4">
-        <!-- Left: Primary value -->
-        <div>
-          <div class="text-xl font-bold tracking-tight tabular-nums sm:text-2xl">
-            {{ formatBaseCurrency(animatedBalance) }}
-          </div>
-          <div class="text-muted-foreground mt-1 text-xs font-medium tracking-tight uppercase">
-            {{ periodLabel }}
-          </div>
+      <PillTabs
+        role="group"
+        :aria-label="$t('dashboard.widgets.balanceTrend.presentation.component')"
+        data-testid="balance-trend-components"
+        class="mb-2"
+        scrollable
+        :items="balanceTypeOptions"
+        :model-value="selectedBalanceType.value"
+        @update:model-value="selectBalanceTypeValue"
+      />
+      <p v-if="balanceHistoryError" class="text-warning-text mb-2 text-xs" role="status">
+        {{ $t('dashboard.widgets.common.staleData') }}
+        <Button variant="link" size="sm" @click="refetchBalanceHistory()">{{ $t('common.actions.retry') }}</Button>
+      </p>
+      <div class="mb-2 grid min-w-0 grid-cols-1 gap-2 @md/balance:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <div class="min-w-0">
+          <FitAmount
+            :value="animatedBalance"
+            :target="displayBalance.current"
+            class="text-xl leading-tight font-bold tracking-tight tabular-nums sm:text-3xl"
+          />
+          <p class="text-muted-foreground mt-1 text-xs" data-testid="balance-trend-as-of">{{ periodLabel }}</p>
         </div>
 
         <!-- Right: Comparison -->
-        <div class="flex min-w-0 flex-[1_1_9rem] flex-col items-end gap-1">
-          <div class="flex w-full items-center gap-1.5">
+        <div class="flex min-w-0 flex-col items-start gap-1 sm:items-end">
+          <div v-if="balancesDiffAbsolute !== null" class="flex max-w-full items-center gap-1.5">
             <FitAmount
-              v-if="balancesDiffAbsolute !== null"
               :value="balancesDiffAbsolute"
               signed
-              class="flex-1 text-right text-sm font-semibold tracking-tight"
+              class="max-w-full text-sm font-semibold tracking-tight sm:flex-1 sm:text-right"
               :class="{
                 'text-app-expense-color': comparisonTone < 0,
                 'text-success-text': comparisonTone > 0,
                 'text-muted-foreground': comparisonTone === 0,
               }"
             />
-            <span v-else class="text-muted-foreground flex-1 text-right text-sm">—</span>
+
             <span
+              v-if="balancesDiff !== null"
               class="inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-semibold"
               :class="{
                 'bg-app-expense-color/15 text-app-expense-color': comparisonTone < 0,
@@ -79,160 +68,242 @@
               {{ balancesDiff === null ? '—' : `${balancesDiff > 0 ? '+' : ''}${balancesDiff}%` }}
             </span>
           </div>
-          <div class="text-muted-foreground text-xs tracking-tight">
+          <div v-if="balancesDiffAbsolute !== null" class="text-muted-foreground text-xs">
             {{ $t('dashboard.widgets.balanceTrend.vsPreviousPeriod') }}
           </div>
         </div>
       </div>
 
-      <!-- Projected balance from pending plans; the headline above stays real-money only. -->
-      <i18n-t
-        v-if="projection"
-        keypath="dashboard.widgets.balanceTrend.projection.summary"
-        :plural="projection.planCount"
-        tag="div"
-        data-testid="bt-projection-summary"
-        class="max-xs:px-2 text-muted-foreground -mt-2 mb-3 text-xs"
-      >
-        <template #amount>
-          <span class="text-foreground text-sm font-semibold">{{ formatBaseCurrency(projection.projectedValue) }}</span>
-        </template>
-        <template #count>{{ projection.planCount }}</template>
-        <template #date>{{ projectionThroughDate }}</template>
-      </i18n-t>
-
-      <Transition name="chart-fade" mode="out-in">
-        <div :key="chartKey" ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative min-h-32 w-full flex-1 sm:min-h-44">
-          <svg
-            ref="svgRef"
-            class="h-full w-full"
-            role="group"
-            :aria-label="$t('dashboard.widgets.balanceTrend.title')"
-          ></svg>
-
-          <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
-          <Teleport to="body">
-            <div
-              v-show="tooltip.visible"
-              ref="tooltipRef"
-              class="pointer-events-none fixed isolate z-[100]"
-              :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
-            >
-              <ChartTooltip>
-                <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
-
-                <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
-                  <template #value>
-                    {{ formatTooltipMoney(row.value)
-                    }}<span
-                      v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
-                      class="ml-1 text-xs font-medium"
-                      :class="deltaColorClass(row.delta)"
-                      >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
-                    >
-                  </template>
-                </ChartTooltipRow>
-
-                <ChartTooltipDivider />
-
-                <ChartTooltipRow
-                  total
-                  :label="$t('dashboard.widgets.balanceTrend.tooltip.total')"
-                  :value="formatTooltipMoney(tooltip.totalBalance)"
-                />
-
-                <div
-                  v-if="tooltip.hasDelta"
-                  class="mt-1 text-xs font-semibold tabular-nums"
-                  :class="deltaColorClass(tooltip.deltaAbsolute)"
-                >
-                  {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
-                  ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
-                </div>
-              </ChartTooltip>
-            </div>
-          </Teleport>
-
-          <!-- Spike transactions panel -->
-          <SpikeTransactionsPanel
-            ref="spikePanelRef"
-            :visible="spikePanel.visible"
-            :x="spikePanel.x"
-            :y="spikePanel.y"
-            :spike-date="spikeDateLabel"
-            :delta-absolute="spikePanel.spikePoint?.deltaAbsolute ?? 0"
-            :delta-percent="spikePanel.spikePoint?.deltaPercent ?? 0"
-            :is-positive="spikePanel.spikePoint?.isPositive ?? true"
-            :transactions="spikeTransactions ?? []"
-            :is-loading="isSpikeTransactionsLoading"
-            :is-portfolio-mode="isPortfolioMode"
-            :accounts-delta="spikePanel.accountsDelta"
-            :portfolios-delta="spikePanel.portfoliosDelta"
-            :selected-balance-type="selectedBalanceType.value"
-            :currency-code="baseCurrency?.currency?.code"
-            @close="closeSpikePanel"
-            @see-all="navigateToSpikeTransactions"
-          />
-        </div>
-      </Transition>
-      <!-- Accessible numerical alternative to hovering the SVG. Sampled evenly,
-           always including the first and latest real balance observations. -->
-      <section class="border-border/60 mt-3 border-t pt-2 text-xs">
-        <button
-          type="button"
-          :aria-expanded="isBalanceTableOpen"
-          class="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex min-h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
-          @click="isBalanceTableOpen = !isBalanceTableOpen"
+      <div ref="miniContainer" class="min-w-0 px-1" data-testid="balance-trend-sparkline">
+        <svg
+          v-if="miniTrend"
+          viewBox="0 0 300 48"
+          class="text-primary-text h-16 w-full touch-pan-y"
+          preserveAspectRatio="none"
+          role="img"
+          :aria-label="$t('dashboard.widgets.balanceTrend.title')"
+          @pointerdown="inspectMini"
+          @pointermove="inspectMini"
+          @pointerup="hideTouchTooltip"
+          @pointercancel="hideTouchTooltip"
+          @pointerleave="leaveMini"
         >
-          <ChartNoAxesCombinedIcon class="size-3.5 shrink-0" aria-hidden="true" />
-          {{ $t('dashboard.widgets.balanceTrend.table.toggle') }}
-          <ChevronDownIcon
-            class="ml-auto size-3.5 transition-transform duration-220 ease-out motion-reduce:transition-none"
-            :class="isBalanceTableOpen && 'rotate-180'"
-            aria-hidden="true"
+          <path :d="miniAnimation?.area ?? miniTrend.area" fill="currentColor" opacity="0.13" />
+          <path
+            :d="miniAnimation?.path ?? miniTrend.path"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+            vector-effect="non-scaling-stroke"
           />
-        </button>
-        <Transition name="lajur-balance-table">
+          <circle
+            v-if="!showDetails && tooltip.visible && inspectedDate !== null"
+            :cx="miniTrend.x(inspectedDate)"
+            :cy="miniTrend.y(tooltip.totalBalance)"
+            r="3"
+            fill="currentColor"
+          />
+          <circle :cx="miniTrend.end.x" :cy="miniTrend.end.y" r="2.5" fill="currentColor" />
+        </svg>
+      </div>
+      <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
+      <Teleport to="body">
+        <Transition name="lajur-chart-tooltip">
           <div
-            v-if="isBalanceTableOpen"
-            class="lajur-dialog-scroll max-h-60 overflow-y-auto overscroll-contain px-2 pt-2 pr-4"
+            v-show="tooltip.visible && !spikePanel.visible"
+            ref="tooltipRef"
+            class="pointer-events-none fixed isolate max-w-[calc(100vw-1.25rem)] [@media(pointer:coarse)]:motion-safe:transition-[left,top] [@media(pointer:coarse)]:motion-safe:duration-150"
+            :class="showDetails ? 'z-(--z-chart-in-dialog)' : 'z-(--z-chart-floating)'"
+            :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
           >
-            <table class="w-full tabular-nums">
-              <caption class="sr-only">
-                {{
-                  $t('dashboard.widgets.balanceTrend.title')
-                }}
-              </caption>
-              <thead class="bg-card/90 sticky top-0 backdrop-blur-sm">
-                <tr class="text-muted-foreground border-border/50 border-b text-left">
-                  <th scope="col" class="py-2 font-medium">{{ $t('dashboard.widgets.balanceTrend.table.date') }}</th>
-                  <th scope="col" class="py-2 text-right font-medium">
-                    {{ $t('dashboard.widgets.balanceTrend.table.amount') }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="point in chartTableRows"
-                  :key="point.date"
-                  class="border-border/30 hover:bg-muted/30 border-b transition-colors last:border-0"
-                >
-                  <td class="py-2">
-                    {{
-                      new Date(point.date).toLocaleDateString(locale, {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })
-                    }}
-                  </td>
-                  <td class="py-2 text-right">{{ formatBaseCurrency(point.value) }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <ChartTooltip>
+              <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
+
+              <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
+                <template #value>
+                  {{ formatTooltipMoney(row.value)
+                  }}<span
+                    v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
+                    class="ml-1 text-xs font-medium"
+                    :class="deltaColorClass(row.delta)"
+                    >({{ formatBalanceDelta({ delta: row.delta, currency: tooltipCurrency }) }})</span
+                  >
+                </template>
+              </ChartTooltipRow>
+
+              <ChartTooltipDivider v-if="tooltipComponentRows.length" />
+
+              <ChartTooltipRow
+                total
+                :label="
+                  selectedBalanceType.value === 'total'
+                    ? $t('dashboard.widgets.balanceTrend.tooltip.total')
+                    : metricLabel
+                "
+                :value="formatTooltipMoney(tooltip.totalBalance)"
+              />
+
+              <div
+                v-if="tooltip.hasDelta"
+                class="mt-1 text-xs font-semibold tabular-nums"
+                :class="deltaColorClass(usesLoanBalance ? -tooltip.deltaAbsolute : tooltip.deltaAbsolute)"
+              >
+                {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
+                ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
+              </div>
+            </ChartTooltip>
           </div>
         </Transition>
-      </section>
+      </Teleport>
+
+      <ResponsiveDialog
+        v-model:open="showDetails"
+        dialog-content-class="sm:max-w-2xl"
+        drawer-content-class="max-h-[90dvh]"
+        intrinsic-height-motion
+      >
+        <template #trigger>
+          <Button
+            type="button"
+            variant="ghost"
+            class="min-h-11 w-full justify-between px-1"
+            data-testid="balance-trend-details"
+          >
+            {{ $t('dashboard.widgets.balanceTrend.presentation.details') }}
+            <ChevronRightIcon class="text-muted-foreground size-4" aria-hidden="true" />
+          </Button>
+        </template>
+        <template #title>{{ $t('dashboard.widgets.balanceTrend.presentation.details') }}</template>
+        <template #description>{{ metricLabel }} · {{ periodLabel }}</template>
+        <div class="min-w-0 space-y-4">
+          <div data-testid="balance-trend-summary" class="grid gap-2 pb-1 text-xs">
+            <p class="text-muted-foreground leading-relaxed">{{ metricDescription }}</p>
+            <dl v-if="summaryStats" class="border-border/60 grid grid-cols-2 gap-3 border-t pt-2">
+              <div class="min-w-0">
+                <dt class="text-muted-foreground">
+                  {{ $t('dashboard.widgets.balanceTrend.presentation.periodStart') }}
+                </dt>
+                <dd><FitAmount :value="summaryStats.start" class="pt-0.5 text-sm font-medium" /></dd>
+              </div>
+              <div class="min-w-0">
+                <dt class="text-muted-foreground">
+                  {{ $t('dashboard.widgets.balanceTrend.presentation.periodChange') }}
+                </dt>
+                <dd><FitAmount :value="summaryStats.change" signed class="pt-0.5 text-sm font-medium" /></dd>
+              </div>
+            </dl>
+          </div>
+          <!-- Projected balance from pending plans; the headline above stays real-money only. -->
+          <i18n-t
+            v-if="projection"
+            keypath="dashboard.widgets.balanceTrend.projection.summary"
+            :plural="projection.planCount"
+            tag="div"
+            data-testid="bt-projection-summary"
+            class="max-xs:px-2 text-muted-foreground -mt-2 mb-3 text-xs"
+          >
+            <template #amount>
+              <span class="text-foreground text-sm font-semibold">{{
+                formatBaseCurrency(projection.projectedValue)
+              }}</span>
+            </template>
+            <template #count>{{ projection.planCount }}</template>
+            <template #date>{{ projectionThroughDate }}</template>
+          </i18n-t>
+
+          <div ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative h-52 w-full sm:h-64">
+            <svg
+              ref="svgRef"
+              class="focus-visible:ring-ring h-full w-full touch-pan-y focus-visible:ring-2 focus-visible:outline-none"
+              role="group"
+              :aria-label="$t('dashboard.widgets.balanceTrend.title')"
+              :aria-describedby="canPanChart ? chartPanHelpId : undefined"
+              :tabindex="canPanChart ? 0 : undefined"
+              @pointerdown="rememberChartPointer"
+              @pointerup="finishChartPointer"
+              @pointercancel="cancelChartPointer"
+              @click.capture="protectChartPan"
+              @keydown.left.prevent="moveChartWindow({ points: -CHART_WINDOW_POINTS })"
+              @keydown.right.prevent="moveChartWindow({ points: CHART_WINDOW_POINTS })"
+            ></svg>
+
+            <!-- Spike transactions panel -->
+            <SpikeTransactionsPanel
+              ref="spikePanelRef"
+              :visible="spikePanel.visible"
+              :x="spikePanel.x"
+              :y="spikePanel.y"
+              :spike-date="spikeDateLabel"
+              :delta-absolute="spikePanel.spikePoint?.deltaAbsolute ?? 0"
+              :delta-percent="spikePanel.spikePoint?.deltaPercent ?? 0"
+              :is-positive="spikePanel.spikePoint ? spikePanel.spikePoint.isPositive !== usesLoanBalance : true"
+              :transactions="spikeTransactions ?? []"
+              :is-loading="isSpikeTransactionsLoading"
+              :is-portfolio-mode="isPortfolioMode"
+              :accounts-delta="spikePanel.accountsDelta"
+              :portfolios-delta="spikePanel.portfoliosDelta"
+              :selected-balance-type="selectedBalanceType.value"
+              :currency-code="baseCurrency?.currency?.code"
+              @close="closeSpikePanel"
+              @see-all="navigateToSpikeTransactions"
+            />
+          </div>
+          <div v-if="canPanChart" class="flex flex-wrap items-center justify-between gap-x-2 px-2 text-xs">
+            <p :id="chartPanHelpId" class="text-muted-foreground">{{ $t('dashboard.widgets.balanceTrend.panHint') }}</p>
+            <Button
+              v-if="chartWindowStart !== null"
+              type="button"
+              size="sm"
+              variant="ghost"
+              @click="chartWindowStart = null"
+            >
+              {{ $t('dashboard.widgets.balanceTrend.showFullRange') }}
+            </Button>
+          </div>
+
+          <section class="border-border/60 border-t pt-2 text-xs">
+            <h3 class="text-foreground mb-1 font-semibold">{{ $t('dashboard.widgets.balanceTrend.table.toggle') }}</h3>
+            <div class="max-h-64 overflow-y-auto overscroll-contain">
+              <table class="w-full tabular-nums">
+                <caption class="sr-only">
+                  {{
+                    $t('dashboard.widgets.balanceTrend.title')
+                  }}
+                </caption>
+                <thead class="bg-card/90 sticky top-0 backdrop-blur-sm">
+                  <tr class="text-muted-foreground border-border/50 border-b text-left">
+                    <th scope="col" class="py-2 font-medium">{{ $t('dashboard.widgets.balanceTrend.table.date') }}</th>
+                    <th scope="col" class="py-2 text-right font-medium">
+                      {{ $t('dashboard.widgets.balanceTrend.table.amount') }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="point in chartTableRows"
+                    :key="point.date"
+                    class="border-border/30 hover:bg-muted/30 border-b transition-colors last:border-0"
+                    :class="inspectedDate === point.date && 'bg-primary/10'"
+                  >
+                    <td class="py-2">
+                      {{
+                        new Date(point.date).toLocaleDateString(locale, {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })
+                      }}
+                    </td>
+                    <td class="py-2 text-right">{{ formatBaseCurrency(point.value) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </ResponsiveDialog>
     </template>
   </WidgetWrapper>
 </template>
@@ -247,11 +318,13 @@ import {
   ChartTooltipHeader,
   ChartTooltipRow,
 } from '@/components/common/charts/chart-tooltip';
+import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import FitAmount from '@/components/common/fit-amount.vue';
-import SelectField from '@/components/fields/select-field.vue';
+import { Button } from '@/components/lib/ui/button';
 import { useFormatCurrency } from '@/composable';
 import { getChartColors } from '@/composable/charts/chart-colors';
 import { formatAxisCurrency } from '@/composable/charts/format-axis-currency';
+import { PillTabs } from '@/components/lib/ui/pill-tabs';
 import { useChartTooltipPosition } from '@/composable/charts/use-chart-tooltip-position';
 import {
   SPIKE_DEFAULTS,
@@ -265,16 +338,28 @@ import { formatLargeNumber } from '@/js/helpers';
 import { compareBalancePeriods } from './compare-balance-periods';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { loadCombinedBalanceTrendData } from '@/services/stats';
-import { useAccountsStore, useCurrenciesStore } from '@/stores';
+import { useAccountsStore, useCurrenciesStore, useUserStore } from '@/stores';
 import { SORT_DIRECTIONS } from '@bt/shared/types';
 import { useQuery } from '@tanstack/vue-query';
-import { useResizeObserver } from '@vueuse/core';
+import { useLocalStorage, usePreferredReducedMotion, useResizeObserver } from '@vueuse/core';
 import * as d3 from 'd3';
-import { differenceInDays, endOfDay, format, isSameMonth, min, startOfDay, subDays } from 'date-fns';
-import { ChartLineIcon, ChartNoAxesCombinedIcon, ChevronDownIcon } from '@lucide/vue';
+import { differenceInDays, endOfDay, format, min, startOfDay, subDays, parseISO } from 'date-fns';
+import { ChartLineIcon, ChevronRightIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import type { Ref } from 'vue';
-import { computed, inject, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import {
+  computed,
+  inject,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  onUnmounted,
+  reactive,
+  ref,
+  shallowRef,
+  useId,
+  watch,
+} from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 
@@ -285,6 +370,7 @@ import { type BalanceProjection, buildBalanceProjection } from './balance-trend-
 import BalanceTrendSettingsPopover from './components/balance-trend-settings-popover.vue';
 import { readIncludePlanned } from './use-include-planned-config';
 import EmptyState from './components/empty-state.vue';
+import WidgetUnavailable from './components/widget-unavailable.vue';
 import LoadingState from './components/loading-state.vue';
 import SpikeTransactionsPanel from './components/spike-transactions-panel.vue';
 import WidgetWrapper from './components/widget-wrapper.vue';
@@ -324,6 +410,9 @@ const props = defineProps<{
 }>();
 
 const { t, locale } = useI18n();
+const CHART_WINDOW_POINTS = 31;
+const CHART_PAN_THRESHOLD = 10;
+const chartPanHelpId = useId();
 
 type BalanceTypeValue = 'total' | 'accounts' | 'portfolios' | 'ventures' | 'vehicles' | 'loans';
 type BalanceTypeOption = { value: BalanceTypeValue; label: string };
@@ -385,6 +474,8 @@ const getEffectiveTotal = (point: NetWorthComponentBalances): number =>
   composeNetWorth({ point, settings: compositionSettings.value });
 
 const containerRef = ref<HTMLDivElement | null>(null);
+const miniContainer = ref<HTMLDivElement | null>(null);
+const inspectedDate = ref<number | null>(null);
 const svgRef = ref<SVGSVGElement | null>(null);
 const tooltipRef = ref<HTMLDivElement | null>(null);
 
@@ -413,7 +504,7 @@ const tooltip = reactive({
 });
 
 const { updateTooltipPosition } = useChartTooltipPosition({
-  containerRef,
+  containerRef: computed(() => (showDetails.value ? containerRef.value : miniContainer.value)),
   tooltipRef,
   tooltip,
   strategy: 'fixed',
@@ -433,7 +524,12 @@ const fetchPeriod = computed(() => ({
   to: min([props.selectedPeriod.to, new Date()]),
 }));
 
-const { data: balanceHistory, isFetching: isBalanceHistoryFetching } = useQuery({
+const {
+  data: balanceHistory,
+  isFetching: isBalanceHistoryFetching,
+  isError: balanceHistoryError,
+  refetch: refetchBalanceHistory,
+} = useQuery({
   queryKey: [...VUE_QUERY_CACHE_KEYS.widgetBalanceTrend, periodQueryKey],
   queryFn: () => loadCombinedBalanceTrendData(fetchPeriod.value),
   staleTime: Infinity,
@@ -488,9 +584,7 @@ watch(
   { immediate: true },
 );
 
-const isDataEmpty = computed(
-  () => !balanceHistory.value || balanceHistory.value.every((i) => getEffectiveTotal(i) === 0),
-);
+const isDataEmpty = computed(() => !balanceHistory.value?.length);
 
 // True when the user has any venture activity reflected in the loaded series.
 // Gates the venture tooltip row and the venture option in the balance-type
@@ -541,43 +635,45 @@ const deltaColorClass = (delta: number) => ({
 // Component breakdown shown in the tooltip, gated the same way as the standalone
 // row flags so the visible deltas always sum to the displayed Total.
 const tooltipComponentRows = computed(() =>
-  [
-    {
-      key: 'accounts',
-      label: t('dashboard.widgets.balanceTrend.tooltip.accounts'),
-      value: tooltip.accountsBalance,
-      delta: tooltip.accountsDelta,
-      show: true,
-    },
-    {
-      key: 'portfolios',
-      label: t('dashboard.widgets.balanceTrend.tooltip.portfolios'),
-      value: tooltip.portfoliosBalance,
-      delta: tooltip.portfoliosDelta,
-      show: true,
-    },
-    {
-      key: 'ventures',
-      label: t('dashboard.widgets.balanceTrend.tooltip.ventures'),
-      value: tooltip.venturesBalance,
-      delta: tooltip.venturesDelta,
-      show: showVenturesRow.value,
-    },
-    {
-      key: 'vehicles',
-      label: t('dashboard.widgets.balanceTrend.tooltip.vehicles'),
-      value: tooltip.vehiclesBalance,
-      delta: tooltip.vehiclesDelta,
-      show: showVehiclesRow.value,
-    },
-    {
-      key: 'loans',
-      label: t('dashboard.widgets.balanceTrend.tooltip.loans'),
-      value: tooltip.loansBalance,
-      delta: tooltip.loansDelta,
-      show: showLoansRow.value,
-    },
-  ].filter((row) => row.show),
+  selectedBalanceType.value.value !== 'total'
+    ? []
+    : [
+        {
+          key: 'accounts',
+          label: t('dashboard.widgets.balanceTrend.tooltip.accounts'),
+          value: tooltip.accountsBalance,
+          delta: tooltip.accountsDelta,
+          show: true,
+        },
+        {
+          key: 'portfolios',
+          label: t('dashboard.widgets.balanceTrend.tooltip.portfolios'),
+          value: tooltip.portfoliosBalance,
+          delta: tooltip.portfoliosDelta,
+          show: true,
+        },
+        {
+          key: 'ventures',
+          label: t('dashboard.widgets.balanceTrend.tooltip.ventures'),
+          value: tooltip.venturesBalance,
+          delta: tooltip.venturesDelta,
+          show: showVenturesRow.value,
+        },
+        {
+          key: 'vehicles',
+          label: t('dashboard.widgets.balanceTrend.tooltip.vehicles'),
+          value: tooltip.vehiclesBalance,
+          delta: tooltip.vehiclesDelta,
+          show: showVehiclesRow.value,
+        },
+        {
+          key: 'loans',
+          label: t('dashboard.widgets.balanceTrend.tooltip.loans'),
+          value: tooltip.loansBalance,
+          delta: tooltip.loansDelta,
+          show: showLoansRow.value,
+        },
+      ].filter((row) => row.show),
 );
 
 const balanceTypeOptions = computed<BalanceTypeOption[]>(() => {
@@ -617,33 +713,45 @@ watch(hasLoanData, (val) => {
   }
 });
 
+const showDetails = ref(false);
+const user = useUserStore();
+const preferredBalanceType = useLocalStorage(
+  computed(() => `dashboard-balance-type:${user.user?.id ?? 'anonymous'}`),
+  'total',
+);
+watch(
+  [balanceTypeOptions, preferredBalanceType],
+  ([options, preferred]) => {
+    const option = options.find(({ value }) => value === preferred) ?? options[0];
+    if (option && selectedBalanceType.value.value !== option.value) selectedBalanceType.value = option;
+  },
+  { immediate: true },
+);
+function selectBalanceType(option: BalanceTypeOption | null) {
+  if (!option) return;
+  selectedBalanceType.value = option;
+  preferredBalanceType.value = option.value;
+}
+const selectBalanceTypeValue = (value: string) => {
+  const option = balanceTypeOptions.value.find((item) => item.value === value);
+  if (option) selectBalanceType(option);
+};
+
+const usesLoanBalance = computed(() => selectedBalanceType.value.value === 'loans');
+const metricLabel = computed(() =>
+  t(`dashboard.widgets.balanceTrend.presentation.metrics.${selectedBalanceType.value.value}.label`),
+);
+const metricDescription = computed(() =>
+  t(`dashboard.widgets.balanceTrend.presentation.metrics.${selectedBalanceType.value.value}.description`),
+);
 const periodLabel = computed(() => {
-  const from = props.selectedPeriod.from;
-  const to = props.selectedPeriod.to;
-  const now = new Date();
-
-  // Current month - show "Today"
-  if (isSameMonth(now, to) && isSameMonth(from, to)) {
-    return t('dashboard.widgets.balanceTrend.today');
-  }
-
-  // Specific month (not current) - show "November 2025"
-  if (isSameMonth(from, to)) {
-    return to.toLocaleDateString(locale.value, { month: 'long', year: 'numeric' });
-  }
-
-  // Check if it's a month-aligned range (starts on 1st day, ends on last day of month)
-  const isFromMonthStart = from.getDate() === 1;
-  const endOfToMonth = new Date(to.getFullYear(), to.getMonth() + 1, 0);
-  const isToMonthEnd = to.getDate() === endOfToMonth.getDate();
-
-  if (isFromMonthStart && isToMonthEnd) {
-    // Multi-month range like "Aug 2025 - Nov 2025"
-    return `${from.toLocaleDateString(locale.value, { month: 'short', year: 'numeric' })} – ${to.toLocaleDateString(locale.value, { month: 'short', year: 'numeric' })}`;
-  }
-
-  // Custom date range - show "MMM d, yyyy - MMM d, yyyy"
-  return `${from.toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' })} – ${to.toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  const latest = chartData.value.at(-1)?.date;
+  if (latest === undefined) return '';
+  const date = new Date(latest);
+  if (date.getTime() === startOfDay(new Date()).getTime()) return t('dashboard.widgets.balanceTrend.today');
+  return t('dashboard.widgets.balanceTrend.presentation.asOf', {
+    date: date.toLocaleDateString(locale.value, { day: 'numeric', month: 'short', year: 'numeric' }),
+  });
 });
 
 // Chart data based on selected balance type
@@ -668,14 +776,14 @@ const chartData = computed(() => {
         value = point.vehiclesBalance;
         break;
       case 'loans':
-        value = point.loansBalance;
+        value = -point.loansBalance;
         break;
       default:
         value = effectiveTotal;
     }
 
     return {
-      date: startOfDay(new Date(point.date)).getTime(),
+      date: startOfDay(parseISO(point.date)).getTime(),
       value,
       accountsBalance: point.accountsBalance,
       portfoliosBalance: point.portfoliosBalance,
@@ -686,15 +794,172 @@ const chartData = computed(() => {
     };
   });
 });
+const miniTrend = computed(() => {
+  const points = chartData.value.filter((point) => Number.isFinite(point.value));
+  if (!points.length) return null;
+  const first = points[0]!;
+  const last = points.at(-1)!;
+  const [low = 0, high = 0] = d3.extent(points, ({ value }) => value);
+  const scaleX = d3.scaleLinear().domain([first.date, last.date]).range([4, 296]);
+  const scaleY = d3.scaleLinear().domain([low, high]).range([42, 6]);
+  return {
+    x: scaleX,
+    y: scaleY,
+    pointCount: points.length,
+    area:
+      d3
+        .area<(typeof points)[number]>()
+        .x(({ date }) => scaleX(date))
+        .y0(44)
+        .y1(({ value }) => scaleY(value))(points) ?? '',
+    path:
+      d3
+        .line<(typeof points)[number]>()
+        .x(({ date }) => scaleX(date))
+        .y(({ value }) => scaleY(value))(points) ?? '',
+    end: { x: scaleX(last.date), y: scaleY(last.value) },
+  };
+});
+const summaryStats = computed(() => {
+  const first = chartData.value[0];
+  const last = chartData.value.at(-1);
+  if (!first || !last || first.date === last.date) return undefined;
+  return { start: first.value, change: last.value - first.value };
+});
+const chartWindowStart = ref<number | null>(null);
+const canPanChart = computed(() => chartData.value.length > CHART_WINDOW_POINTS);
+const chartWindow = computed(() => {
+  if (!canPanChart.value || chartWindowStart.value === null) return null;
+  const start = Math.min(chartWindowStart.value, chartData.value.length - CHART_WINDOW_POINTS);
+  return chartData.value.slice(start, start + CHART_WINDOW_POINTS);
+});
 
-const isBalanceTableOpen = ref(false);
+watch(
+  () => [props.selectedPeriod.from.getTime(), props.selectedPeriod.to.getTime(), selectedBalanceType.value.value],
+  () => {
+    chartWindowStart.value = null;
+  },
+);
+
+const moveChartWindow = ({ points }: { points: number }) => {
+  if (!canPanChart.value) return;
+  const lastStart = chartData.value.length - CHART_WINDOW_POINTS;
+  const from = chartWindowStart.value ?? (points < 0 ? lastStart : 0);
+  chartWindowStart.value = Math.max(0, Math.min(lastStart, from + points));
+};
+
+let chartPointer: { id: number; x: number; y: number } | null = null;
+let ignoreChartClick = false;
+let chartTooltipTimer: ReturnType<typeof setTimeout> | undefined;
+let clearChartHover = () => {};
+const hideTouchTooltip = () => {
+  clearTimeout(chartTooltipTimer);
+  chartTooltipTimer = setTimeout(() => {
+    chartTooltipTimer = undefined;
+    cancelAnimationFrame(chartHoverFrame);
+    tooltip.visible = false;
+    clearChartHover();
+  }, 480);
+};
+const rememberChartPointer = (event: PointerEvent) => {
+  if (!event.isPrimary || event.button !== 0) return;
+  clearTimeout(chartTooltipTimer);
+  chartTooltipTimer = undefined;
+  chartPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  ignoreChartClick = false;
+};
+const finishChartPointer = (event: PointerEvent) => {
+  if (chartPointer?.id !== event.pointerId) return;
+  if (event.pointerType !== 'mouse') hideTouchTooltip();
+  const dx = event.clientX - chartPointer.x;
+  const dy = event.clientY - chartPointer.y;
+  chartPointer = null;
+  if (!canPanChart.value || Math.abs(dx) < Math.max(CHART_PAN_THRESHOLD, Math.abs(dy))) return;
+  const width = svgRef.value?.clientWidth || 1;
+  const steps = Math.max(1, Math.round((Math.abs(dx) * CHART_WINDOW_POINTS) / width));
+  ignoreChartClick = true;
+  moveChartWindow({ points: -Math.sign(dx) * steps });
+};
+const cancelChartPointer = () => {
+  chartPointer = null;
+  hideTouchTooltip();
+};
+const inspectPoint = (d: (typeof chartData.value)[number], event: PointerEvent) => {
+  inspectedDate.value = d.date;
+  tooltip.date = new Date(d.date).toLocaleDateString(locale.value, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+  tooltip.accountsBalance = d.accountsBalance;
+  tooltip.portfoliosBalance = d.portfoliosBalance;
+  tooltip.venturesBalance = d.venturesBalance;
+  tooltip.vehiclesBalance = d.vehiclesBalance;
+  tooltip.loansBalance = d.loansBalance;
+  tooltip.totalBalance = d.value;
+
+  // Compute point-over-point deltas (charted line + each component)
+  const previousIndex = chartData.value.indexOf(d) - 1;
+  if (previousIndex >= 0) {
+    const prevPoint = chartData.value[previousIndex]!;
+    tooltip.deltaAbsolute = d.value - prevPoint.value;
+    tooltip.deltaPercent = prevPoint.value !== 0 ? ((d.value - prevPoint.value) / Math.abs(prevPoint.value)) * 100 : 0;
+    tooltip.accountsDelta = d.accountsBalance - prevPoint.accountsBalance;
+    tooltip.portfoliosDelta = d.portfoliosBalance - prevPoint.portfoliosBalance;
+    tooltip.venturesDelta = d.venturesBalance - prevPoint.venturesBalance;
+    tooltip.vehiclesDelta = d.vehiclesBalance - prevPoint.vehiclesBalance;
+    tooltip.loansDelta = d.loansBalance - prevPoint.loansBalance;
+    tooltip.hasDelta = true;
+  } else {
+    tooltip.deltaAbsolute = 0;
+    tooltip.deltaPercent = 0;
+    tooltip.accountsDelta = 0;
+    tooltip.portfoliosDelta = 0;
+    tooltip.venturesDelta = 0;
+    tooltip.vehiclesDelta = 0;
+    tooltip.loansDelta = 0;
+    tooltip.hasDelta = false;
+  }
+
+  tooltip.visible = true;
+
+  updateTooltipPosition(event);
+};
+const leaveMini = () => {
+  if (chartTooltipTimer === undefined) hideTouchTooltip();
+};
+const inspectMini = (event: PointerEvent) => {
+  if (!miniTrend.value || (event.pointerType !== 'mouse' && !(event.buttons & 1))) return;
+  const host = event.currentTarget;
+  if (!(host instanceof SVGSVGElement)) return;
+  clearTimeout(chartTooltipTimer);
+  chartTooltipTimer = undefined;
+  const bounds = host.getBoundingClientRect();
+  const x = (300 * (event.clientX - bounds.left)) / Math.max(1, bounds.width);
+  const targetDate = miniTrend.value.x.invert(x);
+  const points = chartData.value;
+  const index = d3.bisector((point: (typeof points)[number]) => point.date).center(points, targetDate);
+  const point = points[index];
+  if (point) inspectPoint(point, event);
+};
+const protectChartPan = (event: MouseEvent) => {
+  if (!ignoreChartClick) return;
+  ignoreChartClick = false;
+  event.stopPropagation();
+};
 
 // Keep the alternative data view compact even for multi-year daily series.
 const chartTableRows = computed(() => {
   const rows = chartData.value;
   if (rows.length <= 12) return rows;
   const lastIndex = rows.length - 1;
-  return Array.from({ length: 12 }, (_, i) => rows[Math.round((i * lastIndex) / 11)]!);
+  const sample = Array.from({ length: 12 }, (_, i) => rows[Math.round((i * lastIndex) / 11)]!);
+  const current = inspectedDate.value;
+  const point =
+    current === null || sample.some(({ date }) => date === current)
+      ? undefined
+      : rows.find(({ date }) => date === current);
+  return point ? [...sample, point].sort((left, right) => left.date - right.date) : sample;
 });
 
 const { spikePoints } = useSpikeDetection({ chartData, options: spikeSettings });
@@ -770,7 +1035,7 @@ const chartXAxisEnd = computed(() => {
 });
 
 // Key for the chart component - changes when period changes to trigger CSS transition
-const chartKey = computed(() => `${actualDataPeriod.value.from.getTime()}-${chartXAxisEnd.value.getTime()}`);
+const gradientId = `balance-trend-${useId()}`;
 
 const isPortfolioMode = computed(() => selectedBalanceType.value.value === 'portfolios');
 
@@ -813,27 +1078,20 @@ const { data: spikeTransactions, isLoading: isSpikeTransactionsLoading } = useQu
   staleTime: Infinity,
 });
 
+let spikeAnchor: { clientX: number; clientY: number } | null = null;
+const spikePanelElement = computed(() => spikePanelRef.value?.panelRef ?? null);
+const { updateTooltipPosition: positionSpikePanel } = useChartTooltipPosition({
+  containerRef,
+  tooltipRef: spikePanelElement,
+  tooltip: spikePanel,
+  strategy: 'fixed',
+});
+useResizeObserver(spikePanelElement, () => {
+  if (spikeAnchor && spikePanel.visible) positionSpikePanel(spikeAnchor);
+});
+
 function openSpikePanel({ event, spike }: { event: MouseEvent; spike: SpikePoint }) {
-  const PANEL_WIDTH = 338;
-  const PANEL_HEIGHT_ESTIMATE = 250;
-  const MARGIN = 12;
-
-  let x = event.clientX + MARGIN;
-  let y = event.clientY + MARGIN;
-
-  // Viewport boundary checks
-  if (x + PANEL_WIDTH > window.innerWidth) {
-    x = event.clientX - PANEL_WIDTH - MARGIN;
-  }
-  if (x < MARGIN) x = MARGIN;
-
-  if (y + PANEL_HEIGHT_ESTIMATE > window.innerHeight) {
-    y = event.clientY - PANEL_HEIGHT_ESTIMATE - MARGIN;
-  }
-  if (y < MARGIN) y = MARGIN;
-
-  spikePanel.x = x;
-  spikePanel.y = y;
+  spikeAnchor = { clientX: event.clientX, clientY: event.clientY };
   spikePanel.spikePoint = spike;
 
   // Compute per-component deltas from chartData
@@ -849,6 +1107,9 @@ function openSpikePanel({ event, spike }: { event: MouseEvent; spike: SpikePoint
   }
 
   spikePanel.visible = true;
+  void nextTick(() => {
+    if (spikeAnchor && spikePanel.visible) positionSpikePanel(spikeAnchor);
+  });
 
   // Trigger transaction fetch by setting the date
   selectedSpikeDate.value = format(spike.date, 'yyyy-MM-dd');
@@ -856,6 +1117,7 @@ function openSpikePanel({ event, spike }: { event: MouseEvent; spike: SpikePoint
 
 function closeSpikePanel() {
   spikePanel.visible = false;
+  spikeAnchor = null;
   spikePanel.spikePoint = null;
   spikePanel.accountsDelta = 0;
   spikePanel.portfoliosDelta = 0;
@@ -874,8 +1136,9 @@ function navigateToSpikeTransactions() {
 
 // Close spike panel on click outside
 function handleDocumentClick(event: MouseEvent) {
-  if (!spikePanel.visible) return;
   const target = event.target as Element;
+  if (!svgRef.value?.contains(target)) tooltip.visible = false;
+  if (!spikePanel.visible) return;
   // Ignore clicks on spike markers — they have their own handler
   if (target.classList?.contains('spike-hit-area') || target.classList?.contains('spike-dot')) return;
   const panelEl = spikePanelRef.value?.panelRef;
@@ -885,9 +1148,9 @@ function handleDocumentClick(event: MouseEvent) {
 }
 
 function handleEscapeKey(event: KeyboardEvent) {
-  if (event.key === 'Escape' && spikePanel.visible) {
-    closeSpikePanel();
-  }
+  if (event.key !== 'Escape') return;
+  tooltip.visible = false;
+  if (spikePanel.visible) closeSpikePanel();
 }
 
 onMounted(() => {
@@ -896,6 +1159,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  clearTimeout(chartTooltipTimer);
+  cancelAnimationFrame(chartRenderFrame);
+  cancelAnimationFrame(chartHoverFrame);
   document.removeEventListener('click', handleDocumentClick);
   document.removeEventListener('keydown', handleEscapeKey);
 });
@@ -908,9 +1174,14 @@ const getColors = () => {
 const formatAxisValue = (value: number, step?: number) =>
   formatAxisCurrency({ value, symbol: getCurrencySymbol(), currencyCode: baseCurrency.value?.currency?.code, step });
 
+let chartRenderFrame = 0;
+let chartHoverFrame = 0;
 const renderChart = () => {
-  if (!svgRef.value || !containerRef.value || chartData.value.length === 0) return;
+  cancelAnimationFrame(chartHoverFrame);
+  if (!showDetails.value || !svgRef.value || !containerRef.value || chartData.value.length === 0) return;
 
+  const points = chartWindow.value ?? chartData.value;
+  const visibleProjection = chartWindow.value ? null : projection.value;
   const colors = getColors();
   const svg = d3.select(svgRef.value);
   svg.selectAll('*').remove();
@@ -922,7 +1193,7 @@ const renderChart = () => {
   // Use the same value universe for Y-axis label width and Y-axis domain.
   // Projection can exceed historical values; otherwise its larger labels clip
   // against the left side on narrow Android viewports.
-  const yValues = [...chartData.value.map((d) => d.value), ...(projection.value?.points.map((p) => p.value) ?? [])];
+  const yValues = [...points.map((d) => d.value), ...(visibleProjection?.points.map((p) => p.value) ?? [])];
   const [dataMin = 0, dataMax = 0] = d3.extent(yValues);
   const approxTickStep = Math.max(1, (dataMax - dataMin) / 4 || 500);
   const longestLabel = Math.max(
@@ -943,8 +1214,9 @@ const renderChart = () => {
   // Calculate x-axis ticks - limit to 6-7 max
   const pixelsPerTick = isMobile ? 80 : 120;
   const ticksAmount = Math.min(7, Math.max(2, Math.round(innerWidth / pixelsPerTick)));
-  const fromDate = actualDataPeriod.value.from;
-  const toDate = chartXAxisEnd.value;
+  const fromDate = chartWindow.value ? new Date(points[0]!.date) : actualDataPeriod.value.from;
+  const toDate = chartWindow.value ? new Date(points.at(-1)!.date) : chartXAxisEnd.value;
+  const visibleSpikes = spikePoints.value.filter((point) => point.date >= +fromDate && point.date <= +toDate);
   const xAxisTicks = generateDateSteps({ datesToShow: ticksAmount, fromDate, toDate });
 
   // X scale
@@ -986,7 +1258,6 @@ const renderChart = () => {
     });
 
   // Create gradient for area fill
-  const gradientId = `area-gradient-${chartKey.value}`;
   const defs = svg.append('defs');
   const gradient = defs
     .append('linearGradient')
@@ -1017,21 +1288,21 @@ const renderChart = () => {
 
   // A constant balance is a line, not a large filled rectangle. Avoid
   // implying volatility when the data has not actually moved.
-  const hasMovement = chartData.value.some((point) => point.value !== chartData.value[0]?.value);
+  const hasMovement = points.some((point) => point.value !== points[0]?.value);
   if (hasMovement) {
-    g.append('path').datum(chartData.value).attr('class', 'area').attr('fill', `url(#${gradientId})`).attr('d', area);
+    g.append('path').datum(points).attr('class', 'area').attr('fill', `url(#${gradientId})`).attr('d', area);
   }
 
   // Draw line
   g.append('path')
-    .datum(chartData.value)
+    .datum(points)
     .attr('class', 'line')
     .attr('fill', 'none')
     .attr('stroke', 'var(--primary)')
     .attr('stroke-width', 2.5)
     .attr('d', line);
 
-  const latestRealPoint = chartData.value[chartData.value.length - 1];
+  const latestRealPoint = points.at(-1);
   if (latestRealPoint) {
     g.append('circle')
       .attr('cx', xScale(latestRealPoint.date))
@@ -1102,6 +1373,11 @@ const renderChart = () => {
     .attr('y2', innerHeight)
     .style('opacity', 0);
 
+  clearChartHover = () => {
+    hoverDot.style('opacity', 0);
+    hoverLine.style('opacity', 0);
+  };
+
   g.append('rect')
     .attr('class', 'overlay')
     .attr('width', innerWidth)
@@ -1112,69 +1388,50 @@ const renderChart = () => {
       hoverDot.style('opacity', 1);
       hoverLine.style('opacity', 0.5);
     })
-    .on('mousemove', (event: MouseEvent) => {
-      const [mouseX] = d3.pointer(event);
-      const x0 = xScale.invert(mouseX);
-      const index = bisect(chartData.value, x0, 1);
-      const d0 = chartData.value[index - 1];
-      const d1 = chartData.value[index];
+    .on('pointermove pointerdown', (event: PointerEvent) => {
+      if (!event.isPrimary || (event.pointerType !== 'mouse' && !(event.buttons & 1))) return;
+      const interactionTarget = event.currentTarget;
+      if (!(interactionTarget instanceof SVGRectElement)) return;
+      cancelAnimationFrame(chartHoverFrame);
+      chartHoverFrame = requestAnimationFrame(() => {
+        const [mouseX, mouseY] = d3.pointer(event, interactionTarget);
+        if (event.pointerType !== 'mouse' && chartPointer?.id === event.pointerId) {
+          if (mouseX < 0 || mouseX > innerWidth || mouseY < 0 || mouseY > innerHeight) {
+            if (chartTooltipTimer === undefined) hideTouchTooltip();
+            return;
+          }
+          clearTimeout(chartTooltipTimer);
+          chartTooltipTimer = undefined;
+        }
+        hoverDot.style('opacity', 1);
+        hoverLine.style('opacity', 0.5);
+        const x0 = xScale.invert(mouseX);
+        const index = bisect(points, x0, 1);
+        const d0 = points[index - 1];
+        const d1 = points[index];
 
-      if (!d0) return;
+        if (!d0) return;
 
-      const isCloserToD1 = d1 && x0 - d0.date > d1.date - x0;
-      const d = isCloserToD1 ? d1 : d0;
-      const currentIndex = isCloserToD1 ? index : index - 1;
+        const isCloserToD1 = d1 && x0 - d0.date > d1.date - x0;
+        const d = isCloserToD1 ? d1 : d0;
 
-      // Update hover dot position
-      hoverDot.attr('cx', xScale(d.date)).attr('cy', yScale(d.value));
+        // Update hover dot position
+        hoverDot.attr('cx', xScale(d.date)).attr('cy', yScale(d.value));
 
-      // Update hover line position
-      hoverLine.attr('x1', xScale(d.date)).attr('x2', xScale(d.date));
+        // Update hover line position
+        hoverLine.attr('x1', xScale(d.date)).attr('x2', xScale(d.date));
 
-      // Update tooltip
-      tooltip.date = new Date(d.date).toLocaleDateString(locale.value, {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
+        inspectPoint(d, event);
       });
-      tooltip.accountsBalance = d.accountsBalance;
-      tooltip.portfoliosBalance = d.portfoliosBalance;
-      tooltip.venturesBalance = d.venturesBalance;
-      tooltip.vehiclesBalance = d.vehiclesBalance;
-      tooltip.loansBalance = d.loansBalance;
-      tooltip.totalBalance = d.totalBalance;
-
-      // Compute point-over-point deltas (charted line + each component)
-      if (currentIndex > 0) {
-        const prevPoint = chartData.value[currentIndex - 1]!;
-        tooltip.deltaAbsolute = d.value - prevPoint.value;
-        tooltip.deltaPercent =
-          prevPoint.value !== 0 ? ((d.value - prevPoint.value) / Math.abs(prevPoint.value)) * 100 : 0;
-        tooltip.accountsDelta = d.accountsBalance - prevPoint.accountsBalance;
-        tooltip.portfoliosDelta = d.portfoliosBalance - prevPoint.portfoliosBalance;
-        tooltip.venturesDelta = d.venturesBalance - prevPoint.venturesBalance;
-        tooltip.vehiclesDelta = d.vehiclesBalance - prevPoint.vehiclesBalance;
-        tooltip.loansDelta = d.loansBalance - prevPoint.loansBalance;
-        tooltip.hasDelta = true;
-      } else {
-        tooltip.deltaAbsolute = 0;
-        tooltip.deltaPercent = 0;
-        tooltip.accountsDelta = 0;
-        tooltip.portfoliosDelta = 0;
-        tooltip.venturesDelta = 0;
-        tooltip.vehiclesDelta = 0;
-        tooltip.loansDelta = 0;
-        tooltip.hasDelta = false;
-      }
-
-      tooltip.visible = true;
-
-      updateTooltipPosition(event);
     })
-    .on('mouseleave', () => {
+    .on('pointerleave', (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') {
+        hideTouchTooltip();
+        return;
+      }
+      cancelAnimationFrame(chartHoverFrame);
       tooltip.visible = false;
-      hoverDot.style('opacity', 0);
-      hoverLine.style('opacity', 0);
+      clearChartHover();
     });
 
   // Spike markers — appended after overlay so they sit on top in SVG z-order
@@ -1185,7 +1442,7 @@ const renderChart = () => {
   // Invisible hit areas (larger click target)
   markers
     .selectAll('.spike-hit-area')
-    .data(spikePoints.value)
+    .data(visibleSpikes)
     .join('circle')
     .attr('class', 'spike-hit-area')
     .attr('cx', (d) => xScale(d.date))
@@ -1218,13 +1475,15 @@ const renderChart = () => {
   // Visible markers
   markers
     .selectAll('.spike-dot')
-    .data(spikePoints.value)
+    .data(visibleSpikes)
     .join('circle')
     .attr('class', 'spike-dot')
     .attr('cx', (d) => xScale(d.date))
     .attr('cy', (d) => yScale(d.value))
     .attr('r', markerRadius)
-    .attr('fill', (d) => (d.isPositive ? 'var(--color-app-income-color)' : 'var(--color-app-expense-color)'))
+    .attr('fill', (d) =>
+      d.isPositive !== usesLoanBalance.value ? 'var(--color-app-income-color)' : 'var(--color-app-expense-color)',
+    )
     .attr('stroke', 'var(--card)')
     .attr('stroke-width', 2)
     .attr('cursor', 'pointer')
@@ -1233,7 +1492,7 @@ const renderChart = () => {
 
   // Projected continuation: dashed step-line from the last real point, one hollow dot
   // per plan date, holding the final level to the period end.
-  if (projection.value) {
+  if (visibleProjection) {
     const projectionGroup = g.append('g').attr('class', 'projection');
 
     const todayTs = startOfDay(new Date()).getTime();
@@ -1258,7 +1517,7 @@ const renderChart = () => {
 
     projectionGroup
       .append('path')
-      .datum(projection.value.points)
+      .datum(visibleProjection.points)
       .attr('fill', 'none')
       .attr('stroke', 'var(--primary)')
       .attr('stroke-width', 1.5)
@@ -1268,7 +1527,7 @@ const renderChart = () => {
 
     projectionGroup
       .selectAll('.projection-dot')
-      .data(projection.value.steps)
+      .data(visibleProjection.steps)
       .join('circle')
       .attr('class', 'projection-dot')
       .attr('cx', (d) => xScale(d.date))
@@ -1325,8 +1584,8 @@ const displayBalance = computed(() => {
       };
     case 'loans':
       return {
-        current: latestEntry.loansBalance || 0,
-        previous: prevPeriodLastEntry?.loansBalance || 0,
+        current: -(latestEntry.loansBalance || 0),
+        previous: -(prevPeriodLastEntry?.loansBalance || 0),
       };
     case 'total':
     default:
@@ -1351,34 +1610,71 @@ const balanceComparison = computed(() =>
 );
 const balancesDiff = computed(() => balanceComparison.value.percent);
 const balancesDiffAbsolute = computed(() => balanceComparison.value.absolute);
-const comparisonTone = computed(() => Math.sign(balancesDiffAbsolute.value ?? 0));
+const comparisonTone = computed(() => Math.sign(balancesDiffAbsolute.value ?? 0) * (usesLoanBalance.value ? -1 : 1));
 
-useResizeObserver(containerRef, renderChart);
+const motion = usePreferredReducedMotion();
 
-// flush: 'post' so the watcher runs after Vue has applied DOM updates from the
-// new data, then renderChart can read the correct container dimensions.
+const scheduleChartRender = () => {
+  if (chartRenderFrame) return;
+  chartRenderFrame = requestAnimationFrame(() => {
+    chartRenderFrame = 0;
+    renderChart();
+  });
+};
+useResizeObserver(containerRef, scheduleChartRender);
 watch(
-  [chartData, () => actualDataPeriod.value, currentTheme],
+  [svgRef, chartData, actualDataPeriod, currentTheme, spikePoints, chartXAxisEnd, projection, chartWindow, showDetails],
   () => {
     closeSpikePanel();
-    renderChart();
+    tooltip.visible = false;
+    scheduleChartRender();
   },
-  { deep: true, flush: 'post' },
+  { flush: 'post' },
 );
 
-watch([spikePoints, chartXAxisEnd, projection], () => {
-  renderChart();
+const miniAnimation = shallowRef<{ path: string; area: string }>();
+let miniFrame = 0;
+watch(miniTrend, (next, previous) => {
+  cancelAnimationFrame(miniFrame);
+  const visible = miniAnimation.value ?? previous;
+  miniAnimation.value = undefined;
+  if (!visible || !next || next.pointCount !== previous?.pointCount || motion.value === 'reduce') return;
+  const line = d3.interpolateString(visible.path, next.path);
+  const area = d3.interpolateString(visible.area, next.area);
+  const start = performance.now();
+  const renderMiniFrame = (time: number) => {
+    const progress = Math.min(1, (time - start) / 240);
+    if (progress >= 1) {
+      miniAnimation.value = undefined;
+      return;
+    }
+    const step = d3.easeCubicOut(progress);
+    miniAnimation.value = { path: line(step), area: area(step) };
+    miniFrame = requestAnimationFrame(renderMiniFrame);
+  };
+  miniFrame = requestAnimationFrame(renderMiniFrame);
 });
+onBeforeUnmount(() => cancelAnimationFrame(miniFrame));
 </script>
 
 <style scoped>
-.chart-fade-enter-active,
-.chart-fade-leave-active {
-  transition: opacity 0.2s ease;
+.lajur-chart-tooltip-enter-active,
+.lajur-chart-tooltip-leave-active {
+  transition:
+    opacity 160ms ease,
+    scale 160ms ease;
 }
 
-.chart-fade-enter-from,
-.chart-fade-leave-to {
+.lajur-chart-tooltip-enter-from,
+.lajur-chart-tooltip-leave-to {
   opacity: 0;
+  scale: 0.98;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lajur-chart-tooltip-enter-active,
+  .lajur-chart-tooltip-leave-active {
+    transition: none;
+  }
 }
 </style>

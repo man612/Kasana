@@ -1,4 +1,11 @@
-import { ACCOUNT_CATEGORIES, ACCOUNT_TYPES, DEPRECIATION_PRESET, VEHICLE_CLASS } from '@bt/shared/types';
+import {
+  ACCOUNT_CATEGORIES,
+  ACCOUNT_TYPES,
+  DEPRECIATION_PRESET,
+  VEHICLE_CLASS,
+  VEHICLE_TYPES,
+  type VehicleType,
+} from '@bt/shared/types';
 import { Money } from '@common/types/money';
 import { ValidationError } from '@js/errors';
 import Accounts, { createAccount as createAccountInDb } from '@models/accounts.model';
@@ -9,6 +16,7 @@ import { ensureUserCurrencyConnected } from '@services/sharing/auth/ensure-curre
 import { parseISO } from 'date-fns';
 
 import { computeVehicleValue } from './compute-vehicle-value';
+import { validateValuationProfile } from './valuation-timeline';
 
 interface CreateVehicleParams {
   userId: number;
@@ -19,6 +27,8 @@ interface CreateVehicleParams {
   trim?: string | null;
   year: number;
   vehicleClass: VEHICLE_CLASS;
+  vehicleType?: VehicleType | null;
+  licensePlate?: string | null;
   purchasePrice: Money;
   purchaseDate: string;
   depreciationPreset?: DEPRECIATION_PRESET;
@@ -36,20 +46,27 @@ const createVehicleImpl = async (params: CreateVehicleParams) => {
     model,
     trim = null,
     year,
-    vehicleClass,
+    vehicleType = null,
+    licensePlate = null,
     purchasePrice,
     purchaseDate,
-    depreciationPreset = DEPRECIATION_PRESET.classDefault,
+    depreciationPreset = vehicleType && VEHICLE_TYPES[vehicleType].vehicleClass === null
+      ? DEPRECIATION_PRESET.manual
+      : DEPRECIATION_PRESET.classDefault,
     customAnnualRatePct = null,
     salvageFloorPct = 10,
     currentMileage = null,
   } = params;
 
-  if (depreciationPreset === DEPRECIATION_PRESET.custom && customAnnualRatePct == null) {
-    throw new ValidationError({
-      message: 'customAnnualRatePct is required when depreciationPreset = custom',
-    });
-  }
+  const vehicleClass = vehicleType
+    ? (VEHICLE_TYPES[vehicleType].vehicleClass ?? VEHICLE_CLASS.other)
+    : params.vehicleClass;
+  validateValuationProfile(vehicleType, {
+    vehicleClass,
+    preset: depreciationPreset,
+    customAnnualRatePct,
+    salvageFloorPct,
+  });
 
   await ensureUserCurrencyConnected({ userId, currencyCode });
 
@@ -101,6 +118,8 @@ const createVehicleImpl = async (params: CreateVehicleParams) => {
     trim,
     year,
     vehicleClass,
+    vehicleType,
+    licensePlate,
     purchasePrice,
     purchaseDate,
     depreciationPreset,

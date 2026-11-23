@@ -10,6 +10,6 @@ export function resolveTimeZoneLabel(zone: string | undefined, minutesEast: numb
 }
 
 /** Uses the browser/device timezone, rather than falsely assuming the user is in Jakarta. */
-export function getLocalTimeZoneLabel(): string {
-  return resolveTimeZoneLabel(Intl.DateTimeFormat().resolvedOptions().timeZone, -new Date().getTimezoneOffset());
+export function getLocalTimeZoneLabel(date = new Date()): string {
+  return resolveTimeZoneLabel(Intl.DateTimeFormat().resolvedOptions().timeZone, -date.getTimezoneOffset());
 }

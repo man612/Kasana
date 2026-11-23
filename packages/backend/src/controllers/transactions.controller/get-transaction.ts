@@ -45,5 +45,5 @@ export default createController(schema, async ({ user, query }) => {
   });
 
   // Serialize: convert cents to decimal for API response
-  return { data: serializeTransactions(transactions) };
+  return { data: serializeTransactions(transactions, { groupViewerId: user.id }) };
 });

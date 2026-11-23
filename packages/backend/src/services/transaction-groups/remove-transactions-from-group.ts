@@ -1,5 +1,6 @@
 import type { RecordId } from '@bt/shared/types';
 import { findOrThrowNotFound } from '@common/utils/find-or-throw-not-found';
+import { t } from '@i18n/index';
 import { ConflictError, ValidationError } from '@js/errors';
 import TransactionGroupItems from '@models/transaction-group-items.model';
 import TransactionGroups from '@models/transaction-groups.model';
@@ -24,7 +25,7 @@ export const removeTransactionsFromGroup = withTransaction(async (payload: Remov
     query: TransactionGroups.findOne({
       where: { id: groupId, userId },
     }),
-    message: 'Transaction group not found.',
+    message: t({ key: 'transactionGroups.notFound' }),
   });
 
   // Verify the requested transactions belong to this group
@@ -38,7 +39,7 @@ export const removeTransactionsFromGroup = withTransaction(async (payload: Remov
 
   if (requestedItems.length !== transactionIds.length) {
     throw new ValidationError({
-      message: 'Some transactions are not members of this group.',
+      message: t({ key: 'transactionGroups.notMembers' }),
     });
   }
 
@@ -68,7 +69,7 @@ export const removeTransactionsFromGroup = withTransaction(async (payload: Remov
   if (remainingCount < MIN_GROUP_SIZE) {
     if (!force) {
       throw new ConflictError({
-        message: `Removing these transactions would leave only ${Math.max(0, remainingCount)} transaction(s) in the group. The group will be dissolved.`,
+        message: t({ key: 'transactionGroups.dissolve', variables: { count: Math.max(0, remainingCount) } }),
         details: {
           wouldDissolve: true,
           remainingCount: Math.max(0, remainingCount),

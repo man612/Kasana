@@ -1,13 +1,15 @@
 <template>
   <Card class="@container/loans-aggregate">
     <div
-      class="flex flex-col gap-6 px-5 py-5 sm:px-6 @3xl/loans-aggregate:flex-row @3xl/loans-aggregate:items-center @3xl/loans-aggregate:gap-0"
+      class="flex flex-col gap-3 p-3 @3xl/loans-aggregate:flex-row @3xl/loans-aggregate:items-start @3xl/loans-aggregate:gap-0"
     >
       <div class="shrink-0 @3xl/loans-aggregate:pr-8">
         <div class="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase">
           {{ $t('loans.aggregate.totalOutstanding') }}
         </div>
-        <div class="mt-1.5 text-3xl font-semibold tracking-tight tabular-nums @sm/loans-aggregate:text-4xl">
+        <div
+          class="mt-1.5 text-3xl font-semibold tracking-tight wrap-anywhere tabular-nums @sm/loans-aggregate:text-4xl"
+        >
           {{ totalLiabilitiesDisplay }}
         </div>
         <div v-if="principalRepaidDisplay" class="text-muted-foreground mt-1.5 text-xs">
@@ -23,7 +25,7 @@
           <div
             v-for="segment in compositionSegments"
             :key="segment.id"
-            :class="segment.barClass"
+            :class="cn(segment.barClass, 'motion-safe:transition-[width] motion-safe:duration-200')"
             :style="{ width: segment.width }"
           />
         </div>
@@ -35,10 +37,8 @@
           </div>
         </div>
       </div>
-      <div v-else class="flex-1" />
-
       <div
-        class="@3xl/loans-aggregate:border-border/60 grid shrink-0 grid-cols-2 gap-x-8 gap-y-4 @3xl/loans-aggregate:border-l @3xl/loans-aggregate:pl-8"
+        class="border-border/65 divide-border/55 grid min-w-0 flex-1 grid-cols-2 gap-x-3 border-t @3xl/loans-aggregate:ml-auto @3xl/loans-aggregate:grid-cols-1 @3xl/loans-aggregate:divide-y @3xl/loans-aggregate:border-t-0 @3xl/loans-aggregate:border-l @3xl/loans-aggregate:pl-5"
       >
         <Metric :label="$t('loans.aggregate.monthlyObligation')" :value="monthlyObligationDisplay" />
         <Metric :label="$t('loans.aggregate.avgApr')" :value="avgAprDisplay" />

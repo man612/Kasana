@@ -1,5 +1,17 @@
 {
   "common": {
+    "connection": {
+      "offline": "No internet connection. Check your network and try again.",
+      "unreachable": "Could not reach Lajur. Try again in a moment.",
+      "serverUnavailable": "Lajur. is temporarily unavailable. Try again in a moment.",
+      "requestTimeout": "The request took too long. Try again.",
+      "cachedData": "Information already on screen may be out of date."
+    },
+    "contextHelp": {
+      "title": "More information",
+      "description": "Guidance for this setting.",
+      "example": "Example"
+    },
     "loading": "Loading...",
     "new": "New",
     "actions": {
@@ -56,6 +68,8 @@
       }
     },
     "errors": {
+      "initializationFailed": "App data could not load. Check your connection.",
+      "pageLoadFailed": "This page could not load. Try again.",
       "copyToClipboardFailed": "Failed to copy to clipboard",
       "settingsSaveFailed": "Couldn't save your settings. Please try again."
     },
@@ -125,6 +139,8 @@
       "other": "Other"
     },
     "depreciationPresets": {
+      "straightLine": "Straight-line accounting",
+      "manual": "Manual value",
       "classDefault": "Class default",
       "slow": "Slow",
       "average": "Average",
@@ -193,6 +209,17 @@
     },
     "outOfWallet": "Out of wallet",
     "dateSelector": {
+      "previousPage": "Previous calendar page",
+      "nextPage": "Next calendar page",
+      "calendarDateTitle": "Choose a date",
+      "timeWheel": "Choose time by scrolling",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "chooseMonthYear": "Choose month and year, {month}",
+      "monthYearTitle": "Choose month and year",
+      "year": "Year",
+      "previousYear": "Previous year",
+      "nextYear": "Next year",
       "dialogTitle": "Date range",
       "dueDate": "Due date",
       "quickSelect": "Quick select",
@@ -235,7 +262,8 @@
       "invalidTime": "Enter a valid 24-hour time such as 14:30.",
       "nowHelp": "Set the transaction date and time to right now, using your device time zone.",
       "numericInputHelp": "Date in day/month/year format",
-      "alreadyNow": "Already set to the current minute."
+      "alreadyNow": "Already set to the current minute.",
+      "rangeFilter": "Date filter"
     },
     "appUpdate": {
       "title": "Update available",

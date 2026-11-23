@@ -29,13 +29,13 @@ const emit = defineEmits<{
         v-else
         key="ready"
         variant="outline"
-         :size="isCompact ? 'icon' : 'sm'"
-        :class="isCompact && 'max-md:size-11 max-md:rounded-xl'"
+        :size="isCompact ? 'icon' : 'sm'"
+        :class="isCompact && 'grid size-11 place-items-center rounded-xl p-0'"
         :aria-label="$t('dashboard.editMode.customize')"
         @click="emit('enter')"
       >
-        <SlidersHorizontalIcon :class="['size-4', !isCompact && 'mr-1.5 md:size-3.5']" />
-        <span :class="isCompact && 'max-md:sr-only'">{{ $t('dashboard.editMode.customize') }}</span>
+        <SlidersHorizontalIcon :class="isCompact ? 'size-3' : 'size-3.5'" aria-hidden="true" />
+        <span :class="isCompact && 'sr-only'">{{ $t('dashboard.editMode.customize') }}</span>
       </Button>
     </Transition>
   </div>

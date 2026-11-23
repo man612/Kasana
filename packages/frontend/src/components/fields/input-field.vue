@@ -7,7 +7,7 @@
     }"
     class="input-field"
   >
-    <FieldLabel :label="label" :only-template="nonLabelWrapper">
+    <FieldLabel :label="label" :only-template="nonLabelWrapper || !!$slots['field-right']">
       <template v-if="$slots['label-after']" #label-after>
         <slot name="label-after" />
       </template>
@@ -17,45 +17,49 @@
         </template>
       </template>
 
-      <div class="relative">
-        <template v-if="$slots.iconLeading">
-          <div :class="['absolute top-0 left-0 flex h-full items-center px-4', leadingIconCssClass]">
-            <slot name="iconLeading" />
-          </div>
-        </template>
+      <div :class="$slots['field-right'] ? 'flex items-center gap-2.5' : 'contents'">
+        <div class="relative min-w-0 flex-1">
+          <template v-if="$slots.iconLeading">
+            <div :class="['absolute top-0 left-0 flex h-full items-center px-4', leadingIconCssClass]">
+              <slot name="iconLeading" />
+            </div>
+          </template>
 
-        <input
-          v-bind="{
-            step: type === 'number' ? 'any' : undefined,
-            ...computedAttrs,
-          }"
-          ref="inputFieldRef"
-          :type="type"
-          :value="displayValue"
-          :style="inputFieldStyles"
-          :disabled="disabled"
-          :tabindex="tabindex"
-          :min="minValue"
-          :placeholder="placeholder"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="off"
-          spellcheck="false"
-          :class="
-            cn(
-              'border-input bg-input-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-11 w-full rounded-md border px-3 py-2 text-base md:h-9 md:text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 md:h-9',
-              $slots.iconTrailing && 'pr-12',
-              $slots.iconLeading && 'pl-10',
-              (computedAttrs.class as string) ?? '',
-            )
-          "
-        />
+          <input
+            v-bind="{
+              step: type === 'number' ? 'any' : undefined,
+              ...computedAttrs,
+            }"
+            ref="inputFieldRef"
+            :type="type"
+            :value="displayValue"
+            :style="inputFieldStyles"
+            :aria-label="$slots['field-right'] ? label : undefined"
+            :disabled="disabled"
+            :tabindex="tabindex"
+            :min="minValue"
+            :placeholder="placeholder"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            :class="
+              cn(
+                'border-input bg-input-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-11 w-full rounded-md border px-3 py-2 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 md:h-9 md:text-sm',
+                $slots.iconTrailing && 'pr-12',
+                $slots.iconLeading && 'pl-10',
+                (computedAttrs.class as string) ?? '',
+              )
+            "
+          />
 
-        <template v-if="$slots.iconTrailing">
-          <div :class="cn('absolute top-0 right-0 flex h-full items-center px-6', trailingIconCssClass)">
-            <slot name="iconTrailing" />
-          </div>
-        </template>
+          <template v-if="$slots.iconTrailing">
+            <div :class="cn('absolute top-0 right-0 flex h-full items-center px-6', trailingIconCssClass)">
+              <slot name="iconTrailing" />
+            </div>
+          </template>
+        </div>
+        <slot name="field-right" />
       </div>
     </FieldLabel>
 
@@ -68,7 +72,7 @@
     <div v-if="errorPlacement === 'absolute'" class="absolute top-full left-0 w-full">
       <FieldError :error-message="errorMessage" />
     </div>
-    <FieldError v-else :error-message="errorMessage" />
+    <FieldError v-else :error-message="errorMessage" :animated="errorPlacement === 'animated'" />
   </div>
 </template>
 
@@ -91,7 +95,7 @@ const props = defineProps<{
   tabindex?: string;
   errorMessage?: string;
   /** `absolute` keeps the field's height fixed while the message shows; the parent must leave room below. */
-  errorPlacement?: 'inline' | 'absolute';
+  errorPlacement?: 'inline' | 'absolute' | 'animated';
   inputFieldStyles?: HTMLAttributes['style'];
   onlyPositive?: boolean;
   autofocus?: boolean;
@@ -112,6 +116,7 @@ const emits = defineEmits<{
 defineSlots<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   'label-right'(): any;
+  'field-right'(): unknown;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   'label-after'(): any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

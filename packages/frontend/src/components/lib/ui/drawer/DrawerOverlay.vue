@@ -15,5 +15,8 @@ const delegatedProps = computed(() => {
 </script>
 
 <template>
-  <DrawerOverlay v-bind="delegatedProps" :class="cn('fixed inset-0 z-(--z-dialog) bg-black/80', props.class)" />
+  <DrawerOverlay
+    v-bind="delegatedProps"
+    :class="cn('lajur-scrim-dialog lajur-scrim-blur fixed inset-0 z-(--z-dialog)', props.class)"
+  />
 </template>

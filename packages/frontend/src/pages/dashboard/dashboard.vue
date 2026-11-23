@@ -1,35 +1,39 @@
 <template>
-  <PageWrapper :class="hasNoAccounts ? 'flex flex-col' : 'flex min-h-full flex-col'">
-    <!-- Recovery method suggestion banner -->
-    <RecoveryMethodBanner />
-
+  <PageWrapper
+    :data-sidebar-swipe-zone="!isEditMode ? '' : undefined"
+    :class="[hasNoAccounts ? 'flex flex-col' : 'flex min-h-full flex-col', !isEditMode && 'max-md:touch-pan-y']"
+  >
     <!-- Main period selector - floating on mobile, normal flow on desktop -->
     <div
       v-if="!hasNoAccounts"
-      :class="
-        cn([
-          'bg-background/95 supports-backdrop-filter:bg-background/80 order-first -mx-6 -mt-1 mb-3 border-b py-2 backdrop-blur',
-          'z-(--z-navbar)',
-          isEditMode && 'max-md:hidden',
-          'max-md:px-3',
-          'sticky top-(--header-height)',
-          'md:order-first md:-mx-6 md:-mt-1 md:mb-2 md:border-b-0 md:px-6 md:py-1',
-          isScrolled &&
-            'md:bg-card/95 md:supports-backdrop-filter:bg-card/95 dark:md:bg-background/95 dark:md:supports-backdrop-filter:bg-background/80 md:border-b dark:md:border-b-0',
-        ])
-      "
+      class="sticky top-(--header-height) z-(--z-navbar) order-first -mx-6 [overflow-anchor:none]"
     >
-      <div class="grid grid-cols-[1fr_auto_1fr] items-center">
-        <div />
-        <PeriodSelector v-model="currentPeriod" :payday="payday" />
+      <div
+        class="bg-background/95 supports-backdrop-filter:bg-background/80 relative mb-2 grid h-12 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center border-b px-2 backdrop-blur md:grid-cols-[minmax(0,1fr)_minmax(0,26rem)_minmax(0,1fr)] md:px-6"
+        :class="isScrolled ? 'md:bg-card/95 dark:md:bg-background/95' : 'md:border-transparent'"
+        data-testid="dashboard-period-bar"
+      >
+        <div aria-hidden="true" />
+        <PeriodSelector v-model="currentPeriod" :payday="payday" :inert="isEditMode && isMobileView" />
         <DashboardEditToolbar
+          v-show="!isEditMode || !isMobileView"
           class="justify-self-end"
           compact-mobile
-          :is-edit-mode="isEditMode"
+          :is-edit-mode="isEditMode && !isMobileView"
           @enter="gridRef?.enterEditMode()"
           @save="gridRef?.saveLayout()"
           @cancel="gridRef?.cancelEdit()"
         />
+        <Transition name="lajur-info-reveal">
+          <div v-if="isPeriodLoading" role="status" class="pointer-events-none absolute inset-x-0 bottom-0">
+            <span class="bg-primary/70 block h-0.5 motion-safe:animate-pulse" />
+            <span
+              class="bg-card text-muted-foreground absolute top-full right-2 rounded-b-md border-x border-b px-2 py-0.5 text-xs"
+            >
+              {{ $t('dashboard.periodSelector.loadingPeriod') }}
+            </span>
+          </div>
+        </Transition>
       </div>
     </div>
 
@@ -37,18 +41,28 @@
       <DashboardOnboarding />
     </template>
     <template v-else>
-      <DashboardGrid ref="gridRef" class="max-md:mb-4" :current-period="currentPeriod" />
+      <DashboardGrid
+        ref="gridRef"
+        class="max-md:mb-4"
+        :class="isEditMode && 'max-md:pb-16'"
+        :aria-busy="isPeriodLoading"
+        :current-period="currentPeriod"
+      />
 
-      <!-- Preserve the widget tree while the mobile editing action bar fades/slides. -->
-      <Transition name="kasana-section">
-        <DashboardEditToolbar
-          v-if="gridRef?.isEditMode"
-          class="bg-background/90 sticky bottom-0 z-(--z-navbar) -mx-6 -mb-8 justify-center border-t px-6 py-3 backdrop-blur-sm md:hidden"
-          :is-edit-mode="true"
-          @save="gridRef?.saveLayout()"
-          @cancel="gridRef?.cancelEdit()"
-        />
-      </Transition>
+      <RecoveryMethodBanner />
+
+      <Teleport to="body">
+        <Transition name="lajur-info-reveal">
+          <DashboardEditToolbar
+            v-if="isEditMode && isMobileView"
+            class="bg-background/95 fixed inset-x-0 bottom-[var(--bottom-navbar-height,4rem)] z-(--z-navbar) justify-center border-t px-6 py-3 backdrop-blur-sm"
+            data-testid="dashboard-mobile-edit-toolbar"
+            :is-edit-mode="true"
+            @save="gridRef?.saveLayout()"
+            @cancel="gridRef?.cancelEdit()"
+          />
+        </Transition>
+      </Teleport>
     </template>
   </PageWrapper>
 </template>
@@ -61,9 +75,10 @@ import DashboardOnboarding from '@/components/widgets/dashboard-onboarding.vue';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { useScrollAreaContainer } from '@/composable/scroll-area-container';
 import { getPayPeriod } from '@/composable/use-period-navigation';
-import { cn } from '@/lib/utils';
 import { useAccountsStore } from '@/stores';
+import { useIsFetching } from '@tanstack/vue-query';
 import { useScroll } from '@vueuse/core';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { isSameDay, parseISO } from 'date-fns';
 import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
@@ -86,6 +101,7 @@ defineOptions({
 
 const gridRef = ref<InstanceType<typeof DashboardGrid> | null>(null);
 const isEditMode = computed(() => gridRef.value?.isEditMode ?? false);
+const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 
 const scrollContainer = useScrollAreaContainer(SCROLL_AREA_IDS.dashboard);
 const { y: scrollY } = useScroll(() => scrollContainer.value?.viewportElement ?? null);
@@ -107,6 +123,11 @@ const getInitialPeriod = (): Period => {
 };
 
 const currentPeriod = ref<Period>(getInitialPeriod());
+const pendingWidgets = useIsFetching({
+  predicate: (query) =>
+    query.isActive() && query.queryKey.some((key) => typeof key === 'string' && key.startsWith('widget-')),
+});
+const isPeriodLoading = computed(() => pendingWidgets.value > 0);
 
 // Settings can arrive after mount; move the period only if it is still the old default.
 watch(payday, (newPayday, oldPayday) => {

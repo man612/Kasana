@@ -6,19 +6,34 @@
          tooltip instead of the button. The span gives as-child a single element
          root to merge onto (the tooltip's root is a fragment). -->
     <PopoverTrigger v-else as-child>
-      <span class="inline-flex">
+      <span ref="trigger" class="inline-flex">
         <DesktopOnlyTooltip :content="$t(titleKey)">
           <Button
             :size="triggerVariant === 'secondary' ? 'icon' : 'icon-sm'"
             :variant="triggerVariant"
             :aria-label="$t(titleKey)"
+            :aria-expanded="isOpen"
+            aria-haspopup="dialog"
           >
-            <SettingsIcon :class="cn('size-4 transition-transform duration-300 motion-reduce:transition-none', isOpen && 'rotate-90', triggerVariant === 'ghost' && 'text-muted-foreground')" />
+            <SettingsIcon
+              :class="
+                cn(
+                  'size-4 transition-transform duration-300 motion-reduce:transition-none',
+                  isOpen && 'rotate-90',
+                  triggerVariant === 'ghost' && 'text-muted-foreground',
+                )
+              "
+            />
           </Button>
         </DesktopOnlyTooltip>
       </span>
     </PopoverTrigger>
-    <PopoverContent class="w-72 overflow-hidden p-0" align="end" @close-auto-focus="onCloseAutoFocus">
+    <PopoverContent
+      class="w-72 overflow-hidden p-0"
+      align="end"
+      @escape-key-down="markEscapeDismissal"
+      @close-auto-focus="onCloseAutoFocus"
+    >
       <SlidingPanels v-model="view" :panels="['main', 'columns']">
         <template #main>
           <div class="flex flex-col">
@@ -108,7 +123,7 @@ import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { ArrowLeftIcon, ChevronRightIcon, GripVerticalIcon, SettingsIcon } from '@lucide/vue';
 import { PopoverAnchor } from 'reka-ui';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, useTemplateRef, watch } from 'vue';
 import { VueDraggable } from 'vue-draggable-plus';
 
 /**
@@ -139,12 +154,19 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = defineModel<boolean>('open', { default: false });
+const trigger = useTemplateRef<HTMLElement>('trigger');
+let restoreFocusOnClose = false;
+const markEscapeDismissal = () => {
+  restoreFocusOnClose = true;
+};
 
-// Without a PopoverTrigger, reka has nothing to return focus to on close.
+// The positioning wrapper is a span. Escape should return focus to its button.
 const onCloseAutoFocus = (event: Event) => {
-  if (!props.anchor) return;
+  const target = props.anchor ?? (restoreFocusOnClose ? trigger.value : null);
+  restoreFocusOnClose = false;
+  if (!target) return;
   event.preventDefault();
-  props.anchor.querySelector<HTMLElement>('button')?.focus();
+  target.querySelector<HTMLButtonElement>('button')?.focus();
 };
 const view = ref<'main' | 'columns'>('main');
 

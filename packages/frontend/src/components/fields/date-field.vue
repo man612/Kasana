@@ -1,13 +1,13 @@
 <template>
   <div
-    :class="{
-      'date-field--error': errorMessage,
-      'date-field--disabled': disabled,
-    }"
-    class="relative w-full flex-1"
+    class="relative"
+    :class="[
+      $slots.trigger ? 'max-w-full min-w-0' : 'w-full flex-1',
+      { 'date-field--error': errorMessage, 'date-field--disabled': disabled },
+    ]"
   >
     <Dialog.Dialog v-model:open="isPopoverOpen">
-      <FieldLabel :label="label" :only-template="Boolean($slots['label-right'])">
+      <FieldLabel v-if="!$slots.trigger" :label="label" :only-template="Boolean($slots['label-right'])">
         <template v-if="$slots['label-right']" #label-right><slot name="label-right" /></template>
         <template v-if="$slots['label-after']" #label-after>
           <slot name="label-after" />
@@ -100,7 +100,7 @@
               autocomplete="off"
               maxlength="5"
               placeholder="HH:mm"
-              aria-label="Jam dan menit (format 24 jam)"
+              :aria-label="i18n.global.t('common.dateSelector.timeLabel')"
               class="border-input bg-input-background focus-visible:ring-ring h-10 w-[4.9rem] rounded-md border px-2 text-center text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none md:h-9"
               :disabled="disabled"
               data-testid="date-field-time-input"
@@ -136,86 +136,103 @@
           </div>
         </div>
         <FieldError :error-message="errorMessage" />
-        <Dialog.DialogContent
-          blur-overlay
-          class="max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-105 gap-3 overflow-x-hidden overflow-y-auto p-4 sm:p-5"
-          data-testid="transaction-date-dialog"
-        >
-          <Dialog.DialogTitle class="pr-12 text-base font-semibold">
-            {{ i18n.global.t('common.dateSelector.dateTimeTitle') }}
-          </Dialog.DialogTitle>
-          <Dialog.DialogDescription class="text-muted-foreground pr-12 text-xs leading-relaxed">
-            {{ i18n.global.t('common.dateSelector.dateTimeHint') }}
-          </Dialog.DialogDescription>
-          <div class="flex min-w-0 justify-center">
-            <Calendar :key="calendarPageKey" v-model="localValue" v-bind="calendarOptions" mode="date" type="single" />
-          </div>
-          <div class="border-border grid gap-3 border-t pt-3">
-            <div class="text-muted-foreground flex items-center gap-2 text-xs">
-              <span class="size-2 shrink-0 rounded-full bg-slate-400" aria-hidden="true" />
-              {{ i18n.global.t('common.dateSelector.todayIndicator') }}: {{ todayLabel }}
-            </div>
-            <div v-if="mode !== 'date'" class="flex items-center justify-between gap-3">
-              <label for="lajur-popup-time" class="text-sm font-medium">
-                {{ i18n.global.t('common.dateSelector.timeLabel') }} ({{ timeZoneLabel }})
-              </label>
-              <input
-                id="lajur-popup-time"
-                :value="dialogTimeValue"
-                type="text"
-                inputmode="numeric"
-                maxlength="5"
-                placeholder="HH:mm"
-                class="border-input bg-input-background focus-visible:ring-ring h-9 w-24 rounded-md border px-2 text-center text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none"
-                data-testid="date-dialog-time-input"
-                @input="handleDialogTimeTyping"
-              />
-            </div>
-            <p v-if="dialogTimeError" class="text-destructive text-xs" role="alert">
-              {{ i18n.global.t('common.dateSelector.invalidTime') }}
-            </p>
-            <div class="flex min-h-9 flex-wrap items-center justify-end gap-2">
-              <Transition
-                enter-active-class="transition-all duration-200 ease-out"
-                enter-from-class="opacity-0 scale-95"
-                enter-to-class="opacity-100 scale-100"
-                leave-active-class="transition-all duration-150 ease-in"
-                leave-from-class="opacity-100 scale-100"
-                leave-to-class="opacity-0 scale-95"
-              >
-                <Button
-                  v-if="!isDialogNow"
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  class="text-muted-foreground mr-auto px-2"
-                  data-testid="date-dialog-now"
-                  @click="setDialogNow"
-                >
-                  <Clock3Icon class="mr-1.5 size-3.5" />
-                  {{ i18n.global.t('common.dateSelector.nowQuick') }}
-                </Button>
-              </Transition>
-              <div class="ml-auto flex gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  data-testid="date-dialog-save"
-                  :disabled="dialogTimeError"
-                  @click="saveDialogDate"
-                >
-                  {{ i18n.global.t('common.dateSelector.saveDate') }}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Dialog.DialogContent>
       </FieldLabel>
+      <template v-else>
+        <Dialog.DialogTrigger as-child>
+          <slot name="trigger" :disabled="disabled || !isPopoverAvailable" />
+        </Dialog.DialogTrigger>
+        <FieldError :error-message="errorMessage" />
+      </template>
+      <Dialog.DialogContent
+        blur-overlay
+        custom-close
+        intrinsic-height-motion
+        class="grid max-h-[90dvh] w-[calc(100%-1.5rem)] max-w-96 grid-rows-[auto_minmax(0,1fr)_auto] gap-2 overflow-hidden p-3 sm:p-5"
+        data-testid="transaction-date-dialog"
+      >
+        <Dialog.DialogTitle class="text-base font-semibold">
+          {{
+            i18n.global.t(
+              mode === 'date' ? 'common.dateSelector.calendarDateTitle' : 'common.dateSelector.dateTimeTitle',
+            )
+          }}
+        </Dialog.DialogTitle>
+        <Dialog.DialogDescription class="sr-only">
+          {{ i18n.global.t('common.dateSelector.dateTimeHint') }}
+        </Dialog.DialogDescription>
+        <div class="grid min-h-0 min-w-0 gap-2 overflow-y-auto overscroll-contain">
+          <div class="flex min-w-0 justify-center">
+            <Calendar
+              :key="calendarPageKey"
+              v-model="localValue"
+              v-bind="calendarOptions"
+              mode="date"
+              type="single"
+              month-navigation
+            />
+          </div>
+          <div class="text-muted-foreground flex items-center gap-2 text-xs">
+            <span class="ring-border size-2 shrink-0 rounded-full ring-1" aria-hidden="true" />
+            {{ i18n.global.t('common.dateSelector.todayIndicator') }}: {{ todayLabel }}
+          </div>
+          <div v-if="mode !== 'date'" class="flex items-center justify-between gap-3">
+            <label :for="timeInputId" class="text-sm font-medium">
+              {{ i18n.global.t('common.dateSelector.timeLabel') }} ({{ timeZoneLabel }})
+            </label>
+            <input
+              :id="timeInputId"
+              :value="dialogTimeValue"
+              :type="usesNativeTime ? 'time' : 'text'"
+              :inputmode="usesNativeTime ? undefined : 'numeric'"
+              :maxlength="usesNativeTime ? undefined : 5"
+              placeholder="HH:mm"
+              class="border-input bg-input-background focus-visible:ring-ring h-9 w-24 rounded-md border px-2 text-center text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none"
+              data-testid="date-dialog-time-input"
+              @click="showNativeTimePicker"
+              @input="handleDialogTimeTyping"
+            />
+          </div>
+          <p v-if="dialogTimeError" class="text-destructive text-xs" role="alert">
+            {{ i18n.global.t('common.dateSelector.invalidTime') }}
+          </p>
+        </div>
+        <div class="border-border flex flex-wrap items-center justify-between gap-1 border-t pt-2">
+          <LayoutCollapse :open="showDialogNow">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="text-muted-foreground min-h-11 px-2"
+              :disabled="!showDialogNow"
+              data-testid="date-dialog-now"
+              @click="setDialogNow"
+            >
+              {{ i18n.global.t('common.dateSelector.nowQuick') }}
+            </Button>
+          </LayoutCollapse>
+          <div class="ml-auto flex gap-2">
+            <Button type="button" variant="outline" size="sm" class="min-h-11" @click="isPopoverOpen = false">
+              {{ i18n.global.t('common.actions.cancel') }}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              class="min-h-11"
+              data-testid="date-dialog-save"
+              :disabled="dialogTimeError || !dialogChanged || !isWithinCalendarBounds(localValue)"
+              @click="saveDialogDate"
+            >
+              {{ i18n.global.t('common.actions.save') }}
+            </Button>
+          </div>
+        </div>
+      </Dialog.DialogContent>
     </Dialog.Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import { Button } from '@/components/lib/ui/button';
@@ -223,10 +240,10 @@ import { Calendar } from '@/components/lib/ui/calendar';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { i18n } from '@/i18n';
 import { cn } from '@/lib/utils';
-import { format, getDate, getMonth, getYear, parse, set } from 'date-fns';
+import { format, getDate, getMonth, getYear, parse, set, startOfDay } from 'date-fns';
 import { CalendarClockIcon, Clock3Icon, XIcon } from '@lucide/vue';
-import { computed, ref, watch } from 'vue';
-import { useNow } from '@vueuse/core';
+import { computed, ref, useId, watch } from 'vue';
+import { useDocumentVisibility, useIntervalFn, useMediaQuery } from '@vueuse/core';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { getDateFnsLocale } from '@/composable/use-date-locale';
 import { getLocalTimeZoneLabel } from '@/common/utils/indonesian-time';
@@ -252,6 +269,7 @@ const props = withDefaults(
     hideInputTime?: boolean;
     /** Use a localized weekday+date trigger instead of the OS-dependent native date text. */
     showWeekday?: boolean;
+    liveOnOpen?: boolean;
   }>(),
   {
     label: undefined,
@@ -266,6 +284,7 @@ const props = withDefaults(
     clearable: false,
     hideInputTime: false,
     showWeekday: false,
+    liveOnOpen: false,
   },
 );
 
@@ -309,8 +328,23 @@ const emit = defineEmits<{
 const localValue = ref<Date | null>(props.modelValue ?? (props.clearable ? null : new Date()));
 const isPopoverOpen = ref(false);
 const calendarPageKey = ref(0);
-const timeZoneLabel = getLocalTimeZoneLabel();
-const clock = useNow({ interval: 30000 });
+const timeInputId = useId();
+const timeZoneLabel = computed(() =>
+  getLocalTimeZoneLabel(isPopoverOpen.value ? (localValue.value ?? undefined) : props.modelValue),
+);
+const clock = ref(new Date());
+const visibility = useDocumentVisibility();
+const { resume, pause } = useIntervalFn(() => (clock.value = new Date()), 30000, {
+  immediate: false,
+  immediateCallback: true,
+});
+watch(
+  () =>
+    visibility.value === 'visible' &&
+    (isPopoverOpen.value || (!props.hideInputTime && props.mode === 'dateTime' && !props.liveOnOpen)),
+  (enabled) => (enabled ? resume() : pause()),
+  { immediate: true },
+);
 const friendlyWeekday = computed(() =>
   props.modelValue ? format(props.modelValue, 'EEEE', { locale: getDateFnsLocale() }) : '',
 );
@@ -321,7 +355,6 @@ const isSameMinute = (date: Date | null | undefined, time: string, now: Date) =>
   date!.getDate() === now.getDate() &&
   time === format(now, 'HH:mm');
 const isNowInField = computed(() => isSameMinute(props.modelValue, timeValue.value, clock.value));
-const isDialogNow = computed(() => isSameMinute(localValue.value, dialogTimeValue.value, clock.value));
 
 const timeValue = ref(props.modelValue ? format(props.modelValue, 'HH:mm') : '');
 const dialogTimeValue = ref(props.modelValue ? format(props.modelValue, 'HH:mm') : format(new Date(), 'HH:mm'));
@@ -331,17 +364,64 @@ const parsedTime = (text: string) => {
   const [hours, minutes] = text.split(':').map(Number);
   return { hours: hours!, minutes: minutes! };
 };
+const dialogInitial = ref<Date | null>(null);
+const dialogReferenceNow = ref(new Date());
+const matchesDialogDate = (reference: Date | null) =>
+  Boolean(
+    reference &&
+    localValue.value &&
+    (props.mode === 'date'
+      ? +startOfDay(localValue.value) === +startOfDay(reference)
+      : isSameMinute(localValue.value, dialogTimeValue.value, reference)),
+  );
+const dialogChanged = computed(() => !matchesDialogDate(dialogInitial.value));
+const showDialogNow = computed(
+  () => isWithinCalendarBounds(dialogReferenceNow.value) && !matchesDialogDate(dialogReferenceNow.value),
+);
 const dialogTimeError = computed(() => props.mode !== 'date' && !parsedTime(dialogTimeValue.value));
+const isTouchPointer = useMediaQuery('(pointer: coarse)');
+const nativeTimeUnavailable = ref(false);
+const usesNativeTime = computed(
+  () =>
+    isTouchPointer.value && !nativeTimeUnavailable.value && typeof HTMLInputElement.prototype.showPicker === 'function',
+);
+
+function showNativeTimePicker(event: MouseEvent) {
+  if (!usesNativeTime.value) return;
+  const input = event.currentTarget as HTMLInputElement;
+  try {
+    input.showPicker();
+  } catch {
+    // Embedded browsers can expose showPicker but reject opening the OS surface.
+    nativeTimeUnavailable.value = true;
+  }
+}
+
+const isWithinCalendarBounds = (value: Date | null) => {
+  if (!isValidDate(value)) return false;
+  const day = +startOfDay(value);
+  const { minDate, maxDate } = props.calendarOptions ?? {};
+  return (!minDate || day >= +startOfDay(minDate)) && (!maxDate || day <= +startOfDay(maxDate));
+};
+function readTypedTime(event: Event): string {
+  const input = event.target as HTMLInputElement;
+  const digits = input.value.replace(/\D/g, '').slice(0, 4);
+  const value = digits.length > 2 ? `${digits.slice(0, 2)}:${digits.slice(2)}` : digits;
+  if (input.value !== value) input.value = value;
+  return value;
+}
 const handleTimeTyping = (event: Event) => {
-  timeValue.value = (event.target as HTMLInputElement).value;
+  timeValue.value = readTypedTime(event);
 };
 const handleDialogTimeTyping = (event: Event) => {
-  dialogTimeValue.value = (event.target as HTMLInputElement).value;
+  dialogTimeValue.value = usesNativeTime.value ? (event.target as HTMLInputElement).value : readTypedTime(event);
 };
 const commitTimeInput = () => {
   const nextTime = parsedTime(timeValue.value);
+  if (isPopoverOpen.value) return;
   if (nextTime) {
     const base = props.modelValue ?? new Date();
+    if (props.modelValue && timeValue.value === format(base, 'HH:mm')) return;
     emit('update:modelValue', set(base, { ...nextTime, seconds: 0, milliseconds: 0 }));
   } else timeValue.value = props.modelValue ? format(props.modelValue, 'HH:mm') : '';
 };
@@ -349,23 +429,32 @@ const applyNow = () => emit('update:modelValue', new Date());
 const setDialogNow = () => {
   const now = new Date();
   localValue.value = now;
+  dialogReferenceNow.value = now;
   dialogTimeValue.value = format(now, 'HH:mm');
+  draftClock = now;
   // Force the calendar viewport back to the current month/year, not just the
   // selected date when the user had browsed elsewhere.
   calendarPageKey.value += 1;
 };
+let draftClock = new Date();
 const saveDialogDate = () => {
-  if (!isValidDate(localValue.value) || dialogTimeError.value) return;
   const date = localValue.value;
+  if (!date || !dialogChanged.value || !isWithinCalendarBounds(date) || dialogTimeError.value) return;
   const time = props.mode === 'date' ? { hours: 0, minutes: 0 } : parsedTime(dialogTimeValue.value);
   if (!time) return;
-  emit('update:modelValue', set(date, { ...time, seconds: 0, milliseconds: 0 }));
+  const seconds =
+    props.mode === 'dateTime' && dialogTimeValue.value === format(draftClock, 'HH:mm') ? draftClock.getSeconds() : 0;
+  emit('update:modelValue', set(date, { ...time, seconds, milliseconds: 0 }));
   isPopoverOpen.value = false;
 };
 watch(isPopoverOpen, (open) => {
   if (!open) return;
-  localValue.value = props.modelValue ?? new Date();
-  dialogTimeValue.value = format(props.modelValue ?? new Date(), 'HH:mm');
+  const selected = props.liveOnOpen ? new Date() : (props.modelValue ?? new Date());
+  dialogInitial.value = props.liveOnOpen ? selected : (props.modelValue ?? null);
+  dialogReferenceNow.value = new Date();
+  localValue.value = selected;
+  draftClock = selected;
+  dialogTimeValue.value = format(selected, 'HH:mm');
 });
 
 defineExpose({
@@ -381,20 +470,22 @@ const handleLocalInputUpdate = (event: Event) => {
   inputValue.value = inputVal;
 
   // Only emit the date if it's a valid date string
-  if (inputVal && isValidDate(parseInput({ value: inputVal }))) {
-    emit('update:modelValue', parseInput({ value: inputVal }));
+  const date = inputVal ? parseInput({ value: inputVal }) : null;
+  if (!isPopoverOpen.value && date && isWithinCalendarBounds(date) && date.getTime() !== props.modelValue?.getTime()) {
+    emit('update:modelValue', date);
   }
   // For invalid intermediate states, don't emit anything
   // This prevents validation errors during typing
 };
 
 const handleBlur = (event: Event) => {
+  if (isPopoverOpen.value) return;
   const inputVal = (event.target as HTMLInputElement).value;
 
   // On blur, validate the final input value
-  if (inputVal && isValidDate(parseInput({ value: inputVal }))) {
-    // Valid date - emit it
-    emit('update:modelValue', parseInput({ value: inputVal }));
+  const date = inputVal ? parseInput({ value: inputVal }) : null;
+  if (date && isWithinCalendarBounds(date)) {
+    if (date.getTime() !== props.modelValue?.getTime()) emit('update:modelValue', date);
   } else if (inputVal) {
     // Invalid date - revert to last valid value
     inputValue.value = props.modelValue ? toDisplayInput(props.modelValue) : '';

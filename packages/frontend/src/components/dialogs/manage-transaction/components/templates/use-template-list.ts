@@ -2,7 +2,8 @@ import type { ButtonVariantProps } from '@/components/lib/ui/button';
 import { formatUIAmount } from '@/js/helpers';
 import type { AccountModel, TransactionTemplateModel } from '@bt/shared/types';
 import { PlusIcon } from '@lucide/vue';
-import { type EmitFn, type ShortEmitsToObject, computed, ref } from 'vue';
+import { useTimeoutFn } from '@vueuse/core';
+import { type EmitFn, type ShortEmitsToObject, computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type { TemplateFormSources } from '../../utils/template-to-form';
@@ -89,7 +90,7 @@ export const useTemplateList = ({
       {
         key: 'save-current',
         label: t('dialogs.manageTransaction.templates.saveCurrent'),
-        variant: 'secondary' as ButtonVariantProps['variant'],
+        variant: (props.canSaveCurrent ? 'default' : 'secondary') as ButtonVariantProps['variant'],
         disabled: !props.canSaveCurrent,
         run: () => emit('save-current'),
       },
@@ -122,6 +123,25 @@ export const useTemplateList = ({
     ];
   });
 
+  const showIncompleteHint = ref(false);
+  const { start, stop } = useTimeoutFn(() => (showIncompleteHint.value = false), 3200, { immediate: false });
+  watch(
+    () => props.open && !props.canSaveCurrent,
+    (available) => {
+      if (available) return;
+      stop();
+      showIncompleteHint.value = false;
+    },
+  );
+  const chooseFooterAction = ({ action }: { action: (typeof footerActions.value)[number] }) => {
+    if (!action.disabled) {
+      closeAnd({ run: action.run });
+      return;
+    }
+    showIncompleteHint.value = true;
+    start();
+  };
+
   return {
     query,
     isOpen,
@@ -129,6 +149,8 @@ export const useTemplateList = ({
     amountLabelOf,
     staleReasonOf,
     footerActions,
+    showIncompleteHint,
+    chooseFooterAction,
     closeAnd,
     openEditor,
   };

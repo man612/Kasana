@@ -7,7 +7,7 @@
     "dragHint": "Drag to reorder",
     "toggleAriaLabel": "Enable automation",
     "menuAriaLabel": "Automation actions",
-    "disabledPill": "Disabled",
+    "disabledPill": "Paused",
     "mcpTip": {
       "trigger": "Tips",
       "text": "You can manage automations with AI through an MCP connection — ask it to reorganize your rules, or check for duplicates and conflicts.",
@@ -22,7 +22,7 @@
     "pausedMissingRef": "Paused — {refType} \"{label}\" was deleted",
     "pausedMissingRefUnnamed": "Paused: a {refType} this rule referenced was deleted",
     "matchStats": "{count} match · last {date} | {count} matches · last {date}",
-    "matchStatsNever": "Never matched",
+    "matchStatsNever": "Never applied",
     "loadError": "Couldn't load automations. Check your connection and try again.",
     "reorderDisabledFiltered": "Clear the status filter to reorder",
     "density": {
@@ -119,6 +119,11 @@
       }
     },
     "editor": {
+      "steps": {
+        "conditions": "When the rule matches",
+        "actions": "What the rule does",
+        "preview": "Try the rule"
+      },
       "titleNew": "New automation",
       "titleEdit": "Edit automation",
       "back": "Back to automations",
@@ -169,12 +174,16 @@
         "confirm": "Discard changes"
       },
       "preview": {
+        "scope": "The preview checks eligible imported or synced transactions and API transactions with automations enabled.",
+        "after": "Proposed changes",
+        "notApplied": "These changes have not been applied. Eligibility still applies to each transaction.",
+        "before": "Current transaction examples",
         "title": "Preview",
         "run": "Preview matches",
         "hint": "Finish the rule to preview which transactions it would match.",
         "summary": "{matched} of the last {scanned} transactions this rule could apply to",
         "empty": "No matches",
-        "stale": "Conditions changed since this preview ran.",
+        "stale": "The rule changed since this preview ran. Run it again for updated results.",
         "error": "Could not run the preview. Please try again."
       },
       "errors": {
@@ -200,7 +209,8 @@
         "saveFailed": "Could not save the automation. Please try again.",
         "transactionTypeDuplicate": "Only one transaction type condition is allowed"
       },
-      "noResults": "No results"
+      "noResults": "No results",
+      "dirtyStatus": "Unsaved changes"
     },
     "summary": {
       "missingRef": "(deleted)",
@@ -243,6 +253,29 @@
       "successWithSkipped": "Applied to {applied} transactions, {skipped} skipped",
       "nothingApplied": "Nothing was applied. {skipped} transactions were skipped.",
       "applyError": "Couldn't apply the rule to past transactions."
+    },
+    "guide": {
+      "title": "How automation works",
+      "intro": "An automation is a rule you write once to organize new transactions from bank sync or file imports. It works without AI.",
+      "choose": "Choose what Lajur. should recognize, such as a word in the note or the account the transaction came from.",
+      "act": "Choose what to change: the category, payee, tags, or note. The amount and account balance stay the same.",
+      "check": "Check the matches in Preview, then save and enable the rule. Eligible new transactions are organized automatically. You only confirm changes when applying a rule to transactions that are already saved.",
+      "exampleTitle": "Example: grocery shopping",
+      "example": "Create a rule called “Minimarket”. Under conditions, choose Note and add “Indomaret” to Contains. Under actions, choose Set category, then Groceries. Check Preview and save the rule as enabled.",
+      "caution": "Rules can replace details on a match. Transfers, plans, and ordinary manually entered transactions are excluded from automatic application.",
+      "advanced": "Advanced AI settings",
+      "conditionsTitle": "Which transactions match?",
+      "conditionsHelp": "Choose Note and enter “Indomaret”. Choose “all” when every condition must match.",
+      "actionsTitle": "What should Lajur. do?",
+      "actionsHelp": "For example, choose Set category, then Groceries. One rule can fill in several details at once.",
+      "incomplete": "Fill in the name, conditions, and actions to save.",
+      "exampleRun": "Import a bank statement containing a purchase with “Indomaret” in its note. In Transactions, open the purchase and check that its category is Groceries. The rule’s match count and last run time appear in Automations.",
+      "noMatch": "If the note does not contain the word, this rule leaves the transaction as it is. If a category used by the rule is deleted, the rule can be paused. Open Automations to review its status and choose a replacement.",
+      "schedule": "For a bill you want recorded on a calendar, use Recurring Payments. Automation rules organize eligible transactions that arrive. They do not create transactions on their own.",
+      "summaryTitle": "Rule summary",
+      "secondExampleTitle": "Example: tag an internet bill",
+      "secondExample": "Choose the account you use for internet bills and enter “Internet” as a word to look for in the note. Choose Add tags and select Subscriptions. When the next matching bank or imported transaction arrives, open it to see the tag. The Automations list shows when the rule last matched.",
+      "openRecurring": "Open recurring payments"
     }
   }
 }

@@ -5,7 +5,7 @@ import { DEFAULT_SORTING, type TableSorting } from '@/components/transactions-ta
 import { useAiAllowance } from '@/composable/use-ai-allowance';
 import { useCategorizationStatus } from '@/composable/use-categorization-status';
 import { useDateLocale } from '@/composable/use-date-locale';
-import { extractApiErrorMessage, isApiErrorWithCode } from '@/js/errors';
+import { isApiErrorWithCode } from '@/js/errors';
 import { AI_CATEGORIZATION_MAX_TRANSACTIONS_PER_RUN, AI_FEATURE, API_ERROR_CODES } from '@bt/shared/types';
 import { useInfiniteQuery, useMutation } from '@tanstack/vue-query';
 import { computed, ref } from 'vue';
@@ -105,7 +105,7 @@ export function useCategorizationRun() {
       }
 
       addNotification({
-        text: extractApiErrorMessage(error) || t('optimizations.aiCategorization.notifications.failed'),
+        text: t('optimizations.aiCategorization.notifications.failed'),
         type: NotificationType.error,
       });
     },

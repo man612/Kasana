@@ -2,9 +2,10 @@
 import * as transactionGroupsApi from '@/api/transaction-groups';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import { Button } from '@/components/lib/ui/button';
+import GroupIconField from '@/components/transactions-list/group-icon-field.vue';
 import InputField from '@/components/fields/input-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
-import { invalidateTransactionGroupQueries } from '@/composable/data-queries/transaction-groups';
+import { syncTransactionGroupQueries } from '@/composable/data-queries/transaction-groups';
 import { getApiErrorMessage } from '@/js/errors';
 import { useQueryClient } from '@tanstack/vue-query';
 import { reactive, ref, watch } from 'vue';
@@ -27,6 +28,8 @@ const queryClient = useQueryClient();
 const form = reactive({
   name: '',
   note: '',
+  icon: '',
+  iconColor: null as string | null,
 });
 
 const isSubmitting = ref(false);
@@ -38,12 +41,15 @@ watch(
     if (val) {
       form.name = '';
       form.note = '';
+      form.icon = '';
+      form.iconColor = null;
       error.value = '';
     }
   },
 );
 
 const handleSubmit = async () => {
+  if (isSubmitting.value) return;
   if (!form.name.trim()) {
     error.value = t('transactions.transactionGroups.errors.nameRequired');
     return;
@@ -57,13 +63,15 @@ const handleSubmit = async () => {
   error.value = '';
 
   try {
-    await transactionGroupsApi.createTransactionGroup({
+    const group = await transactionGroupsApi.createTransactionGroup({
       name: form.name.trim(),
       note: form.note.trim() || null,
+      icon: form.icon || null,
+      iconColor: form.iconColor,
       transactionIds: props.transactionIds,
     });
 
-    invalidateTransactionGroupQueries({ queryClient });
+    await syncTransactionGroupQueries({ queryClient, groupId: group.id, group });
 
     emit('update:open', false);
     emit('created');
@@ -81,20 +89,28 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <ResponsiveDialog :open="open" custom-close dialog-content-class="sm:max-w-md" @update:open="emit('update:open', $event)">
+  <ResponsiveDialog
+    :open="open"
+    custom-close
+    dialog-content-class="sm:max-w-md"
+    @update:open="emit('update:open', $event)"
+  >
     <template #title>{{ t('transactions.transactionGroups.createGroupDialog.title') }}</template>
     <template #description>
-      {{ t('transactions.transactionGroups.createGroupDialog.descriptionPrefix') }} {{ transactionIds.length }} selected
-      transactions
+      {{ $t('transactions.transactionGroups.createGroupDialog.selected', { count: transactionIds.length }) }}
     </template>
 
     <form class="space-y-4 py-2" @submit.prevent="handleSubmit">
-      <InputField
-        v-model="form.name"
-        :label="t('transactions.transactionGroups.createGroupDialog.groupNameLabel')"
-        :placeholder="t('transactions.transactionGroups.createGroupDialog.groupNamePlaceholder')"
-        :autofocus="true"
-      />
+      <div class="flex items-end gap-2">
+        <InputField
+          class="min-w-0 flex-1"
+          v-model="form.name"
+          :label="t('transactions.transactionGroups.createGroupDialog.groupNameLabel')"
+          :placeholder="t('transactions.transactionGroups.createGroupDialog.groupNamePlaceholder')"
+          :maxlength="100"
+        />
+        <GroupIconField v-model="form.icon" v-model:color="form.iconColor" :name="form.name" />
+      </div>
       <TextareaField
         v-model="form.note"
         :label="t('transactions.transactionGroups.createGroupDialog.noteLabel')"

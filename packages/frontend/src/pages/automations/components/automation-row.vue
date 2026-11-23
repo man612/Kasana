@@ -13,7 +13,7 @@ import { ArrowRightIcon, GripVerticalIcon, HistoryIcon, MoreVerticalIcon, Pencil
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { format } from 'date-fns';
+import { useDateLocale } from '@/composable/use-date-locale';
 
 import AutomationChipTrack from './automation-chip-track.vue';
 import { type AutomationDensity, buildAutomationChips } from './automation-chips';
@@ -29,6 +29,7 @@ const props = defineProps<{
 const emit = defineEmits<{ delete: []; apply: []; select: [] }>();
 
 const { t } = useI18n();
+const { format } = useDateLocale();
 const router = useRouter();
 const { addErrorNotification, addNotification } = useNotificationCenter();
 
@@ -55,9 +56,15 @@ const pausedLabel = computed(() => {
     : t('automations.pausedMissingRefUnnamed', { refType });
 });
 
-const bodyClass = computed(() => cn('min-w-0 flex-1', !props.rule.isEnabled && 'opacity-55'));
+const bodyClass = computed(() =>
+  cn(
+    'min-w-0 flex-1',
+    'transition-opacity duration-200 motion-reduce:transition-none',
+    !props.rule.isEnabled && 'opacity-75',
+  ),
+);
 
-const eyebrowClass = 'text-[10px] font-extrabold tracking-wider uppercase @md/automations:hidden';
+const eyebrowClass = 'text-xs font-semibold @md/automations:hidden';
 
 // Below @md each group is a stacked, bordered panel with its eyebrow as a header; at @md and in
 // compact density the groups collapse back into a single inline row.
@@ -122,7 +129,7 @@ const handleMenuAction = ({ close, action }: { close: () => void; action: 'edit'
     <div class="-ml-3 flex w-8 shrink-0 flex-col self-stretch" :class="density === 'compact' ? '-my-1.5' : '-my-3'">
       <span
         class="bg-muted text-foreground flex size-8 shrink-0 items-center justify-center rounded-br-md text-sm font-semibold tabular-nums"
-        :class="{ 'opacity-55': !rule.isEnabled }"
+        :class="{ 'opacity-75': !rule.isEnabled }"
       >
         {{ position ?? '·' }}
       </span>
@@ -147,10 +154,10 @@ const handleMenuAction = ({ close, action }: { close: () => void; action: 'edit'
             <span class="truncate text-base font-medium">{{ rule.name }}</span>
 
             <span
-              v-if="!rule.isEnabled"
-              class="bg-warning-text/10 text-warning-text order-2 rounded-full px-2 py-0.5 text-xs @md/automations:order-1"
+              class="order-2 rounded-full px-2 py-0.5 text-xs transition-colors motion-reduce:transition-none @md/automations:order-1"
+              :class="rule.isEnabled ? 'bg-success-text/10 text-success-text' : 'bg-warning-text/10 text-warning-text'"
             >
-              {{ pausedLabel }}
+              {{ rule.isEnabled ? $t('automations.editor.enabled') : pausedLabel }}
             </span>
 
             <span
@@ -217,7 +224,7 @@ const handleMenuAction = ({ close, action }: { close: () => void; action: 'edit'
 
       <div
         class="mt-1 flex flex-col gap-1 @md/automations:mt-1.5 @md/automations:flex-row @md/automations:items-center @md/automations:gap-1.5"
-        :class="[density === 'compact' && 'flex-row items-center', !rule.isEnabled && 'opacity-55']"
+        :class="[density === 'compact' && 'flex-row items-center', !rule.isEnabled && 'opacity-75']"
       >
         <div v-if="chips.when.length" :class="groupClass">
           <span :class="[eyebrowClass, 'text-muted-foreground', density === 'compact' && 'hidden']">

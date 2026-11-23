@@ -48,6 +48,23 @@ describe('DateField with explicit calendar confirmation and 24-hour time input',
     expect(wrapper.findComponent({ name: 'DialogStub' }).props('open')).toBe(false);
   });
 
+  it('retains saved seconds when choosing another date and uses 00 for a changed minute', async () => {
+    const wrapper = mountField({ modelValue: new Date(2026, 10, 12, 10, 2, 35) });
+    const { open } = wrapper.vm as unknown as { open: () => void };
+    open();
+    await wrapper.vm.$nextTick();
+    wrapper.findComponent({ name: 'CalendarStub' }).vm.$emit('update:modelValue', new Date(2024, 1, 29));
+    await wrapper.vm.$nextTick();
+    await wrapper.get('[data-testid="date-dialog-save"]').trigger('click');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([new Date(2024, 1, 29, 10, 2, 35)]);
+
+    open();
+    await wrapper.vm.$nextTick();
+    await wrapper.get('[data-testid="date-dialog-time-input"]').setValue('0941');
+    await wrapper.get('[data-testid="date-dialog-save"]').trigger('click');
+    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([new Date(2026, 10, 12, 9, 41)]);
+  });
+
   it('can cancel a picked date without modifying the saved field', async () => {
     const wrapper = mountField({ modelValue: initial });
     (wrapper.vm as unknown as { open: () => void }).open();
@@ -58,6 +75,22 @@ describe('DateField with explicit calendar confirmation and 24-hour time input',
       .findAll('button')
       .find((el) => el.text().includes('Batal') || el.text().includes('Cancel'))
       ?.trigger('click');
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+  });
+
+  it('does not reset saved seconds when the unchanged direct time field loses focus', async () => {
+    const wrapper = mountField({ modelValue: new Date(2026, 10, 12, 10, 2, 35) });
+    await wrapper.get('[data-testid="date-field-time-input"]').trigger('blur');
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined();
+  });
+
+  it('keeps Now visible and only changes the draft until Save', async () => {
+    const wrapper = mountField({ modelValue: initial });
+    (wrapper.vm as unknown as { open: () => void }).open();
+    await wrapper.vm.$nextTick();
+    const now = wrapper.get('[data-testid="date-dialog-now"]');
+    await now.trigger('click');
+    expect(wrapper.find('[data-testid="date-dialog-now"]').exists()).toBe(true);
     expect(wrapper.emitted('update:modelValue')).toBeUndefined();
   });
 

@@ -157,10 +157,10 @@ describe('chunk-reload-handler', () => {
       return { router: { onError } as unknown as Router, onError };
     };
 
-    const install = () => {
+    const install = (hasInAppRecovery?: () => boolean) => {
       const spy = vi.spyOn(window, 'addEventListener');
       const { router, onError } = makeRouterStub();
-      handler.installChunkReloadHandler({ router });
+      handler.installChunkReloadHandler({ router, hasInAppRecovery });
       const call = spy.mock.calls.find(([event]) => event === 'vite:preloadError');
       spy.mockRestore();
       if (!call) throw new Error('vite:preloadError listener was not registered');
@@ -174,6 +174,19 @@ describe('chunk-reload-handler', () => {
       Object.defineProperty(event, 'payload', { value: error });
       return event;
     };
+
+    it('leaves an in-app failure to the route or widget that owns its retry control', () => {
+      const { preloadHandler, routerErrorHandler } = install(() => true);
+      const error = staleError();
+      const event = makeEvent(error);
+
+      preloadHandler(event);
+      routerErrorHandler(error, { fullPath: '/accounts' });
+      vi.advanceTimersByTime(NAVIGATE_DEFER_MS);
+
+      expect(event.defaultPrevented).toBe(false);
+      expect(reloadMock).not.toHaveBeenCalled();
+    });
 
     it('schedules recovery and calls preventDefault on a preload error', () => {
       const { preloadHandler } = install();

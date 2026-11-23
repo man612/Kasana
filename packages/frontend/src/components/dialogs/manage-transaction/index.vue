@@ -31,12 +31,21 @@ const contentKey = ref(0);
 const contentRef = ref<InstanceType<typeof ManageTransactionDialogContent> | null>(null);
 const contentPrefill = computed(() => nextEntryPrefill.value ?? props.prefill);
 const isDiscardConfirmationOpen = ref(false);
+const hasDirtyForm = () => contentRef.value?.hasUnsavedChanges() === true;
+const isSaving = () => contentRef.value?.isSaving() === true;
+const interceptDismiss = (event: Event) => {
+  if (isSaving()) return event.preventDefault();
+  if (!hasDirtyForm()) return;
+  event.preventDefault();
+  isDiscardConfirmationOpen.value = true;
+};
 const requestOpen = (open: boolean) => {
   if (open) {
     isOpen.value = true;
     return;
   }
-  if (contentRef.value?.hasUnsavedChanges()) {
+  if (!isOpen.value || isSaving()) return;
+  if (hasDirtyForm()) {
     isDiscardConfirmationOpen.value = true;
     return;
   }
@@ -49,6 +58,7 @@ const confirmDiscard = () => {
 const [DefineContent, ReuseContent] = createReusableTemplate();
 
 watch(isOpen, (open) => {
+  isDiscardConfirmationOpen.value = false;
   if (!open) return;
   trackAnalyticsEvent({ event: 'transaction_creation_opened' });
   isCreateMore.value = false;
@@ -83,7 +93,13 @@ const startNextEntry = async ({ prefill }: { prefill: TransactionPrefill }) => {
     <Dialog.DialogTrigger as-child>
       <slot />
     </Dialog.DialogTrigger>
-    <Dialog.DialogContent custom-close class="max-h-[90dvh] w-full max-w-225 overflow-hidden p-0">
+    <Dialog.DialogContent
+      intrinsic-height-motion
+      custom-close
+      @pointer-down-outside="interceptDismiss"
+      @escape-key-down="interceptDismiss"
+      class="max-h-[90dvh] w-full max-w-225 overflow-hidden p-0"
+    >
       <Dialog.DialogTitle class="sr-only">{{ t('dialogs.manageTransaction.title') }}</Dialog.DialogTitle>
       <Dialog.DialogDescription class="sr-only">
         {{ t('dialogs.manageTransaction.description') }}
@@ -94,11 +110,18 @@ const startNextEntry = async ({ prefill }: { prefill: TransactionPrefill }) => {
   </Dialog.Dialog>
 
   <!-- Mobile: Drawer -->
-  <Drawer.Drawer v-else :open="isOpen" @update:open="requestOpen">
+  <Drawer.Drawer v-else :dismissible="!hasDirtyForm() && !isSaving()" :open="isOpen" @update:open="requestOpen">
     <Drawer.DrawerTrigger class="w-full" as-child>
       <slot />
     </Drawer.DrawerTrigger>
-    <Drawer.DrawerContent custom-indicator>
+    <Drawer.DrawerContent
+      adaptive-height
+      intrinsic-height-motion
+      custom-indicator
+      class="max-h-[min(92dvh,48rem)]"
+      @pointer-down-outside="interceptDismiss"
+      @escape-key-down="interceptDismiss"
+    >
       <ReuseContent />
     </Drawer.DrawerContent>
   </Drawer.Drawer>

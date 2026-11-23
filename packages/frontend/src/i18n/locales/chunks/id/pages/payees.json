@@ -23,6 +23,10 @@
       "defaultTags": "Default tags"
     },
     "actions": {
+      "edit": "Sunting penerima",
+      "saveChanges": "Simpan perubahan",
+      "moreFor": "Tindakan untuk {name}",
+      "deleteWithHistory": "Hapus {name} dari daftar penerima. Riwayat transaksi tetap menyimpan nama penerima dan nominalnya.",
       "menu": "Tindakan",
       "rename": "Ubah nama",
       "merge": "Gabungkan ke…",
@@ -36,9 +40,9 @@
       "selectAll": "Select all loaded payees",
       "selectRow": "Select {name}",
       "deleteTitle": "Delete {count} payee? | Delete {count} payees?",
-      "deleteDescription": "Their transactions stay, but lose the payee link. This can't be undone.",
+      "deleteDescription": "Penerima dihapus dari daftar. Riwayat transaksi tetap menyimpan nama penerima dan nominalnya.",
       "deleteAndIgnoreTitle": "Delete and ignore {count} payee? | Delete and ignore {count} payees?",
-      "deleteAndIgnoreDescription": "Their names go on the ignored list, so imports and bank syncs won't recreate them. Their transactions stay, but lose the payee link."
+      "deleteAndIgnoreDescription": "Nama penerima ditambahkan ke daftar yang diabaikan saat impor dan sinkronisasi bank. Riwayat transaksi tetap menyimpan nama dan nominalnya."
     },
     "emptyState": {
       "title": "Belum ada penerima",
@@ -79,9 +83,9 @@
       "aliasDuplicate": "Alias ini sudah terpasang ke Penerima ini.",
       "aliasUsedByOtherPayee": "Alias ini sudah digunakan oleh \"{name}\".",
       "deletePayeeTitle": "Hapus penerima?",
-      "deletePayeeDescription": "Transaksi yang terhubung tetap memiliki kategorinya tetapi kehilangan tautan penerima. Ini tidak dapat dibatalkan.",
+      "deletePayeeDescription": "Penerima dihapus dari daftar. Riwayat transaksi tetap menyimpan nama, kategori, dan nominalnya.",
       "deleteAndIgnoreTitle": "Hapus Penerima ini dan abaikan kecocokan di masa depan?",
-      "deleteAndIgnoreDescription": "Menghapus Penerima ini DAN menambahkan namanya (kanonik + semua alias) ke daftar blokir nama yang diabaikan. Sinkronisasi masa depan tidak akan membuatnya ulang dari teks pedagang mentah. Transaksi yang terhubung tetap ada tetapi kehilangan tautan penerima.",
+      "deleteAndIgnoreDescription": "Menghapus Penerima ini DAN menambahkan namanya (kanonik + semua alias) ke daftar blokir nama yang diabaikan. Sinkronisasi masa depan tidak akan membuatnya ulang dari teks pedagang mentah. Riwayat transaksi tetap menyimpan nama penerima dan nominalnya.",
       "mergeTitle": "Gabungkan ke penerima lain",
       "mergeDescription": "Pilih penerima target. Semua transaksi dan alias dipindahkan ke target; penerima ini dihapus.",
       "confirmMerge": "Gabungkan",

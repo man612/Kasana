@@ -1,5 +1,5 @@
 <template>
-  <ResponsivePopover :title="$t('settings.ai.modelGuide.trigger')" align="end" content-class="w-80 p-3.5">
+  <ContextualHelp :title="$t('settings.ai.modelGuide.trigger')">
     <template #trigger>
       <Button variant="soft-primary" size="sm" class="h-6 gap-1 rounded-full px-2.5 text-xs">
         <LightbulbIcon class="size-3" />
@@ -96,12 +96,12 @@
         </span>
       </template>
     </div>
-  </ResponsivePopover>
+  </ContextualHelp>
 </template>
 
 <script setup lang="ts">
 import { type AIModelNeed, type AIModelTier, getAIFeatureDisplayInfo } from '@/common/const';
-import ResponsivePopover from '@/components/common/responsive-popover.vue';
+import ContextualHelp from '@/components/common/contextual-help.vue';
 import { Button } from '@/components/lib/ui/button';
 import { cn } from '@/lib/utils';
 import { AIFeatureStatus, getModelNameFromModelId } from '@bt/shared/types';

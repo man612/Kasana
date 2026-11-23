@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NotificationStruct } from '@/api/notifications';
 import Button from '@/components/lib/ui/button/Button.vue';
-import * as Popover from '@/components/lib/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
 import {
   useDismissNotification,
   useMarkAllNotificationsAsRead,
@@ -10,10 +10,10 @@ import {
   useUnreadNotificationsCount,
 } from '@/composable/data-queries/notifications';
 import { NOTIFICATION_STATUSES } from '@bt/shared/types';
-import { BellIcon, BellOffIcon, Loader2Icon } from '@lucide/vue';
-import { ref } from 'vue';
+import { BellIcon, BellOffIcon, Loader2Icon, XIcon } from '@lucide/vue';
+import { ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { buildNotificationRoute } from './build-notification-route';
 import NotificationItem from './notification-item.vue';
@@ -22,9 +22,18 @@ withDefaults(defineProps<{ sidebar?: boolean }>(), { sidebar: false });
 
 const { t } = useI18n();
 const router = useRouter();
+const currentRoute = useRoute();
 const isOpen = ref(false);
+const titleId = useId();
+const heading = ref<HTMLElement | null>(null);
+watch(
+  () => currentRoute.fullPath,
+  () => {
+    isOpen.value = false;
+  },
+);
 
-const { data: notifications, isLoading } = useNotifications();
+const { data: notifications, isPending } = useNotifications({ enabled: isOpen });
 const { data: unreadCount } = useUnreadNotificationsCount();
 
 const markAsReadMutation = useMarkNotificationAsRead();
@@ -57,8 +66,8 @@ const handleDismiss = (id: string) => {
 </script>
 
 <template>
-  <Popover.Popover v-model:open="isOpen">
-    <Popover.PopoverTrigger as-child>
+  <Popover v-model:open="isOpen" modal>
+    <PopoverTrigger as-child>
       <!-- Sidebar mode: full-width button with label -->
       <template v-if="sidebar">
         <button
@@ -101,14 +110,32 @@ const handleDismiss = (id: string) => {
           </span>
         </Button>
       </template>
-    </Popover.PopoverTrigger>
-    <Popover.PopoverContent
-      class="w-[min(22.5rem,calc(100vw-1rem))] overflow-hidden p-0"
+    </PopoverTrigger>
+    <PopoverContent
+      dim-backdrop
+      lock-side
       :align="sidebar ? 'start' : 'end'"
       :side="sidebar ? 'top' : 'bottom'"
+      :aria-labelledby="titleId"
+      class="w-[min(24rem,calc(100vw-1.5rem))] rounded-xl p-3"
+      @open-auto-focus.prevent="heading?.focus({ preventScroll: true })"
     >
-      <div class="border-border flex items-center justify-between border-b px-4 py-3">
-        <h3 class="text-sm font-semibold">{{ $t('notifications.title') }}</h3>
+      <div class="flex items-center justify-between gap-2">
+        <h2 :id="titleId" ref="heading" tabindex="-1" class="text-base font-semibold outline-none">
+          {{ t('notifications.title') }}
+        </h2>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          class="size-11"
+          :aria-label="t('common.ui.close')"
+          @click="isOpen = false"
+        >
+          <XIcon class="size-4" aria-hidden="true" />
+        </Button>
+      </div>
+      <div v-if="unreadCount && unreadCount > 0" class="flex justify-end border-b pb-2">
         <Button
           v-if="unreadCount && unreadCount > 0"
           variant="ghost"
@@ -121,7 +148,7 @@ const handleDismiss = (id: string) => {
         </Button>
       </div>
 
-      <div v-if="isLoading" class="flex items-center justify-center py-8">
+      <div v-if="isPending" class="flex items-center justify-center py-8">
         <Loader2Icon class="text-muted-foreground size-6 animate-spin" />
       </div>
 
@@ -130,7 +157,7 @@ const handleDismiss = (id: string) => {
         <p class="text-muted-foreground text-sm">{{ $t('notifications.empty') }}</p>
       </div>
 
-      <div v-else class="lajur-dialog-scroll max-h-[min(22rem,65dvh)] overflow-y-auto overscroll-contain">
+      <div v-else class="divide-border">
         <div class="divide-border divide-y">
           <NotificationItem
             v-for="notification in notifications"
@@ -141,6 +168,6 @@ const handleDismiss = (id: string) => {
           />
         </div>
       </div>
-    </Popover.PopoverContent>
-  </Popover.Popover>
+    </PopoverContent>
+  </Popover>
 </template>

@@ -74,10 +74,17 @@ export async function patchUserSettings<R extends boolean | undefined = undefine
   });
 }
 
-export async function getOnboarding<R extends boolean | undefined = undefined>({ raw }: { raw?: R }) {
+export async function getOnboarding<R extends boolean | undefined = undefined>({
+  raw,
+  skipProgressWhenDismissed,
+}: {
+  raw?: R;
+  skipProgressWhenDismissed?: boolean;
+}) {
   return makeRequest<Awaited<ReturnType<typeof apiGetOnboardingState>>, R>({
     method: 'get',
     url: '/user/settings/onboarding',
+    payload: skipProgressWhenDismissed ? { skipProgressWhenDismissed: 'true' } : undefined,
     raw,
   });
 }

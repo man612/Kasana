@@ -1,16 +1,24 @@
 <template>
   <Card>
     <div
-      class="flex flex-col gap-4 px-4 py-4 @[40rem]/accounts-page:flex-row @[40rem]/accounts-page:items-center @[40rem]/accounts-page:justify-between @[40rem]/accounts-page:gap-6 @[40rem]/accounts-page:px-6 @[40rem]/accounts-page:py-5"
+      class="grid min-w-0 gap-3 p-4 @[40rem]/accounts-page:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] @[40rem]/accounts-page:items-start @[40rem]/accounts-page:gap-6 @[40rem]/accounts-page:p-5"
     >
-      <div>
-        <div class="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase">
-          {{ $t('accounts.overview.totalBalance') }}
+      <div class="min-w-0">
+        <div class="flex items-center gap-1">
+          <h2 class="text-muted-foreground text-xs font-semibold">
+            {{ $t('accounts.overview.totalBalance') }}
+          </h2>
+          <HintIcon
+            :title="$t('accounts.overview.totalBalance')"
+            :content="$t('accounts.overview.balanceExplanation')"
+          />
         </div>
-        <div class="mt-1 text-2xl font-semibold tracking-tight tabular-nums @[40rem]/accounts-page:text-4xl">
+        <div
+          class="text-2xl font-semibold tracking-tight wrap-anywhere tabular-nums @[40rem]/accounts-page:text-4xl"
+          :class="overview.total < 0 && 'text-destructive-text'"
+        >
           {{ totalDisplay }}
         </div>
-
         <i18n-t
           v-if="hasPendingPlans"
           keypath="accounts.overview.projected"
@@ -18,51 +26,36 @@
           tag="div"
           class="text-muted-foreground mt-1 text-xs"
         >
-          <template #amount>
-            <span class="text-foreground font-semibold tabular-nums">{{ projectedDisplay }}</span>
-          </template>
+          <template #amount
+            ><span class="text-foreground font-semibold tabular-nums">{{ projectedDisplay }}</span></template
+          >
           <template #count>{{ planned.count }}</template>
           <template #date>{{ latestPlannedDisplay }}</template>
         </i18n-t>
       </div>
 
-      <div class="flex gap-4 @[40rem]/accounts-page:gap-8">
-        <div class="min-w-0 flex-1 @[40rem]/accounts-page:flex-none">
-          <div class="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase">
-            {{ $t('accounts.overview.assets') }}
-          </div>
-          <div class="mt-1 truncate text-base font-semibold tabular-nums @[40rem]/accounts-page:text-lg">
-            {{ formatBaseCurrency(overview.assets) }}
-          </div>
-        </div>
-
-        <div class="min-w-0 flex-1 @[40rem]/accounts-page:flex-none">
-          <div class="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase">
-            {{ $t('accounts.overview.liabilities') }}
-          </div>
-          <div
-            class="text-destructive-text mt-1 truncate text-base font-semibold tabular-nums @[40rem]/accounts-page:text-lg"
+      <dl class="border-border/65 divide-border/55 min-w-0 divide-y border-t @[40rem]/accounts-page:border-t-0">
+        <div
+          v-for="row in overviewRows"
+          :key="row.label"
+          class="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-baseline gap-2 py-2 last:pb-0"
+        >
+          <dt class="text-muted-foreground text-sm wrap-anywhere">{{ row.label }}</dt>
+          <dd
+            class="min-w-0 text-right text-sm font-semibold wrap-anywhere tabular-nums"
+            :class="row.value < 0 && 'text-destructive-text'"
           >
-            {{ formatBaseCurrency(overview.liabilities) }}
-          </div>
+            {{ formatBaseCurrency(row.value) }}
+          </dd>
         </div>
-
-        <div v-if="hasVehicles" class="min-w-0 flex-1 @[40rem]/accounts-page:flex-none">
-          <div class="text-muted-foreground text-[10px] font-semibold tracking-[0.16em] uppercase">
-            {{ $t('accounts.overview.vehicles') }}
-          </div>
-          <div
-            class="text-muted-foreground mt-1 truncate text-base font-semibold tabular-nums @[40rem]/accounts-page:text-lg"
-          >
-            {{ formatBaseCurrency(overview.vehicles) }}
-          </div>
-        </div>
-      </div>
+      </dl>
     </div>
   </Card>
 </template>
 
 <script setup lang="ts">
+import HintIcon from '@/components/common/hint-icon.vue';
+import { useI18n } from 'vue-i18n';
 import { Card } from '@/components/lib/ui/card';
 import { useFormatCurrency } from '@/composable';
 import { type PlannedAggregate, usePlannedDateLabel } from '@/composable/use-projected-balance';
@@ -71,13 +64,18 @@ import { computed } from 'vue';
 
 const props = defineProps<{
   overview: AccountsOverview;
-  baseCurrencyCode: string;
   hasVehicles: boolean;
   planned: PlannedAggregate;
   projectedTotal: number;
 }>();
 
+const { t } = useI18n();
 const { formatBaseCurrency } = useFormatCurrency();
+const overviewRows = computed(() => [
+  { label: t('accounts.overview.assets'), value: props.overview.assets },
+  { label: t('accounts.overview.liabilities'), value: props.overview.liabilities },
+  ...(props.hasVehicles ? [{ label: t('accounts.overview.vehicles'), value: props.overview.vehicles }] : []),
+]);
 const { formatPlannedDate } = usePlannedDateLabel();
 
 const totalDisplay = computed(

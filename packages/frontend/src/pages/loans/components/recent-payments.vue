@@ -73,9 +73,11 @@
     </CardContent>
   </Card>
 
-  <LoanPaymentDialog
-    v-if="loanAccount && dialogTransaction && dialogOppositeTransaction"
+  <TransactionDetailsModal
+    v-if="loanAccount"
     v-model:open="isDialogOpen"
+    :mobile="isMobile"
+    :session="null"
     :loan-account="loanAccount"
     :transaction="dialogTransaction"
     :opposite-transaction="dialogOppositeTransaction"
@@ -91,7 +93,9 @@ import { Button } from '@/components/lib/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { useNotificationCenter } from '@/components/notification-center';
+import TransactionDetailsModal from '@/components/transactions-list/transaction-details-modal.vue';
 import TransactionRecord from '@/components/transactions-list/transaction-record.vue';
+import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { captureException } from '@/lib/sentry';
 import { useAccountsStore } from '@/stores';
 import { TRANSACTION_TYPES, type TransactionModel } from '@bt/shared/types';
@@ -101,8 +105,6 @@ import { useIntersectionObserver } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-
-import LoanPaymentDialog from './loan-payment-dialog/index.vue';
 
 const props = defineProps<{ loan: LoanApi }>();
 
@@ -118,6 +120,7 @@ const { t } = useI18n();
 const { addErrorNotification } = useNotificationCenter();
 const { accountsRecord } = storeToRefs(useAccountsStore());
 
+const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const loanAccount = computed(() => accountsRecord.value[props.loan.id]);
 
 const paymentsQuery = useQuery({
@@ -176,8 +179,8 @@ useIntersectionObserver(sentinelRef, ([entry]) => {
 // Rows hold the loan-side (income) leg; the dialog also needs the source-side (expense) leg.
 // TransactionRecord usually hands both along with the click — fetch by transferId only as a fallback.
 const isDialogOpen = ref(false);
-const dialogTransaction = ref<TransactionModel | null>(null);
-const dialogOppositeTransaction = ref<TransactionModel | null>(null);
+const dialogTransaction = ref<TransactionModel>();
+const dialogOppositeTransaction = ref<TransactionModel>();
 
 const openPaymentDialog = ({ sourceLeg, loanLeg }: { sourceLeg: TransactionModel; loanLeg: TransactionModel }) => {
   dialogTransaction.value = sourceLeg;

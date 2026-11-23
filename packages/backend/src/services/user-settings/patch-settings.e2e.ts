@@ -97,6 +97,22 @@ describe('Patch user settings', () => {
     expect(patched.locale).toBe('en');
   });
 
+  it('persists time grouping alongside other transaction-list settings', async () => {
+    await helpers.patchUserSettings({
+      raw: true,
+      patch: { ui: { transactionsList: { hideUpcoming: true } } },
+    });
+    const saved = await helpers.patchUserSettings({
+      raw: true,
+      patch: { ui: { transactionsList: { timeGrouping: 'week' } } },
+    });
+    expect(saved.ui?.transactionsList).toEqual({ hideUpcoming: true, timeGrouping: 'week' });
+    expect((await helpers.getUserSettings({ raw: true })).ui?.transactionsList).toEqual(saved.ui?.transactionsList);
+
+    const invalid = await helpers.patchUserSettings({ patch: { ui: { transactionsList: { timeGrouping: 'month' } } } });
+    expect(invalid.statusCode).toBe(ERROR_CODES.ValidationError);
+  });
+
   it('two patches to different slices do not clobber each other', async () => {
     await helpers.patchUserSettings({
       raw: true,
@@ -159,6 +175,38 @@ describe('Patch user settings', () => {
     const changed = await helpers.patchUserSettings({ raw: true, patch: { accentTheme: 'green' } });
     expect(changed.accentTheme).toBe('green');
     expect((await helpers.getUserSettings({ raw: true })).accentTheme).toBe('green');
+  });
+
+  it('persists the color theme and Quick Start expiry while independent preferences are saved', async () => {
+    const hiddenUntil = Date.now() + 60 * 60 * 1000;
+    await Promise.all([
+      helpers.patchUserSettings({ raw: true, patch: { colorTheme: 'dark', accentTheme: 'green' } }),
+      helpers.updateOnboarding({ raw: true, onboardingState: { hiddenUntil } }),
+    ]);
+
+    expect(await helpers.getUserSettings({ raw: true })).toMatchObject({ colorTheme: 'dark', accentTheme: 'green' });
+    expect((await helpers.getOnboarding({ raw: true })).hiddenUntil).toBe(hiddenUntil);
+    await helpers.updateOnboarding({ raw: true, onboardingState: { hiddenUntil: 0 } });
+    expect((await helpers.getOnboarding({ raw: true })).hiddenUntil).toBe(0);
+
+    const invalidTheme = await helpers.patchUserSettings({ patch: { colorTheme: 'night' } });
+    expect(invalidTheme.statusCode).toBe(ERROR_CODES.ValidationError);
+    const invalidDeadline = await helpers.updateOnboarding({ onboardingState: { hiddenUntil: -1 } });
+    expect(invalidDeadline.statusCode).toBe(ERROR_CODES.ValidationError);
+  });
+
+  it('skips automatic progress only for a dismissed guide when the client opts in', async () => {
+    await helpers.createAccount({ raw: true });
+    await helpers.updateOnboarding({ raw: true, onboardingState: { isDismissed: true, completedTasks: [] } });
+    const quiet = await helpers.getOnboarding({ raw: true, skipProgressWhenDismissed: true });
+    const original = await helpers.getOnboarding({ raw: true });
+    expect(quiet.isDismissed).toBe(true);
+    expect(quiet.completedTasks).not.toContain('create-account');
+    expect(original.completedTasks).toContain('create-account');
+
+    await helpers.updateOnboarding({ raw: true, onboardingState: { isDismissed: false } });
+    const reopened = await helpers.getOnboarding({ raw: true, skipProgressWhenDismissed: true });
+    expect(reopened.completedTasks).toContain('create-account');
   });
 
   it('persists currencyDisplay in both directions and keeps it through a rejected patch', async () => {

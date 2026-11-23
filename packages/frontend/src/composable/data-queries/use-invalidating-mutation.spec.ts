@@ -124,7 +124,8 @@ describe('useInvalidatingMutation', () => {
 
     await expect(mutation.mutateAsync({ value: 1 })).rejects.toBe(error);
 
-    expect(addErrorNotification).toHaveBeenCalledWith('Name already taken');
+    expect(addNotification).toHaveBeenCalledWith({ text: 'Name already taken', type: 'error' });
+    expect(addErrorNotification).not.toHaveBeenCalled();
   });
 
   it('keeps the error toast up under the given id when asked to', async () => {

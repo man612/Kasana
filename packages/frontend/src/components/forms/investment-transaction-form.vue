@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { loadExchangeRatesForDate } from '@/api/currencies';
+import { beiLotsToShares } from '@/common/utils/investment-units';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import { type SettlementMode, calculateSettlementPreview } from '@/common/utils/settlement-preview';
 import DateField from '@/components/fields/date-field.vue';
@@ -29,6 +30,7 @@ interface SecurityOption {
   label: string;
   /** Trading currency of the security; drives the settlement-currency defaults. */
   currencyCode?: string;
+  isBeiStock?: boolean;
 }
 
 const props = defineProps<{
@@ -70,6 +72,32 @@ const form = reactive({
   settlementFees: '',
   settlementRate: '',
 });
+
+const quantityUnit = ref('shares');
+const showLotPicker = computed(
+  () =>
+    form.security?.isBeiStock &&
+    (form.type.value === INVESTMENT_TRANSACTION_CATEGORY.buy ||
+      form.type.value === INVESTMENT_TRANSACTION_CATEGORY.sell),
+);
+const quantityInLots = computed(() => showLotPicker.value && quantityUnit.value === 'lots');
+const transactionQuantity = computed(() =>
+  quantityInLots.value ? beiLotsToShares(String(form.quantity)) : form.quantity,
+);
+const hasInvalidLots = computed(() => quantityInLots.value && !!form.quantity && transactionQuantity.value === null);
+const quantityUnits = computed<PillTabItem[]>(() => [
+  { value: 'shares', label: t('forms.investmentTransaction.quantityShares') },
+  { value: 'lots', label: t('forms.investmentTransaction.quantityLots') },
+]);
+
+watch(
+  [() => form.security?.value, showLotPicker],
+  () => {
+    if (quantityUnit.value === 'lots') form.quantity = '';
+    quantityUnit.value = 'shares';
+  },
+  { flush: 'sync' },
+);
 
 const useSettlement = ref(false);
 const settlementMode = ref<SettlementMode>('fee');
@@ -156,7 +184,7 @@ const settlementPreview = computed(() => {
   if (!isCrossCurrency.value) return null;
   return calculateSettlementPreview({
     isCashIn: isCashReceived.value,
-    quantity: form.quantity,
+    quantity: transactionQuantity.value ?? '',
     price: form.price,
     totalCash: form.settlementAmount,
     mode: settlementMode.value,
@@ -235,7 +263,7 @@ const onSubmit = async () => {
     return;
   }
 
-  if (!form.security) return;
+  if (!form.security || !transactionQuantity.value || createTransactionMutation.isPending.value) return;
 
   try {
     const trimmedNote = form.note.trim();
@@ -254,7 +282,7 @@ const onSubmit = async () => {
       portfolioId: props.portfolioId,
       category: form.type.value,
       securityId: form.security.value,
-      quantity: form.quantity,
+      quantity: transactionQuantity.value,
       price: form.price,
       date: form.date.toISOString(),
       fees: settlementEnabled ? '0' : form.fees || '0',
@@ -309,21 +337,46 @@ const onSubmit = async () => {
         @blur="touchField('form.security')"
       />
 
+      <PillTabs
+        v-if="showLotPicker"
+        v-model="quantityUnit"
+        :items="quantityUnits"
+        :aria-label="$t('forms.investmentTransaction.quantityLabel')"
+        @update:model-value="form.quantity = ''"
+      />
       <InputField
         v-model="form.quantity"
-        :label="$t('forms.investmentTransaction.quantityLabel')"
+        :label="
+          $t(
+            quantityInLots
+              ? 'forms.investmentTransaction.quantityLots'
+              : showLotPicker
+                ? 'forms.investmentTransaction.quantityShares'
+                : 'forms.investmentTransaction.quantityLabel',
+          )
+        "
         type="number"
         step="any"
         :placeholder="$t('forms.investmentTransaction.quantityPlaceholder')"
         :disabled="createTransactionMutation.isPending.value"
-        :error-message="getFieldErrorMessage('form.quantity')"
+        :error-message="
+          hasInvalidLots ? $t('forms.investmentTransaction.invalidLots') : getFieldErrorMessage('form.quantity')
+        "
         @blur="touchField('form.quantity')"
       />
+
+      <p v-if="showLotPicker" class="text-muted-foreground -mt-3 text-xs">
+        {{ $t('forms.investmentTransaction.beiLotHelp') }}
+      </p>
 
       <div>
         <InputField
           v-model="form.price"
-          :label="$t('forms.investmentTransaction.priceLabel')"
+          :label="
+            securityCurrencyCode
+              ? `${$t('forms.investmentTransaction.priceLabel')} (${securityCurrencyCode})`
+              : $t('forms.investmentTransaction.priceLabel')
+          "
           type="number"
           step="any"
           :placeholder="$t('forms.investmentTransaction.pricePlaceholder')"

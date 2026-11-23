@@ -19,11 +19,13 @@
       "baseCurrencyEquivalent": "≈ {value} у {code}",
       "loadError": "Не вдалося завантажити підсумок портфеля.",
       "metrics": {
-        "costBasis": "Базова вартість",
+        "costBasis": "Вартість придбання активів",
         "unrealized": "Нереалізований",
         "realized": "Реалізований",
-        "totalReturn": "Загальна дохідність"
-      }
+        "totalReturn": "Загальна дохідність",
+        "cash": "Залишок коштів"
+      },
+      "totalGain": "загальний результат"
     },
     "cashBalances": {
       "title": "Грошові баланси",
@@ -87,7 +89,8 @@
         "totalCost": "Базова вартість",
         "marketValue": "Ринкова вартість",
         "unrealizedGain": "Нереалізований прибуток",
-        "realizedGain": "Реалізований прибуток"
+        "realizedGain": "Реалізований прибуток",
+        "avgCost": "Середня ціна придбання"
       },
       "transactions": {
         "loading": "Завантаження транзакцій…",
@@ -111,7 +114,8 @@
       "tryAgainLater": "Спробуйте пізніше",
       "emptyDescription": "Додайте першу транзакцію, щоб почати відстежувати інвестиції",
       "addFirstHolding": "Додати перший актив",
-      "importTransactions": "Або імпортуйте з файлу"
+      "importTransactions": "Або імпортуйте з файлу",
+      "noMarketPrice": "Ринкова ціна недоступна"
     },
     "transactionsList": {
       "title": "Транзакції",
@@ -151,6 +155,10 @@
       "deleteTransaction": {
         "tooltip": "Видалити транзакцію"
       }
+    },
+    "sections": {
+      "summary": "Огляд",
+      "holdings": "Активи"
     }
   }
 }

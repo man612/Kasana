@@ -1,7 +1,12 @@
 <template>
   <template v-if="category">
     <div
-      :class="cn('flex shrink-0 items-center justify-center rounded-full', effectiveIcon ? 'size-6' : 'size-5')"
+      :class="
+        cn(
+          'flex shrink-0 items-center justify-center rounded-full',
+          rowIcon ? 'size-full rounded-lg' : effectiveIcon ? 'size-6' : 'size-5',
+        )
+      "
       :style="{
         backgroundColor: effectiveIcon ? `${category.color}2d` : category.color,
         color: category.color,
@@ -23,6 +28,7 @@ import { computed } from 'vue';
 const props = defineProps<{
   category?: EmbeddedCategoryModel;
   categoryId?: string;
+  rowIcon?: boolean;
   /**
    * Caller-supplied lookup map for the parent-walk that resolves an inherited icon.
    * Default is the global Pinia store, which only contains the caller's own categories —

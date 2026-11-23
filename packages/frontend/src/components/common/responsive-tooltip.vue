@@ -1,19 +1,17 @@
 <script lang="ts" setup>
 import { CHART_TOOLTIP_SIZING_CLASS, CHART_TOOLTIP_SURFACE_CLASS } from '@/components/common/charts/chart-tooltip';
-import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import ContextualHelp from '@/components/common/contextual-help.vue';
 import * as Popover from '@/components/lib/ui/popover';
 import * as Tooltip from '@/components/lib/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { createReusableTemplate, useMediaQuery } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 defineOptions({ inheritAttrs: false });
 
 const [UseTemplate, SlotContent] = createReusableTemplate();
 // Detect touch-primary devices (coarse pointer = finger/stylus)
 const isTouch = useMediaQuery('(pointer: coarse)');
-const { locale } = useI18n();
 
 const props = withDefaults(
   defineProps<{
@@ -50,21 +48,14 @@ watch(
     </slot>
   </UseTemplate>
 
-  <!-- Explicit help action: a click dialog, shared with HintIcon. -->
-  <template v-if="interaction === 'click'">
-    <ResponsiveDialog v-model:open="open" :dismissible="!disabled" mobile-presentation="center">
-      <template #trigger>
-        <slot />
-      </template>
-      <template #title>{{ locale.startsWith('id') ? 'Penjelasan' : 'More information' }}</template>
-      <template #description>{{
-        locale.startsWith('id') ? 'Informasi tambahan tentang fitur ini.' : 'Additional information about this feature.'
-      }}</template>
-      <div class="border-border bg-muted/30 text-foreground rounded-xl border p-4 text-sm leading-relaxed">
-        <SlotContent />
-      </div>
-    </ResponsiveDialog>
-  </template>
+  <ContextualHelp
+    v-if="interaction === 'click'"
+    :disabled="disabled"
+    :compact="!$slots.content && (content?.length ?? 0) <= 140"
+  >
+    <template #trigger><slot /></template>
+    <SlotContent />
+  </ContextualHelp>
 
   <!-- Touch devices: Popover (tap to open) -->
   <template v-else-if="isTouch">

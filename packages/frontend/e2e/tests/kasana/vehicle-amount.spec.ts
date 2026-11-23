@@ -138,7 +138,7 @@ for (const currency of ['IDR', 'USD']) {
             .locator('section')
             .filter({ has: page.getByRole('heading', { name: 'Amount readability', exact: true }) })
             .first();
-          const amount = hero.locator('.text-3xl').first();
+          const amount = hero.getByTestId('vehicle-estimated-amount');
           await expect(amount).toBeVisible();
           await page.evaluate(() => document.fonts.ready);
           const initialFont = await page.evaluate(() =>
@@ -170,14 +170,12 @@ for (const currency of ['IDR', 'USD']) {
             await checkPercentage({ percentage: hero.locator('span.inline-flex > span.font-normal') });
             // Purchase, depreciation and five-year projection cards use the same
             // presentation contract while keeping their own calculated values.
-            const cards = hero.locator('xpath=following-sibling::section[1]').locator('.text-2xl');
+            const cards = page.getByTestId('vehicle-kpi-money');
             await expect(cards).toHaveCount(3);
             for (const card of await cards.all()) {
-              const isFlex = (await card.evaluate((element) => getComputedStyle(element).display)) === 'flex';
-              const money = isFlex ? card.locator(':scope > span').first() : card;
-              await checkLegibility({ amount: money });
-              if (isFlex) await checkPercentage({ percentage: card.locator(':scope > span').last() });
+              await checkLegibility({ amount: card });
             }
+            await checkPercentage({ percentage: page.getByTestId('vehicle-kpi-percentage') });
             expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(
               TOLERANCE,
             );
@@ -219,7 +217,7 @@ for (const currency of ['IDR', 'USD']) {
               .locator('section')
               .filter({ has: page.getByRole('heading', { name: 'Amount readability', exact: true }) })
               .first();
-            const amount = hero.locator('.text-3xl').first();
+            const amount = hero.getByTestId('vehicle-estimated-amount');
             await expect(amount).toBeVisible();
             const metrics = () =>
               page.evaluate(() => ({
@@ -282,14 +280,12 @@ for (const currency of ['IDR', 'USD']) {
               expect(await checkLegibility({ amount })).toBe(expected);
               await expect(amount.locator('.sr-only')).toHaveText(expected);
               await checkPercentage({ percentage: hero.locator('span.inline-flex > span.font-normal') });
-              const cards = hero.locator('xpath=following-sibling::section[1]').locator('.text-2xl');
+              const cards = page.getByTestId('vehicle-kpi-money');
               await expect(cards).toHaveCount(3);
               for (const card of await cards.all()) {
-                const isFlex = (await card.evaluate((element) => getComputedStyle(element).display)) === 'flex';
-                const money = isFlex ? card.locator(':scope > span').first() : card;
-                await checkLegibility({ amount: money });
-                if (isFlex) await checkPercentage({ percentage: card.locator(':scope > span').last() });
+                await checkLegibility({ amount: card });
               }
+              await checkPercentage({ percentage: page.getByTestId('vehicle-kpi-percentage') });
               expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(
                 TOLERANCE,
               );

@@ -1,6 +1,34 @@
 <template>
   <template v-if="tags.length > 0">
-    <ResponsiveTooltip v-if="variant === 'rails'" :delay-duration="100">
+    <ResponsiveTooltip v-if="rowSummary" :delay-duration="100">
+      <span
+        class="mt-0.5 flex w-fit max-w-full min-w-0 cursor-help items-center gap-1"
+        :aria-label="railsAriaLabel"
+        @click="isTouch && $event.stopPropagation()"
+      >
+        <span
+          v-for="tag in rowTags"
+          :key="tag.id"
+          class="text-muted-foreground inline-flex max-w-28 min-w-0 items-center gap-1.5 text-xs leading-5"
+          :class="variant === 'rails' ? 'px-0.5' : 'bg-muted/55 rounded-md px-1.5'"
+        >
+          <span class="size-1.5 shrink-0 rounded-full" :style="{ backgroundColor: tag.color }" aria-hidden="true" />
+          <span class="truncate">{{ tag.name }}</span>
+        </span>
+        <span v-if="tags.length > rowTags.length" class="text-muted-foreground shrink-0 text-xs"
+          >+{{ tags.length - rowTags.length }}</span
+        >
+      </span>
+      <template #content>
+        <div class="flex max-w-56 flex-col gap-1">
+          <span v-for="tag in sortedTags" :key="tag.id" class="flex items-center gap-2 text-xs wrap-anywhere">
+            <span class="size-2 shrink-0 rounded-xs" :style="{ backgroundColor: tag.color }" aria-hidden="true" />
+            {{ tag.name }}
+          </span>
+        </div>
+      </template>
+    </ResponsiveTooltip>
+    <ResponsiveTooltip v-else-if="variant === 'rails'" :delay-duration="100">
       <span
         class="-m-1.5 inline-flex shrink-0 cursor-help items-center gap-0.75 p-1.5"
         role="img"
@@ -63,6 +91,8 @@ const props = withDefaults(
   defineProps<{
     tags: TagModel[];
     variant?: TagsIndicatorVariant;
+    rowSummary?: boolean;
+    compact?: boolean;
   }>(),
   { variant: 'chips' },
 );
@@ -71,6 +101,7 @@ const { setListRef, hiddenCount: hiddenTagsCount } = useFittingChips({ items: ()
 
 // Sorted by name so the same set of tags always renders in the same order.
 const sortedTags = computed(() => [...props.tags].sort((a, b) => a.name.localeCompare(b.name)));
+const rowTags = computed(() => props.tags.slice(0, props.compact || props.variant === 'rails' ? 1 : 2));
 const visibleRails = computed(() => sortedTags.value.slice(0, MAX_VISIBLE_RAILS));
 const hiddenRailsCount = computed(() => Math.max(props.tags.length - MAX_VISIBLE_RAILS, 0));
 const railsAriaLabel = computed(() => sortedTags.value.map((tag) => tag.name).join(', '));

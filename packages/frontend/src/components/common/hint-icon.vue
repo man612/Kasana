@@ -1,33 +1,23 @@
 <script setup lang="ts">
-import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
+import ContextualHelp from '@/components/common/contextual-help.vue';
+import { Button } from '@/components/lib/ui/button';
 import { CircleHelpIcon } from '@lucide/vue';
-import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
-defineProps<{ content: string }>();
-const { locale } = useI18n();
-const heading = computed(() => (locale.value.startsWith('id') ? 'Penjelasan' : 'More information'));
-const isOpen = ref(false);
+defineProps<{ content: string; title?: string; example?: string; compact?: boolean }>();
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen" mobile-presentation="center">
+  <ContextualHelp :content="content" :title="title" :example="example" :compact="compact">
     <template #trigger>
-      <button
+      <Button
         type="button"
-        class="text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-ring inline-flex size-7 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none"
-        :aria-label="heading"
-        :title="heading"
+        variant="ghost"
+        size="icon-sm"
+        class="text-muted-foreground hover:text-foreground size-8 shrink-0 rounded-full"
+        :aria-label="title || $t('common.contextHelp.title')"
       >
         <CircleHelpIcon class="size-4" aria-hidden="true" />
-      </button>
+      </Button>
     </template>
-    <template #title>{{ heading }}</template>
-    <template #description>{{
-      locale.startsWith('id') ? 'Bantuan mengenai fungsi dan penggunaannya.' : 'Details about this feature.'
-    }}</template>
-    <div class="border-border bg-muted/30 text-foreground rounded-xl border p-4 text-sm leading-relaxed">
-      {{ content }}
-    </div>
-  </ResponsiveDialog>
+  </ContextualHelp>
 </template>

@@ -63,6 +63,7 @@ const LINKED_TOAST_ID = 'attach-invoice-linked';
 const ManageTransactionDialogContent = defineAsyncComponent(
   () => import('@/components/dialogs/manage-transaction/dialog-content.vue'),
 );
+const editSession = ref<InstanceType<typeof ManageTransactionDialogContent> | null>(null);
 
 const open = defineModel<boolean>('open', { default: false });
 
@@ -648,17 +649,23 @@ const closeTransactionModal = () => {
   </ResponsiveAlertDialog>
 
   <TransactionDetailsModal
+    v-slot="{ requestClose }"
+    :session="editSession"
     :open="!!reviewedTransaction || !!createPrefill"
     :mobile="isMobile"
     @update:open="(value: boolean) => !value && closeTransactionModal()"
   >
     <ManageTransactionDialogContent
       v-if="reviewedTransaction"
+      ref="editSession"
+      @request-close="requestClose"
       :transaction="reviewedTransaction"
       @close-modal="closeTransactionModal"
     />
     <ManageTransactionDialogContent
       v-else-if="createPrefill"
+      ref="editSession"
+      @request-close="requestClose"
       :prefill="createPrefill"
       :initial-attachments="file ? [file] : []"
       @created="onTransactionCreated"

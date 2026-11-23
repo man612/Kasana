@@ -2,12 +2,13 @@
 import type { DashboardWidgetConfig } from '@/api/user-settings';
 import { Button } from '@/components/lib/ui/button';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
+import WidgetUnavailable from '@/components/widgets/components/widget-unavailable.vue';
 import WidgetSkeleton from '@/components/widgets/components/widget-skeleton.vue';
 import type { WidgetConfigOption, WidgetSize } from '@/components/widgets/widget-registry';
 import { WIDGET_REGISTRY } from '@/components/widgets/widget-registry';
 import { cn } from '@/lib/utils';
 import { GripVerticalIcon, XIcon } from '@lucide/vue';
-import { computed, defineAsyncComponent, provide, ref, toRef, watch } from 'vue';
+import { computed, defineAsyncComponent, h, provide, ref, toRef, watch } from 'vue';
 
 import type { Period } from '../types';
 import { getEffectiveDashboardRowSpan } from './dashboard-widget-layout';
@@ -43,11 +44,16 @@ watch(
 
 const def = computed(() => WIDGET_REGISTRY[props.widgetConfig.widgetId]);
 
+const loadAttempt = ref(0);
 const asyncComponent = computed(() => {
+  const attempt = loadAttempt.value;
   if (!def.value) return null;
   return defineAsyncComponent({
     loader: def.value.component,
     loadingComponent: WidgetSkeleton,
+    errorComponent: {
+      render: () => h(WidgetUnavailable, { onRetry: () => (loadAttempt.value = attempt + 1) }),
+    },
   });
 });
 
@@ -63,12 +69,16 @@ const ROW_SPAN_CLASSES: Record<number, string> = {
 };
 
 const colSpanClass = computed(() => COL_SPAN_CLASSES[props.widgetConfig.colSpan] ?? COL_SPAN_CLASSES[1]);
+const isLatestRecordsCompact = computed(
+  () => props.widgetConfig.widgetId === 'latest-records' && props.widgetConfig.config?.compact === true,
+);
 const effectiveRowSpan = computed(() =>
   getEffectiveDashboardRowSpan({
     widgetId: props.widgetConfig.widgetId,
     rowSpan: props.widgetConfig.rowSpan,
     isEditMode: props.isEditMode,
     isDataEmpty: latestRecordsEmpty.value,
+    isCompact: isLatestRecordsCompact.value,
   }),
 );
 const rowSpanClass = computed(() => ROW_SPAN_CLASSES[effectiveRowSpan.value] ?? '');
@@ -121,7 +131,7 @@ const isConfigChoiceActive = ({ option, value }: { option: WidgetConfigOption; v
                 v-for="size in def.allowedSizes"
                 :key="`${size.colSpan}x${size.rowSpan}`"
                 :class="[
-                  'focus-visible:ring-ring min-h-7 min-w-7 rounded px-2 py-1 text-xs transition-[color,background-color,transform] duration-200 ease-out active:scale-95 focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none',
+                  'focus-visible:ring-ring min-h-7 min-w-7 rounded px-2 py-1 text-xs transition-[color,background-color,transform] duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none active:scale-95 motion-reduce:transition-none',
                   isSizeActive(size) ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground',
                 ]"
                 :aria-pressed="isSizeActive(size)"
@@ -144,7 +154,7 @@ const isConfigChoiceActive = ({ option, value }: { option: WidgetConfigOption; v
                 v-for="choice in option.choices"
                 :key="choice.value"
                 :class="[
-                  'focus-visible:ring-ring min-h-7 min-w-7 rounded px-2 py-1 text-xs transition-[color,background-color,transform] duration-200 ease-out active:scale-95 focus-visible:ring-2 focus-visible:outline-none motion-reduce:transition-none',
+                  'focus-visible:ring-ring min-h-7 min-w-7 rounded px-2 py-1 text-xs transition-[color,background-color,transform] duration-200 ease-out focus-visible:ring-2 focus-visible:outline-none active:scale-95 motion-reduce:transition-none',
                   isConfigChoiceActive({ option, value: choice.value })
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-muted text-muted-foreground',

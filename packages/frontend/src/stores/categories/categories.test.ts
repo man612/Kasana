@@ -99,6 +99,20 @@ describe('categories store – categoryOrder', () => {
   });
 });
 
+it('keeps current categories on query eviction and resets them on identity change', async () => {
+  const store = useCategoriesStore();
+  mockLoadSystemCategories.mockResolvedValue([FOOD]);
+  await store.loadCategories();
+  await flushScheduler();
+
+  queryClient.removeQueries({ queryKey: CATEGORIES_LIST_KEY });
+  expect(store.categories).toEqual([FOOD]);
+
+  store.resetCategories();
+  expect(store.categories).toEqual([]);
+  expect(store.isFetched).toBe(false);
+});
+
 describe('categories store – loadCategories({ force: true })', () => {
   it('reflects a newly created category', async () => {
     const store = useCategoriesStore();

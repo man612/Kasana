@@ -4,7 +4,7 @@ import { getServiceLogoUrl } from '@/common/utils/logo-url';
 import { clampInitials, deriveInitials } from '@/common/utils/monogram-initials';
 import AsyncLogo from '@/components/common/async-logo.vue';
 import BrandLogo from '@/components/common/brand-logo.vue';
-import IconPickerDropdown from '@/components/common/icons/icon-picker-dropdown.vue';
+import LogoIconFields from '@/components/common/logo-icon-fields.vue';
 import LogoColorPicker from '@/components/common/logo-color-picker.vue';
 import {
   DEFAULT_LOGO_TABS,
@@ -36,8 +36,9 @@ const props = withDefaults(
     /** Seeds the search field so the panel opens already showing matches for the entity. */
     nameForSearch: string;
     tabs?: LogoTab[];
+    autofocusIconSearch?: boolean;
   }>(),
-  { tabs: () => DEFAULT_LOGO_TABS },
+  { tabs: () => DEFAULT_LOGO_TABS, autofocusIconSearch: true },
 );
 
 const emit = defineEmits<{
@@ -90,7 +91,7 @@ const {
   results: brandResults,
   isFetching,
   isError,
-} = useSearchBrandLogo({ q: debouncedQuery, enabled: brandLogosAvailable });
+} = useSearchBrandLogo({ q: debouncedQuery, enabled: brandLogosAvailable && props.tabs.includes('brand') });
 
 // A trimmed query that looks like a bare domain (has a dot, no spaces, no
 // slashes – e.g. "amazon.com"). logo.dev always returns a 200 monogram for any
@@ -349,20 +350,12 @@ function applyIcon() {
 
     <TabsContent v-if="tabs.includes('icon')" value="icon" class="mt-0">
       <div class="flex flex-col gap-4 p-3">
-        <div class="flex items-start gap-3">
-          <BrandLogo
-            :domain="null"
-            :name="nameForSearch"
-            :icon="iconName || null"
-            :color="fillColor"
-            class="size-12 shrink-0 text-lg"
-          />
-          <div class="min-w-0 flex-1">
-            <IconPickerDropdown v-model="iconName" />
-          </div>
-        </div>
-
-        <LogoColorPicker v-model="fillColor" />
+        <LogoIconFields
+          v-model:icon="iconName"
+          v-model:color="fillColor"
+          :name="nameForSearch"
+          :autofocus="autofocusIconSearch"
+        />
 
         <Button type="button" :disabled="!iconName" data-test="logo-icon-apply" @click="applyIcon">
           {{ $t('common.actions.apply') }}

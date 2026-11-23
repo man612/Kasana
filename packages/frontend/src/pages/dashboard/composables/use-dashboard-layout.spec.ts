@@ -1,5 +1,7 @@
 import type { DashboardWidgetConfig } from '@/api/user-settings';
 import { DEFAULT_DASHBOARD_LAYOUT } from '@/components/widgets/widget-registry';
+import { useUserStore } from '@/stores/user';
+import { createPinia, setActivePinia } from 'pinia';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ref } from 'vue';
 
@@ -7,7 +9,7 @@ const settings = ref<{ dashboard?: { widgets: DashboardWidgetConfig[] } } | null
 const patchAsync = vi.fn();
 
 vi.mock('@/composable/data-queries/user-settings', () => ({
-  useUserSettings: () => ({ data: settings, patchAsync }),
+  useUserSettings: () => ({ data: settings, isPending: ref(false), patchAsync }),
 }));
 
 vi.mock('@/lib/posthog', () => ({ trackAnalyticsEvent: vi.fn() }));
@@ -16,11 +18,13 @@ import { useDashboardLayout } from './use-dashboard-layout';
 
 describe('useDashboardLayout.saveWidgetConfigDirect', () => {
   beforeEach(() => {
+    setActivePinia(createPinia());
+    useUserStore().$patch({ user: { id: 42 } });
     patchAsync.mockReset();
   });
 
   it('saves config on top of the default layout when no layout is saved yet', async () => {
-    settings.value = { dashboard: { widgets: [] } };
+    settings.value = {};
     const widgetId = DEFAULT_DASHBOARD_LAYOUT[0]!.widgetId;
 
     await useDashboardLayout().saveWidgetConfigDirect({ widgetId, config: { spikesEnabled: false } });
@@ -31,5 +35,19 @@ describe('useDashboardLayout.saveWidgetConfigDirect', () => {
     expect(widgets.find((w: DashboardWidgetConfig) => w.widgetId === widgetId).config).toMatchObject({
       spikesEnabled: false,
     });
+  });
+
+  it('keeps an explicitly empty layout, including while settings reload', async () => {
+    settings.value = { dashboard: { widgets: [] } };
+    const layout = useDashboardLayout();
+    expect(layout.activeWidgets.value).toEqual([]);
+    await layout.saveWidgetConfigDirect({
+      widgetId: DEFAULT_DASHBOARD_LAYOUT[0]!.widgetId,
+      config: { spikesEnabled: false },
+    });
+    expect(patchAsync).not.toHaveBeenCalled();
+
+    settings.value = null;
+    expect(layout.activeWidgets.value).toEqual([]);
   });
 });

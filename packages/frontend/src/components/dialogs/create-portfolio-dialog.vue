@@ -1,15 +1,13 @@
 <script setup lang="ts">
+import { INVESTMENTS_DISPLAY_CURRENCY } from '@/common/utils/investment-units';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
-import DisplayCurrencySelect from '@/components/fields/display-currency-select.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import InputField from '@/components/fields/input-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
-import { Callout } from '@/components/lib/ui/callout';
 import * as Select from '@/components/lib/ui/select';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
 import { useCreatePortfolio } from '@/composable/data-queries/portfolios';
-import { EXTERNAL_URLS } from '@bt/shared/const/external-urls';
 import { PORTFOLIO_TYPE } from '@bt/shared/types/investments';
 import { CheckIcon } from '@lucide/vue';
 import { computed, reactive, ref } from 'vue';
@@ -27,7 +25,6 @@ const form = reactive({
   name: '',
   portfolioType: PORTFOLIO_TYPE.investment,
   description: '',
-  displayCurrencyCode: null as string | null,
 });
 
 // Portfolio type options for the select dropdown
@@ -46,7 +43,6 @@ const resetForm = () => {
   form.name = '';
   form.portfolioType = PORTFOLIO_TYPE.investment;
   form.description = '';
-  form.displayCurrencyCode = null;
 };
 
 const onPortfolioCreation = () => {
@@ -56,12 +52,14 @@ const onPortfolioCreation = () => {
 };
 
 const createPortfolio = async () => {
+  if (isSubmitDisabled.value) return;
+
   try {
     await createPortfolioMutation.mutateAsync({
       name: form.name.trim(),
       portfolioType: form.portfolioType,
       description: form.description.trim() || undefined,
-      displayCurrencyCode: form.displayCurrencyCode,
+      displayCurrencyCode: INVESTMENTS_DISPLAY_CURRENCY,
       isEnabled: true,
     });
 
@@ -90,34 +88,10 @@ const createPortfolio = async () => {
 
     <template #description> {{ $t('dialogs.createPortfolio.description') }} </template>
 
-    <form :id="formId" class="mt-4 grid gap-6" @submit.prevent="createPortfolio">
-      <Callout>
-        <i18n-t keypath="dialogs.createPortfolio.assetSupportNotice" tag="p">
-          <template #roadmapLink>
-            <a
-              :href="EXTERNAL_URLS.featurebaseRoadmap"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="font-medium underline underline-offset-2 hover:no-underline"
-            >
-              {{ $t('dialogs.createPortfolio.assetSupportRoadmapLink') }}
-            </a>
-          </template>
-          <template #feedbackLink>
-            <a
-              :href="EXTERNAL_URLS.featurebaseBoard"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="font-medium underline underline-offset-2 hover:no-underline"
-            >
-              {{ $t('dialogs.createPortfolio.assetSupportFeedbackLink') }}
-            </a>
-          </template>
-        </i18n-t>
-      </Callout>
-
+    <form :id="formId" class="mt-4 grid gap-4" @submit.prevent="createPortfolio">
       <InputField
         v-model="form.name"
+        :maxlength="100"
         :label="$t('dialogs.createPortfolio.form.nameLabel')"
         :placeholder="$t('dialogs.createPortfolio.form.namePlaceholder')"
         :disabled="createPortfolioMutation.isPending.value"
@@ -138,15 +112,13 @@ const createPortfolio = async () => {
         </FieldLabel>
       </div>
 
-      <DisplayCurrencySelect v-model="form.displayCurrencyCode" :disabled="createPortfolioMutation.isPending.value" />
-
       <TextareaField
         v-model="form.description"
+        :maxlength="500"
         :label="$t('dialogs.createPortfolio.form.descriptionLabel')"
         :placeholder="$t('dialogs.createPortfolio.form.descriptionPlaceholder')"
         :disabled="createPortfolioMutation.isPending.value"
       />
-
     </form>
 
     <template #footer="{ close }">

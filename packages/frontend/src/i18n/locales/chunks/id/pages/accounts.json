@@ -18,11 +18,12 @@
       "createManual": "Buat akun"
     },
     "overview": {
-      "totalBalance": "Total saldo",
+      "totalBalance": "Saldo rekening",
       "assets": "Aset",
       "liabilities": "Kewajiban",
       "vehicles": "Kendaraan",
-      "projected": "Proyeksi {amount} · {count} entri terencana hingga {date} | Proyeksi {amount} · {count} entri terencana hingga {date}"
+      "projected": "Proyeksi {amount} · {count} entri terencana hingga {date} | Proyeksi {amount} · {count} entri terencana hingga {date}",
+      "balanceExplanation": "Aset dan kewajiban menunjukkan saldo positif dan negatif pada rekening. Nilai kendaraan ditampilkan terpisah. Untuk kekayaan bersih dari berbagai jenis aset, lihat Tren Saldo di Dasbor."
     },
     "sharedBy": "Dibagikan oleh {handle}",
     "viaHousehold": "Dibagikan melalui rumah tangga {handle}",

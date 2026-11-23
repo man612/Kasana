@@ -1,29 +1,86 @@
-<script lang="ts" setup>
-import { format } from 'date-fns';
-import { GroupIcon } from '@lucide/vue';
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
+<script setup lang="ts">
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
+import { Button } from '@/components/lib/ui/button';
+import { transactionGroupDetailQuery } from '@/composable/data-queries/transaction-groups';
+import { type TransactionModel, dedupeTransferLegs } from '@bt/shared/types';
+import { ChevronDownIcon } from '@lucide/vue';
+import { useQuery } from '@tanstack/vue-query';
+import { format, isSameDay } from 'date-fns';
+import { computed, ref, useId, watch } from 'vue';
 
-const { t } = useI18n();
+import { isTransactionTimeInRange, type TransactionTimeRange } from './time-sections';
+import GroupIcon from './group-icon.vue';
+import TransactionGroupActions from './transaction-group-actions.vue';
+import TransactionRecord from './transaction-record.vue';
 
 export interface GroupRowData {
   type: 'group';
   groupId: string;
   groupName: string;
+  icon?: string | null;
+  iconColor?: string | null;
   transactionCount: number;
   dateFrom: Date;
   dateTo: Date;
+  latestTime?: string;
+  members: TransactionModel[];
 }
 
 const props = defineProps<{
   group: GroupRowData;
+  expanded?: boolean;
+  expandable?: boolean;
+  previewLimit?: number;
+  timeRange?: TransactionTimeRange;
+  groupedByDay?: boolean;
+  showTime?: boolean;
 }>();
 
 const emit = defineEmits<{
   click: [groupId: string];
+  toggle: [groupId: string];
+  'record-click': [[transaction: TransactionModel, opposite: TransactionModel | undefined]];
 }>();
 
+const membersId = useId();
+const hasExpanded = ref(Boolean(props.expanded));
+watch(
+  () => props.expanded,
+  (expanded) => {
+    if (expanded) hasExpanded.value = true;
+  },
+);
+
+const detail = useQuery(
+  computed(() => ({
+    ...transactionGroupDetailQuery({ id: props.group.groupId }),
+    enabled: Boolean(props.expanded) && props.expandable,
+  })),
+);
+const members = computed(() => {
+  const groupMembers = detail.data.value?.transactions;
+  if (!groupMembers) return props.group.members;
+  const range = props.timeRange;
+  const inRange = range
+    ? groupMembers.filter((item) => isTransactionTimeInRange(new Date(item.time), range))
+    : groupMembers;
+  return dedupeTransferLegs(inRange);
+});
+
+const visibleMembers = computed(() => members.value.slice(0, props.previewLimit));
+const hasMoreMembers = computed(
+  () =>
+    props.previewLimit !== undefined &&
+    (detail.data.value?.transactions ? members.value.length : props.group.transactionCount) > props.previewLimit,
+);
+
 const dateRange = computed(() => {
+  if (
+    props.groupedByDay &&
+    props.group.members.length === props.group.transactionCount &&
+    isSameDay(props.group.dateFrom, props.group.dateTo)
+  )
+    return undefined;
   const from = format(props.group.dateFrom, 'd MMM');
   const to = format(props.group.dateTo, 'd MMM yyyy');
   const fromFull = format(props.group.dateFrom, 'd MMM yyyy');
@@ -33,24 +90,77 @@ const dateRange = computed(() => {
 </script>
 
 <template>
-  <div
-    class="bg-primary/5 border-primary/20 hover:bg-primary/10 grid w-full cursor-pointer grid-cols-[minmax(0,1fr)_max-content] items-center gap-2 rounded-md border border-dashed px-2 py-2 transition-colors"
-    @click="emit('click', group.groupId)"
-  >
-    <div class="flex items-center gap-2 overflow-hidden">
-      <div class="bg-primary/10 flex size-8 shrink-0 items-center justify-center rounded-full">
-        <GroupIcon class="text-primary-text size-4" />
-      </div>
-      <div class="min-w-0 text-left">
-        <p class="truncate text-sm font-medium">{{ group.groupName }}</p>
-        <p class="text-muted-foreground text-xs">
-          {{ group.transactionCount }}
-          {{ t('transactionGroups.transactionGroupRecord.transactionCountLabel') }}
-        </p>
-      </div>
+  <div class="bg-primary/5 border-primary/20 rounded-lg border">
+    <div class="flex min-w-0 items-center">
+      <Button
+        type="button"
+        variant="ghost"
+        class="h-auto min-h-13 min-w-0 flex-1 justify-start gap-2 px-2 py-1 text-left"
+        @click="emit('click', group.groupId)"
+      >
+        <GroupIcon :icon="group.icon" :color="group.iconColor" />
+        <span class="min-w-0 flex-1">
+          <span class="block truncate font-semibold">{{ group.groupName }}</span>
+          <span class="text-muted-foreground block truncate text-xs font-normal">
+            {{ group.transactionCount }} {{ $t('transactionGroups.transactionGroupRecord.transactionCountLabel') }}
+            <template v-if="dateRange"> · {{ dateRange }}</template>
+          </span>
+        </span>
+      </Button>
+      <TransactionGroupActions :group-id="group.groupId" :name="group.groupName" />
+      <Button
+        v-if="expandable"
+        type="button"
+        variant="ghost"
+        size="icon"
+        class="text-muted-foreground size-11 shrink-0"
+        :aria-expanded="Boolean(expanded)"
+        :aria-controls="membersId"
+        :aria-label="
+          $t(
+            expanded
+              ? 'transactions.transactionGroups.inline.collapse'
+              : 'transactions.transactionGroups.inline.expand',
+            { name: group.groupName },
+          )
+        "
+        @click="emit('toggle', group.groupId)"
+      >
+        <ChevronDownIcon
+          class="size-4 motion-safe:transition-transform motion-safe:duration-200"
+          :class="expanded && 'rotate-180'"
+        />
+      </Button>
     </div>
-    <div class="text-muted-foreground text-right text-xs whitespace-nowrap">
-      {{ dateRange }}
-    </div>
+    <LayoutCollapse v-if="expandable" :id="membersId" :open="Boolean(expanded)">
+      <div
+        v-if="hasExpanded"
+        class="border-border/60 mx-2 mb-2 grid gap-1 border-t pt-2 pl-2"
+        :aria-busy="detail.isFetching.value"
+      >
+        <TransactionRecord
+          v-for="(member, index) in visibleMembers"
+          :key="member.id"
+          :tx="member"
+          :show-time="(groupedByDay && !dateRange) || showTime"
+          :show-date-with-time="!groupedByDay || !!dateRange"
+          :index="index"
+          @record-click="emit('record-click', $event)"
+        />
+        <Button
+          v-if="hasMoreMembers"
+          type="button"
+          variant="ghost"
+          size="sm"
+          class="justify-self-end"
+          @click="emit('click', group.groupId)"
+        >
+          {{ $t('common.actions.viewAll') }}
+        </Button>
+        <Button v-if="detail.isError.value" type="button" variant="outline" size="sm" @click="detail.refetch()">
+          {{ $t('common.actions.retry') }}
+        </Button>
+      </div>
+    </LayoutCollapse>
   </div>
 </template>

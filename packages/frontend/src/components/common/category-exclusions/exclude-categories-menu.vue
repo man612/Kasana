@@ -1,11 +1,16 @@
 <template>
   <Popover v-model:open="isPopoverOpen">
     <PopoverTrigger as-child>
-      <Button size="icon-sm" variant="ghost" :data-testid="`${testIdPrefix}-settings-btn`">
+      <Button
+        size="icon-sm"
+        variant="ghost"
+        :aria-label="$t('common.actions.settings')"
+        :data-testid="`${testIdPrefix}-settings-btn`"
+      >
         <SettingsIcon class="text-muted-foreground size-4" />
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="w-72 overflow-hidden p-0" align="end">
+    <PopoverContent dim-backdrop class="w-72 overflow-hidden p-0" align="end">
       <header class="border-b px-3 py-2 text-sm font-medium">{{ $t('common.actions.settings') }}</header>
       <div class="flex flex-col p-2">
         <button

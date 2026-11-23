@@ -8,10 +8,11 @@ import { useAccountsStore } from '@/stores';
 import type { EntityLogoPayload } from '@bt/shared/types';
 import { PencilIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
+import { type Component, computed, ref } from 'vue';
 
 const props = defineProps<{
   accountId: string;
+  fallbackIcon?: Component;
 }>();
 
 const isOpen = ref(false);
@@ -29,7 +30,7 @@ const reset = () => save({ payload: toLogoPayload({ selection: null }) });
 
 <template>
   <div v-if="liveAccount" class="group relative shrink-0">
-    <AccountLogo :account="liveAccount" class="size-full" />
+    <AccountLogo :account="liveAccount" :fallback-icon="fallbackIcon" class="size-full" />
     <DesktopOnlyTooltip :content="$t('pages.account.logo.change')">
       <Button
         variant="ghost"

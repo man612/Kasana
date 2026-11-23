@@ -1,9 +1,9 @@
 import '@/styles/global.css';
 import './registerServiceWorker';
 
+import { identifyAccentTheme } from '@/common/utils/accent-theme';
 import { installChunkReloadHandler } from '@/common/utils/chunk-reload-handler';
 import { identifyCurrentTheme } from '@/common/utils/color-theme';
-import { identifyAccentTheme } from '@/common/utils/accent-theme';
 import { installMobileInteractionSounds } from '@/common/utils/mobile-interaction-sound';
 import { getDateFnsLocale } from '@/composable/use-date-locale';
 import { i18n, initializeLocale, loadChunks } from '@/i18n';
@@ -12,12 +12,13 @@ import { queryClient } from '@/lib/query-client';
 import { stashResetPasswordToken } from '@/lib/reset-password-token';
 import { initSentry } from '@/lib/sentry';
 import { router } from '@/routes';
+import { ROUTES_NAMES } from '@/routes/constants';
 import { store } from '@/stores/setup';
 import type { SupportedLocale } from '@bt/shared/i18n/locales';
 import { VueQueryPlugin } from '@tanstack/vue-query';
 import { createHead } from '@unhead/vue/client';
 import { setDefaultOptions } from 'date-fns';
-import { createApp, watchEffect } from 'vue';
+import { createApp, nextTick, watchEffect } from 'vue';
 
 import App from './app.vue';
 
@@ -25,12 +26,20 @@ stashResetPasswordToken();
 identifyCurrentTheme();
 identifyAccentTheme();
 if (!import.meta.env.DEV) {
-  installChunkReloadHandler({ router });
+  installChunkReloadHandler({
+    router,
+    hasInAppRecovery: () => router.currentRoute.value.matched[0]?.name === ROUTES_NAMES.dashboard,
+  });
 }
 
-// Localizes every date-fns call that passes no explicit locale. The default is read at call
-// time, so a value cached in a computed keeps the previous language until it recomputes.
-watchEffect(() => setDefaultOptions({ locale: getDateFnsLocale() }), { flush: 'sync' });
+// Keep assistive technology and the default date formatter in the active app language.
+watchEffect(
+  () => {
+    document.documentElement.lang = i18n.global.locale.value;
+    setDefaultOptions({ locale: getDateFnsLocale() });
+  },
+  { flush: 'sync' },
+);
 
 // Initialize locale from localStorage/browser
 const initialLocale = initializeLocale();
@@ -68,5 +77,33 @@ initI18n()
     app.use(VueQueryPlugin, { queryClient });
 
     app.mount('#app');
+    // The document splash remains until the router's first component is mounted.
+    void router
+      .isReady()
+      .then(async () => {
+        await nextTick();
+        const splash = document.getElementById('lajur-boot');
+        if (!splash) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !splash.animate) {
+          splash.remove();
+          return;
+        }
+        splash.setAttribute('aria-hidden', 'true');
+        splash.style.pointerEvents = 'none';
+        const exit = splash.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, fill: 'forwards' });
+        void exit.finished.catch(() => undefined).then(() => splash.remove());
+      })
+      .catch((error: unknown) => {
+        console.error('Initial navigation failed:', error);
+        const status = document.getElementById('lajur-boot-status');
+        const indicator = document.getElementById('lajur-boot-indicator');
+        const retry = document.getElementById('lajur-boot-retry');
+        if (status) status.textContent = 'Aplikasi belum dapat dimuat. Periksa koneksi Anda.';
+        if (indicator) indicator.hidden = true;
+        if (retry) {
+          retry.hidden = false;
+          retry.addEventListener('click', () => window.location.reload(), { once: true });
+        }
+      });
     installMobileInteractionSounds();
   });

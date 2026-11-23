@@ -26,6 +26,7 @@ export const useInvalidatingMutation = <TData, TVariables>({
   errorKey,
   silentErrorCodes,
   persistentErrorId,
+  preferLocalizedError = false,
   onSuccess,
 }: {
   mutationFn: (variables: TVariables) => Promise<TData>;
@@ -41,6 +42,7 @@ export const useInvalidatingMutation = <TData, TVariables>({
   silentErrorCodes?: API_ERROR_CODES[];
   /** Keeps the error toast up until dismissed, under this id so the caller can clear it on retry. */
   persistentErrorId?: string;
+  preferLocalizedError?: boolean;
   onSuccess?: (data: TData) => void;
 }) => {
   const { t } = useI18n();
@@ -57,9 +59,12 @@ export const useInvalidatingMutation = <TData, TVariables>({
     },
     onError: (error) => {
       if (silentErrorCodes?.some((code) => isApiErrorWithCode(error, code))) return;
-      if (!persistentErrorId) return notifyMutationError({ error, fallbackKey: errorKey });
       if (isHandledByApiClient({ error })) return;
-      const text = extractApiErrorMessage(error) || t(errorKey);
+      const text = (!preferLocalizedError && extractApiErrorMessage(error)) || t(errorKey);
+      if (!persistentErrorId) {
+        addNotification({ text, type: NotificationType.error });
+        return;
+      }
       addNotification({ id: persistentErrorId, text, type: NotificationType.error, persistent: true });
     },
     onSettled: () =>

@@ -23,6 +23,10 @@
       "defaultTags": "Default tags"
     },
     "actions": {
+      "edit": "Edit payee",
+      "saveChanges": "Save changes",
+      "moreFor": "Actions for {name}",
+      "deleteWithHistory": "Remove {name} from the payee list. Past transactions keep the payee name and amount.",
       "menu": "Actions",
       "rename": "Rename",
       "merge": "Merge into…",

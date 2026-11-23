@@ -2,10 +2,10 @@
 import AccountGroupName from '@/components/common/account-group-name.vue';
 import LinkAccountGroup from '@/components/dialogs/account-groups/link-account-group-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
-import * as Tooltip from '@/components/lib/ui/tooltip';
+import HintIcon from '@/components/common/hint-icon.vue';
 import { useAccountGroupForAccount, useAccountGroupPaths } from '@/composable/data-queries/account-groups';
 import { AccountModel } from '@bt/shared/types';
-import { EditIcon, InfoIcon } from '@lucide/vue';
+import { EditIcon } from '@lucide/vue';
 import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -31,22 +31,11 @@ watch(
 
 <template>
   <div class="flex items-center justify-between gap-2">
-    <p class="flex items-center gap-2">
+    <div class="flex min-w-0 items-center gap-1">
       {{ t('pages.account.group.label') }}
 
-      <Tooltip.TooltipProvider>
-        <Tooltip.Tooltip>
-          <Tooltip.TooltipTrigger>
-            <InfoIcon class="text-primary-text size-4" />
-          </Tooltip.TooltipTrigger>
-          <Tooltip.TooltipContent class="max-w-[400px] p-4">
-            <span class="text-sm leading-6 opacity-90">
-              {{ t('pages.account.group.tooltip') }}
-            </span>
-          </Tooltip.TooltipContent>
-        </Tooltip.Tooltip>
-      </Tooltip.TooltipProvider>
-    </p>
+      <HintIcon :content="t('pages.account.group.tooltip')" />
+    </div>
 
     <div class="flex items-center gap-2">
       <template v-if="accountGroupData">

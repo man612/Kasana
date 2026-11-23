@@ -81,6 +81,7 @@ function handleCancel() {
   <ResponsiveDialog
     v-model:open="isOpen"
     custom-close
+    intrinsic-height-motion
     :dialog-content-class="cn('p-4 md:max-w-2xl md:min-w-150', contentClassName)"
     :drawer-content-class="contentClassName"
   >

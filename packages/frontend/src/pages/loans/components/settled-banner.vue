@@ -1,15 +1,13 @@
 <template>
-  <div
-    class="border-app-income-color/30 from-app-income-color/12 @container/settled-banner rounded-xl border bg-linear-to-r to-transparent p-4 sm:p-5"
-  >
+  <div class="border-success/30 bg-success/10 @container/settled-banner rounded-xl border p-3 sm:p-4">
     <div
-      class="flex flex-col gap-4 @lg/settled-banner:flex-row @lg/settled-banner:items-center @lg/settled-banner:justify-between"
+      class="flex flex-col gap-2 @lg/settled-banner:flex-row @lg/settled-banner:items-center @lg/settled-banner:justify-between"
     >
       <!-- Identity: check icon + name + type/opened/closed line. -->
       <div class="flex min-w-0 items-start gap-3">
-        <CircleCheckIcon class="text-app-income-color mt-0.5 size-6 shrink-0" stroke-width="2" />
+        <CircleCheckIcon class="text-success-text mt-0.5 size-5 shrink-0" stroke-width="2" aria-hidden="true" />
         <div class="min-w-0">
-          <div class="text-base font-semibold">
+          <div class="text-base leading-tight font-semibold wrap-anywhere">
             {{ $t('loans.detail.paidOff.bannerTitle', { name: loan.name }) }}
           </div>
           <div class="text-muted-foreground mt-0.5 text-sm">
@@ -26,22 +24,22 @@
 
       <!-- Stats: repaid / estimated interest / duration, plus an "N mo early" pill when applicable. -->
       <div
-        class="flex flex-wrap items-center gap-x-6 gap-y-3 @lg/settled-banner:shrink-0 @lg/settled-banner:justify-end"
+        class="border-success/20 grid grid-cols-[repeat(auto-fit,minmax(min(100%,7rem),1fr))] items-start gap-2 border-t pt-2 wrap-anywhere @lg/settled-banner:flex @lg/settled-banner:flex-wrap @lg/settled-banner:justify-end @lg/settled-banner:border-0 @lg/settled-banner:pt-0"
       >
         <div>
-          <div class="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
+          <div class="text-muted-foreground text-xs font-medium">
             {{ $t('loans.paidOff.repaid') }}
           </div>
           <div class="mt-0.5 text-sm font-medium tabular-nums">{{ repaidDisplay }}</div>
         </div>
         <div>
-          <div class="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
+          <div class="text-muted-foreground text-xs font-medium">
             {{ $t('loans.paidOff.interestPaid') }}
           </div>
           <div class="mt-0.5 text-sm font-medium tabular-nums">{{ interestDisplay }}</div>
         </div>
         <div>
-          <div class="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">
+          <div class="text-muted-foreground text-xs font-medium">
             {{ $t('loans.detail.paidOff.took') }}
           </div>
           <div class="mt-0.5 text-sm font-medium tabular-nums">{{ durationDisplay }}</div>
@@ -86,7 +84,7 @@ const closedDate = computed(() => {
 const typeLabel = computed(() => t(`loans.types.${props.loan.loanDetails.loanType}`));
 
 const openedDisplay = computed(() => formatDate(startDate.value, 'MMM yyyy'));
-const closedDisplay = computed(() => (closedDate.value ? formatDate(closedDate.value, 'MMM d, yyyy') : '—'));
+const closedDisplay = computed(() => (closedDate.value ? formatDate(closedDate.value, 'PPP') : '—'));
 
 const repaidDisplay = computed(() =>
   formatAmountByCurrencyCode(props.loan.loanDetails.originalPrincipal, props.loan.currencyCode),

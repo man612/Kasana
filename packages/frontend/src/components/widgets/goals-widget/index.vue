@@ -93,7 +93,7 @@ const groups = computed(() => {
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent class="w-72 overflow-hidden p-0" align="end">
+        <PopoverContent dim-backdrop class="w-72 overflow-hidden p-0" align="end">
           <header class="border-b px-3 py-2 text-sm font-medium">
             {{ $t('common.actions.settings') }}
           </header>

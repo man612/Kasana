@@ -59,7 +59,12 @@ export function useCashFlowData({
   // covers the current month, the previous month and every trend month.
   const unionRange = computed(() => ({ from: trendRange.value.from, to: selectedPeriod().to }));
 
-  const { data: unionData, isFetching: isUnionFetching } = useQuery({
+  const {
+    data: unionData,
+    isFetching: isUnionFetching,
+    isError: isUnionError,
+    refetch: refetchUnion,
+  } = useQuery({
     queryKey: computed(() => [
       ...VUE_QUERY_CACHE_KEYS.widgetCashFlowTrend,
       periodQueryKey.value,
@@ -82,7 +87,12 @@ export function useCashFlowData({
 
   const useExactRanges = computed(() => isReady.value && !isFullMonth.value);
 
-  const { data: currentExactData, isFetching: isCurrentFetching } = useQuery({
+  const {
+    data: currentExactData,
+    isFetching: isCurrentFetching,
+    isError: isCurrentError,
+    refetch: refetchCurrent,
+  } = useQuery({
     queryKey: computed(() => [...VUE_QUERY_CACHE_KEYS.widgetCashFlow, periodQueryKey.value, excludedKey.value]),
     queryFn: () =>
       getCashFlow({
@@ -143,6 +153,10 @@ export function useCashFlowData({
 
   const isFetching = computed(() => isUnionFetching.value || isCurrentFetching.value || isPrevFetching.value);
   const isInitialLoading = computed(() => (isFetching.value || !isReady.value) && !hasCurrentData.value);
+  const isError = computed(
+    () => !hasCurrentData.value && (isFullMonth.value ? isUnionError.value : isCurrentError.value),
+  );
+  const retry = () => (isFullMonth.value ? refetchUnion() : refetchCurrent());
   const isCurrentEmpty = computed(
     () => hasCurrentData.value && currentTotals.value.income === 0 && currentTotals.value.expenses === 0,
   );
@@ -161,6 +175,8 @@ export function useCashFlowData({
     hasPrevData,
     isFetching,
     isInitialLoading,
+    isError,
+    retry,
     isCurrentEmpty,
     isEmpty,
   };

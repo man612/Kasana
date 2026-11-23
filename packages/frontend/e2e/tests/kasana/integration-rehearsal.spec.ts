@@ -56,28 +56,33 @@ test('combined category dialog, vehicle picker/disclaimer and fractional IDR cas
     expect(scrollRegions, 'Category picker should have one scrolling region').toBeLessThanOrEqual(1);
     await categories.getByRole('option').first().click();
     await expect(page.getByRole('dialog')).toHaveCount(1);
-    // The clear control is a sibling, never a nested button or another picker trigger.
-    const clear = category.locator('button').nth(1);
-    await expect(clear).toBeVisible();
-    expect(await clear.evaluate((element) => element.parentElement?.closest('button') === null)).toBe(true);
-    const clearLabel = await clear.getAttribute('aria-label');
-    if (!clearLabel) throw new Error('Category clear control must have an accessible name');
-    await clear.click();
-    await expect(category.getByRole('button', { name: clearLabel, exact: true })).toHaveCount(0);
-    await expect(category.locator('[data-test="split-toggle"]')).toBeVisible();
-    await expect(page.getByRole('dialog')).toHaveCount(1);
+    // Required categories can be replaced. Splitting remains a separate icon action.
+    await expect(category.getByRole('button', { name: /Hapus pilihan|Clear selection/i })).toHaveCount(0);
+    const split = category.locator('[data-test="split-toggle"]');
+    await expect(split).toBeVisible();
+    await expect(split).toHaveAttribute('aria-pressed', 'false');
+    expect(await split.evaluate((element) => element.parentElement?.closest('button') === null)).toBe(true);
+    await expect(transaction).toBeVisible();
     await page.keyboard.press('Escape');
 
     await page.goto('/accounts/vehicles/' + vehicleId);
+    // The valuation caveat now lives in an accessible contextual-help dialog.
+    // Verify that the explanation remains available rather than requiring
+    // it to occupy the vehicle page's permanent layout.
+    const valuationHelp = page.getByRole('button', {
+      name: /Estimasi nilai saat ini|Estimated current value/i,
+    });
     const disclaimer = page
-      .locator('p')
-      .filter({ hasText: /bukan harga jual pasar terkini|not a live market quote/i })
-      .first();
+      .getByRole('dialog')
+      .filter({ hasText: /Ini bukan harga jual pasar terkini|This is not a live resale price/i });
+    await valuationHelp.click();
     await expect(disclaimer).toBeVisible();
     await page.screenshot({ path: test.info().outputPath('vehicle-disclaimer-desktop.png'), fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
     await expect(page.getByRole('button', { name: /Buka menu navigasi|Open navigation menu/i })).toBeVisible();
+    await valuationHelp.click();
+    await expect(disclaimer).toBeVisible();
     await expect(disclaimer).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(2);
     await page.screenshot({ path: test.info().outputPath('vehicle-disclaimer-mobile.png'), fullPage: true });
@@ -94,14 +99,25 @@ test('combined category dialog, vehicle picker/disclaimer and fractional IDR cas
     await expect(year).toHaveValue('2021');
     await edit.getByRole('button', { name: /^(Kategori kendaraan|Vehicle (class|category))$/i }).click();
     const classes = page.getByRole('dialog').last();
-    await expect(classes.locator('button[aria-pressed]')).toHaveCount(7);
+    const cars = classes.getByRole('button', { name: /^(Mobil|Cars)$/i });
+    await expect(cars).toHaveAttribute('aria-expanded', 'false');
+    await classes.getByRole('button', { name: /^(Buka semua|Expand all)$/i }).click();
+    await expect(cars).toHaveAttribute('aria-expanded', 'true');
+    await classes.getByRole('button', { name: /^(Tutup semua|Collapse all)$/i }).click();
+    await expect(cars).toHaveAttribute('aria-expanded', 'false');
+    await cars.click();
+    await expect(cars).toHaveAttribute('aria-expanded', 'true');
+    await expect(classes.getByRole('button', { name: /^SUV$/i })).toBeVisible();
     await classes.getByRole('button', { name: /SUV/i }).click();
     // Wait for the nested picker to unmount before using the parent close action.
     await expect(page.locator('[role="dialog"]')).toHaveCount(1);
-    await edit.getByRole('button', { name: /^(Tutup|Close)$/i }).click();
+    await edit.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByText('2020 Toyota Corolla', { exact: true })).toBeVisible();
+    await valuationHelp.click();
     await expect(disclaimer).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(disclaimer).toBeHidden();
 
     await page.goto('/portfolios/' + portfolioId);
     await page.getByRole('button', { name: /Tambah transaksi|Add transaction/i }).click();

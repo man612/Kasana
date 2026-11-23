@@ -29,7 +29,7 @@
     },
     "dialog": {
       "createTitle": "Tambah pinjaman",
-      "createDescription": "Catat sisa utang dan rincian cicilan yang Anda ketahui. Data dapat diperbarui kapan saja.",
+      "createDescription": "Catat pinjaman dan cicilannya.",
       "editTitle": "Edit pinjaman",
       "editDescription": "Perbarui rincian pinjaman. Perubahan nilai dan ketentuan tercatat dalam riwayat."
     },
@@ -69,6 +69,7 @@
       "createFirstButton": "Tambah pinjaman pertama"
     },
     "paidOff": {
+      "allSettled": "Semua pinjaman yang dipantau sudah lunas",
       "sectionTitle": "Lunas",
       "repaid": "Dilunasi",
       "opened": "Dibuka",
@@ -100,7 +101,8 @@
       },
       "paidPercent": "{value}% dibayar",
       "monthsLeft": "Sisa {count} bln",
-      "ofPrincipal": "dari {amount}"
+      "ofPrincipal": "dari {amount}",
+      "scheduledPayment": "Cicilan terjadwal"
     },
     "types": {
       "mortgage": "KPR",
@@ -121,7 +123,7 @@
       "loadError": "Gagal memuat pinjaman ini.",
       "paidOffBadge": "Lunas",
       "summary": {
-        "outstanding": "Saldo saat ini",
+        "outstanding": "Sisa pokok tercatat",
         "principalOnlyTooltip": "Saldo mencerminkan pembayaran pokok saja. Bunga tidak bertambah secara otomatis – pernyataan pemberi pinjaman Anda adalah sumber kebenaran.",
         "apr": "APR",
         "originalPrincipal": "Pokok awal",
@@ -216,6 +218,11 @@
           "actual": "Saldo aktual",
           "schedule": "Jadwal asli"
         }
+      },
+      "detailsToggle": "Rincian pinjaman",
+      "tabs": {
+        "summary": "Ringkasan",
+        "activity": "Aktivitas"
       }
     }
   }

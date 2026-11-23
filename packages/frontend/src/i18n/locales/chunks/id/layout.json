@@ -13,25 +13,25 @@
     "optimizations": "Optimasi",
     "automations": "Otomatisasi",
     "accountDetails": "Detail akun",
-    "helpAndDocs": "Help & docs",
-    "community": "Community",
+    "helpAndDocs": "Bantuan & dokumentasi",
+    "community": "Komunitas",
     "logout": "Keluar",
-    "appVersion": "App version {version}",
+    "appVersion": "Versi aplikasi {version}",
     "updateAvailable": "Pembaruan tersedia",
-    "updateToVersion": "Update · {version}",
+    "updateToVersion": "Perbarui · {version}",
     "settings": "Pengaturan",
     "planned": {
       "planned": "Terencana",
       "subscriptions": "Biaya Berulang",
-      "budgets": "Anggaran",
-      "goals": "Goals"
+      "budgets": "Pelacak",
+      "goals": "Tujuan"
     },
-    "venture": "Venture",
-    "budget": "Budget"
+    "venture": "Ventura",
+    "budget": "Anggaran"
   },
   "sidebar": {
-    "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar",
+    "collapse": "Ciutkan bilah samping",
+    "expand": "Perluas bilah samping",
     "settings": {
       "title": "Pengaturan",
       "sections": {

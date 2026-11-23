@@ -17,7 +17,7 @@ import {
   RocketIcon,
   TrendingUpIcon,
 } from '@lucide/vue';
-import { useLocalStorage } from '@vueuse/core';
+import { createReusableTemplate, useLocalStorage } from '@vueuse/core';
 import { computed, nextTick, provide, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -34,6 +34,9 @@ import LoansList from './loans-list.vue';
 import PortfoliosList from './portfolios-list.vue';
 import SidebarCollapsibleSection from './sidebar-collapsible-section.vue';
 import VenturesList from './ventures-list.vue';
+
+const props = defineProps<{ singleScroll?: boolean }>();
+const [UseAccountSections, AccountSections] = createReusableTemplate();
 
 const {
   accountGroups,
@@ -137,11 +140,16 @@ const scrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
 const scrollSectionIntoView = async (sectionEl: HTMLElement | undefined) => {
   if (!sectionEl) return;
   await nextTick();
-  const viewport = scrollAreaRef.value?.viewportRef?.viewportElement;
+  const viewport = props.singleScroll
+    ? sectionEl.closest<HTMLElement>('[data-reka-scroll-area-viewport]')
+    : scrollAreaRef.value?.viewportRef?.viewportElement;
   if (!viewport) return;
   const sectionRect = sectionEl.getBoundingClientRect();
   const viewportRect = viewport.getBoundingClientRect();
-  const top = sectionRect.top - viewportRect.top + viewport.scrollTop;
+  const top = props.singleScroll
+    ? viewport.scrollTop + Math.max(0, sectionRect.bottom + 44 - viewportRect.bottom)
+    : sectionRect.top - viewportRect.top + viewport.scrollTop;
+  if (props.singleScroll && top === viewport.scrollTop) return;
   viewport.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
 };
 
@@ -153,7 +161,106 @@ const onSectionExpand = async ({ headerEl, wrapperEl }: { headerEl?: HTMLElement
 </script>
 
 <template>
-  <div class="flex min-h-25 flex-1 flex-col gap-1.5 overflow-y-hidden">
+  <UseAccountSections>
+    <template v-if="isLoading">
+      <AccountsSkeleton />
+    </template>
+    <template v-else>
+      <SidebarCollapsibleSection
+        v-model:open="isBankAccountsOpen"
+        :icon="LayersIcon"
+        :label="$t('sidebar.accountsView.bankAccounts')"
+        :top-class="singleScroll ? undefined : 'top-0'"
+        @expand="onSectionExpand"
+      >
+        <template v-if="baseCurrencyCode" #trailing>
+          <GroupTotal
+            :amount="bankAccountsTotal.total"
+            :currency-code="baseCurrencyCode"
+            :is-approx="bankAccountsTotal.isApprox"
+            emphasis
+          />
+        </template>
+        <AccountGroupsList :groups="accountGroups" />
+        <AccountsList :accounts="accountsWithoutGroups" />
+      </SidebarCollapsibleSection>
+
+      <SidebarCollapsibleSection
+        v-if="showPortfolios"
+        v-model:open="isPortfoliosOpen"
+        :icon="TrendingUpIcon"
+        :label="$t('sidebar.accountsView.portfolios')"
+        :top-class="singleScroll ? undefined : stickyOffsets.portfolios.top"
+        :bottom-class="singleScroll ? undefined : stickyOffsets.portfolios.bottom"
+        @expand="onSectionExpand"
+      >
+        <template v-if="baseCurrencyCode" #trailing>
+          <GroupTotal
+            :amount="portfoliosTotal.total"
+            :currency-code="baseCurrencyCode"
+            :is-approx="portfoliosTotal.isApprox"
+            :loading="isPortfoliosTotalLoading"
+            emphasis
+          />
+        </template>
+        <PortfoliosList />
+      </SidebarCollapsibleSection>
+
+      <SidebarCollapsibleSection
+        v-if="venturesVisible"
+        v-model:open="isVenturesOpen"
+        :icon="RocketIcon"
+        :label="$t('sidebar.accountsView.ventures')"
+        :count="venturesCount"
+        :top-class="singleScroll ? undefined : stickyOffsets.ventures.top"
+        :bottom-class="singleScroll ? undefined : stickyOffsets.ventures.bottom"
+        @expand="onSectionExpand"
+      >
+        <VenturesList />
+      </SidebarCollapsibleSection>
+
+      <SidebarCollapsibleSection
+        v-if="carsVisible"
+        v-model:open="isCarsOpen"
+        :icon="CarIcon"
+        :label="$t('sidebar.accountsView.cars')"
+        :top-class="singleScroll ? undefined : stickyOffsets.cars.top"
+        :bottom-class="singleScroll ? undefined : stickyOffsets.cars.bottom"
+        @expand="onSectionExpand"
+      >
+        <template v-if="baseCurrencyCode" #trailing>
+          <GroupTotal
+            :amount="carsTotal.total"
+            :currency-code="baseCurrencyCode"
+            :is-approx="carsTotal.isApprox"
+            emphasis
+          />
+        </template>
+        <AccountsList :accounts="vehicleAccounts" />
+      </SidebarCollapsibleSection>
+
+      <SidebarCollapsibleSection
+        v-if="loansVisible"
+        v-model:open="isLoansOpen"
+        :icon="HandCoinsIcon"
+        :label="$t('sidebar.accountsView.loans')"
+        :top-class="singleScroll ? undefined : stickyOffsets.loans.top"
+        :bottom-class="singleScroll ? undefined : stickyOffsets.loans.bottom"
+        @expand="onSectionExpand"
+      >
+        <template v-if="baseCurrencyCode" #trailing>
+          <GroupTotal
+            :amount="loansTotal.total"
+            :currency-code="baseCurrencyCode"
+            :is-approx="loansTotal.isApprox"
+            emphasis
+          />
+        </template>
+        <LoansList />
+      </SidebarCollapsibleSection>
+    </template>
+  </UseAccountSections>
+  <div class="flex flex-col gap-1.5" :class="!singleScroll && 'min-h-25 flex-1 overflow-y-hidden'">
     <div class="flex items-center justify-between px-1">
       <button
         type="button"
@@ -203,104 +310,9 @@ const onSectionExpand = async ({ headerEl, wrapperEl }: { headerEl?: HTMLElement
       </div>
     </div>
 
-    <ScrollArea ref="scrollAreaRef" :scroll-area-id="SCROLL_AREA_IDS.sidebarAccounts" class="flex-1">
-      <template v-if="isLoading">
-        <AccountsSkeleton />
-      </template>
-      <template v-else>
-        <SidebarCollapsibleSection
-          v-model:open="isBankAccountsOpen"
-          :icon="LayersIcon"
-          :label="$t('sidebar.accountsView.bankAccounts')"
-          top-class="top-0"
-          @expand="onSectionExpand"
-        >
-          <template v-if="baseCurrencyCode" #trailing>
-            <GroupTotal
-              :amount="bankAccountsTotal.total"
-              :currency-code="baseCurrencyCode"
-              :is-approx="bankAccountsTotal.isApprox"
-              emphasis
-            />
-          </template>
-          <AccountGroupsList :groups="accountGroups" />
-          <AccountsList :accounts="accountsWithoutGroups" />
-        </SidebarCollapsibleSection>
-
-        <SidebarCollapsibleSection
-          v-if="showPortfolios"
-          v-model:open="isPortfoliosOpen"
-          :icon="TrendingUpIcon"
-          :label="$t('sidebar.accountsView.portfolios')"
-          :top-class="stickyOffsets.portfolios.top"
-          :bottom-class="stickyOffsets.portfolios.bottom"
-          @expand="onSectionExpand"
-        >
-          <template v-if="baseCurrencyCode" #trailing>
-            <GroupTotal
-              :amount="portfoliosTotal.total"
-              :currency-code="baseCurrencyCode"
-              :is-approx="portfoliosTotal.isApprox"
-              :loading="isPortfoliosTotalLoading"
-              emphasis
-            />
-          </template>
-          <PortfoliosList />
-        </SidebarCollapsibleSection>
-
-        <SidebarCollapsibleSection
-          v-if="venturesVisible"
-          v-model:open="isVenturesOpen"
-          :icon="RocketIcon"
-          :label="$t('sidebar.accountsView.ventures')"
-          :count="venturesCount"
-          :top-class="stickyOffsets.ventures.top"
-          :bottom-class="stickyOffsets.ventures.bottom"
-          @expand="onSectionExpand"
-        >
-          <VenturesList />
-        </SidebarCollapsibleSection>
-
-        <SidebarCollapsibleSection
-          v-if="carsVisible"
-          v-model:open="isCarsOpen"
-          :icon="CarIcon"
-          :label="$t('sidebar.accountsView.cars')"
-          :top-class="stickyOffsets.cars.top"
-          :bottom-class="stickyOffsets.cars.bottom"
-          @expand="onSectionExpand"
-        >
-          <template v-if="baseCurrencyCode" #trailing>
-            <GroupTotal
-              :amount="carsTotal.total"
-              :currency-code="baseCurrencyCode"
-              :is-approx="carsTotal.isApprox"
-              emphasis
-            />
-          </template>
-          <AccountsList :accounts="vehicleAccounts" />
-        </SidebarCollapsibleSection>
-
-        <SidebarCollapsibleSection
-          v-if="loansVisible"
-          v-model:open="isLoansOpen"
-          :icon="HandCoinsIcon"
-          :label="$t('sidebar.accountsView.loans')"
-          :top-class="stickyOffsets.loans.top"
-          :bottom-class="stickyOffsets.loans.bottom"
-          @expand="onSectionExpand"
-        >
-          <template v-if="baseCurrencyCode" #trailing>
-            <GroupTotal
-              :amount="loansTotal.total"
-              :currency-code="baseCurrencyCode"
-              :is-approx="loansTotal.isApprox"
-              emphasis
-            />
-          </template>
-          <LoansList />
-        </SidebarCollapsibleSection>
-      </template>
+    <AccountSections v-if="singleScroll" />
+    <ScrollArea v-else ref="scrollAreaRef" :scroll-area-id="SCROLL_AREA_IDS.sidebarAccounts" class="flex-1">
+      <AccountSections />
     </ScrollArea>
   </div>
 </template>

@@ -2,12 +2,14 @@ import type { Money } from '@common/types/money';
 import type Transactions from '@models/transactions.model';
 import type { TransactionGroupResult } from '@services/transaction-groups/get-transaction-groups';
 
-import { serializeTransaction, TransactionApiResponse } from './transactions.serializer';
+import { serializeTransactions, TransactionApiResponse } from './transactions.serializer';
 
 export interface TransactionGroupApiResponse {
   id: string;
   name: string;
   note: string | null;
+  icon: string | null;
+  iconColor: string | null;
   createdAt: Date;
   updatedAt: Date;
   transactionCount?: number;
@@ -21,6 +23,8 @@ interface TransactionGroupInput {
   id: string;
   name: string;
   note: string | null;
+  icon: string | null;
+  iconColor: string | null;
   createdAt: Date;
   updatedAt: Date;
   transactions?: Transactions[];
@@ -35,6 +39,8 @@ export function serializeTransactionGroup(group: TransactionGroupInput): Transac
     id: group.id,
     name: group.name,
     note: group.note,
+    icon: group.icon,
+    iconColor: group.iconColor,
     createdAt: group.createdAt,
     updatedAt: group.updatedAt,
     ...(group.transactionCount !== undefined && { transactionCount: group.transactionCount }),
@@ -42,7 +48,7 @@ export function serializeTransactionGroup(group: TransactionGroupInput): Transac
     ...(group.dateTo !== undefined && { dateTo: group.dateTo }),
     ...(group.netRefAmount !== undefined && { netRefAmount: group.netRefAmount.toNumber() }),
     ...(group.transactions && {
-      transactions: group.transactions.map(serializeTransaction),
+      transactions: serializeTransactions(group.transactions),
     }),
   };
 }

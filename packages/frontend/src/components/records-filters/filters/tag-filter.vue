@@ -14,14 +14,14 @@
           <span
             class="inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full border px-2 text-sm font-medium"
           >
-            {{ isAllSelected ? tagsCount : selectedTagIds.length }}
+            {{ isAllSelected ? tagsCount : tagIds.length }}
           </span>
           <span class="min-w-0 flex-1 truncate text-left font-medium">
             {{ triggerLabel }}
           </span>
         </div>
 
-        <template v-if="!isAllSelected && selectedTagIds.length > 0 && !hideClearButton">
+        <template v-if="!isAllSelected && tagIds.length > 0 && !hideClearButton">
           <Button variant="ghost" size="icon" class="size-6 shrink-0" @click.stop="clearSelection">
             <XIcon class="text-muted-foreground size-4" />
           </Button>
@@ -76,6 +76,11 @@
           </Combobox.ComboboxItem>
         </Combobox.ComboboxGroup>
       </div>
+      <div class="flex justify-end border-t p-2">
+        <Button type="button" size="sm" :disabled="!hasChanges" @click="commit">
+          {{ $t('common.actions.done') }}
+        </Button>
+      </div>
     </Combobox.ComboboxList>
   </Combobox.Combobox>
 </template>
@@ -86,7 +91,7 @@ import Button from '@/components/lib/ui/button/Button.vue';
 import * as Combobox from '@/components/lib/ui/combobox';
 import { useTagsStore } from '@/stores';
 import { BLANK_FILTER_VALUE, type RecordId } from '@bt/shared/types';
-import { isEqual } from 'lodash-es';
+import { sameTagSelection } from '@/components/fields/utils/tag-selection';
 import { CheckIcon, ChevronDown, CircleDashedIcon, SearchIcon, XIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
@@ -115,30 +120,22 @@ const { tags } = storeToRefs(useTagsStore());
 const tagsCount = computed(() => tags.value.length);
 
 const selectedTagIds = ref<string[]>([]);
-
-// Sync internal state when props change (and differ from current state)
-watch(
-  () => props.tagIds,
-  (newIds) => {
-    // Only sync if values actually differ (prevents loops)
-    if (isEqual([...newIds].sort(), [...selectedTagIds.value].sort())) return;
-
-    selectedTagIds.value = [...newIds];
-  },
-  { immediate: true },
-);
-
-const isAllSelected = computed(() => selectedTagIds.value.length === 0);
+const startingIds = ref<string[]>([]);
+const hasChanges = computed(() => !sameTagSelection({ initial: startingIds.value, draft: selectedTagIds.value }));
+const isAllSelected = computed(() => props.tagIds.length === 0);
+const commit = () => {
+  if (!hasChanges.value) return;
+  emit('update:tagIds', [...selectedTagIds.value]);
+  isOpen.value = false;
+};
 
 const triggerLabel = computed(() => {
   if (isAllSelected.value) return t('transactions.filters.tags.allTags');
-  if (selectedTagIds.value.length === 1 && selectedTagIds.value[0] === BLANK_FILTER_VALUE) {
+  if (props.tagIds.length === 1 && props.tagIds[0] === BLANK_FILTER_VALUE) {
     return t('transactions.filters.tags.blankOption');
   }
   const noun =
-    selectedTagIds.value.length === 1
-      ? t('transactions.filters.tags.tagSingular')
-      : t('transactions.filters.tags.tagPlural');
+    props.tagIds.length === 1 ? t('transactions.filters.tags.tagSingular') : t('transactions.filters.tags.tagPlural');
   return `${noun} ${t('transactions.filters.tags.selected')}`;
 });
 
@@ -149,7 +146,10 @@ const baseSortedTags = computed(() => {
 const sessionOrder = ref<string[]>([]);
 
 watch(isOpen, (open) => {
+  searchTerm.value = '';
   if (open) {
+    startingIds.value = [...props.tagIds];
+    selectedTagIds.value = [...startingIds.value];
     const selectedIds = new Set(selectedTagIds.value);
     const selectedFirst = baseSortedTags.value.filter((tag) => selectedIds.has(tag.id));
     const others = baseSortedTags.value.filter((tag) => !selectedIds.has(tag.id));
@@ -179,11 +179,10 @@ const toggleTagId = (tagId: string) => {
     : tagId === BLANK_FILTER_VALUE
       ? [BLANK_FILTER_VALUE, ...selectedTagIds.value]
       : [...selectedTagIds.value, tagId];
-  emit('update:tagIds', selectedTagIds.value);
 };
 
 const clearSelection = () => {
-  selectedTagIds.value = [];
+  isOpen.value = false;
   emit('update:tagIds', []);
 };
 </script>

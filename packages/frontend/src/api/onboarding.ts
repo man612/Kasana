@@ -4,10 +4,11 @@ interface OnboardingState {
   completedTasks: string[];
   isDismissed: boolean;
   dismissedAt: string | null;
+  hiddenUntil?: number;
 }
 
 export const getOnboardingState = async (): Promise<OnboardingState> => {
-  const result = await api.get('/user/settings/onboarding');
+  const result = await api.get('/user/settings/onboarding', { skipProgressWhenDismissed: true });
   return result;
 };
 

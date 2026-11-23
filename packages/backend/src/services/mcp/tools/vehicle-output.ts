@@ -25,6 +25,7 @@ export function presentVehicle({ vehicle, userId }: { vehicle: Vehicles | null |
     trim: response.trim,
     year: response.year,
     vehicleClass: response.vehicleClass,
+    vehicleType: response.vehicleType,
     purchasePrice: response.purchasePrice,
     purchaseDate: response.purchaseDate,
     valueAnchor: response.valueAnchor,

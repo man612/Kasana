@@ -14,8 +14,12 @@ export const getTrashController = createController(z.object({}), async ({ user }
   data: await getTrash({ userId: user.id }),
 }));
 
-export const restoreTrashController = createController(actionSchema, async ({ user, body }) => ({
-  data: await restoreTrashed({ userId: user.id, transactionIds: body.transactionIds }),
+const restoreSchema = z.object({
+  body: z.union([actionSchema.shape.body, z.strictObject({ all: z.literal(true) })]),
+});
+
+export const restoreTrashController = createController(restoreSchema, async ({ user, body }) => ({
+  data: await restoreTrashed({ userId: user.id, ...body }),
 }));
 
 export const deleteTrashController = createController(actionSchema, async ({ user, body }) => ({

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import UiButton from '@/components/lib/ui/button/Button.vue';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/lib/ui/collapsible';
-import { ROUTES_NAMES } from '@/routes';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
+import { Button, buttonVariants } from '@/components/lib/ui/button';
+import { cn } from '@/lib/utils';
+import { ROUTES_NAMES } from '@/routes/constants';
+import { useEventListener, usePreferredReducedMotion, createReusableTemplate } from '@vueuse/core';
 import {
   CalendarClockIcon,
   ChartColumnIcon,
@@ -10,211 +12,266 @@ import {
   LayersIcon,
   LayoutDashboardIcon,
 } from '@lucide/vue';
-import { watch } from 'vue';
+import { computed, nextTick, onScopeDispose, ref, watch, type Component } from 'vue';
+import { useRoute } from 'vue-router';
 
-import { SIDEBAR_NAV_CHILDREN, useAccountsNavChildren } from './nav-items';
+import { SIDEBAR_NAV_CHILDREN, useAccountsNavChildren, type SidebarNavChild } from './nav-items';
 import { useSidebarNavCollapse } from './use-nav-collapse';
 import { useSidebarNavRoutes } from './use-nav-routes';
 
-withDefaults(defineProps<{ bottomNav?: boolean }>(), { bottomNav: false });
-
-const navItemBase = 'w-full gap-2 px-3';
-const bottomNavItem =
-  'lajur-bottom-nav-item relative flex min-h-14 flex-col justify-center gap-1 rounded-xl px-1 py-1.5 text-[11px] font-medium leading-tight transition-[background-color,color,transform] duration-220 ease-[cubic-bezier(0.2,0.8,0.2,1)] active:scale-[0.95] motion-reduce:transition-none';
-const navItemActive = 'lajur-bottom-nav-active bg-primary/10 text-foreground';
-const navIconBase = 'size-4 shrink-0';
-const bottomNavIconMotion = 'size-5 transition-transform duration-250 ease-out motion-reduce:transition-none';
-const navIconActive = 'text-primary-text';
-
+const props = defineProps<{ bottomNav?: boolean }>();
+const route = useRoute();
+const nav = ref<HTMLElement | null>(null);
+const pendingHref = ref('');
+const reducedMotion = usePreferredReducedMotion();
+const [DefineRouteLink, RouteLink] = createReusableTemplate<{
+  name: string;
+  label: string;
+  icon: Component;
+  active: boolean;
+  nested?: boolean;
+}>();
 const { isAccountsOpen, isTransactionsOpen, isPlannedOpen } = useSidebarNavCollapse();
 const { isAccountsRoute, isTransactionsRoute, isPlannedRoute, isChildActive } = useSidebarNavRoutes();
-const accountsNavChildren = useAccountsNavChildren();
+const accountChildren = useAccountsNavChildren();
 
+const normalClasses =
+  'relative h-auto min-h-10 w-full min-w-0 justify-start px-3 text-left whitespace-normal active:bg-accent';
+const iconClasses = 'size-4 shrink-0 motion-safe:transition-[color,transform] motion-safe:duration-200';
+const bottomClasses =
+  'relative flex min-h-14 min-w-0 flex-col justify-center gap-1 rounded-xl px-1 py-1.5 text-xs font-medium leading-tight motion-safe:transition-transform motion-safe:duration-180 active:scale-[0.96] active:bg-accent';
+
+const primary = [
+  {
+    name: ROUTES_NAMES.home,
+    label: 'navigation.dashboard',
+    icon: LayoutDashboardIcon,
+    active: computed(() => route.name === ROUTES_NAMES.home),
+  },
+  { name: ROUTES_NAMES.accounts, label: 'navigation.accounts', icon: LayersIcon, active: isAccountsRoute },
+  {
+    name: ROUTES_NAMES.transactions,
+    label: 'navigation.transactions',
+    icon: CreditCardIcon,
+    active: isTransactionsRoute,
+  },
+  {
+    name: ROUTES_NAMES.analytics,
+    label: 'navigation.analytics',
+    icon: ChartColumnIcon,
+    active: computed(() => route.matched.some((item) => item.name === ROUTES_NAMES.analytics)),
+  },
+];
+const activeColumn = computed(() => primary.findIndex(({ active }) => active.value));
+const groups = [
+  { ...primary[1]!, open: isAccountsOpen, children: accountChildren },
+  { ...primary[2]!, open: isTransactionsOpen, children: computed(() => SIDEBAR_NAV_CHILDREN.transactions) },
+  {
+    name: 'planned',
+    label: 'navigation.planned.planned',
+    icon: CalendarClockIcon,
+    active: isPlannedRoute,
+    open: isPlannedOpen,
+    children: computed(() => SIDEBAR_NAV_CHILDREN.planned),
+  },
+];
+
+const activeChild = (children: SidebarNavChild[]) =>
+  children.find((child) => child.routeName === route.name) ??
+  children.find((child) =>
+    isChildActive({ child, isActive: route.matched.some((item) => item.name === child.routeName) }),
+  );
 watch(
-  isAccountsRoute,
-  (val) => {
-    if (val) isAccountsOpen.value = true;
+  () => route.meta.navSection,
+  () => {
+    if (!props.bottomNav) {
+      const group = groups.find(({ active }) => active.value);
+      if (group) group.open.value = true;
+    }
   },
   { immediate: true },
 );
 
-watch(
-  isTransactionsRoute,
-  (val) => {
-    if (val) isTransactionsOpen.value = true;
-  },
-  { immediate: true },
-);
+let navigationFrame = 0;
+let navigationTimer: ReturnType<typeof setTimeout>;
+let navigationRequest = 0;
+const cancelPending = () => {
+  cancelAnimationFrame(navigationFrame);
+  clearTimeout(navigationTimer);
+  navigationRequest++;
+  pendingHref.value = '';
+};
+const onActivate = (event: MouseEvent, href: string, navigate: () => Promise<unknown>) => {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.altKey || event.ctrlKey || event.shiftKey)
+    return;
+  event.preventDefault();
+  cancelPending();
+  pendingHref.value = href;
+  const request = navigationRequest;
 
+  // Paint feedback before the route resolves and mounts its page. Keep only the latest tap.
+  navigationFrame = requestAnimationFrame(() => {
+    navigationTimer = setTimeout(() => {
+      void navigate()
+        .finally(() => {
+          if (request === navigationRequest) pendingHref.value = '';
+        })
+        .catch(() => undefined);
+    }, 0);
+  });
+};
+
+let move: Animation | undefined;
+const getActiveSurface = () => nav.value?.querySelector<HTMLElement>('[data-nav-current] > [data-nav-highlight]');
 watch(
-  isPlannedRoute,
-  (val) => {
-    if (val) isPlannedOpen.value = true;
+  () => route.fullPath,
+  async () => {
+    if (props.bottomNav || reducedMotion.value === 'reduce') return;
+    const previous = getActiveSurface();
+    const before = previous?.getBoundingClientRect();
+    await nextTick();
+    const current = getActiveSurface();
+    if (!before || !current || current === previous || !current.animate) return;
+    move?.cancel();
+    const after = current.getBoundingClientRect();
+    const dx = before.left - after.left;
+    const dy = before.top - after.top;
+    const nearby = Math.abs(dy) <= 120;
+    move = current.animate(
+      nearby
+        ? [
+            { transform: `translate3d(${dx}px,${dy}px,0)`, opacity: 0.8 },
+            { transform: 'none', opacity: 1 },
+          ]
+        : [{ opacity: 0 }, { opacity: 1 }],
+      { duration: nearby ? 220 : 150, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+    );
   },
-  { immediate: true },
 );
+useEventListener(window, 'popstate', cancelPending);
+onScopeDispose(() => {
+  cancelPending();
+  move?.cancel();
+});
 </script>
 
 <template>
-  <router-link v-slot="{ isActive }" :to="{ name: ROUTES_NAMES.home }">
-    <ui-button
-      variant="ghost"
-      as="span"
-      :class="[bottomNav ? bottomNavItem : navItemBase + ' justify-start', isActive && navItemActive]"
-      size="default"
-    >
-      <LayoutDashboardIcon :class="[navIconBase, bottomNav && bottomNavIconMotion, bottomNav && (isActive ? '-translate-y-0.5 scale-110' : 'translate-y-0 scale-100'), isActive && navIconActive]" />
-      <span :class="bottomNav && 'text-[11px] leading-tight'"> {{ $t('navigation.dashboard') }} </span>
-    </ui-button>
-  </router-link>
-
-  <template v-if="bottomNav">
-    <router-link v-slot="{ isActive }" :to="{ name: ROUTES_NAMES.accounts }">
-      <ui-button variant="ghost" as="span" :class="[bottomNavItem, (isActive || isAccountsRoute) && navItemActive]" size="default">
-        <LayersIcon :class="[navIconBase, bottomNav && bottomNavIconMotion, (isActive || isAccountsRoute) ? '-translate-y-0.5 scale-110' : 'translate-y-0 scale-100', (isActive || isAccountsRoute) && navIconActive]" />
-        <span class="text-[11px] leading-tight"> {{ $t('navigation.accounts') }} </span>
-      </ui-button>
-    </router-link>
-  </template>
-  <router-link v-else-if="accountsNavChildren.length === 1" :to="{ name: ROUTES_NAMES.accounts }">
-    <ui-button
-      variant="ghost"
-      as="span"
-      :class="[navItemBase, 'justify-start', isAccountsRoute && navItemActive]"
-      size="default"
-    >
-      <LayersIcon :class="[navIconBase, isAccountsRoute && navIconActive]" />
-      <span> {{ $t('navigation.accounts') }} </span>
-    </ui-button>
-  </router-link>
-  <Collapsible v-else v-model:open="isAccountsOpen">
-    <CollapsibleTrigger class="w-full">
-      <ui-button
-        variant="ghost"
-        as="div"
-        :class="['w-full justify-start gap-2 px-3', isAccountsRoute && 'bg-primary/10']"
-        size="default"
+  <DefineRouteLink v-slot="{ name, label, icon, active, nested }">
+    <RouterLink v-slot="{ href, navigate }" :to="{ name }" custom>
+      <a
+        :href="href"
+        :aria-current="active ? 'page' : undefined"
+        :data-nav-current="active || undefined"
+        :data-nav-pending="pendingHref === href || undefined"
+        :class="
+          cn(
+            buttonVariants({ variant: 'ghost', size: nested ? 'sm' : 'default' }),
+            bottomNav ? bottomClasses : normalClasses,
+            active && 'text-foreground',
+            'data-[nav-pending]:bg-accent',
+          )
+        "
+        @click="onActivate($event, href, navigate)"
       >
-        <LayersIcon :class="[navIconBase, isAccountsRoute && navIconActive]" />
-        <span>{{ $t('navigation.accounts') }}</span>
-        <ChevronRightIcon
-          :class="['ml-auto size-4 shrink-0 transition-transform duration-200', { 'rotate-90': isAccountsOpen }]"
+        <span
+          v-if="active && !bottomNav"
+          data-nav-highlight
+          aria-hidden="true"
+          class="bg-primary/10 pointer-events-none absolute inset-0 rounded-[inherit]"
         />
-      </ui-button>
-    </CollapsibleTrigger>
-    <CollapsibleContent>
-      <div class="border-border/40 mt-1 ml-2 grid gap-0.5 border-l pl-2">
-        <router-link
-          v-for="child in accountsNavChildren"
-          :key="child.routeName"
-          v-slot="{ isActive }"
-          :to="{ name: child.routeName }"
-        >
-          <ui-button
-            variant="ghost"
-            as="span"
-            :class="['w-full justify-start gap-2 px-3', isChildActive({ child, isActive }) && navItemActive]"
-            size="sm"
-          >
-            <component :is="child.icon" :class="[navIconBase, isChildActive({ child, isActive }) && navIconActive]" />
-            <span>{{ $t(child.labelKey) }}</span>
-          </ui-button>
-        </router-link>
-      </div>
-    </CollapsibleContent>
-  </Collapsible>
+        <component
+          :is="icon"
+          :class="
+            cn(
+              'relative',
+              iconClasses,
+              bottomNav && 'size-5',
+              active && 'text-primary-text',
+              bottomNav && active && '-translate-y-0.5',
+            )
+          "
+          aria-hidden="true"
+        />
+        <span class="relative min-w-0 wrap-anywhere">{{ $t(label) }}</span>
+      </a>
+    </RouterLink>
+  </DefineRouteLink>
 
-  <template v-if="bottomNav">
-    <router-link v-slot="{ isActive }" :to="{ name: ROUTES_NAMES.transactions }">
-      <ui-button variant="ghost" as="span" :class="[bottomNavItem, (isActive || isTransactionsRoute) && navItemActive]" size="default">
-        <CreditCardIcon :class="[navIconBase, bottomNav && bottomNavIconMotion, (isActive || isTransactionsRoute) ? '-translate-y-0.5 scale-110' : 'translate-y-0 scale-100', (isActive || isTransactionsRoute) && navIconActive]" />
-        <span class="text-[11px] leading-tight"> {{ $t('navigation.transactions') }} </span>
-      </ui-button>
-    </router-link>
-  </template>
-  <Collapsible v-else v-model:open="isTransactionsOpen">
-    <CollapsibleTrigger class="w-full">
-      <ui-button
-        variant="ghost"
-        as="div"
-        :class="['w-full justify-start gap-2 px-3', isTransactionsRoute && 'bg-primary/10']"
-        size="default"
+  <div ref="nav" :class="bottomNav ? 'relative isolate grid grid-cols-4 gap-1' : 'grid gap-0.5'">
+    <template v-if="bottomNav">
+      <span
+        data-nav-highlight
+        aria-hidden="true"
+        class="bottom-indicator bg-primary/10 pointer-events-none absolute inset-y-0 left-0 -z-10 rounded-xl motion-safe:transition-[transform,opacity] motion-safe:duration-220 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)]"
+        :class="activeColumn < 0 && 'opacity-0'"
+        :style="{ '--nav-active-column': Math.max(0, activeColumn) }"
       >
-        <CreditCardIcon :class="[navIconBase, isTransactionsRoute && navIconActive]" />
-        <span>{{ $t('navigation.transactions') }}</span>
-        <ChevronRightIcon
-          :class="['ml-auto size-4 shrink-0 transition-transform duration-200', { 'rotate-90': isTransactionsOpen }]"
+        <span
+          class="bg-primary-text absolute top-0.5 left-1/2 h-0.75 w-6 -translate-x-1/2 rounded-full"
+          data-nav-active-rail
         />
-      </ui-button>
-    </CollapsibleTrigger>
-    <CollapsibleContent>
-      <div class="border-border/40 mt-1 ml-2 grid gap-0.5 border-l pl-2">
-        <router-link
-          v-for="child in SIDEBAR_NAV_CHILDREN.transactions"
-          :key="child.routeName"
-          v-slot="{ isActive }"
-          :to="{ name: child.routeName }"
-        >
-          <ui-button
-            variant="ghost"
-            as="span"
-            :class="['w-full justify-start gap-2 px-3', isChildActive({ child, isActive }) && navItemActive]"
-            size="sm"
-          >
-            <component :is="child.icon" :class="[navIconBase, isChildActive({ child, isActive }) && navIconActive]" />
-            <span>{{ $t(child.labelKey) }}</span>
-          </ui-button>
-        </router-link>
-      </div>
-    </CollapsibleContent>
-  </Collapsible>
-
-  <Collapsible v-if="!bottomNav" v-model:open="isPlannedOpen">
-    <CollapsibleTrigger class="w-full">
-      <ui-button
-        variant="ghost"
-        as="div"
-        :class="['w-full justify-start gap-2 px-3', isPlannedRoute && 'bg-primary/10']"
-        size="default"
-      >
-        <CalendarClockIcon :class="[navIconBase, isPlannedRoute && navIconActive]" />
-        <span>{{ $t('navigation.planned.planned') }}</span>
-        <ChevronRightIcon
-          :class="['ml-auto size-4 shrink-0 transition-transform duration-200', { 'rotate-90': isPlannedOpen }]"
+      </span>
+      <RouteLink v-for="item in primary" :key="item.name" v-bind="item" :active="item.active.value" />
+    </template>
+    <template v-else>
+      <RouteLink v-bind="primary[0]!" :active="primary[0]!.active.value" />
+      <template v-for="group in groups" :key="group.name">
+        <RouteLink
+          v-if="group.name === ROUTES_NAMES.accounts && group.children.value.length === 1"
+          v-bind="group"
+          :active="group.active.value"
         />
-      </ui-button>
-    </CollapsibleTrigger>
-    <CollapsibleContent>
-      <div class="border-border/40 mt-1 ml-2 grid gap-0.5 border-l pl-2">
-        <router-link
-          v-for="child in SIDEBAR_NAV_CHILDREN.planned"
-          :key="child.routeName"
-          v-slot="{ isActive }"
-          :to="{ name: child.routeName }"
-        >
-          <ui-button
+        <div v-else>
+          <Button
+            type="button"
             variant="ghost"
-            as="span"
-            :class="['w-full justify-start gap-2 px-3', isChildActive({ child, isActive }) && navItemActive]"
-            size="sm"
+            :class="normalClasses"
+            :aria-expanded="group.open.value"
+            :data-nav-current="
+              (group.active.value && (!group.open.value || !activeChild(group.children.value))) || undefined
+            "
+            @click="group.open.value = !group.open.value"
           >
-            <component :is="child.icon" :class="[navIconBase, isChildActive({ child, isActive }) && navIconActive]" />
-            <span>{{ $t(child.labelKey) }}</span>
-          </ui-button>
-        </router-link>
-      </div>
-    </CollapsibleContent>
-  </Collapsible>
-
-  <router-link v-slot="{ isActive }" :to="{ name: ROUTES_NAMES.analytics }">
-    <ui-button
-      variant="ghost"
-      as="span"
-      :class="[bottomNav ? bottomNavItem : navItemBase + ' justify-start', isActive && navItemActive]"
-      size="default"
-    >
-      <ChartColumnIcon :class="[navIconBase, bottomNav && bottomNavIconMotion, bottomNav && (isActive ? '-translate-y-0.5 scale-110' : 'translate-y-0 scale-100'), isActive && navIconActive]" />
-      <span :class="bottomNav && 'text-[11px] leading-tight'"> {{ $t('navigation.analytics') }} </span>
-    </ui-button>
-  </router-link>
+            <span
+              v-if="group.active.value && (!group.open.value || !activeChild(group.children.value))"
+              data-nav-highlight
+              aria-hidden="true"
+              class="bg-primary/10 pointer-events-none absolute inset-0 rounded-[inherit]"
+            />
+            <component
+              :is="group.icon"
+              :class="cn('relative', iconClasses, group.active.value && 'text-primary-text')"
+              aria-hidden="true"
+            />
+            <span class="relative min-w-0 flex-1 wrap-anywhere">{{ $t(group.label) }}</span>
+            <ChevronRightIcon
+              :class="cn(iconClasses, 'relative', group.open.value && 'rotate-90')"
+              aria-hidden="true"
+            />
+          </Button>
+          <LayoutCollapse :open="group.open.value">
+            <div class="border-border/40 mt-1 ml-2 grid gap-0.5 border-l pl-2">
+              <RouteLink
+                v-for="item in group.children.value"
+                :key="item.routeName"
+                :name="item.routeName"
+                :label="item.labelKey"
+                :icon="item.icon"
+                :active="group.open.value && activeChild(group.children.value) === item"
+                nested
+              />
+            </div>
+          </LayoutCollapse>
+        </div>
+      </template>
+      <RouteLink v-bind="primary[3]!" :active="primary[3]!.active.value" />
+    </template>
+  </div>
 </template>
+
+<style scoped>
+.bottom-indicator {
+  width: calc((100% - 3 * var(--spacing)) / 4);
+  transform: translateX(calc(var(--nav-active-column) * (100% + var(--spacing))));
+}
+</style>

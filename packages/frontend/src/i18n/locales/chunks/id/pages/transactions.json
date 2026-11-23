@@ -1,5 +1,19 @@
 {
   "transactions": {
+    "readView": {
+      "income": "Pemasukan",
+      "expense": "Pengeluaran",
+      "transfer": "Transfer",
+      "loan": "Pembayaran pinjaman",
+      "adjustment": "Penyesuaian saldo",
+      "planned": "Terencana",
+      "pending": "Tertunda",
+      "accounts": "Rekening",
+      "method": "Metode pembayaran",
+      "reference": "Nomor referensi",
+      "link": "Tautan eksternal",
+      "location": "Lokasi"
+    },
     "filters": {
       "filtersLabel": "Filter",
       "selectFilters": "Pilih filter",
@@ -85,9 +99,11 @@
       "noMoreData": "Tidak ada lagi transaksi",
       "loadingMore": "Memuat lebih banyak...",
       "detailsTitle": "Detail transaksi",
-      "detailsDescription": "Lihat dan edit transaksi"
+      "detailsDescription": "Lihat dan edit transaksi",
+      "empty": "Belum ada transaksi pada tampilan ini"
     },
     "bulkEdit": {
+      "actions": "Tindakan transaksi",
       "selectAll": "Pilih semua",
       "selectAllShort": "Semua",
       "selectBeforeAction": "Pilih transaksi dahulu untuk menggunakan tindakan ini.",
@@ -146,32 +162,33 @@
         "noGroupsMessage": "Belum ada grup. Buat satu terlebih dahulu.",
         "noSearchResultsMessage": "Tidak ada grup yang cocok dengan pencarian Anda.",
         "addingText": "Menambahkan...",
-        "buttonLabel": "Tambahkan ke Grup",
+        "buttonLabel": "Tambahkan ke grup",
         "cancelButton": "Batal",
         "transactionCountLabel": "transaksi"
       },
       "createGroupDialog": {
-        "title": "Buat Grup Transaksi",
+        "title": "Buat grup transaksi",
         "descriptionPrefix": "Grup",
-        "groupNameLabel": "Nama",
+        "groupNameLabel": "Nama grup",
         "groupNamePlaceholder": "mis. Transfer gaji Mei",
         "noteLabel": "Catatan (opsional)",
-        "notePlaceholder": "Deskripsi opsional...",
+        "notePlaceholder": "Tambahkan catatan bila perlu",
         "creatingText": "Membuat...",
-        "buttonLabel": "Buat Grup",
-        "cancelButton": "Batal"
+        "buttonLabel": "Buat grup",
+        "cancelButton": "Batal",
+        "selected": "{count} transaksi dipilih."
       },
       "groupsPage": {
-        "title": "Grup Transaksi",
+        "title": "Grup transaksi",
         "searchPlaceholder": "Cari grup...",
         "noGroupsMessage": "Belum ada grup transaksi.",
-        "emptyStateHint": "Pilih transaksi di halaman Transaksi dan klik \"Buat Grup\" untuk memulai.",
+        "emptyStateHint": "Pilih beberapa transaksi di daftar Transaksi, lalu pilih Buat grup.",
         "transactionCountLabel": "transaksi",
         "deleteError": "Gagal menghapus grup. Silakan coba lagi.",
-        "loadError": "Couldn't load transaction groups",
-        "description": "Bundle related transactions, like a trip or a transfer chain, and see them together.",
-        "noMatchTitle": "No groups match your search",
-        "moreActions": "More actions for {name}",
+        "loadError": "Gagal memuat grup transaksi",
+        "description": "Satukan transaksi yang berkaitan, misalnya biaya satu perjalanan, agar mudah dilihat bersama.",
+        "noMatchTitle": "Tidak ada grup yang cocok",
+        "moreActions": "Tindakan lain untuk {name}",
         "columns": {
           "name": "Nama",
           "transactions": "Transaksi",
@@ -179,13 +196,13 @@
           "net": "Bersih"
         },
         "sort": {
-          "label": "Sort groups",
-          "dateDesc": "Newest first",
-          "dateAsc": "Oldest first",
-          "nameAsc": "Name A–Z",
-          "nameDesc": "Name Z–A",
-          "amountDesc": "Net: high to low",
-          "amountAsc": "Net: low to high"
+          "label": "Urutkan grup",
+          "dateDesc": "Terbaru dahulu",
+          "dateAsc": "Terlama dahulu",
+          "nameAsc": "Nama A–Z",
+          "nameDesc": "Nama Z–A",
+          "amountDesc": "Total bersih tertinggi",
+          "amountAsc": "Total bersih terendah"
         }
       },
       "errors": {
@@ -193,7 +210,16 @@
         "minTransactions": "Pilih setidaknya {min} transaksi",
         "alreadyInGroup": "Beberapa transaksi yang dipilih sudah termasuk dalam grup",
         "createFailed": "Gagal membuat grup",
-        "addFailed": "Gagal menambahkan transaksi ke grup"
+        "addFailed": "Gagal menambahkan transaksi ke grup",
+        "loadFailed": "Gagal memuat grup."
+      },
+      "icon": {
+        "default": "Ikon bawaan",
+        "label": "Pilih ikon grup"
+      },
+      "inline": {
+        "expand": "Buka transaksi di {name}",
+        "collapse": "Tutup transaksi di {name}"
       }
     },
     "planned": {
@@ -302,6 +328,9 @@
       "filtersCount": "{count} filter"
     },
     "trashPage": {
+      "restoreAll": "Pulihkan semua",
+      "restoreAllTitle": "Pulihkan semua transaksi?",
+      "restoreAllDescription": "Transaksi akan kembali ke daftar dan diperhitungkan lagi dalam saldo dan statistik.",
       "title": "Tempat Sampah",
       "description": "Transaksi yang baru dihapus ditampilkan lebih dulu. Setelah {days} hari, transaksi dihapus permanen.",
       "expiringBanner": "{count} akan dihapus permanen dalam {days}.",
@@ -338,7 +367,7 @@
         "links": {
           "refund": "Refund link with \"{name}\"",
           "tracker": "Tracker \"{name}\"",
-          "group": "Group \"{name}\"",
+          "group": "Grup “{name}”",
           "subscription": "Subscription \"{name}\"",
           "subscriptionPeriod": "Subscription payment due {name}",
           "unnamed": "Tanpa Judul"
@@ -347,6 +376,18 @@
       "emptyAll": "Kosongkan Semua",
       "emptyAllConfirmTitle": "Kosongkan seluruh Tempat Sampah?",
       "emptyAllConfirmDescription": "Hapus permanen {count} transaksi dari Tempat Sampah? Tindakan ini tidak bisa dibatalkan."
+    },
+    "timeGrouping": {
+      "title": "Kelompokkan berdasarkan waktu",
+      "none": "Tanpa pengelompokan",
+      "day": "Per hari",
+      "week": "Per minggu",
+      "chronologicalOnly": "Gunakan urutan tanggal untuk mengelompokkan daftar.",
+      "today": "Hari ini",
+      "yesterday": "Kemarin",
+      "currentWeek": "Minggu ini · {range}",
+      "showTime": "Tampilkan jam",
+      "timeRequired": "Daftar harian selalu menampilkan jam karena tanggal ada di judul kelompok."
     }
   },
   "records": {

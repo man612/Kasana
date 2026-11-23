@@ -54,9 +54,13 @@ let hintTimeout: ReturnType<typeof setTimeout> | undefined;
 const explainSelection = () => {
   showSelectionHint.value = true;
   if (hintTimeout) clearTimeout(hintTimeout);
-  hintTimeout = setTimeout(() => { showSelectionHint.value = false; }, 2500);
+  hintTimeout = setTimeout(() => {
+    showSelectionHint.value = false;
+  }, 2500);
 };
-onUnmounted(() => { if (hintTimeout) clearTimeout(hintTimeout); });
+onUnmounted(() => {
+  if (hintTimeout) clearTimeout(hintTimeout);
+});
 
 const handleSelectAllClick = () => {
   emit('select-all', !props.isAllSelected);
@@ -112,7 +116,12 @@ const handleEdit = () => {
       </Button>
       <DropdownMenu v-else>
         <DropdownMenuTrigger as-child>
-          <Button variant="outline" size="sm" :disabled="!hasSelection || isLoading">
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="!hasSelection || isLoading"
+            :aria-label="$t('transactions.bulkEdit.actions')"
+          >
             <ListOrderedIcon class="mr-1.5 size-4" />
             <ChevronDownIcon class="size-3.5" />
           </Button>

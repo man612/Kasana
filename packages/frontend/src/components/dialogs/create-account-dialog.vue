@@ -3,13 +3,15 @@ import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import CreateAccountForm from '@/components/forms/create-account-form.vue';
 import { isMobileSheetOpen } from '@/composable/global-state/mobile-sheet';
 import { trackAnalyticsEvent } from '@/lib/posthog';
+import type { AccountModel } from '@bt/shared/types';
 import { computed, ref, useId, watch } from 'vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 
 const props = defineProps<{ open?: boolean }>();
 const emit = defineEmits<{
   'update:open': [value: boolean];
-  created: [];
+  created: [account: AccountModel];
+  closed: [];
 }>();
 
 const localOpen = ref(false);
@@ -29,15 +31,15 @@ watch(isOpen, (open) => {
   }
 });
 
-const onAccountCreation = () => {
+const onAccountCreation = (account: AccountModel) => {
   isOpen.value = false;
   isMobileSheetOpen.value = false;
-  emit('created');
+  emit('created', account);
 };
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen" custom-close>
+  <ResponsiveDialog v-model:open="isOpen" custom-close @closed="emit('closed')">
     <template v-if="$slots.default" #trigger>
       <slot />
     </template>
@@ -50,7 +52,7 @@ const onAccountCreation = () => {
       <UiButton type="button" variant="outline" class="min-h-11 min-w-0" @click="close()">
         {{ $t('common.actions.cancel') }}
       </UiButton>
-      <UiButton type="submit" :form="formId" class="min-h-11 min-w-0" :disabled="formRef?.isSubmitting">
+      <UiButton type="submit" :form="formId" class="min-h-11 min-w-0" :disabled="!formRef?.canSubmit">
         {{
           formRef?.isSubmitting ? $t('forms.createAccount.submitButtonLoading') : $t('forms.createAccount.submitButton')
         }}

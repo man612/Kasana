@@ -74,11 +74,13 @@ export interface TransactionApiResponse {
   /** Present on list reads only. */
   hasAttachments?: boolean;
   isPlanned: boolean;
+  isBalanceAdjustment?: boolean;
   /** Set when a bank transaction merged into this row while it was planned. */
   plannedMerge: { mergedAt: string } | null;
   /** Bank reported the row as PDNG/HOLD and has not booked it yet. */
   isPending: boolean;
   payeeId: string | null;
+  payeeNameSnapshot?: string;
   payeeLocked: boolean;
   /** How this tx's category was assigned (manual / ai / payee_rule / etc.). `null`
    *  means "no rule has stamped this row yet" — the AI categorization listener
@@ -96,9 +98,12 @@ export interface TransactionApiResponse {
   transactionGroups?: Array<{
     id: string;
     name: string;
+    icon?: string | null;
+    iconColor?: string | null;
     /** Full group membership size, independent of how many members are in this fetch
      *  window. Populated when the group include computes the correlated count. */
     transactionCount: number;
+    latestTime?: string;
   }>;
   /** Recipient who attached this tx to a shared tracker. Present (and possibly `null`)
    *  only on tracker-scoped fetches; absent on the global tx list and on detail lookups
@@ -248,6 +253,7 @@ export function serializeTransaction(
     paymentTotal?: Money;
     refundedAmount?: Money;
   },
+  { groupViewerId }: { groupViewerId?: number } = {},
 ): TransactionApiResponse {
   // Aliased literal: a plain property on raw rows, dataValues-only on model instances.
   const hasAttachments = (tx.getDataValue?.('hasAttachments' as keyof Transactions) ??
@@ -281,9 +287,11 @@ export function serializeTransaction(
     refundLinked: tx.refundLinked,
     ...(tx.refundedAmount && { refundedAmount: centsToApiDecimal(tx.refundedAmount) }),
     isPlanned: tx.isPlanned ?? false,
+    ...(tx.externalData?.balanceAdjustment && { isBalanceAdjustment: true }),
     plannedMerge: extractPlannedMerge({ externalData: tx.externalData }),
     isPending: isPreBookingStatus({ status: getRawTransactionStatus({ externalData: tx.externalData }) }),
     payeeId: tx.payeeId ?? null,
+    ...(!tx.payeeId && tx.payeeNameSnapshot && { payeeNameSnapshot: tx.payeeNameSnapshot }),
     payeeLocked: tx.payeeLocked ?? false,
     categorizationMeta: tx.categorizationMeta ?? null,
     paymentParentId: tx.paymentParentId ?? null,
@@ -301,17 +309,22 @@ export function serializeTransaction(
       })),
     }),
     ...(tx.transactionGroups && {
-      transactionGroups: tx.transactionGroups.map((group) => ({
-        id: group.id,
-        name: group.name,
-        // Attached via a correlated subquery on the include, so it lives in dataValues
-        // (no model getter for aliased literals) and must be read with getDataValue.
-        // Falls back to the loaded-member count on paths that don't compute the aggregate.
-        transactionCount:
-          (group.getDataValue('transactionCount' as keyof TransactionGroups) as number | undefined) ??
-          group.transactions?.length ??
-          0,
-      })),
+      transactionGroups: tx.transactionGroups.map((group) => {
+        const membership = group.getDataValue('liveMembership' as keyof TransactionGroups) as
+          | { count: number; latestTime: string | null }
+          | undefined;
+        return {
+          id: group.id,
+          name: group.name,
+          icon: group.icon,
+          iconColor: group.iconColor,
+          transactionCount: membership?.count ?? group.transactions?.length ?? 0,
+          // Shared accounts and trackers can expose one group member without exposing the rest.
+          ...(groupViewerId !== undefined &&
+            groupViewerId === tx.userId &&
+            membership?.latestTime && { latestTime: membership.latestTime }),
+        };
+      }),
     }),
     // `addedBy` is included whenever the upstream service attached it (tracker-scoped
     // fetches). `null` is a meaningful value — "owner-attached" — and must be sent so
@@ -351,8 +364,9 @@ export function serializeTransactions(
       refundedAmount?: Money;
     }
   >,
+  options?: { groupViewerId?: number },
 ): TransactionApiResponse[] {
-  return txs.map(serializeTransaction);
+  return txs.map((tx) => serializeTransaction(tx, options));
 }
 
 /**

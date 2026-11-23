@@ -41,6 +41,8 @@ export interface TrashActionBody {
   transactionIds: RecordId[];
 }
 
+export type RestoreTrashBody = TrashActionBody | { all: true };
+
 export interface RestoreTrashResponse {
   restoredIds: RecordId[];
   /** Refund links dropped on restore because they no longer fit (cap exceeded, counterpart became a transfer/payment). */

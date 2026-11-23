@@ -2,6 +2,7 @@ import {
   getOnboardingState as fetchOnboardingStateApi,
   updateOnboardingState as updateOnboardingStateApi,
 } from '@/api/onboarding';
+import { useNotificationCenter } from '@/components/notification-center';
 import { i18n } from '@/i18n';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { defineStore, storeToRefs } from 'pinia';
@@ -16,7 +17,6 @@ export interface QuickStartPosition {
 }
 
 const POSITION_STORAGE_KEY = 'kasana.quick-start-position-v1';
-const HIDDEN_UNTIL_STORAGE_KEY = 'kasana.quick-start-hidden-until-v1';
 
 function readLocalSetting(key: string): string | null {
   try {
@@ -118,9 +118,7 @@ const RAW_CATEGORIES: RawCategory[] = [
   {
     id: 'bank-import',
     icon: 'link',
-    tasks: [
-      { id: 'import-csv', route: ROUTES_NAMES.settingsDataManagement },
-    ],
+    tasks: [{ id: 'import-csv', route: ROUTES_NAMES.settingsDataManagement }],
   },
   {
     id: 'analytics',
@@ -183,11 +181,13 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   const isLoading = ref(false);
   const isInitialized = ref(false);
 
-  // Floating guide controls are *per-device* preferences; no finance data or
-  // onboarding progress is written to localStorage.
+  // The floating button's position follows the device viewport. Hiding Quick
+  // Start is an account preference stored as an absolute server-side expiry.
   const triggerPosition = ref<QuickStartPosition | null>(readQuickStartPosition());
-  const storedDeadline = Number(readLocalSetting(HIDDEN_UNTIL_STORAGE_KEY));
-  const hiddenUntil = ref(Number.isFinite(storedDeadline) && storedDeadline > Date.now() ? storedDeadline : 0);
+  const hiddenUntil = ref(0);
+  const isSavingVisibility = ref(false);
+  let visibilityRevision = 0;
+  const { addErrorNotification } = useNotificationCenter();
   const visibilityTick = ref(0);
   // Date.now() is not reactive: schedule the exact deadline rather than
   // waiting for another unrelated store change or a page reload.
@@ -201,7 +201,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     if (!Number.isFinite(remaining) || remaining <= 0) {
       if (hiddenUntil.value !== 0) {
         hiddenUntil.value = 0;
-        saveLocalSetting(HIDDEN_UNTIL_STORAGE_KEY, null);
         visibilityTick.value++;
       }
       return;
@@ -212,25 +211,11 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   watch(hiddenUntil, refreshHiddenDeadline, { immediate: true });
 
   if (typeof window !== 'undefined') {
-    // Background tabs may have timers throttled. Sync on returning to the app.
-    // Re-read the original absolute expiry on resume, never restart the duration.
-    const hydrateHiddenDeadline = () => {
-      const persisted = Number(readLocalSetting(HIDDEN_UNTIL_STORAGE_KEY));
-      hiddenUntil.value = Number.isFinite(persisted) && persisted > Date.now() ? persisted : 0;
-      refreshHiddenDeadline();
-    };
-    const onVisibilityChange = () => { if (!document.hidden) hydrateHiddenDeadline(); };
-    const onStorageChange = (event: StorageEvent) => {
-      if (event.key === HIDDEN_UNTIL_STORAGE_KEY) hydrateHiddenDeadline();
-    };
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    window.addEventListener('focus', hydrateHiddenDeadline);
-    window.addEventListener('storage', onStorageChange);
+    // Background timers may be throttled, so compare against the original expiry on resume.
+    window.addEventListener('focus', refreshHiddenDeadline);
     onScopeDispose(() => {
       if (hiddenDeadlineTimer !== undefined) clearTimeout(hiddenDeadlineTimer);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      window.removeEventListener('focus', hydrateHiddenDeadline);
-      window.removeEventListener('storage', onStorageChange);
+      window.removeEventListener('focus', refreshHiddenDeadline);
     });
   }
 
@@ -253,17 +238,22 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     triggerPosition.value = null;
     saveLocalSetting(POSITION_STORAGE_KEY, null);
   };
-  const hideTriggerFor = (minutes: number) => {
-    if (!Number.isFinite(minutes) || minutes <= 0) return;
-    hiddenUntil.value = Date.now() + minutes * 60_000;
-    visibilityTick.value++;
-    saveLocalSetting(HIDDEN_UNTIL_STORAGE_KEY, String(hiddenUntil.value));
-    isPanelOpen.value = false;
-  };
-  const showTriggerNow = () => {
-    hiddenUntil.value = 0;
-    visibilityTick.value++;
-    saveLocalSetting(HIDDEN_UNTIL_STORAGE_KEY, null);
+  const hideTriggerFor = async (minutes: number) => {
+    if (!Number.isFinite(minutes) || minutes <= 0 || isSavingVisibility.value) return;
+    isSavingVisibility.value = true;
+    visibilityRevision++;
+    const deadline = Date.now() + minutes * 60_000;
+    const accountId = userStore.user?.id;
+    try {
+      const result = await updateOnboardingStateApi({ state: { hiddenUntil: deadline } });
+      if (accountId !== userStore.user?.id) return;
+      hiddenUntil.value = result.hiddenUntil ?? deadline;
+      isPanelOpen.value = false;
+    } catch {
+      if (accountId === userStore.user?.id) addErrorNotification(i18n.global.t('common.errors.settingsSaveFailed'));
+    } finally {
+      if (accountId === userStore.user?.id) isSavingVisibility.value = false;
+    }
   };
 
   // Helper to get filtered categories (excludes demo-hidden tasks in demo mode)
@@ -315,18 +305,34 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
   // Actions
   const fetchOnboardingState = async () => {
+    if (isLoading.value) return;
+    const accountId = userStore.user?.id;
+    const isFirstLoad = !isInitialized.value;
+    const revision = visibilityRevision;
     isLoading.value = true;
     try {
       const data = await fetchOnboardingStateApi();
+      if (accountId !== userStore.user?.id) return;
+      const canRestoreVisibility = revision === visibilityRevision && !isSavingVisibility.value;
+      if (canRestoreVisibility) {
+        hiddenUntil.value = data.hiddenUntil ?? 0;
+        isDismissed.value = data.isDismissed;
+        dismissedAt.value = data.dismissedAt;
+      }
       completedTasks.value = data.completedTasks;
-      isDismissed.value = data.isDismissed;
-      dismissedAt.value = data.dismissedAt;
       isInitialized.value = true;
 
       // Auto-open panel on first visit if not dismissed and not all complete.
       // Demo users land on a data-rich dashboard — starting collapsed avoids
       // shrinking the page content on first impression.
-      if (!data.isDismissed && !isTemporarilyHidden.value && completedTasks.value.length < allTasks.value.length && !isDemo.value) {
+      if (
+        canRestoreVisibility &&
+        isFirstLoad &&
+        !data.isDismissed &&
+        !isTemporarilyHidden.value &&
+        completedTasks.value.length < allTasks.value.length &&
+        !isDemo.value
+      ) {
         isPanelOpen.value = true;
 
         // Expand the first category that has incomplete tasks
@@ -341,7 +347,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     } catch (error) {
       console.error('Failed to fetch onboarding state:', error);
     } finally {
-      isLoading.value = false;
+      if (accountId === userStore.user?.id) isLoading.value = false;
     }
   };
 
@@ -364,34 +370,43 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   };
 
   const dismissPermanently = async () => {
-    const now = new Date().toISOString();
-    isDismissed.value = true;
-    dismissedAt.value = now;
-    isPanelOpen.value = false;
-
+    if (isSavingVisibility.value) return;
+    isSavingVisibility.value = true;
+    visibilityRevision++;
+    const accountId = userStore.user?.id;
     try {
-      await updateOnboardingStateApi({
-        state: { isDismissed: true, dismissedAt: now },
+      const data = await updateOnboardingStateApi({
+        state: { isDismissed: true, dismissedAt: new Date().toISOString() },
       });
-    } catch (error) {
-      // Revert on failure
-      isDismissed.value = false;
-      dismissedAt.value = null;
-      console.error('Failed to dismiss onboarding:', error);
+      if (accountId !== userStore.user?.id) return;
+      isDismissed.value = data.isDismissed;
+      dismissedAt.value = data.dismissedAt;
+      isPanelOpen.value = false;
+    } catch {
+      if (accountId === userStore.user?.id) addErrorNotification(i18n.global.t('common.errors.settingsSaveFailed'));
+    } finally {
+      if (accountId === userStore.user?.id) isSavingVisibility.value = false;
     }
   };
 
   const reopen = async () => {
-    showTriggerNow();
-    isDismissed.value = false;
-    dismissedAt.value = null;
-
+    if (isSavingVisibility.value) return;
+    isSavingVisibility.value = true;
+    visibilityRevision++;
+    const accountId = userStore.user?.id;
     try {
-      await updateOnboardingStateApi({
-        state: { isDismissed: false, dismissedAt: null },
+      const data = await updateOnboardingStateApi({
+        state: { isDismissed: false, dismissedAt: null, hiddenUntil: 0 },
       });
-    } catch (error) {
-      console.error('Failed to reopen onboarding:', error);
+      if (accountId !== userStore.user?.id) return;
+      isDismissed.value = data.isDismissed;
+      dismissedAt.value = data.dismissedAt;
+      hiddenUntil.value = data.hiddenUntil ?? 0;
+      void fetchOnboardingState();
+    } catch {
+      if (accountId === userStore.user?.id) addErrorNotification(i18n.global.t('common.errors.settingsSaveFailed'));
+    } finally {
+      if (accountId === userStore.user?.id) isSavingVisibility.value = false;
     }
   };
 
@@ -420,7 +435,10 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     isPanelOpen.value = false;
     expandedCategories.value = [];
     isInitialized.value = false;
-    // Keep the per-device temporary hide preference across sign-out/sign-in.
+    hiddenUntil.value = 0;
+    visibilityRevision++;
+    isSavingVisibility.value = false;
+    isLoading.value = false;
   };
 
   return {
@@ -449,7 +467,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     setTriggerPosition,
     resetTriggerPosition,
     hideTriggerFor,
-    showTriggerNow,
+    isSavingVisibility,
     isTaskCompleted,
     getCategoryProgress,
     isCategoryExpanded,

@@ -17,7 +17,7 @@ import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
 const isMobile = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
 const onboardingStore = useOnboardingStore();
-const { isAtDefaultPosition } = storeToRefs(onboardingStore);
+const { isAtDefaultPosition, isSavingVisibility } = storeToRefs(onboardingStore);
 
 const emit = defineEmits<{ dismiss: [] }>();
 const isConfirmOpen = ref(false);
@@ -33,7 +33,7 @@ const handleConfirm = () => {
     <div :class="isMobile ? 'mb-2 grid grid-cols-2 gap-2' : 'mb-2 grid grid-cols-1 gap-2'">
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
-          <Button variant="outline" size="sm" class="w-full">
+          <Button variant="outline" size="sm" class="w-full" :disabled="isSavingVisibility">
             <EyeOffIcon class="size-4" />
             {{ t('kasana.quickStart.hideButton') }}
           </Button>

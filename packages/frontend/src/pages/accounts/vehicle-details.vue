@@ -21,236 +21,264 @@
       </RouterLink>
     </div>
 
-    <div v-else class="@container/vehicle grid min-w-0 grid-cols-1 gap-6 wrap-anywhere">
-      <!-- Hero / header -->
-      <section
-        class="bg-card relative overflow-hidden rounded-2xl border shadow-xs"
-        :style="{
-          '--hero-accent': depreciationDirection === 'down' ? 'var(--app-expense-color)' : 'var(--app-income-color)',
-        }"
-      >
-        <div
-          aria-hidden="true"
-          class="pointer-events-none absolute inset-0 opacity-[0.06]"
-          :style="{
-            background:
-              'radial-gradient(circle at 100% 0%, var(--primary), transparent 55%), radial-gradient(circle at 0% 100%, var(--hero-accent), transparent 50%)',
-          }"
-        ></div>
+    <div v-else class="@container/vehicle grid min-w-0 grid-cols-1 gap-3 wrap-anywhere @2xl/vehicle:gap-5">
+      <section class="bg-card grid min-w-0 gap-3 rounded-xl border p-4 @2xl/vehicle:gap-3 @2xl/vehicle:p-6">
+        <div class="flex min-w-0 items-start gap-3">
+          <AccountLogoPicker
+            v-if="isOwner"
+            :account-id="vehicle.accountId"
+            :fallback-icon="vehicleIcon"
+            class="size-9 shrink-0"
+          />
+          <AccountLogo
+            v-else-if="linkedAccount"
+            :account="linkedAccount"
+            :fallback-icon="vehicleIcon"
+            class="size-9 shrink-0"
+          />
+          <div class="min-w-0 flex-1">
+            <p class="text-muted-foreground text-xs">{{ vehicleTypeLabel }}</p>
+            <h1 class="text-xl leading-tight font-semibold tracking-tight @2xl/vehicle:text-3xl">
+              {{ vehicle.account.name || `${vehicle.make} ${vehicle.model}` }}
+            </h1>
+            <p class="text-muted-foreground text-sm">
+              {{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model
+              }}<span v-if="vehicle.trim"> · {{ vehicle.trim }}</span>
+            </p>
+          </div>
+        </div>
 
-        <div class="relative grid min-w-0 gap-6 p-5 @2xl/vehicle:p-8">
-          <div class="grid min-w-0 gap-4">
-            <div class="grid min-w-0 gap-4 @2xl/vehicle:grid-cols-[minmax(0,1fr)_auto] @2xl/vehicle:items-start">
-              <div class="flex min-w-0 items-start gap-3">
-                <AccountLogoPicker v-if="isOwner" :account-id="vehicle.accountId" class="size-9 shrink-0" />
-                <AccountLogo v-else-if="linkedAccount" :account="linkedAccount" class="size-9 shrink-0" />
-                <div class="grid min-w-0 gap-0.5 wrap-anywhere">
-                  <div class="text-muted-foreground text-xs tracking-wider uppercase">
-                    {{ $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass]) }}
-                  </div>
-                  <h1 class="text-2xl leading-tight font-semibold tracking-tight @2xl/vehicle:text-3xl">
-                    {{ vehicle.account?.name || `${vehicle.make} ${vehicle.model}` }}
-                  </h1>
-                  <div class="text-muted-foreground text-sm">
-                    {{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model
-                    }}<span v-if="vehicle.trim"> · {{ vehicle.trim }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div
-                v-if="isOwner"
-                class="flex max-w-full min-w-0 flex-wrap items-start gap-2 @2xl/vehicle:max-w-sm @2xl/vehicle:justify-end"
+        <div class="border-border/60 grid min-w-0 gap-1 border-t pt-3">
+          <div class="text-muted-foreground flex flex-wrap items-center gap-1 text-xs font-medium">
+            <span>{{ $t('pages.vehicleDetails.currentValue') }}</span>
+            <HintIcon :title="$t('pages.vehicleDetails.currentValue')" :content="valuationExplanation" />
+          </div>
+          <VehicleAmount
+            :formatted="formatAmountByCurrencyCode(vehicle.account.currentBalance, currencyCode)"
+            data-testid="vehicle-estimated-amount"
+            class="max-w-full min-w-0 text-2xl font-semibold tracking-tight tabular-nums @2xl/vehicle:text-4xl"
+          />
+          <span v-if="showRefValue" class="text-muted-foreground text-sm tabular-nums">
+            ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(refCurrentBalance, baseCurrencyCode)" />
+          </span>
+          <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span
+              class="inline-flex min-w-0 flex-wrap items-center gap-1 text-sm font-medium tabular-nums"
+              :class="
+                depreciationAmount === 0
+                  ? 'text-muted-foreground'
+                  : depreciationDirection === 'down'
+                    ? 'text-app-expense-color'
+                    : 'text-app-income-color'
+              "
+            >
+              <component
+                v-if="depreciationAmount !== 0"
+                :is="depreciationDirection === 'down' ? ArrowDownRightIcon : ArrowUpRightIcon"
+                class="size-4"
+                aria-hidden="true"
+              />
+              <VehicleAmount :formatted="formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode)" />
+              <span class="text-muted-foreground font-normal whitespace-nowrap"
+                >({{ depreciationPercent === 0 ? '' : depreciationDirection === 'down' ? '-' : '+'
+                }}{{ Math.abs(depreciationPercent).toFixed(1) }}%)</span
               >
-                <UiButton
-                  variant="outline"
-                  class="h-auto min-h-[44px] max-w-full min-w-[44px] wrap-anywhere whitespace-normal"
-                  @click="isOverrideOpen = true"
-                >
-                  {{ $t('pages.vehicleDetails.overrideValueButton') }}
-                </UiButton>
-                <UiButton
-                  variant="outline"
-                  class="h-auto min-h-[44px] max-w-full min-w-[44px] wrap-anywhere whitespace-normal"
-                  @click="isEditOpen = true"
-                >
-                  {{ $t('pages.vehicleDetails.editButton') }}
-                </UiButton>
-                <DesktopOnlyTooltip :content="$t('pages.vehicleDetails.deleteTitle')">
-                  <UiButton
-                    variant="soft-destructive"
-                    size="icon"
-                    class="size-[44px] shrink-0"
-                    :aria-label="$t('pages.vehicleDetails.deleteTitle')"
-                    @click="isDeleteOpen = true"
-                  >
-                    <Trash2Icon class="size-4" />
-                  </UiButton>
-                </DesktopOnlyTooltip>
+            </span>
+            <span class="text-muted-foreground text-xs">{{
+              $t('pages.vehicleDetails.sinceAcquired', { date: formatDisplayDate(vehicle.purchaseDate) })
+            }}</span>
+          </div>
+        </div>
+
+        <div v-if="isOwner" class="flex min-w-0 flex-wrap items-center gap-2">
+          <UiButton
+            class="min-h-[44px] max-w-full min-w-[44px] rounded-lg px-2.5 text-sm wrap-anywhere whitespace-normal"
+            @click="isOverrideOpen = true"
+            >{{ $t('pages.vehicleDetails.overrideValueButton') }}</UiButton
+          >
+          <UiButton
+            variant="outline"
+            class="min-h-[44px] max-w-full min-w-[44px] rounded-lg px-2.5 text-sm wrap-anywhere whitespace-normal"
+            @click="isEditOpen = true"
+            >{{ $t('pages.vehicleDetails.editButton') }}</UiButton
+          >
+          <UiButton
+            variant="ghost-destructive"
+            size="icon"
+            class="size-[44px] shrink-0"
+            :aria-label="$t('pages.vehicleDetails.deleteTitle')"
+            :title="$t('pages.vehicleDetails.deleteTitle')"
+            @click="isDeleteOpen = true"
+          >
+            <Trash2Icon class="size-4" aria-hidden="true" />
+          </UiButton>
+        </div>
+      </section>
+
+      <Tabs v-model="activeVehicleTab">
+        <TabsList class="max-w-full">
+          <TabsTrigger value="summary">{{ $t('pages.vehicleDetails.tabs.summary') }}</TabsTrigger>
+          <TabsTrigger value="activity">{{ $t('pages.vehicleDetails.tabs.activity') }}</TabsTrigger>
+          <TabsTrigger value="information">{{ $t('pages.vehicleDetails.tabs.information') }}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="summary" class="space-y-3">
+          <!-- KPI strip -->
+          <section
+            class="bg-card divide-border/65 grid min-w-0 divide-y rounded-2xl border @lg/vehicle:auto-cols-fr @lg/vehicle:grid-flow-col @lg/vehicle:divide-x @lg/vehicle:divide-y-0"
+          >
+            <div class="min-w-0 px-3 py-2.5 @lg/vehicle:p-4">
+              <div class="text-muted-foreground text-xs tracking-wider uppercase">
+                {{ $t('pages.vehicleDetails.purchasePrice') }}
               </div>
+              <VehicleAmount
+                data-testid="vehicle-kpi-money"
+                :formatted="formatAmountByCurrencyCode(vehicle.purchasePrice, currencyCode)"
+                class="mt-1 block text-lg font-semibold tabular-nums"
+              />
+              <div v-if="showRefValue" class="text-muted-foreground mt-0.5 text-xs tabular-nums">
+                ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(refPurchasePrice, baseCurrencyCode)" />
+              </div>
+              <div class="text-muted-foreground mt-1 text-xs">{{ formatDisplayDate(vehicle.purchaseDate) }}</div>
             </div>
 
-            <div class="grid min-w-0 gap-1">
-              <span class="text-muted-foreground text-xs tracking-wider uppercase">
-                {{ $t('pages.vehicleDetails.currentValue') }}
-              </span>
-              <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <div class="min-w-0 px-3 py-2.5 @lg/vehicle:p-4">
+              <div class="text-muted-foreground text-xs tracking-wider uppercase">
+                {{ $t('pages.vehicleDetails.totalDepreciation') }}
+              </div>
+              <div class="mt-1 flex flex-wrap items-baseline gap-2 text-lg font-semibold tabular-nums">
                 <VehicleAmount
-                  :formatted="formatAmountByCurrencyCode(vehicle.account?.currentBalance ?? 0, currencyCode)"
-                  class="max-w-full min-w-0 text-3xl font-semibold tracking-tight tabular-nums @2xl/vehicle:text-5xl"
+                  data-testid="vehicle-kpi-money"
+                  :formatted="formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode)"
+                  :class="depreciationDirection === 'down' ? 'text-app-expense-color' : 'text-app-income-color'"
                 />
                 <span
-                  class="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1 text-sm font-medium tabular-nums"
-                  :class="depreciationDirection === 'down' ? 'text-app-expense-color' : 'text-app-income-color'"
+                  data-testid="vehicle-kpi-percentage"
+                  class="text-muted-foreground text-sm font-normal whitespace-nowrap"
                 >
-                  <component
-                    :is="depreciationDirection === 'down' ? ArrowDownRightIcon : ArrowUpRightIcon"
-                    class="size-4"
-                  />
-                  <VehicleAmount :formatted="formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode)" />
-                  <span class="text-muted-foreground font-normal whitespace-nowrap">
-                    ({{ depreciationDirection === 'down' ? '-' : '+' }}{{ Math.abs(depreciationPercent).toFixed(1) }}%)
-                  </span>
+                  {{ Math.abs(depreciationPercent).toFixed(1) }}%
                 </span>
               </div>
-              <span v-if="showRefValue" class="text-muted-foreground text-sm tabular-nums">
-                ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(refCurrentBalance, baseCurrencyCode)" />
-              </span>
-              <span class="text-muted-foreground text-xs">
-                {{ $t('pages.vehicleDetails.sinceAcquired', { date: formatDisplayDate(vehicle.purchaseDate) }) }}
-              </span>
-              <p class="text-muted-foreground max-w-lg text-xs leading-relaxed">
-                {{ $t('pages.vehicleDetails.estimateDisclaimer') }}
-              </p>
+              <div v-if="showRefValue" class="text-muted-foreground mt-0.5 text-xs tabular-nums">
+                ≈
+                <VehicleAmount
+                  :formatted="formatAmountByCurrencyCode(Math.abs(refDepreciationAmount), baseCurrencyCode)"
+                />
+              </div>
+              <div class="text-muted-foreground mt-1 text-xs">
+                {{ $t('pages.vehicleDetails.depreciationCadence', { years: ownedYears.toFixed(1) }) }}
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- KPI strip -->
-      <section class="grid gap-4 @lg/vehicle:grid-cols-3">
-        <div class="bg-card rounded-2xl border p-5 shadow-xs">
-          <div class="text-muted-foreground text-xs tracking-wider uppercase">
-            {{ $t('pages.vehicleDetails.purchasePrice') }}
-          </div>
-          <VehicleAmount
-            :formatted="formatAmountByCurrencyCode(vehicle.purchasePrice, currencyCode)"
-            class="mt-2 block text-2xl font-semibold tabular-nums"
-          />
-          <div v-if="showRefValue" class="text-muted-foreground mt-0.5 text-xs tabular-nums">
-            ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(refPurchasePrice, baseCurrencyCode)" />
-          </div>
-          <div class="text-muted-foreground mt-1 text-xs">{{ formatDisplayDate(vehicle.purchaseDate) }}</div>
-        </div>
+            <div
+              v-if="vehicle.depreciationPreset !== DEPRECIATION_PRESET.manual"
+              class="min-w-0 px-3 py-2.5 @lg/vehicle:p-4"
+            >
+              <div class="text-muted-foreground text-xs tracking-wider uppercase">
+                {{ $t('pages.vehicleDetails.projectedFiveYear') }}
+              </div>
+              <VehicleAmount
+                data-testid="vehicle-kpi-money"
+                :formatted="formatAmountByCurrencyCode(projectedFiveYearValue, currencyCode)"
+                class="mt-1 block text-lg font-semibold tabular-nums"
+              />
+              <div v-if="showRefValue" class="text-muted-foreground mt-0.5 text-xs tabular-nums">
+                ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(refProjectedFiveYearValue, baseCurrencyCode)" />
+              </div>
+              <div class="text-muted-foreground mt-1 text-xs">
+                {{
+                  $t('pages.vehicleDetails.projectedExplain', {
+                    pct: projectedFiveYearLossPct.toFixed(1),
+                  })
+                }}
+              </div>
+            </div>
+          </section>
 
-        <div class="bg-card rounded-2xl border p-5 shadow-xs">
-          <div class="text-muted-foreground text-xs tracking-wider uppercase">
-            {{ $t('pages.vehicleDetails.totalDepreciation') }}
-          </div>
-          <div class="mt-2 flex flex-wrap items-baseline gap-2 text-2xl font-semibold tabular-nums">
-            <VehicleAmount
-              :formatted="formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode)"
-              :class="depreciationDirection === 'down' ? 'text-app-expense-color' : 'text-app-income-color'"
+          <!-- Depreciation chart -->
+          <section
+            v-if="vehicle.depreciationPreset !== DEPRECIATION_PRESET.manual || vehicle.valuationSegments?.length"
+            class="bg-card @container/chart-card rounded-2xl border p-5 shadow-xs @md/vehicle:p-6"
+          >
+            <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h3 class="text-base font-semibold tracking-tight">{{ $t('pages.vehicleDetails.chart.title') }}</h3>
+                <p class="text-muted-foreground mt-1 text-xs">{{ $t('pages.vehicleDetails.chart.subtitle') }}</p>
+              </div>
+            </div>
+            <DepreciationChart
+              :timeline="showRefValue ? refDepreciationTimeline : depreciationTimeline"
+              :purchase-date="purchaseDateAsDate"
+              :override="showRefValue ? refOverrideAnchor : overrideAnchor"
+              :today-date="todayDate"
+              :salvage-floor="showRefValue ? refSalvageFloorValue : salvageFloorValue"
+              :currency-code="showRefValue ? baseCurrencyCode : currencyCode"
             />
-            <span class="text-muted-foreground text-sm font-normal whitespace-nowrap">
-              {{ Math.abs(depreciationPercent).toFixed(1) }}%
-            </span>
-          </div>
-          <div v-if="showRefValue" class="text-muted-foreground mt-0.5 text-xs tabular-nums">
-            ≈
-            <VehicleAmount :formatted="formatAmountByCurrencyCode(Math.abs(refDepreciationAmount), baseCurrencyCode)" />
-          </div>
-          <div class="text-muted-foreground mt-1 text-xs">
-            {{ $t('pages.vehicleDetails.depreciationCadence', { years: ownedYears.toFixed(1) }) }}
-          </div>
-        </div>
-
-        <div class="bg-card rounded-2xl border p-5 shadow-xs">
-          <div class="text-muted-foreground text-xs tracking-wider uppercase">
-            {{ $t('pages.vehicleDetails.projectedFiveYear') }}
-          </div>
-          <VehicleAmount
-            :formatted="formatAmountByCurrencyCode(projectedFiveYearValue, currencyCode)"
-            class="mt-2 block text-2xl font-semibold tabular-nums"
+          </section>
+        </TabsContent>
+        <TabsContent value="activity">
+          <OverrideHistoryCard
+            v-if="vehicle.account"
+            :account-id="vehicle.account.id"
+            :currency-code="currencyCode"
+            :readonly="!isOwner"
           />
-          <div v-if="showRefValue" class="text-muted-foreground mt-0.5 text-xs tabular-nums">
-            ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(refProjectedFiveYearValue, baseCurrencyCode)" />
-          </div>
-          <div class="text-muted-foreground mt-1 text-xs">
-            {{
-              $t('pages.vehicleDetails.projectedExplain', {
-                pct: projectedFiveYearLossPct.toFixed(1),
-              })
-            }}
-          </div>
-        </div>
-      </section>
+        </TabsContent>
+        <TabsContent value="information" class="space-y-4">
+          <!-- Details sections -->
+          <section class="grid gap-4 @lg/vehicle:grid-cols-2">
+            <DetailsCard :title="$t('pages.vehicleDetails.sections.vehicle')" :icon="CarIcon">
+              <DetailRow :label="$t('pages.vehicleDetails.vehicleClass')">
+                {{
+                  vehicle.vehicleType
+                    ? $t(`forms.createVehicle.types.${vehicle.vehicleType}`)
+                    : $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass])
+                }}
+              </DetailRow>
+              <DetailRow :label="$t('pages.vehicleDetails.year')">{{ vehicle.year }}</DetailRow>
+              <DetailRow v-if="isOwner && vehicle.licensePlate" :label="$t('forms.createVehicle.plateLabel')">{{
+                vehicle.licensePlate
+              }}</DetailRow>
+              <DetailRow v-if="vehicle.trim" :label="$t('pages.vehicleDetails.trim')">{{ vehicle.trim }}</DetailRow>
+              <DetailRow v-if="vehicle.currentMileage !== null" :label="$t('pages.vehicleDetails.currentMileage')">
+                {{ vehicle.currentMileage.toLocaleString() }}
+              </DetailRow>
+            </DetailsCard>
 
-      <!-- Depreciation chart -->
-      <section class="bg-card @container/chart-card rounded-2xl border p-5 shadow-xs @md/vehicle:p-6">
-        <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h3 class="text-base font-semibold tracking-tight">{{ $t('pages.vehicleDetails.chart.title') }}</h3>
-            <p class="text-muted-foreground mt-1 text-xs">{{ $t('pages.vehicleDetails.chart.subtitle') }}</p>
-          </div>
-        </div>
-        <DepreciationChart
-          :timeline="showRefValue ? refDepreciationTimeline : depreciationTimeline"
-          :purchase-date="purchaseDateAsDate"
-          :override="showRefValue ? refOverrideAnchor : overrideAnchor"
-          :today-date="todayDate"
-          :salvage-floor="showRefValue ? refSalvageFloorValue : salvageFloorValue"
-          :currency-code="showRefValue ? baseCurrencyCode : currencyCode"
-        />
-      </section>
-
-      <!-- Details sections -->
-      <section class="grid gap-4 @lg/vehicle:grid-cols-2">
-        <DetailsCard :title="$t('pages.vehicleDetails.sections.vehicle')" :icon="CarIcon">
-          <DetailRow :label="$t('pages.vehicleDetails.vehicleClass')">
-            {{ $t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.vehicleClass]) }}
-          </DetailRow>
-          <DetailRow :label="$t('pages.vehicleDetails.year')">{{ vehicle.year }}</DetailRow>
-          <DetailRow v-if="vehicle.trim" :label="$t('pages.vehicleDetails.trim')">{{ vehicle.trim }}</DetailRow>
-          <DetailRow v-if="vehicle.currentMileage !== null" :label="$t('pages.vehicleDetails.currentMileage')">
-            {{ vehicle.currentMileage.toLocaleString() }}
-          </DetailRow>
-        </DetailsCard>
-
-        <DetailsCard :title="$t('pages.vehicleDetails.sections.depreciation')" :icon="TrendingDownIcon">
-          <DetailRow :label="$t('pages.vehicleDetails.depreciationPreset')">
-            {{ $t(DEPRECIATION_PRESET_TRANSLATION_KEYS[vehicle.depreciationPreset]) }}
-          </DetailRow>
-          <DetailRow v-if="vehicle.customAnnualRatePct !== null" :label="$t('pages.vehicleDetails.customAnnualRate')">
-            {{ vehicle.customAnnualRatePct }}%
-          </DetailRow>
-          <DetailRow :label="$t('pages.vehicleDetails.salvageFloor')">
-            <span class="tabular-nums">{{ vehicle.salvageFloorPct }}%</span>
-            <span class="text-muted-foreground ml-2 text-xs">
-              ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(salvageFloorValue, currencyCode)" />
-              <span v-if="showRefValue">
-                (<VehicleAmount :formatted="formatAmountByCurrencyCode(refSalvageFloorValue, baseCurrencyCode)" />)
-              </span>
-            </span>
-          </DetailRow>
-          <DetailRow v-if="vehicle.valueAnchor !== null" :label="$t('pages.vehicleDetails.lastOverride')">
-            <span class="tabular-nums">{{ formatAmountByCurrencyCode(vehicle.valueAnchor, currencyCode) }}</span>
-            <span v-if="showRefValue && refValueAnchor !== null" class="text-muted-foreground ml-2 text-xs">
-              ≈ {{ formatAmountByCurrencyCode(refValueAnchor, baseCurrencyCode) }}
-            </span>
-            <span class="text-muted-foreground ml-2 text-xs">
-              {{ formatDisplayDate(vehicle.valueAnchorDate ?? vehicle.purchaseDate) }}
-            </span>
-          </DetailRow>
-        </DetailsCard>
-      </section>
-
-      <OverrideHistoryCard
-        v-if="vehicle.account"
-        :account-id="vehicle.account.id"
-        :currency-code="currencyCode"
-        :readonly="!isOwner"
-      />
+            <DetailsCard :title="$t('pages.vehicleDetails.sections.depreciation')" :icon="TrendingDownIcon">
+              <DetailRow :label="$t('pages.vehicleDetails.depreciationPreset')">
+                {{ $t(DEPRECIATION_PRESET_TRANSLATION_KEYS[vehicle.depreciationPreset]) }}
+              </DetailRow>
+              <DetailRow
+                v-if="vehicle.customAnnualRatePct !== null"
+                :label="$t('pages.vehicleDetails.customAnnualRate')"
+              >
+                {{ vehicle.customAnnualRatePct }}%
+              </DetailRow>
+              <DetailRow
+                v-if="vehicle.depreciationPreset !== DEPRECIATION_PRESET.manual"
+                :label="$t('pages.vehicleDetails.salvageFloor')"
+              >
+                <span class="tabular-nums">{{ vehicle.salvageFloorPct }}%</span>
+                <span class="text-muted-foreground ml-2 text-xs">
+                  ≈ <VehicleAmount :formatted="formatAmountByCurrencyCode(salvageFloorValue, currencyCode)" />
+                  <span v-if="showRefValue">
+                    (<VehicleAmount :formatted="formatAmountByCurrencyCode(refSalvageFloorValue, baseCurrencyCode)" />)
+                  </span>
+                </span>
+              </DetailRow>
+              <DetailRow v-if="vehicle.valueAnchor !== null" :label="$t('pages.vehicleDetails.lastOverride')">
+                <span class="tabular-nums">{{ formatAmountByCurrencyCode(vehicle.valueAnchor, currencyCode) }}</span>
+                <span v-if="showRefValue && refValueAnchor !== null" class="text-muted-foreground ml-2 text-xs">
+                  ≈ {{ formatAmountByCurrencyCode(refValueAnchor, baseCurrencyCode) }}
+                </span>
+                <span class="text-muted-foreground ml-2 text-xs">
+                  {{ formatDisplayDate(vehicle.valueAnchorDate ?? vehicle.purchaseDate) }}
+                </span>
+              </DetailRow>
+            </DetailsCard>
+          </section>
+        </TabsContent>
+      </Tabs>
 
       <BalanceAdjustmentDialog
         v-if="isOwner && isOverrideOpen && vehicle.account"
@@ -282,14 +310,17 @@ import {
   VEHICLE_CLASS_TRANSLATION_KEYS,
 } from '@/common/const/vehicle-classes-verbose';
 import AccountLogo from '@/components/common/account-logo.vue';
+import HintIcon from '@/components/common/hint-icon.vue';
 import PageWrapper from '@/components/common/page-wrapper.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import EditVehicleDialog from '@/components/dialogs/edit-vehicle-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
-import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/lib/ui/tabs';
+import { getVehicleTypeIcon } from '@/components/forms/vehicle-class-options';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
 import { useFormatCurrency } from '@/composable';
 import { useAccountAccess } from '@/composable/use-account-access';
+import { useDateLocale } from '@/composable/use-date-locale';
 import { captureException } from '@/lib/sentry';
 import AccountLogoPicker from '@/pages/account/components/account-logo-picker.vue';
 import BalanceAdjustmentDialog from '@/pages/account/components/balance-adjustment-dialog.vue';
@@ -301,9 +332,10 @@ import VehicleAmount from '@/pages/accounts/components/vehicle-details/vehicle-a
 import { buildDepreciationTimeline, getSalvageFloorValue } from '@/pages/accounts/utils/depreciation-math';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useAccountsStore, useCurrenciesStore } from '@/stores';
+import { DEPRECIATION_PRESET } from '@bt/shared/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { ArrowDownRightIcon, ArrowUpRightIcon, CarIcon, Trash2Icon, TrendingDownIcon } from '@lucide/vue';
-import { addMonths, differenceInCalendarDays, format, parseISO } from 'date-fns';
+import { addMonths, differenceInCalendarDays, parseISO } from 'date-fns';
 import { storeToRefs } from 'pinia';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -394,7 +426,7 @@ const overrideAnchor = computed<{ value: number; date: Date } | null>(() => {
 const salvageFloorValue = computed(() =>
   vehicle.value
     ? getSalvageFloorValue({
-        anchorValue: vehicle.value.purchasePrice,
+        anchorValue: vehicle.value.valuationSegments?.at(-1)?.value ?? vehicle.value.purchasePrice,
         salvageFloorPct: vehicle.value.salvageFloorPct,
       })
     : 0,
@@ -410,6 +442,7 @@ const depreciationTimeline = computed(() => {
     customAnnualRatePct: vehicle.value.customAnnualRatePct,
     salvageFloorPct: vehicle.value.salvageFloorPct,
     monthsHorizon: PROJECTION_HORIZON_MONTHS,
+    valuationSegments: vehicle.value.valuationSegments,
   });
 });
 
@@ -445,7 +478,29 @@ const refOverrideAnchor = computed<{ value: number; date: Date } | null>(() =>
     : null,
 );
 
-const formatDisplayDate = (iso: string) => format(parseISO(iso), 'MMM d, yyyy');
+const { format } = useDateLocale();
+const formatDisplayDate = (iso: string) => format(parseISO(iso), 'PPP');
+const activeVehicleTab = ref('summary');
+const vehicleIcon = computed(() =>
+  vehicle.value
+    ? getVehicleTypeIcon({ type: vehicle.value.vehicleType, legacyClass: vehicle.value.vehicleClass })
+    : CarIcon,
+);
+const vehicleTypeLabel = computed(() => {
+  if (!vehicle.value) return '';
+  return vehicle.value.vehicleType
+    ? t(`forms.createVehicle.types.${vehicle.value.vehicleType}`)
+    : t(VEHICLE_CLASS_TRANSLATION_KEYS[vehicle.value.vehicleClass]);
+});
+const valuationExplanation = computed(() =>
+  t(
+    vehicle.value?.depreciationPreset === DEPRECIATION_PRESET.manual
+      ? 'forms.createVehicle.manualHint'
+      : vehicle.value?.depreciationPreset === DEPRECIATION_PRESET.straightLine
+        ? 'forms.createVehicle.accountingHint'
+        : 'pages.vehicleDetails.estimateDisclaimer',
+  ),
+);
 
 const isOverrideOpen = ref(false);
 const isEditOpen = ref(false);

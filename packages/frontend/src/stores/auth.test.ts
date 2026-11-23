@@ -13,12 +13,15 @@ import { useAuthStore } from './auth';
 import { resetAllDefinedStores } from './setup';
 import { useUserStore } from './user';
 
+const { prefetchQuery } = vi.hoisted(() => ({ prefetchQuery: vi.fn() }));
+
 vi.mock('./setup', () => ({ resetAllDefinedStores: vi.fn() }));
 vi.mock('@/routes', () => ({
   ROUTES_NAMES: { signIn: 'auth.sign-in' },
   router: { resolve: () => ({ href: '/sign-in' }) },
 }));
 vi.mock('@/api', () => ({ loadUserData: vi.fn(), startFeatureTrial: vi.fn() }));
+vi.mock('@/api/user-settings', () => ({ getUserSettings: vi.fn() }));
 vi.mock('@/lib/auth-client', () => ({
   authClient: {},
   getSession: vi.fn(),
@@ -38,13 +41,13 @@ vi.mock('@/lib/posthog', () => ({
 }));
 vi.mock('@/lib/sentry', () => ({ captureException: vi.fn(), clearSentryUser: vi.fn(), setSentryUser: vi.fn() }));
 vi.mock('@/components/notification-center', () => ({ dismissPersistentNotifications: vi.fn() }));
-vi.mock('@tanstack/vue-query', () => ({ useQueryClient: () => ({ invalidateQueries: vi.fn() }) }));
+vi.mock('@tanstack/vue-query', () => ({ useQueryClient: () => ({ invalidateQueries: vi.fn(), prefetchQuery }) }));
 vi.mock('@/stores', async () => {
   const { useUserStore: realUserStore } = await import('./user');
   return {
     useUserStore: realUserStore,
-    useCategoriesStore: () => ({ loadCategories: vi.fn() }),
-    useCurrenciesStore: () => ({ loadBaseCurrency: vi.fn() }),
+    useCategoriesStore: () => ({ loadCategories: vi.fn(), resetCategories: vi.fn() }),
+    useCurrenciesStore: () => ({ loadBaseCurrency: vi.fn(), loadCurrencies: vi.fn().mockResolvedValue(undefined) }),
   };
 });
 
@@ -69,6 +72,10 @@ describe('useAuthStore login', () => {
 
     expect(userAtWipe).toBeNull();
     expect(userStore.user).toEqual(USER);
+    expect(prefetchQuery).toHaveBeenCalledOnce();
+    expect(prefetchQuery.mock.invocationCallOrder[0]).toBeGreaterThan(
+      vi.mocked(resetQueryCaches).mock.invocationCallOrder[0]!,
+    );
   });
 });
 

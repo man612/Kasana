@@ -13,7 +13,7 @@
       "securityPlaceholder": "Pilih sekuritas",
       "quantityLabel": "Kuantitas",
       "quantityPlaceholder": "0.00",
-      "priceLabel": "Harga per Lembar",
+      "priceLabel": "Harga per unit",
       "pricePlaceholder": "0.00",
       "priceHelp": "Gunakan 0 untuk hadiah staking, airdrop, atau penyesuaian saldo.",
       "feesLabel": "Biaya (opsional)",
@@ -52,7 +52,11 @@
         "previewUnavailable": "Tidak ada nilai tukar pasar untuk tanggal ini – masukkan biaya atau nilai tukar secara manual.",
         "previewFetchFailed": "Tidak dapat memuat nilai tukar pasar. Periksa koneksi Anda atau masukkan nilai tukar secara manual.",
         "previewPlaceholder": "Pratinjau muncul di sini saat Anda mengisi formulir."
-      }
+      },
+      "invalidLots": "Masukkan jumlah lot bulat di atas nol.",
+      "quantityShares": "Lembar",
+      "quantityLots": "Lot",
+      "beiLotHelp": "Satu lot saham BEI berisi 100 lembar. Isi harga per lembar sesuai catatan broker."
     },
     "portfolioSettings": {
       "nameLabel": "Nama Portofolio",
@@ -219,6 +223,70 @@
       }
     },
     "createVehicle": {
+      "searchTypes": "Cari jenis kendaraan",
+      "noTypes": "Tidak ada jenis kendaraan yang cocok.",
+      "legacyType": "Jenis yang tersimpan",
+      "plateLabel": "Nomor polisi (opsional)",
+      "platePlaceholder": "mis. B 1234 ABC",
+      "manualHint": "Menggunakan harga beli atau nilai terakhir yang Anda catat. Gunakan Timpa Nilai untuk mengubahnya.",
+      "estimateHint": "Estimasi harga jual didasarkan pada golongan, harga beli, serta waktu sejak pembelian atau penyesuaian. Kondisi, pemakaian, dan pasar setempat memengaruhi harga jual sebenarnya.",
+      "accountingHint": "Estimasi akuntansi. Setiap tahun, nilai berkurang sebesar persentase yang dipilih dari nilai awal sampai mencapai nilai sisa minimum.",
+      "typeGroups": {
+        "motorcycles": "Sepeda motor",
+        "cars": "Mobil",
+        "commercial": "Kendaraan komersial, umum, dan khusus",
+        "mobility": "Mobilitas pribadi",
+        "watercraft": "Kendaraan air",
+        "aircraft": "Kendaraan udara",
+        "fictional": "Unik",
+        "other": "Lainnya"
+      },
+      "types": {
+        "motorcycle": "Sepeda motor",
+        "scooter": "Skuter",
+        "automatic": "Motor matic",
+        "sportBike": "Motor sport",
+        "underbone": "Motor bebek",
+        "trail": "Motor trail",
+        "cruiser": "Cruiser",
+        "touring": "Motor touring",
+        "electricBike": "Motor listrik",
+        "sedan": "Sedan",
+        "hatchback": "Hatchback",
+        "suv": "SUV",
+        "mpv": "MPV",
+        "pickup": "Pikap",
+        "van": "Van",
+        "ev": "Mobil listrik",
+        "hybrid": "Mobil hybrid",
+        "sportCar": "Mobil sport",
+        "classicCar": "Mobil klasik atau koleksi",
+        "bus": "Bus",
+        "minibus": "Minibus",
+        "taxi": "Taksi",
+        "angkot": "Angkot",
+        "truck": "Truk",
+        "emergency": "Kendaraan darurat",
+        "heavyEquipment": "Alat berat",
+        "bicycle": "Sepeda",
+        "ebike": "Sepeda listrik",
+        "wheelchair": "Kursi roda manual",
+        "powerchair": "Kursi roda elektrik",
+        "mobilityScooter": "Skuter mobilitas",
+        "kickScooter": "Skuter dorong",
+        "ship": "Kapal",
+        "boat": "Perahu",
+        "yacht": "Yacht",
+        "helicopter": "Helikopter",
+        "plane": "Pesawat pribadi",
+        "jet": "Jet pribadi",
+        "ufo": "UFO",
+        "rocket": "Roket",
+        "trex": "T-Rex",
+        "velociraptor": "Velociraptor",
+        "triceratops": "Triceratops",
+        "other": "Kendaraan lainnya"
+      },
       "nameLabel": "Nama kendaraan",
       "namePlaceholder": "mis. Vario Harian / Avanza Keluarga",
       "currencyLabel": "Mata Uang",
@@ -431,8 +499,8 @@
       },
       "vehicleDepreciation": {
         "title": "Pola penurunan nilai kendaraan",
-        "meaning": "Penyusutan adalah perkiraan berkurangnya harga kendaraan dari waktu ke waktu. Pola bawaan memakai kurva per kategori, Lambat berarti persentase tahunan 30% lebih kecil, Cepat 30% lebih besar, dan Tentukan sendiri memakai persentase tetap setiap tahun. Nilai ini estimasi matematis, bukan harga jual pasar yang terverifikasi.",
-        "example": "Untuk sedan contoh Rp200.000.000, pola bawaan menurunkan nilai 20% pada tahun pertama menjadi Rp160.000.000, lalu 15% dari sisanya pada tahun kedua menjadi Rp136.000.000. Ini contoh rumus aplikasi, bukan patokan harga mobil bekas Indonesia.",
+        "meaning": "Penyusutan adalah perkiraan penurunan nilai kendaraan. Perubahan nilai aset memengaruhi kekayaan bersih dan tidak membuat transaksi pembayaran.",
+        "example": "Jika kendaraan seharga Rp 100 juta diperkirakan bernilai Rp 90 juta, nilai aset yang dihitung menjadi Rp 90 juta. Saldo rekening bank tetap sama.",
         "important": "Kurva bawaan berasal dari referensi pasar luar negeri. Kondisi, pajak, lokasi, permintaan pasar, bekas banjir, riwayat servis, serta odometer tidak otomatis masuk rumus. Bandingkan dengan harga kendaraan bekas lokal dan gunakan pengaturan nilai manual jika diperlukan."
       },
       "vehicleCustomRate": {
@@ -546,6 +614,10 @@
     }
   },
   "fields": {
+    "accountSelect": {
+      "empty": "Belum ada akun",
+      "createHint": "Tambahkan akun untuk melanjutkan transaksi ini."
+    },
     "categorySelect": {
       "noCategoriesFound": "Tidak ada kategori ditemukan",
       "selectCategoryLabel": "Pilih kategori",
@@ -559,8 +631,8 @@
       "sharedOwnerCategoriesLoadError": "Tidak dapat memuat kategori untuk akun bersama. Silakan coba lagi.",
       "dialogHint": "Pilih kategori utama atau subkategori agar laporan lebih teratur.",
       "groupHint": "Kategori & subkategori",
-      "collapseAll": "Ringkas semua",
-      "expandAll": "Tampilkan semua",
+      "collapseAll": "Tutup semua",
+      "expandAll": "Buka semua",
       "collapseGroup": "Ringkas {name}",
       "expandGroup": "Tampilkan subkategori {name}"
     },

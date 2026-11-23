@@ -65,12 +65,14 @@ test.describe('Holding transactions infinite scroll', () => {
   });
 
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('preferred-locale', 'en'));
     await loginViaUI({ page, email: creds.email, password: creds.password });
     await seedTestData({ request: page.request });
   });
 
   test('scrolling the transactions list loads the next page', async ({ page }) => {
     await page.goto(`/portfolios/${portfolioId}`);
+    await page.getByRole('tab', { name: 'Holdings', exact: true }).click();
 
     const holdingRow = page.locator('table tbody tr').filter({ hasText: 'ISCRL' }).first();
     await expect(holdingRow).toBeVisible({ timeout: 10_000 });

@@ -461,7 +461,8 @@ const isPeriodActionPending = computed(
 
 // Open the transaction linked to a period in the canonical manage-transaction dialog.
 const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile);
-const { isDialogVisible, dialogProps, isCompactDialog, handleRecordClick, closeDialog } = useManageTransactionDialog();
+const { isDialogVisible, editSession, dialogProps, isCompactDialog, handleRecordClick, closeDialog } =
+  useManageTransactionDialog();
 const isOpeningTransaction = ref(false);
 
 async function openTransaction({ transactionId }: { transactionId: string }) {
@@ -1095,8 +1096,23 @@ async function openTransaction({ transactionId }: { transactionId: string }) {
     <SubscriptionMarkPaidDialog ref="markPaidRef" @paid="invalidateQueries" />
 
     <!-- Linked-transaction detail dialog -->
-    <TransactionDetailsModal v-model:open="isDialogVisible" :mobile="isMobileView" :is-compact="isCompactDialog">
-      <ManageTransactionDialogContent v-bind="dialogProps" @close-modal="closeDialog" @request-close="closeDialog" />
+    <TransactionDetailsModal
+      v-slot="{ requestClose, transaction, oppositeTransaction, committed, finish }"
+      v-model:open="isDialogVisible"
+      v-bind="dialogProps"
+      :session="editSession"
+      :mobile="isMobileView"
+      :is-compact="isCompactDialog"
+    >
+      <ManageTransactionDialogContent
+        ref="editSession"
+        :transaction="transaction"
+        :opposite-transaction="oppositeTransaction"
+        @committed="committed"
+        @deleted="closeDialog"
+        @close-modal="finish"
+        @request-close="requestClose"
+      />
     </TransactionDetailsModal>
   </div>
 </template>

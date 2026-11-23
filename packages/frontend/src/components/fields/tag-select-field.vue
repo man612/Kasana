@@ -2,8 +2,10 @@
 import { availableTagSuggestions, isCoreTagName, type TagSuggestion } from '@/common/const/indonesian-tag-suggestions';
 import TagIcon from '@/components/common/icons/tag-icon.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
+import { sameTagSelection } from '@/components/fields/utils/tag-selection';
 import FieldError from '@/components/fields/components/field-error.vue';
 import FieldLabel from '@/components/fields/components/field-label.vue';
+import { Button } from '@/components/lib/ui/button';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { useTagsStore } from '@/stores';
 import { type TagModel } from '@bt/shared/types';
@@ -39,7 +41,15 @@ const isDeleteConfirmOpen = ref(false);
 const pendingTagDelete = ref<TagModel | null>(null);
 const isDeleting = ref(false);
 
-const selectedIds = computed(() => new Set(props.modelValue ?? []));
+const initialIds = ref<string[]>([]);
+const draftIds = ref<string[]>([]);
+const selectedIds = computed(() => new Set(isOpen.value ? draftIds.value : props.modelValue));
+const changesPending = computed(() => !sameTagSelection({ initial: initialIds.value, draft: draftIds.value }));
+const commit = () => {
+  if (!changesPending.value || isCreatingSuggestion.value || isDeleting.value) return;
+  emit('update:model-value', [...draftIds.value]);
+  isOpen.value = false;
+};
 const selectedTags = computed(() =>
   (props.modelValue ?? [])
     .map((id) => tags.value.find((tag) => tag.id === id))
@@ -58,7 +68,9 @@ const recommendedTags = computed(() =>
     : [],
 );
 const openList = () => {
-  if (props.disabled) return;
+  if (props.disabled || isOpen.value) return;
+  initialIds.value = [...props.modelValue];
+  draftIds.value = [...props.modelValue];
   query.value = '';
   isOpen.value = true;
 };
@@ -66,11 +78,11 @@ watch(isOpen, (open) => {
   if (!open) query.value = '';
 });
 const toggleTag = (tag: TagModel) => {
-  const ids = [...(props.modelValue ?? [])];
+  const ids = [...draftIds.value];
   const index = ids.indexOf(tag.id);
   if (index < 0) ids.push(tag.id);
   else ids.splice(index, 1);
-  emit('update:model-value', ids);
+  draftIds.value = ids;
 };
 // Selecting and deselecting are reversible edits to this transaction, not tag deletion.
 const requestTagToggle = (tag: TagModel) => {
@@ -88,7 +100,9 @@ const confirmDelete = async () => {
   suggestionError.value = '';
   try {
     await tagsStore.deleteTag({ id: tag.id });
-    if (selectedIds.value.has(tag.id)) {
+    draftIds.value = draftIds.value.filter((id) => id !== tag.id);
+    initialIds.value = initialIds.value.filter((id) => id !== tag.id);
+    if (props.modelValue.includes(tag.id)) {
       emit(
         'update:model-value',
         (props.modelValue ?? []).filter((id) => id !== tag.id),
@@ -105,12 +119,13 @@ const createSuggestedTag = async (suggestion: TagSuggestion) => {
   if (props.disabled || isCreatingSuggestion.value) return;
   suggestionError.value = '';
   isCreatingSuggestion.value = true;
+  const currentSelection = initialIds.value;
   try {
     const existing = tags.value.find(
       (tag) => tag.name.toLocaleLowerCase('id-ID') === suggestion.name.toLocaleLowerCase('id-ID'),
     );
     const created = existing ?? (await tagsStore.createTag({ name: suggestion.name, color: suggestion.color }));
-    if (!selectedIds.value.has(created.id)) toggleTag(created);
+    if (isOpen.value && initialIds.value === currentSelection && !selectedIds.value.has(created.id)) toggleTag(created);
   } catch {
     suggestionError.value = t('fields.tagSelect.createError');
   } finally {
@@ -230,13 +245,9 @@ defineExpose({ open: openList });
         <p v-if="suggestionError" class="text-destructive text-xs" role="alert">{{ suggestionError }}</p>
       </div>
       <div class="border-border flex justify-end border-t px-4 py-3">
-        <button
-          type="button"
-          class="bg-primary text-primary-foreground rounded-md px-4 py-2 text-sm font-medium"
-          @click="isOpen = false"
-        >
-          {{ t('fields.tagSelect.done') }}
-        </button>
+        <Button type="button" :disabled="!changesPending || isCreatingSuggestion || isDeleting" @click="commit">
+          {{ $t('fields.tagSelect.done') }}
+        </Button>
       </div>
     </Dialog.DialogContent>
   </Dialog.Dialog>

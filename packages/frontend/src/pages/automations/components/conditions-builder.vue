@@ -64,7 +64,6 @@ const preferredCurrency = (): AutomationAmountCurrency => {
 const changeField = ({ index, field }: { index: number; field: AutomationConditionField }) => {
   const condition = CONDITION_REGISTRY[field].defaultValue();
   if (condition.field === 'amount') condition.currency = preferredCurrency();
-  keys.value[index] = nextKey();
   replaceAt({ index, condition });
 };
 
@@ -80,22 +79,29 @@ const removeAt = ({ index }: { index: number }) => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-3">
-    <div v-if="modelValue.items.length" class="border-border divide-border divide-y rounded-lg border">
-      <template v-for="(item, index) in modelValue.items" :key="keys[index]">
-        <div v-if="index > 0" class="bg-muted/40 px-3 py-0.5">
-          <span class="text-muted-foreground text-xs font-medium">{{ joinLabel }}</span>
+  <div class="flex flex-col">
+    <TransitionGroup name="lajur-flow-row" tag="div">
+      <div v-for="(item, index) in modelValue.items" :key="keys[index]" class="lajur-flow-row group/condition">
+        <div>
+          <div
+            class="border-border border-x border-b group-first/condition:rounded-t-lg group-first/condition:border-t group-last/condition:rounded-b-lg"
+          >
+            <div v-if="index > 0" class="bg-muted/40 px-3 py-0.5">
+              <span class="text-muted-foreground text-xs font-medium">{{ joinLabel }}</span>
+            </div>
+            <ConditionRow
+              :model-value="item"
+              :error-message="errors[index]"
+              :disabled-fields="disabledFields"
+              @update:model-value="(condition) => replaceAt({ index, condition })"
+              @update:field="(field) => changeField({ index, field })"
+              @remove="removeAt({ index })"
+            />
+          </div>
+          <div class="hidden h-3 group-last/condition:block" aria-hidden="true" />
         </div>
-        <ConditionRow
-          :model-value="item"
-          :error-message="errors[index]"
-          :disabled-fields="disabledFields"
-          @update:model-value="(condition) => replaceAt({ index, condition })"
-          @update:field="(field) => changeField({ index, field })"
-          @remove="removeAt({ index })"
-        />
-      </template>
-    </div>
+      </div>
+    </TransitionGroup>
 
     <Button
       type="button"

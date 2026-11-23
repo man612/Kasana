@@ -18,11 +18,12 @@
       "createManual": "Create manual account"
     },
     "overview": {
-      "totalBalance": "Total balance",
+      "totalBalance": "Account balance",
       "assets": "Assets",
       "liabilities": "Liabilities",
       "vehicles": "Vehicles",
-      "projected": "Projected {amount} · {count} planned entry through {date} | Projected {amount} · {count} planned entries through {date}"
+      "projected": "Projected {amount} · {count} planned entry through {date} | Projected {amount} · {count} planned entries through {date}",
+      "balanceExplanation": "Assets and liabilities are positive and negative balances in your money accounts. Vehicles are shown separately. For net worth across asset types, see Balance trend on the Dashboard."
     },
     "sharedBy": "Shared by {handle}",
     "viaHousehold": "Shared via {handle}'s household",

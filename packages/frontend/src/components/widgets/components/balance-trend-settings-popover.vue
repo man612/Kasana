@@ -54,7 +54,7 @@
               </button>
 
               <div class="flex items-center justify-between gap-2 rounded-md px-2 py-2">
-                <div class="flex items-center gap-1">
+                <div class="flex min-w-0 items-center gap-1">
                   <span class="text-sm font-medium">
                     {{ t('dashboard.widgets.balanceTrend.settings.fitToLatestData') }}
                   </span>
@@ -69,11 +69,10 @@
               </div>
 
               <div class="flex items-center justify-between gap-2 rounded-md px-2 py-2">
-                <span class="max-w-45 text-sm font-medium">
-                  {{ t('dashboard.widgets.common.includePlanned') }}
-
-                  <HintIcon :content="t('dashboard.widgets.balanceTrend.settings.includePlannedTooltip')" />
-                </span>
+                <div class="flex min-w-0 items-center gap-1">
+                  <span class="min-w-0 text-sm font-medium"> {{ t('dashboard.widgets.common.includePlanned') }} </span
+                  ><HintIcon :content="t('dashboard.widgets.balanceTrend.settings.includePlannedTooltip')" />
+                </div>
                 <Switch
                   class="shrink-0"
                   data-testid="bt-include-planned-switch"
@@ -122,7 +121,7 @@
               </div>
 
               <div class="flex items-center justify-between gap-2 rounded-md px-2 py-2">
-                <div class="flex items-center gap-1">
+                <div class="flex min-w-0 items-center gap-1">
                   <span class="text-sm font-medium">
                     {{ t('dashboard.widgets.balanceTrend.componentsSettings.loans') }}
                   </span>
@@ -150,7 +149,7 @@
 
             <form class="grid gap-3 p-3" @submit.prevent="saveSpikes">
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-1">
+                <div class="flex min-w-0 items-center gap-1">
                   <label class="text-sm font-medium">
                     {{ t('dashboard.widgets.balanceTrend.spikeSettings.showMarkers') }}
                   </label>

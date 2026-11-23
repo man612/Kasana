@@ -9,6 +9,7 @@ import {
 const startTone = vi.fn();
 const setGainLevel = vi.fn();
 const resumeAudio = vi.fn(async () => {});
+let clock = 0;
 class FakeAudioContext {
   static lastCreated: FakeAudioContext | null = null;
   state: AudioContextState = 'running';
@@ -44,11 +45,13 @@ class FakeAudioContext {
 
 describe('Optional desktop and Android click feedback', () => {
   beforeAll(() => {
+    vi.spyOn(performance, 'now').mockImplementation(() => clock);
     vi.stubGlobal('AudioContext', FakeAudioContext);
     installMobileInteractionSounds();
   });
 
   beforeEach(() => {
+    clock += 500;
     localStorage.clear();
     document.body.innerHTML = '';
     startTone.mockClear();
@@ -59,6 +62,7 @@ describe('Optional desktop and Android click feedback', () => {
 
   afterAll(() => {
     setMobileInteractionSoundEnabled(false);
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
     document.body.innerHTML = '';
   });
@@ -76,7 +80,7 @@ describe('Optional desktop and Android click feedback', () => {
     document.body.append(button);
     button.click();
     expect(startTone).toHaveBeenCalledTimes(1);
-    expect(setGainLevel).toHaveBeenCalledWith(0.10, 0);
+    expect(setGainLevel).toHaveBeenCalledWith(0.1, 0);
   });
 
   it('respects an explicit off preference', () => {
@@ -97,6 +101,32 @@ describe('Optional desktop and Android click feedback', () => {
     expect(startTone).toHaveBeenCalledTimes(1);
   });
 
+  it('rate-limits closely spaced gestures', () => {
+    const button = document.createElement('button');
+    document.body.append(button);
+    button.click();
+    clock += 50;
+    button.click();
+    expect(startTone).toHaveBeenCalledTimes(1);
+    clock += 100;
+    button.click();
+    expect(startTone).toHaveBeenCalledTimes(2);
+  });
+
+  it('recovers when a resume is rejected and the next gesture succeeds', async () => {
+    if (!FakeAudioContext.lastCreated) previewInteractionSound();
+    FakeAudioContext.lastCreated!.state = 'suspended';
+    resumeAudio.mockRejectedValueOnce(new Error('audio unavailable'));
+    const button = document.createElement('button');
+    document.body.append(button);
+    button.click();
+    await Promise.resolve();
+    expect(startTone).not.toHaveBeenCalled();
+    clock += 500;
+    button.click();
+    await vi.waitFor(() => expect(startTone).toHaveBeenCalledTimes(1));
+  });
+
   it('ignores disabled controls', () => {
     setMobileInteractionSoundEnabled(true);
     const button = document.createElement('button');
@@ -113,6 +143,7 @@ describe('Optional desktop and Android click feedback', () => {
     startTone.mockClear();
     if (!FakeAudioContext.lastCreated) throw new Error('AudioContext was not created');
     FakeAudioContext.lastCreated.state = 'suspended';
+    clock += 500;
 
     const button = document.createElement('button');
     document.body.append(button);

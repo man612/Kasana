@@ -131,6 +131,8 @@
   --z-over-default: 1;
   --z-scrollbar: 2;
   --z-navbar: 10;
+  --z-chart-floating: 45;
+  --z-chart-in-dialog: 55;
   --z-dialog: 50;
   --z-over-dialog: 51;
   --z-notifications: 51;
@@ -319,19 +321,14 @@
 [data-kasana-interactive]:not(:disabled):active {
   filter: brightness(0.96);
 }
-.kasana-page-enter-active,
-.kasana-page-leave-active {
+.kasana-page-enter-active {
   transition:
     opacity var(--kasana-motion-normal) var(--kasana-motion-ease),
     transform var(--kasana-motion-normal) var(--kasana-motion-ease);
 }
 .kasana-page-enter-from {
-  opacity: 0;
-  transform: translateY(5px);
-}
-.kasana-page-leave-to {
-  opacity: 0;
-  transform: translateY(-3px);
+  opacity: 0.9;
+  transform: translateY(4px);
 }
 
 /* User-accessibility setting wins over decorative motion, including existing
@@ -459,22 +456,6 @@
 .kasana-icon-leave-to {
   opacity: 0;
   transform: scale(0.84);
-}
-
-/* Period text moves gently while the dashboard's data refreshes. */
-.kasana-period-enter-active,
-.kasana-period-leave-active {
-  transition:
-    opacity var(--kasana-motion-normal) var(--kasana-motion-ease),
-    transform var(--kasana-motion-normal) var(--kasana-motion-ease);
-}
-.kasana-period-enter-from {
-  opacity: 0;
-  transform: translateX(6px);
-}
-.kasana-period-leave-to {
-  opacity: 0;
-  transform: translateX(-6px);
 }
 
 /* Animate natural-height optional form panels where the browser supports it.
@@ -621,6 +602,82 @@
   [data-testid='transaction-date-dialog'] .vc-day-content {
     transition: none;
     animation: none !important;
+  }
+}
+
+/* Shared scrim policy. Anchored menus use the lighter layer, dialogs use the stronger layer. */
+.lajur-scrim-dialog {
+  background-color: rgb(0 0 0 / 70%);
+}
+.lajur-scrim-menu {
+  background-color: rgb(0 0 0 / 36%);
+}
+.lajur-scrim-blur {
+  backdrop-filter: blur(2px);
+}
+.lajur-scrim-dialog:has(~ .lajur-scrim-dialog[data-state='open']) {
+  background-color: transparent;
+  backdrop-filter: none;
+}
+.lajur-menu-scrim-enter-active {
+  transition: opacity 180ms var(--kasana-motion-ease);
+}
+.lajur-menu-scrim-leave-active {
+  transition: opacity 140ms var(--kasana-motion-ease);
+}
+.lajur-menu-scrim-enter-from,
+.lajur-menu-scrim-leave-to {
+  opacity: 0;
+}
+.lajur-period-reset {
+  animation: lajur-period-reset 210ms var(--kasana-motion-ease);
+}
+@keyframes lajur-period-reset {
+  to {
+    transform: rotate(-1turn);
+  }
+}
+.lajur-sheet-close svg {
+  transition:
+    transform var(--kasana-motion-fast) var(--kasana-motion-ease),
+    opacity var(--kasana-motion-fast);
+}
+.lajur-sheet-close:active svg,
+[data-state='closed'] .lajur-sheet-close svg {
+  opacity: 0.55;
+  transform: rotate(25deg) scale(0.9);
+}
+.lajur-payee-value-enter-active,
+.lajur-payee-clear-enter-active {
+  transition:
+    opacity 160ms var(--kasana-motion-ease),
+    transform 160ms var(--kasana-motion-ease);
+}
+.lajur-payee-value-leave-active,
+.lajur-payee-clear-leave-active {
+  transition:
+    opacity 120ms var(--kasana-motion-ease),
+    transform 120ms var(--kasana-motion-ease);
+}
+.lajur-payee-value-enter-from,
+.lajur-payee-value-leave-to {
+  opacity: 0;
+  transform: translateY(3px);
+}
+.lajur-payee-clear-enter-from,
+.lajur-payee-clear-leave-to {
+  opacity: 0;
+  transform: scale(0.88) rotate(-15deg);
+}
+.lajur-payee-clear-leave-active {
+  pointer-events: none;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .lajur-scrim-blur {
+    backdrop-filter: none;
+  }
+  .lajur-scrim-menu {
+    background-color: rgb(0 0 0 / 48%);
   }
 }
 
@@ -1044,28 +1101,29 @@ select:focus-visible,
   max-height: var(--lajur-panel-height, 1750px);
 }
 
-.lajur-payment-rows-enter-active,
-.lajur-payment-rows-leave-active,
-.lajur-payment-rows-move {
+.lajur-flow-row {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+.lajur-flow-row > :is(div, span) {
+  min-height: 0;
+}
+.lajur-flow-row-enter-active,
+.lajur-flow-row-leave-active {
   transition:
-    opacity 230ms ease,
-    transform 250ms ease,
-    max-height 260ms ease,
-    margin 260ms ease;
+    grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
 }
-.lajur-payment-rows-enter-from,
-.lajur-payment-rows-leave-to {
+.lajur-flow-row-enter-active > :is(div, span),
+.lajur-flow-row-leave-active > :is(div, span) {
+  overflow: clip;
+}
+.lajur-flow-row-enter-from,
+.lajur-flow-row-leave-to {
+  grid-template-rows: 0fr;
   opacity: 0;
-  transform: translateY(-8px) scale(0.985);
-  max-height: 0;
-  margin: 0;
 }
-.lajur-payment-rows-enter-to,
-.lajur-payment-rows-leave-from {
-  opacity: 1;
-  max-height: 110px;
-}
-.lajur-payment-rows-leave-active {
+.lajur-flow-row-leave-active {
   pointer-events: none;
 }
 
@@ -1101,9 +1159,8 @@ select:focus-visible,
 @media (prefers-reduced-motion: reduce) {
   .lajur-form-panel-enter-active,
   .lajur-form-panel-leave-active,
-  .lajur-payment-rows-enter-active,
-  .lajur-payment-rows-leave-active,
-  .lajur-payment-rows-move,
+  .lajur-flow-row-enter-active,
+  .lajur-flow-row-leave-active,
   .lajur-category-items-enter-active,
   .lajur-category-items-leave-active,
   .lajur-category-items-move,
@@ -1120,6 +1177,11 @@ select:focus-visible,
   transition:
     opacity 170ms ease,
     transform 190ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lajur-transaction-mode-copy .lajur-form-copy-leave-active {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 .lajur-form-copy-enter-from {
   opacity: 0;
@@ -1220,7 +1282,10 @@ select:focus-visible,
 
 /* Mobile-only visual scrollbar suppression; scroll and text selection remain usable. */
 @media (max-width: 767px) {
-  :where(*) { scrollbar-width: none; -ms-overflow-style: none; }
+  :where(*) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
   :where(*)::-webkit-scrollbar {
     display: none !important;
     width: 0 !important;
@@ -1236,45 +1301,66 @@ select:focus-visible,
   }
 }
 
-/* A compact active rail and a gentle icon lift make navigation state easier
-   to track after tapping or swiping; motion is optional for reduced-motion users. */
-.lajur-bottom-nav-item::before {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 50%;
-  width: 24px;
-  height: 3px;
-  border-radius: 999px;
-  background: var(--primary);
-  opacity: 0;
-  transform: translateX(-50%) scaleX(0.35);
-  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.lajur-bottom-nav-item.lajur-bottom-nav-active::before {
-  opacity: 1;
-  transform: translateX(-50%) scaleX(1);
-}
-.lajur-bottom-nav-item > svg {
-  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.lajur-bottom-nav-item.lajur-bottom-nav-active > svg {
-  transform: translateY(-2px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .lajur-bottom-nav-item::before,
-  .lajur-bottom-nav-item > svg {
-    transition: none !important;
-  }
-}
-
 /* Chevron motion for generic openable triggers; specific component transforms
    keep their own more detailed states. */
-:where(button[data-state='open'], button[aria-expanded='true'])
-  :where(svg.lucide-chevron-down, svg.lucide-chevron-up) {
+:where(button[data-state='open'], button[aria-expanded='true']) :where(svg.lucide-chevron-down, svg.lucide-chevron-up) {
   transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 @media (prefers-reduced-motion: reduce) {
   :where(button[data-state='open'], button[aria-expanded='true'])
-    :where(svg.lucide-chevron-down, svg.lucide-chevron-up) { transition: none; }
+    :where(svg.lucide-chevron-down, svg.lucide-chevron-up) {
+    transition: none;
+  }
+}
+
+.lajur-header-back-slot {
+  grid-template-columns: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-columns var(--kasana-motion-normal) var(--kasana-motion-ease),
+    opacity var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+.lajur-header-back-slot[data-open='true'] {
+  grid-template-columns: 1fr;
+  opacity: 1;
+}
+.lajur-detail-forward-enter-active,
+.lajur-detail-back-enter-active,
+.lajur-detail-read-enter-active,
+.lajur-detail-read-leave-active,
+.lajur-detail-edit-enter-active,
+.lajur-detail-edit-leave-active {
+  transition:
+    transform var(--kasana-motion-normal) var(--kasana-motion-ease),
+    opacity var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+.lajur-detail-forward-enter-from,
+.lajur-detail-edit-enter-from,
+.lajur-detail-read-leave-to {
+  opacity: 0.65;
+  transform: translateX(1rem);
+}
+.lajur-detail-back-enter-from,
+.lajur-detail-read-enter-from,
+.lajur-detail-edit-leave-to {
+  opacity: 0.65;
+  transform: translateX(-1rem);
+}
+.lajur-detail-edit-leave-active,
+.lajur-detail-read-leave-active {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lajur-header-back-slot,
+  .lajur-detail-forward-enter-active,
+  .lajur-detail-back-enter-active,
+  .lajur-detail-read-enter-active,
+  .lajur-detail-read-leave-active,
+  .lajur-detail-edit-enter-active,
+  .lajur-detail-edit-leave-active {
+    transition: none;
+  }
 }

@@ -13,7 +13,7 @@
       "securityPlaceholder": "Select a security",
       "quantityLabel": "Quantity",
       "quantityPlaceholder": "0.00",
-      "priceLabel": "Price per share",
+      "priceLabel": "Price per unit",
       "pricePlaceholder": "0.00",
       "priceHelp": "Use 0 for staking rewards, airdrops or balance adjustments.",
       "feesLabel": "Fees (optional)",
@@ -52,7 +52,11 @@
         "previewUnavailable": "No market rate found for this date – enter the fee or the exchange rate manually.",
         "previewFetchFailed": "Couldn't load market rates. Check your connection or enter the rate manually.",
         "previewPlaceholder": "Preview appears here as you fill the form."
-      }
+      },
+      "invalidLots": "Enter a positive whole number of lots.",
+      "quantityShares": "Shares",
+      "quantityLots": "Lots",
+      "beiLotHelp": "One regular-market IDX lot is 100 shares. Enter the per-share price from your broker statement."
     },
     "portfolioSettings": {
       "nameLabel": "Portfolio name",
@@ -218,6 +222,70 @@
       }
     },
     "createVehicle": {
+      "searchTypes": "Search vehicle types",
+      "noTypes": "No matching vehicle types.",
+      "legacyType": "Previously recorded type",
+      "plateLabel": "License plate (optional)",
+      "platePlaceholder": "e.g. B 1234 ABC",
+      "manualHint": "Uses the purchase price or the latest value you record. Change it with Override value.",
+      "estimateHint": "Indicative resale estimate based on vehicle class, purchase price and time since purchase or override. Condition, usage and the local market can change the actual price.",
+      "accountingHint": "Accounting estimate. Each year subtracts the selected percentage of the starting value until the salvage floor is reached.",
+      "typeGroups": {
+        "motorcycles": "Motorcycles",
+        "cars": "Cars",
+        "commercial": "Commercial, public and special vehicles",
+        "mobility": "Personal mobility",
+        "watercraft": "Watercraft",
+        "aircraft": "Aircraft",
+        "fictional": "Unusual",
+        "other": "Other"
+      },
+      "types": {
+        "motorcycle": "Motorcycle",
+        "scooter": "Scooter",
+        "automatic": "Automatic motorcycle",
+        "sportBike": "Sport motorcycle",
+        "underbone": "Underbone motorcycle",
+        "trail": "Trail motorcycle",
+        "cruiser": "Cruiser",
+        "touring": "Touring motorcycle",
+        "electricBike": "Electric motorcycle",
+        "sedan": "Sedan",
+        "hatchback": "Hatchback",
+        "suv": "SUV",
+        "mpv": "MPV",
+        "pickup": "Pickup",
+        "van": "Van",
+        "ev": "Electric car",
+        "hybrid": "Hybrid car",
+        "sportCar": "Sports car",
+        "classicCar": "Classic or collectible car",
+        "bus": "Bus",
+        "minibus": "Minibus",
+        "taxi": "Taxi",
+        "angkot": "Shared minibus (angkot)",
+        "truck": "Truck",
+        "emergency": "Emergency vehicle",
+        "heavyEquipment": "Heavy equipment",
+        "bicycle": "Bicycle",
+        "ebike": "Electric bicycle",
+        "wheelchair": "Manual wheelchair",
+        "powerchair": "Powered wheelchair",
+        "mobilityScooter": "Mobility scooter",
+        "kickScooter": "Kick scooter",
+        "ship": "Ship",
+        "boat": "Boat",
+        "yacht": "Yacht",
+        "helicopter": "Helicopter",
+        "plane": "Private plane",
+        "jet": "Private jet",
+        "ufo": "UFO",
+        "rocket": "Rocket",
+        "trex": "T-Rex",
+        "velociraptor": "Velociraptor",
+        "triceratops": "Triceratops",
+        "other": "Other vehicle"
+      },
       "errors": {
         "positive": "Enter a value greater than 0.",
         "yearRange": "Enter a year between {min} and {max}.",
@@ -430,8 +498,8 @@
       },
       "vehicleDepreciation": {
         "title": "Depreciation pattern",
-        "meaning": "Class default uses a yearly value-loss curve; Slow is 30% lower rates, Fast 30% higher, and Custom applies a single annual rate.",
-        "example": "For a sample sedan purchased for 200,000,000: first-year value 160,000,000, second-year value 136,000,000 under the existing formula.",
+        "meaning": "Depreciation estimates how a vehicle loses value over time. A new estimate changes net worth and does not create a payment.",
+        "example": "A Rp 100 million vehicle estimated at Rp 90 million counts at the new value. Your bank balance stays the same.",
         "important": "These curves rely on foreign-market assumptions; condition, mileage and Indonesian resale market prices are not modeled."
       },
       "vehicleCustomRate": {
@@ -545,6 +613,10 @@
     }
   },
   "fields": {
+    "accountSelect": {
+      "empty": "No accounts available",
+      "createHint": "Add an account to keep working on this transaction."
+    },
     "categorySelect": {
       "noCategoriesFound": "No categories found",
       "selectCategoryLabel": "Select category",

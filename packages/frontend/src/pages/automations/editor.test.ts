@@ -174,13 +174,13 @@ describe('automation editor', () => {
 
     await nameInput({ wrapper }).setValue('  Groceries  ');
     await wrapper.find('[role="switch"]').trigger('click');
-    await clickButton({ wrapper, text: 'automations.editor.matchAny' });
 
     const keyword = wrapper.find('input[placeholder="automations.editor.keywordPlaceholder"]');
     await keyword.setValue('biedronka');
     await keyword.trigger('keydown', { key: 'Enter' });
 
     await clickButton({ wrapper, text: 'automations.editor.addCondition' });
+    await clickButton({ wrapper, text: 'automations.editor.matchAny' });
     wrapper.findAllComponents(ConditionRow)[1]!.vm.$emit('update:field', 'amount');
     await flushPromises();
     await wrapper.find('input[type="number"]').setValue('50');
@@ -188,7 +188,8 @@ describe('automation editor', () => {
     wrapper.findComponent(CategorySelectField).vm.$emit('update:modelValue', CATEGORY);
     await flushPromises();
 
-    await clickButton({ wrapper, text: 'common.actions.save' });
+    await wrapper.get('form').trigger('submit');
+    await flushPromises();
 
     expect(updateMock).not.toHaveBeenCalled();
     expect(createMock).toHaveBeenCalledTimes(1);
@@ -209,7 +210,7 @@ describe('automation editor', () => {
     expect(router.currentRoute.value.name).toBe(ROUTES_NAMES.automations);
   });
 
-  it('edit: populates the form from the loaded rule and round-trips it unchanged', async () => {
+  it('edit: loads the existing rule and requires a meaningful change before saving', async () => {
     loadMock.mockResolvedValue([RULE]);
     const { wrapper } = await mountEditor({ path: `/transactions/automations/${RULE.id}` });
 
@@ -234,21 +235,35 @@ describe('automation editor', () => {
       wrapper.find<HTMLInputElement>('input[placeholder="automations.editor.notePlaceholder"]').element.value,
     ).toBe('Payroll');
 
-    await clickButton({ wrapper, text: 'common.actions.save' });
+    const save = wrapper.findAll('button').find((button) => button.text() === 'common.actions.save')!;
+    expect(save.attributes()).toHaveProperty('disabled');
+    await wrapper.get('form').trigger('submit');
+    expect(updateMock).not.toHaveBeenCalled();
+    await nameInput({ wrapper }).setValue('Salary deposits');
+    expect(save.attributes()).not.toHaveProperty('disabled');
+    await wrapper.get('form').trigger('submit');
+    await flushPromises();
 
     expect(createMock).not.toHaveBeenCalled();
     expect(updateMock).toHaveBeenCalledTimes(1);
     expect(updateMock.mock.calls[0]![0]).toEqual({
       id: RULE.id,
-      payload: { name: RULE.name, isEnabled: RULE.isEnabled, conditions: RULE.conditions, actions: RULE.actions },
+      payload: {
+        name: 'Salary deposits',
+        isEnabled: RULE.isEnabled,
+        conditions: RULE.conditions,
+        actions: RULE.actions,
+      },
     });
   });
 
   it('create: an invalid form shows errors and never calls the API', async () => {
     const { wrapper } = await mountEditor({ path: '/transactions/automations/new' });
 
-    await clickButton({ wrapper, text: 'common.actions.save' });
-
+    const save = wrapper.findAll('button').find((button) => button.text() === 'common.actions.save')!;
+    expect(save.attributes()).toHaveProperty('disabled');
+    await wrapper.get('form').trigger('focusout');
+    await wrapper.get('form').trigger('submit');
     expect(createMock).not.toHaveBeenCalled();
     expect(wrapper.text()).toContain('automations.editor.errors.nameRequired');
   });

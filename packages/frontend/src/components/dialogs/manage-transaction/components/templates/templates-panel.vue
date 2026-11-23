@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import { Button } from '@/components/lib/ui/button';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
@@ -16,7 +17,17 @@ const props = defineProps<TemplateListProps>();
 
 const emit = defineEmits<TemplateListEmits>();
 
-const { query, isOpen, filtered, amountLabelOf, staleReasonOf, footerActions, closeAnd, openEditor } = useTemplateList({
+const {
+  query,
+  isOpen,
+  filtered,
+  amountLabelOf,
+  staleReasonOf,
+  footerActions,
+  showIncompleteHint,
+  chooseFooterAction,
+  openEditor,
+} = useTemplateList({
   props,
   emit,
 });
@@ -252,17 +263,23 @@ const onFilterKeydown = (event: KeyboardEvent) => {
             size="sm"
             :class="
               cn(
-                'h-auto min-h-9 max-w-full text-left text-xs font-medium whitespace-normal',
-                action.key === 'new' && 'ml-auto',
+                'h-auto min-h-9 max-w-full text-left text-sm font-medium whitespace-normal transition-[opacity,color,background-color] data-[incomplete]:opacity-50',
+                action.key === 'save-current' && 'order-last ml-auto',
               )
             "
-            :disabled="action.disabled"
-            @click="closeAnd({ run: action.run })"
+            :data-incomplete="action.disabled ? '' : undefined"
+            :aria-description="action.disabled ? $t('dialogs.manageTransaction.templates.incompleteHint') : undefined"
+            @click="chooseFooterAction({ action })"
           >
             <component :is="action.icon" v-if="action.icon" class="size-4" />
             {{ action.label }}
           </Button>
         </div>
+        <LayoutCollapse :open="showIncompleteHint">
+          <p class="text-muted-foreground px-1 pt-2 text-sm" role="status">
+            {{ $t('dialogs.manageTransaction.templates.incompleteHint') }}
+          </p>
+        </LayoutCollapse>
       </Dialog.DialogContent>
     </Dialog.Dialog>
 

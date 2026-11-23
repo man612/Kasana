@@ -13,65 +13,64 @@ import AccountLogo from '@/components/common/account-logo.vue';
 import { type LogoSelection, toOptionalLogoPayload } from '@/components/common/logo-selection';
 import LogoSquareField from '@/components/common/logo-square-field.vue';
 import FormFieldHelp from '@/components/common/form-field-help.vue';
-import FieldLabel from '@/components/fields/components/field-label.vue';
 import InputField from '@/components/fields/input-field.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import OptionPickerDialog from '@/components/fields/option-picker-dialog.vue';
 import { getAccountTypeIcon, getAccountTypeTintedChipClass } from '@/pages/accounts/account-type-presentation';
 import PaymentMethodDialog from '@/components/fields/payment-method-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
-import * as Select from '@/components/lib/ui/select';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
-import { useCurrencyName } from '@/composable';
 import { useFormValidation } from '@/composable/form-validator';
 import * as validators from '@/js/helpers/validators';
 import { trackAnalyticsEvent } from '@/lib/posthog';
 import { useCurrenciesStore } from '@/stores';
 import { useOnboardingStore } from '@/stores/onboarding';
-import { ACCOUNT_CATEGORIES, isDedicatedFlowAccountCategory } from '@bt/shared/types';
-import { PlusIcon } from '@lucide/vue';
+import { ACCOUNT_CATEGORIES, isDedicatedFlowAccountCategory, type AccountModel } from '@bt/shared/types';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { storeToRefs } from 'pinia';
-import { computed, defineAsyncComponent, reactive } from 'vue';
+import { computed, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
-
-const AddCurrencyDialog = defineAsyncComponent(() => import('@/components/dialogs/add-currency-dialog.vue'));
 
 const props = withDefaults(defineProps<{ formId?: string; showSubmitButton?: boolean }>(), {
   showSubmitButton: true,
 });
-const emit = defineEmits(['created']);
+const emit = defineEmits<{ created: [account: AccountModel] }>();
 
 const { t } = useI18n();
 const route = useRoute();
 const queryClient = useQueryClient();
 const currenciesStore = useCurrenciesStore();
 const { addNotification } = useNotificationCenter();
-const { formatCurrencyLabel } = useCurrencyName();
 
 const { baseCurrency, systemCurrenciesVerbose } = storeToRefs(currenciesStore);
 
 const defaultCurrency = computed(
-  () => systemCurrenciesVerbose.value.linked.find((i) => i.code === baseCurrency.value!.currencyCode)!.code || '',
+  () =>
+    baseCurrency.value?.currencyCode ??
+    systemCurrenciesVerbose.value.linked.find((currency) => currency.code === 'IDR')?.code ??
+    systemCurrenciesVerbose.value.linked[0]?.code ??
+    '',
 );
 
 const queryCategory = route.query.category as ACCOUNT_CATEGORIES | undefined;
 const defaultAccountCategory =
-  queryCategory && !isDedicatedFlowAccountCategory(queryCategory) ? queryCategory : ACCOUNT_CATEGORIES.general;
+  queryCategory &&
+  Object.hasOwn(ACCOUNT_CATEGORIES_TRANSLATION_KEYS, queryCategory) &&
+  !isDedicatedFlowAccountCategory(queryCategory)
+    ? queryCategory
+    : ACCOUNT_CATEGORIES.general;
 
 const form = reactive<{
   name: string;
-  currencyCode: string;
   accountCategory: ACCOUNT_CATEGORIES;
   defaultPaymentType: NullablePaymentTypeOption | null;
-  initialBalance: number;
-  creditLimit: number;
+  initialBalance: number | null;
+  creditLimit: number | null;
   /** Chosen brand or monogram. null = no logo; the account renders its account-type chip (accounts have no auto-resolution). */
   logo: LogoSelection | null;
 }>({
   name: '',
-  currencyCode: String(defaultCurrency.value),
   accountCategory: defaultAccountCategory,
   defaultPaymentType: NO_PAYMENT_TYPE_OPTION,
   initialBalance: 0,
@@ -139,26 +138,35 @@ const selectedPaymentMethod = computed<VerbosePaymentType | null>({
 
 const createAccountMutation = useMutation({ mutationFn: createAccount });
 const isSubmitting = computed(() => createAccountMutation.isPending.value);
-defineExpose({ isSubmitting });
+const canSubmit = computed(
+  () =>
+    !isSubmitting.value &&
+    !!form.name.trim() &&
+    !!defaultCurrency.value &&
+    Number.isFinite(form.initialBalance ?? 0) &&
+    Number.isFinite(form.creditLimit ?? 0) &&
+    (form.creditLimit ?? 0) >= 0,
+);
+defineExpose({ isSubmitting, canSubmit });
 
 const submit = async () => {
-  if (createAccountMutation.isPending.value || !isFormValid()) return;
+  if (!canSubmit.value || !isFormValid()) return;
 
   try {
-    await createAccountMutation.mutateAsync({
-      currencyCode: form.currencyCode,
+    const account = await createAccountMutation.mutateAsync({
+      currencyCode: defaultCurrency.value,
       name: form.name.trim(),
       accountCategory: form.accountCategory,
       defaultPaymentType: form.defaultPaymentType?.value ?? null,
-      creditLimit: form.creditLimit,
-      initialBalance: form.initialBalance,
+      creditLimit: form.creditLimit ?? 0,
+      initialBalance: form.initialBalance ?? 0,
       ...toOptionalLogoPayload({ selection: form.logo }),
     });
 
     trackAnalyticsEvent({
       event: 'account_created',
       properties: {
-        currency: form.currencyCode,
+        currency: defaultCurrency.value,
       },
     });
 
@@ -176,7 +184,7 @@ const submit = async () => {
 
     useOnboardingStore().completeTask('create-account');
 
-    emit('created');
+    emit('created', account);
   } catch (error) {
     addNotification({
       text: error instanceof Error ? error.message : t('forms.createAccount.notifications.error'),
@@ -188,71 +196,40 @@ const submit = async () => {
 
 <template>
   <form :id="props.formId" class="@container/create-account grid gap-4" @submit.prevent="submit">
-    <div class="flex items-center gap-2.5">
-      <div class="min-w-0 flex-1">
-        <input-field
-          v-model="form.name"
-          :label="$t('forms.createAccount.nameLabel')"
-          :placeholder="$t('forms.createAccount.namePlaceholder')"
-          :error-message="getFieldErrorMessage('form.name')"
-          @blur="touchField('form.name')"
-          non-label-wrapper
-          :aria-label="$t('forms.createAccount.nameLabel')"
+    <InputField
+      v-model="form.name"
+      :label="$t('forms.createAccount.nameLabel')"
+      :placeholder="$t('forms.createAccount.namePlaceholder')"
+      :error-message="getFieldErrorMessage('form.name')"
+      @blur="touchField('form.name')"
+      required
+    >
+      <template #label-right><FormFieldHelp topic="accountName" /></template>
+      <template #field-right>
+        <LogoSquareField
+          v-model="form.logo"
+          :name-for-search="form.name"
+          :reset-label="$t('common.logo.remove')"
+          size-class="size-11 rounded-lg md:size-9"
         >
-          <template #label-right>
-            <FormFieldHelp topic="accountName" />
+          <template #placeholder>
+            <AccountLogo :account="logoPlaceholderAccount" class="size-11 rounded-lg md:size-9" />
           </template>
-        </input-field>
-      </div>
-      <LogoSquareField
-        v-model="form.logo"
-        :name-for-search="form.name"
-        :reset-label="$t('common.logo.remove')"
-        size-class="size-9 rounded-lg"
-        align="default"
-      >
-        <template #placeholder>
-          <AccountLogo :account="logoPlaceholderAccount" class="size-9 rounded-lg" />
-        </template>
-      </LogoSquareField>
-    </div>
+        </LogoSquareField>
+      </template>
+    </InputField>
 
-    <div class="grid grid-cols-1 items-start gap-3 @sm/create-account:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
-      <FieldLabel :label="$t('forms.createAccount.currencyLabel')" :only-template="true">
-        <template #label-right><FormFieldHelp topic="accountCurrency" /></template>
-        <Select.Select v-model="form.currencyCode">
-          <Select.SelectTrigger>
-            <Select.SelectValue :placeholder="$t('forms.createAccount.currencyPlaceholder')" />
-          </Select.SelectTrigger>
-          <Select.SelectContent>
-            <template v-for="item of systemCurrenciesVerbose.linked" :key="item.code">
-              <Select.SelectItem :value="String(item.code)">
-                {{ formatCurrencyLabel({ code: item.code, fallbackName: item.currency }) }}
-              </Select.SelectItem>
-            </template>
-
-            <AddCurrencyDialog @added="form.currencyCode = String($event)">
-              <ui-button type="button" class="mt-4 w-full" variant="link">
-                <PlusIcon class="size-4" />
-                {{ $t('forms.createAccount.addCurrencyButton') }}
-              </ui-button>
-            </AddCurrencyDialog>
-          </Select.SelectContent>
-        </Select.Select>
-      </FieldLabel>
-
-      <FormattedAmountField
-        v-model="form.initialBalance"
-        :label="$t('forms.createAccount.initialBalanceLabel')"
-        :placeholder="$t('forms.createAccount.initialBalancePlaceholder')"
-        :aria-label="$t('forms.createAccount.initialBalanceLabel')"
-        :currency-code="form.currencyCode"
-      >
-        <template #label-right>
-          <FormFieldHelp topic="accountInitialBalance" />
-        </template>
-      </FormattedAmountField>
-    </div>
+    <FormattedAmountField
+      v-model="form.initialBalance"
+      :label="$t('forms.createAccount.initialBalanceLabel')"
+      :placeholder="$t('forms.createAccount.initialBalancePlaceholder')"
+      :aria-label="$t('forms.createAccount.initialBalanceLabel')"
+      :currency-code="defaultCurrency"
+    >
+      <template #label-right>
+        <FormFieldHelp topic="accountInitialBalance" />
+      </template>
+    </FormattedAmountField>
 
     <OptionPickerDialog
       :model-value="form.accountCategory"
@@ -279,7 +256,7 @@ const submit = async () => {
       :label="$t('forms.createAccount.creditLimitLabel')"
       :placeholder="$t('forms.createAccount.creditLimitPlaceholder')"
       :aria-label="$t('forms.createAccount.creditLimitLabel')"
-      :currency-code="form.currencyCode"
+      :currency-code="defaultCurrency"
     >
       <template #label-right>
         <FormFieldHelp topic="accountCreditLimit" />
@@ -288,7 +265,7 @@ const submit = async () => {
 
     <!-- Keep the form reusable standalone; the dialog renders its action in a non-scrolling footer. -->
     <div v-if="props.showSubmitButton" class="flex">
-      <ui-button type="submit" class="ml-auto min-w-30" :disabled="createAccountMutation.isPending.value">
+      <ui-button type="submit" class="ml-auto min-w-30" :disabled="!canSubmit">
         {{
           createAccountMutation.isPending.value
             ? $t('forms.createAccount.submitButtonLoading')

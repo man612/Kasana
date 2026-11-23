@@ -8,11 +8,49 @@
     },
     "widgets": {
       "common": {
+        "loadError": "Widget gagal dimuat.",
+        "staleData": "Sebagian data belum bisa diperbarui.",
         "includePlanned": "Sertakan transaksi terencana",
         "includePlannedTooltip": "Hitung transaksi terencana yang tertunda dalam angka widget ini.",
         "includePlannedSaveError": "Tidak dapat menyimpan pengaturan transaksi terencana. Silakan coba lagi."
       },
       "balanceTrend": {
+        "presentation": {
+          "component": "Komponen saldo",
+          "details": "Detail tren",
+          "summary": "Ringkasan",
+          "graph": "Grafik",
+          "label": "Tampilan Tren Saldo",
+          "asOf": "Per {date}",
+          "periodStart": "Awal periode",
+          "periodChange": "Perubahan selama periode",
+          "metrics": {
+            "total": {
+              "label": "Nilai gabungan",
+              "description": "Saldo rekening, nilai aset, dan kewajiban mengikuti komponen yang disertakan melalui Pengaturan."
+            },
+            "accounts": {
+              "label": "Saldo rekening",
+              "description": "Nilai gabungan rekening yang dipilih. Transfer antar rekening tidak menambah saldo gabungan."
+            },
+            "portfolios": {
+              "label": "Nilai portofolio",
+              "description": "Nilai investasi dan kas dalam portofolio."
+            },
+            "ventures": {
+              "label": "Nilai ventura",
+              "description": "Nilai ventura yang tercatat untuk periode ini."
+            },
+            "vehicles": {
+              "label": "Estimasi nilai kendaraan",
+              "description": "Estimasi nilai aset kendaraan mengikuti penilaian dan depresiasi yang tercatat."
+            },
+            "loans": {
+              "label": "Sisa pinjaman",
+              "description": "Jumlah kewajiban yang masih terutang. Penurunan berarti sisa utang berkurang."
+            }
+          }
+        },
         "title": "Tren saldo",
         "table": {
           "toggle": "Lihat angka per tanggal",
@@ -36,7 +74,7 @@
           "loans": "Pinjaman:"
         },
         "today": "Hari ini",
-        "vsPreviousPeriod": "vs periode sebelumnya",
+        "vsPreviousPeriod": "Dibanding periode lalu",
         "spikePanel": {
           "accounts": "Akun",
           "portfolios": "Portofolio",
@@ -82,13 +120,15 @@
         },
         "projection": {
           "summary": "Proyeksi {amount} · {count} entri terencana hingga {date} | Proyeksi {amount} · {count} entri terencana hingga {date}"
-        }
+        },
+        "panHint": "Geser grafik atau gunakan tombol panah untuk menelusuri tanggal.",
+        "showFullRange": "Tampilkan seluruh rentang"
       },
       "expensesStructure": {
         "title": "Struktur Pengeluaran",
         "incomeTitle": "Rincian pemasukan",
         "today": "Hari ini",
-        "vsPreviousPeriod": "vs periode sebelumnya",
+        "vsPreviousPeriod": "Dibanding periode lalu",
         "viewButton": "Lihat",
         "back": "Kembali",
         "openInAnalytics": "Buka di Analitik",
@@ -103,6 +143,7 @@
         "showAll": "Lihat semua"
       },
       "subscriptions": {
+        "empty": "Belum ada pembayaran aktif untuk pilihan ini",
         "title": "Langganan & Tagihan",
         "titleSubscriptions": "Langganan",
         "titleBills": "Tagihan",
@@ -145,8 +186,8 @@
       "cashFlow": {
         "title": "Arus Kas",
         "description": "Menunjukkan tabungan bersih Anda: pemasukan dikurangi pengeluaran untuk periode yang dipilih, dengan tren periode sebelumnya",
-        "vsPrevious": "vs sebelumnya",
-        "notAvailable": "N/A",
+        "vsPrevious": "Dibanding periode lalu",
+        "notAvailable": "—",
         "income": "Pemasukan",
         "expenses": "Pengeluaran",
         "saved": "Ditabung",
@@ -159,7 +200,7 @@
       "netWorth": {
         "title": "Kekayaan Bersih",
         "description": "Bagaimana kekayaan bersih Anda berubah selama periode yang dipilih. Menghitung setiap perubahan saldo: akun, investasi, pinjaman, dan nilai aset.",
-        "vsPrevious": "vs sebelumnya",
+        "vsPrevious": "Dibanding periode lalu",
         "start": "Awal",
         "end": "Akhir",
         "growth": "Pertumbuhan",
@@ -221,8 +262,8 @@
       },
       "spendingPace": {
         "tabs": {
-          "lastMonth": "vs bulan lalu",
-          "average": "vs rata-rata 3 bulan"
+          "lastMonth": "Bulan lalu",
+          "average": "Rata-rata 3 bulan"
         },
         "spentIn": "Dibelanjakan pada {month}",
         "onTrackFor": "Sesuai target untuk {amount}",
@@ -266,36 +307,37 @@
         }
       },
       "plannedOverview": {
+        "empty": "Belum ada transaksi terencana yang tertunda",
         "title": "Terencana",
-        "projectedBy": "Projected by {date}",
-        "upcoming": "Upcoming · {count}",
+        "projectedBy": "Perkiraan per {date}",
+        "upcoming": "Mendatang · {count}",
         "loadFailed": "Tidak dapat memuat transaksi terencana"
       },
       "taxes": {
-        "title": "Average tax rate",
-        "description": "Spending in your tax categories as a share of income, averaged over the period chosen in the widget settings. Bars show the last 12 months.",
-        "ofIncome": "of income",
-        "vsTrailingRate": "{delta} pp vs 12-month rate {rate}",
-        "average": "avg {amount}",
+        "title": "Rata-rata tarif pajak",
+        "description": "Persentase pendapatan yang masuk ke kategori pajak. Rata-rata mengikuti periode yang dipilih. Batang menunjukkan 12 bulan terakhir.",
+        "ofIncome": "dari pendapatan",
+        "vsTrailingRate": "{delta} poin persentase dibanding tarif 12 bulan {rate}",
+        "average": "rata-rata {amount}",
         "amount": "Pajak",
-        "shareOfIncome": "Share of income",
-        "shareOfTaxes": "Share of taxes",
+        "shareOfIncome": "Bagian dari pendapatan",
+        "shareOfTaxes": "Bagian dari pajak",
         "other": "Lainnya",
         "moreCategories": "{count} lainnya",
-        "viewDetails": "View cash flow",
-        "loadFailed": "Couldn't load tax data.",
+        "viewDetails": "Lihat arus kas",
+        "loadFailed": "Data pajak gagal dimuat.",
         "noCategories": {
-          "title": "No tax categories yet",
-          "description": "Choose which categories count as taxes to see your tax rate.",
-          "action": "Choose categories"
+          "title": "Belum ada kategori pajak",
+          "description": "Pilih kategori yang dihitung sebagai pajak untuk melihat tarifnya.",
+          "action": "Pilih kategori"
         },
         "config": {
           "months": {
-            "label": "Averaging period",
-            "saveError": "Could not save the averaging period. Try again.",
-            "m3": "3 mo",
-            "m6": "6 mo",
-            "m12": "12 mo"
+            "label": "Periode rata-rata",
+            "saveError": "Periode rata-rata gagal disimpan. Coba lagi.",
+            "m3": "3 bln",
+            "m6": "6 bln",
+            "m12": "12 bln"
           }
         },
         "lastMonths": {
@@ -305,49 +347,49 @@
         }
       },
       "budget": {
-        "spent": "spent",
-        "ringLabel": "{percent}% of the budget is spent",
-        "leftOf": "left of {total}",
-        "overOf": "over the {total} budget",
-        "headerLeft": "{amount} left",
-        "headerOver": "{amount} over",
-        "daysLeft": "{count} day left | {count} days left",
-        "lastDay": "Last day of the period",
-        "empty": "No budget yet",
-        "create": "Set up a budget",
+        "spent": "terpakai",
+        "ringLabel": "{percent}% anggaran sudah terpakai",
+        "leftOf": "tersisa dari {total}",
+        "overOf": "melebihi anggaran {total}",
+        "headerLeft": "Sisa {amount}",
+        "headerOver": "Lebih {amount}",
+        "daysLeft": "Tersisa {count} hari",
+        "lastDay": "Hari terakhir periode",
+        "empty": "Belum ada anggaran",
+        "create": "Buat anggaran",
         "sort": {
-          "overspent": "Most overspent first"
+          "overspent": "Kelebihan terbesar"
         }
       },
       "trackers": {
-        "spentOfLimit": "{spent} of {limit}",
-        "inOut": "{income} in, {expense} out",
+        "spentOfLimit": "{spent} dari {limit}",
+        "inOut": "Masuk {income} · Keluar {expense}",
         "net": "Bersih",
-        "noLimit": "No limit",
-        "empty": "Belum ada anggaran",
+        "noLimit": "Tanpa batas",
+        "empty": "Belum ada pelacak aktif",
         "ended": "Berakhir",
-        "create": "Create a tracker"
+        "create": "Buat pelacak"
       },
       "tagAnalysis": {
-        "title": "Tag analysis",
-        "noTagsTitle": "No tags selected",
-        "noTagsDescription": "Pick the tags to compare in the widget settings.",
-        "ofIncome": "of income",
-        "remaining": "Unallocated",
-        "targetTooltip": "Target: {value}%",
+        "title": "Analisis tag",
+        "noTagsTitle": "Belum ada tag yang dipilih",
+        "noTagsDescription": "Pilih tag untuk dibandingkan di pengaturan widget.",
+        "ofIncome": "dari pendapatan",
+        "remaining": "Belum dialokasikan",
+        "targetTooltip": "Target {value}%",
         "settings": {
           "tagsLabel": "Tag",
           "tagsPlaceholder": "Pilih tag",
-          "targetsLabel": "Targets, %",
-          "targetsNoneSet": "None set",
-          "targetsSetCount": "{set} of {total} set",
-          "targetsEmpty": "Add tags first to set their targets",
+          "targetsLabel": "Target (%)",
+          "targetsNoneSet": "Belum diatur",
+          "targetsSetCount": "{set} dari {total} diatur",
+          "targetsEmpty": "Tambahkan tag untuk menetapkan target",
           "targetPlaceholder": "Tidak ada",
-          "percentBaseLabel": "Percent of",
-          "percentBaseTags": "Selected tags",
+          "percentBaseLabel": "Persentase dari",
+          "percentBaseTags": "Tag terpilih",
           "percentBaseIncome": "Pemasukan",
-          "includeTransfersLabel": "Include transfers",
-          "includeTransfersDescription": "Count transfers to your own accounts and portfolios as spending"
+          "includeTransfersLabel": "Sertakan transfer",
+          "includeTransfersDescription": "Hitung transfer ke rekening dan portofolio sendiri sebagai pengeluaran"
         }
       },
       "emptyState": "Tidak ada data dalam interval waktu yang dipilih.",
@@ -374,7 +416,7 @@
         },
         "cashFlow": {
           "name": "Arus Kas",
-          "description": "Pemasukan vs pengeluaran dengan tingkat tabungan"
+          "description": "Perbandingan pemasukan, pengeluaran, dan tingkat tabungan"
         },
         "netWorth": {
           "name": "Kekayaan Bersih",
@@ -386,11 +428,11 @@
         },
         "cashAccounts": {
           "name": "Kas & akun",
-          "description": "Total cash across your accounts, its change since last month, and how many months of expenses it covers"
+          "description": "Total kas di semua rekening, perubahan sejak bulan lalu, dan berapa bulan pengeluaran yang bisa ditutup"
         },
         "assetsLiabilities": {
-          "name": "Assets & liabilities",
-          "description": "What you own, what you owe, and the net worth between them"
+          "name": "Aset dan kewajiban",
+          "description": "Harta, utang, dan kekayaan bersih"
         },
         "spendingPace": {
           "name": "Laju Pengeluaran",
@@ -401,43 +443,43 @@
           "description": "Transaksi terencana yang tertunda dan proyeksi saldo Anda"
         },
         "fireProgress": {
-          "name": "FIRE progress",
-          "description": "How close you are to financial independence"
+          "name": "Progres FIRE",
+          "description": "Perjalanan menuju kemandirian finansial"
         },
         "taxes": {
-          "name": "Average tax rate",
-          "description": "Share of income paid in taxes, with a 12-month trend"
+          "name": "Rata-rata tarif pajak",
+          "description": "Bagian pendapatan untuk pajak dan tren 12 bulan terakhir"
         },
         "budget": {
-          "name": "Budget",
-          "description": "What is left in the current budget period, line by line"
+          "name": "Anggaran",
+          "description": "Sisa setiap pos anggaran pada periode berjalan"
         },
         "trackers": {
-          "name": "Anggaran",
-          "description": "Each active tracker with how much of its limit is used and its net"
+          "name": "Pelacak",
+          "description": "Batas terpakai dan nilai bersih setiap pelacak aktif"
         },
         "goals": {
-          "name": "Goals",
-          "description": "Progress toward your savings goals",
-          "savedOfTarget": "{saved} of {target}",
+          "name": "Tujuan",
+          "description": "Kemajuan menuju target tabungan",
+          "savedOfTarget": "{saved} dari {target}",
           "empty": {
-            "title": "No active goals",
-            "description": "Set a goal and see how close you are.",
-            "action": "Create a goal"
+            "title": "Belum ada tujuan aktif",
+            "description": "Tetapkan tujuan dan pantau perkembangannya.",
+            "action": "Buat tujuan"
           },
           "locked": {
-            "title": "Goals are locked",
-            "description": "Save toward what matters and see if you're on pace. Available on paid plans.",
-            "action": "Learn more"
+            "title": "Tujuan tersedia di paket berbayar",
+            "description": "Pantau tabungan dan lihat perkiraan kapan target tercapai.",
+            "action": "Pelajari selengkapnya"
           },
           "settings": {
-            "showReached": "Show reached goals"
+            "showReached": "Tampilkan tujuan yang tercapai"
           },
           "reachedSection": "Tercapai"
         },
         "tagAnalysis": {
-          "name": "Tag analysis",
-          "description": "See how your spending splits across chosen tags, like needs, wants and savings"
+          "name": "Analisis tag",
+          "description": "Bandingkan pengeluaran pada tag pilihan, seperti kebutuhan, keinginan, dan tabungan"
         }
       }
     },
@@ -458,25 +500,35 @@
         "thisYear": "Tahun Ini",
         "previousYear": "Tahun Sebelumnya"
       },
-      "backToCurrent": "Periode ini"
+      "backToCurrent": "Periode ini",
+      "previousPeriod": "Periode sebelumnya",
+      "nextPeriod": "Periode berikutnya",
+      "loadingPeriod": "Memuat data periode ini"
     }
   },
   "widgets": {
     "subscriptionsOverview": {
       "payAction": "Tandai dibayar",
       "listTitle": "Akan Datang",
-      "dueCount": "{count} due",
-      "nothingDue": "Nothing due in 3 days",
-      "overdueHint": "Overdue since {date}",
-      "dueSoonHint": "Due in the next 3 days",
+      "dueCount": "{count} jatuh tempo",
+      "nothingDue": "Tidak ada tagihan dalam 3 hari",
+      "overdueHint": "Terlambat sejak {date}",
+      "dueSoonHint": "Jatuh tempo dalam 3 hari",
       "strip": {
         "title": "30 hari ke depan",
-        "goingOut": "{amount} going out",
+        "goingOut": "Pengeluaran {amount}",
         "today": "Hari ini"
       },
-      "loadFailed": "Couldn't load recurring payments"
+      "loadFailed": "Tagihan berulang gagal dimuat."
     },
     "latestRecords": {
+      "otherRows": "{count} item lainnya",
+      "collapse": "Ringkas transaksi terbaru",
+      "collapseLabel": "Ringkas",
+      "expand": "Perluas transaksi terbaru",
+      "compactSaveError": "Gagal menyimpan tampilan ringkas. Coba lagi.",
+      "visibleRows": "{count} baris transaksi terbaru",
+      "scheduledRows": "{count} pembayaran terjadwal",
       "settings": {
         "excludeTitle": "Kecualikan transaksi",
         "excludeTransfersDescription": "Sembunyikan transfer antar akun Anda sendiri",
@@ -491,7 +543,7 @@
         "nothingExcluded": "Tidak ada yang dikecualikan",
         "tagsStyleTitle": "Tag",
         "tagsStyleNames": "Nama",
-        "tagsStyleBars": "Batang",
+        "tagsStyleBars": "Ringkas",
         "tagsStyleSaveError": "Gagal menyimpan tampilan tag. Coba lagi.",
         "showAccountTitle": "Akun",
         "showAccountDescription": "Tampilkan logo akun pada setiap transaksi",
@@ -499,58 +551,63 @@
       },
       "overdueBadge": "Terlambat",
       "scheduledBadge": "Terjadwal",
-      "payAction": "Tandai dibayar"
+      "payAction": "Tandai dibayar",
+      "cashFlowSample": "Arus kas dari catatan terbaru yang tampil",
+      "recordsShown": "Catatan terbaru di widget",
+      "paymentsDue": "Pembayaran jatuh tempo",
+      "details": "Lihat rincian",
+      "goToTransactions": "Ke halaman transaksi"
     },
     "fireProgress": {
-      "title": "FIRE progress",
+      "title": "Progres FIRE",
       "config": {
         "style": {
-          "label": "Style",
-          "ring": "Ring",
-          "numbers": "Numbers"
+          "label": "Tampilan",
+          "ring": "Lingkaran",
+          "numbers": "Angka"
         }
       },
-      "openPlan": "Open FIRE plan",
-      "loadFailed": "Couldn't load FIRE progress.",
-      "toType": "to {type}",
-      "ringLabelFor": "{pct}% of {type} target reached, {duration} left",
-      "ringLabelReachedFor": "{type} target reached",
-      "ringLabelUnreachableFor": "{pct}% of {type} target reached, not reachable at your current pace",
-      "timeTo": "Time to {type}",
-      "unitYears": "{n} yrs | {n} yr | {n} yrs",
-      "unitMonths": "{n} mos | {n} mo | {n} mos",
-      "atAge": "at age {age}",
-      "nextMilestone": "Next milestone",
+      "openPlan": "Buka rencana FIRE",
+      "loadFailed": "Progres FIRE gagal dimuat.",
+      "toType": "menuju {type}",
+      "ringLabelFor": "{pct}% target {type} tercapai, tersisa {duration}",
+      "ringLabelReachedFor": "Target {type} tercapai",
+      "ringLabelUnreachableFor": "{pct}% target {type} tercapai. Target belum terjangkau dengan laju saat ini.",
+      "timeTo": "Waktu menuju {type}",
+      "unitYears": "{n} thn",
+      "unitMonths": "{n} bln",
+      "atAge": "pada usia {age}",
+      "nextMilestone": "Tonggak berikutnya",
       "saved": "Ditabung",
       "progress": "Progres",
       "coastFire": "Coast FIRE",
       "reached": "Tercapai",
-      "milestoneIn": "{pct}% in {duration}",
-      "typeNumber": "{type} number",
-      "atRate": "at {rate}%",
-      "milestonesReached": "{n} of {total} milestones",
-      "balanceOfTarget": "{balance} of {target}",
-      "reachedType": "{type} reached",
-      "supports": "Supports {amount}/mo",
-      "pctOfSpending": "{pct}% of spending",
-      "unreachable": "Not reachable at current savings",
-      "needs": "Needs about {amount}/mo to get there in {duration}",
+      "milestoneIn": "{pct}% dalam {duration}",
+      "typeNumber": "Target {type}",
+      "atRate": "pada {rate}%",
+      "milestonesReached": "{n} dari {total} tonggak tercapai",
+      "balanceOfTarget": "{balance} dari {target}",
+      "reachedType": "{type} tercapai",
+      "supports": "Mencukupi {amount}/bln",
+      "pctOfSpending": "{pct}% pengeluaran",
+      "unreachable": "Belum terjangkau dengan tabungan saat ini",
+      "needs": "Perlu sekitar {amount}/bln selama {duration}",
       "chart": {
         "today": "Hari ini",
         "typeTarget": "{type} · {amount}",
-        "ariaLabel": "Net worth path: actual history up to today, projected toward your FIRE number"
+        "ariaLabel": "Riwayat kekayaan bersih hingga hari ini dan proyeksi menuju target FIRE"
       },
       "setup": {
-        "title": "Plan your path to FIRE",
-        "description": "Uses your accounts and spending. Two numbers if you have no data yet.",
-        "action": "Set up"
+        "title": "Rencanakan kemandirian finansial",
+        "description": "Gunakan data rekening dan pengeluaran atau isi dua angka awal.",
+        "action": "Atur"
       },
       "locked": {
-        "title": "Plan your path to FIRE",
-        "description": "Plus feature",
-        "action": "Unlock"
+        "title": "Rencanakan kemandirian finansial",
+        "description": "Fitur paket Plus",
+        "action": "Buka akses"
       },
-      "paceVs": "vs {month}"
+      "paceVs": "dibanding {month}"
     }
   }
 }

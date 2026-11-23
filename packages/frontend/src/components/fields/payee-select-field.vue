@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { useAccountPayees, usePayeeLookup, usePayees } from '@/composable/data-queries/payees';
+import { useAccountPayees, useDeletePayee, usePayeeLookup, usePayees } from '@/composable/data-queries/payees';
 import * as Popover from '@/components/lib/ui/popover';
 import * as Dialog from '@/components/lib/ui/dialog';
 import { CUSTOM_BREAKPOINTS, useWindowBreakpoints } from '@/composable/window-breakpoints';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { Button } from '@/components/lib/ui/button';
 import { cn } from '@/lib/utils';
-import { PlusIcon, SearchIcon, XIcon } from '@lucide/vue';
+import { EllipsisIcon, PencilIcon, PlusIcon, SearchIcon, Trash2Icon, XIcon } from '@lucide/vue';
 import { useDebounce } from '@vueuse/core';
 import { ListboxContent, ListboxFilter, ListboxItem, ListboxRoot } from 'reka-ui';
 import { computed, nextTick, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { PayeeModel, TransactionLocation } from '@bt/shared/types';
 import PayeeFormDialog from '@/pages/settings/subpages/payees/components/payee-form-dialog.vue';
+import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
+import { useNotificationCenter } from '@/components/notification-center';
+import { extractApiErrorMessage } from '@/js/errors';
 import BrandLogo from '@/components/common/brand-logo.vue';
 import { toEntityLogoDisplayProps } from '@/components/common/logo-selection';
 import FieldLabel from './components/field-label.vue';
@@ -24,6 +27,8 @@ interface Props {
   label?: string;
   placeholder?: string;
   disabled?: boolean;
+  managePayees?: boolean;
+  historicalName?: string;
   /** When set, this Payee id is filtered out of the dropdown (e.g. the source of a merge). */
   excludeId?: string | null;
   /**
@@ -46,6 +51,8 @@ const props = withDefaults(defineProps<Props>(), {
   label: undefined,
   placeholder: undefined,
   disabled: false,
+  managePayees: false,
+  historicalName: undefined,
   excludeId: null,
   accountId: null,
   ownerScoped: false,
@@ -79,6 +86,7 @@ const preventMobileAutoFocus = (event: Event) => {
 };
 
 const isOpen = ref(false);
+const triggerRef = ref<HTMLButtonElement>();
 const inputValue = ref('');
 // Closing via Escape, outside tap, or the close X should never preserve stale
 // recipient search terms when this dialog is reopened.
@@ -144,7 +152,9 @@ const selectedPayee = computed(() => {
   return payeeLookupById.value.get(props.modelValue) ?? null;
 });
 
-const selectedLabel = computed(() => selectedPayee.value?.name ?? '');
+const selectedLabel = computed(
+  () => selectedPayee.value?.name ?? (!props.modelValue ? props.historicalName : '') ?? '',
+);
 
 const placeholderResolved = computed(() => props.placeholder ?? t('fields.payeeSelect.placeholder'));
 
@@ -171,28 +181,48 @@ defineExpose({ open: () => (isOpen.value = true) });
 
 function clearSelection() {
   emit('update:modelValue', null);
+  triggerRef.value?.focus({ preventScroll: true });
 }
 
-const createDialogOpen = ref(false);
+const editorOpen = ref(false);
+const editorPayee = ref<PayeeModel | null>(null);
 const createDialogInitialName = ref('');
+const actionsOpen = ref(false);
+const deleteOpen = ref(false);
+const actionPayee = ref<PayeeModel | null>(null);
+const deleteMutation = useDeletePayee();
+const { addErrorNotification } = useNotificationCenter();
 
-async function openCreateDialog() {
-  // Use what was actually typed, including text still waiting for debounce.
+async function openEditor(payee: PayeeModel | null) {
+  editorPayee.value = payee;
   createDialogInitialName.value = inputValue.value.trim();
-  // Close the selector before opening the independent form, otherwise
-  // dismiss/focus restoration can interfere with the newly opened dialog.
+  actionsOpen.value = false;
   isOpen.value = false;
   await nextTick();
-  createDialogOpen.value = true;
+  editorOpen.value = true;
 }
 
-function handlePayeeCreated(payee: PayeeModel) {
-  selectPayee({
-    id: payee.id,
-    defaultCategoryId: payee.defaultCategoryId,
-    defaultTagIds: payee.defaultTagIds,
-    defaultLocation: payee.defaultLocation,
-  });
+function handlePayeeSaved(payee: PayeeModel) {
+  if (!editorPayee.value) selectPayee(payee);
+}
+
+async function openDelete() {
+  actionsOpen.value = false;
+  isOpen.value = false;
+  await nextTick();
+  deleteOpen.value = true;
+}
+
+async function removePayee() {
+  const payee = actionPayee.value;
+  if (!payee || deleteMutation.isPending.value) return;
+  try {
+    await deleteMutation.mutateAsync({ id: payee.id });
+    if (props.modelValue === payee.id) clearSelection();
+    deleteOpen.value = false;
+  } catch (error) {
+    addErrorNotification(extractApiErrorMessage(error) || t('payees.errors.generic'));
+  }
 }
 </script>
 
@@ -203,45 +233,54 @@ function handlePayeeCreated(payee: PayeeModel) {
       :open="isOpen"
       @update:open="(open: boolean) => (isOpen = open)"
     >
-      <component :is="isMobile ? Dialog.DialogTrigger : Popover.PopoverTrigger" as-child>
-        <button
-          type="button"
-          :disabled="disabled"
-          :class="
-            cn(
-              'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
-              'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
-              disabled && 'cursor-not-allowed opacity-50',
-            )
-          "
-          data-test="payee-select-field"
-        >
-          <BrandLogo
-            v-if="selectedPayee"
-            v-bind="toEntityLogoDisplayProps(selectedPayee)"
-            :name="selectedPayee.name"
-            class="size-5 shrink-0"
-          />
-          <span
-            class="text-muted-foreground min-w-0 flex-1 truncate text-left"
-            :class="{ 'text-foreground': selectedLabel }"
+      <div class="relative">
+        <component :is="isMobile ? Dialog.DialogTrigger : Popover.PopoverTrigger" as-child>
+          <button
+            ref="triggerRef"
+            type="button"
+            :disabled="disabled"
+            :class="
+              cn(
+                'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full items-center rounded-md border px-3 py-2 text-sm md:h-9',
+                'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
+                modelValue && !disabled && 'pr-11',
+                disabled && 'cursor-not-allowed opacity-50',
+              )
+            "
+            data-test="payee-select-field"
           >
-            {{ selectedLabel || placeholderResolved }}
-          </span>
-          <span
+            <Transition name="lajur-payee-value" mode="out-in">
+              <span :key="modelValue || selectedLabel" class="flex min-w-0 flex-1 items-center gap-2">
+                <BrandLogo
+                  v-if="selectedPayee"
+                  v-bind="toEntityLogoDisplayProps(selectedPayee)"
+                  :name="selectedPayee.name"
+                  class="size-5 shrink-0"
+                />
+                <span
+                  class="text-muted-foreground min-w-0 flex-1 truncate text-left"
+                  :class="{ 'text-foreground': selectedLabel }"
+                >
+                  {{ selectedLabel || placeholderResolved }}
+                </span>
+              </span>
+            </Transition>
+          </button>
+        </component>
+        <Transition name="lajur-payee-clear">
+          <Button
             v-if="modelValue && !disabled"
-            role="button"
-            tabindex="0"
-            class="text-muted-foreground hover:text-foreground inline-flex shrink-0 cursor-pointer"
+            type="button"
+            variant="ghost"
+            size="icon"
+            class="text-muted-foreground absolute inset-y-0 right-0 h-full w-11"
             :aria-label="t('common.actions.clear')"
-            @click.stop="clearSelection"
-            @keydown.enter.stop="clearSelection"
-            @keydown.space.stop.prevent="clearSelection"
+            @click="clearSelection"
           >
-            <XIcon class="size-4" />
-          </span>
-        </button>
-      </component>
+            <XIcon class="size-4" aria-hidden="true" />
+          </Button>
+        </Transition>
+      </div>
 
       <component
         :is="isMobile ? Dialog.DialogContent : Popover.PopoverContent"
@@ -274,19 +313,62 @@ function handlePayeeCreated(payee: PayeeModel) {
             </div>
           </div>
 
-          <ScrollArea :class="isMobile ? 'min-h-0 max-h-[48dvh] flex-1' : showCreateAffordance ? 'max-h-72' : 'max-h-64'">
+          <ScrollArea
+            :class="isMobile ? 'max-h-[48dvh] min-h-0 flex-1' : showCreateAffordance ? 'max-h-72' : 'max-h-64'"
+          >
             <ListboxContent>
-              <ListboxItem
-                v-for="item in displayPayees"
-                :key="item.id"
-                :value="item.id"
-                class="data-highlighted:bg-popover-foreground/10 data-[state=checked]:bg-primary/15 data-[state=checked]:data-highlighted:bg-primary/20 flex cursor-pointer items-center gap-2 p-2 text-sm"
-                @mousedown.prevent
-                @select.prevent="!isSearchPending && selectPayee(item)"
-              >
-                <BrandLogo v-bind="toEntityLogoDisplayProps(item)" :name="item.name" class="size-6 shrink-0" />
-                <span class="min-w-0 grow truncate">{{ item.name }}</span>
-              </ListboxItem>
+              <div v-for="item in displayPayees" :key="item.id" class="flex items-center">
+                <ListboxItem
+                  :value="item.id"
+                  class="data-highlighted:bg-popover-foreground/10 data-[state=checked]:bg-primary/15 data-[state=checked]:data-highlighted:bg-primary/20 flex min-w-0 flex-1 cursor-pointer items-center gap-2 p-2 text-sm"
+                  @mousedown.prevent
+                  @select.prevent="!isSearchPending && selectPayee(item)"
+                >
+                  <BrandLogo v-bind="toEntityLogoDisplayProps(item)" :name="item.name" class="size-6 shrink-0" />
+                  <span class="min-w-0 grow truncate">{{ item.name }}</span>
+                </ListboxItem>
+                <Popover.Popover
+                  v-if="managePayees && !ownerScoped"
+                  :open="actionsOpen && actionPayee?.id === item.id"
+                  modal
+                  @update:open="
+                    (open) => {
+                      if (open) actionPayee = item;
+                      actionsOpen = open;
+                    }
+                  "
+                >
+                  <Popover.PopoverTrigger as-child>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      class="size-11 shrink-0"
+                      :aria-label="t('payees.actions.moreFor', { name: item.name })"
+                    >
+                      <EllipsisIcon class="size-4" aria-hidden="true" />
+                    </Button>
+                  </Popover.PopoverTrigger>
+                  <Popover.PopoverContent dim-backdrop align="end" class="w-max min-w-36 p-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      class="min-h-11 w-full justify-start"
+                      @click="openEditor(item)"
+                    >
+                      <PencilIcon class="size-4" aria-hidden="true" />{{ t('payees.actions.edit') }}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost-destructive"
+                      class="min-h-11 w-full justify-start"
+                      @click="openDelete"
+                    >
+                      <Trash2Icon class="size-4" aria-hidden="true" />{{ t('common.actions.delete') }}
+                    </Button>
+                  </Popover.PopoverContent>
+                </Popover.Popover>
+              </div>
 
               <div
                 v-if="displayPayees.length === 0 && !isFetching && !showCreateAffordance"
@@ -306,7 +388,7 @@ function handlePayeeCreated(payee: PayeeModel) {
           variant="ghost"
           class="w-full justify-start gap-2 rounded-none border-t"
           data-test="payee-select-create"
-          @click="openCreateDialog"
+          @click="openEditor(null)"
         >
           <PlusIcon class="size-4" />
           {{ createLabel }}
@@ -315,10 +397,19 @@ function handlePayeeCreated(payee: PayeeModel) {
     </component>
 
     <PayeeFormDialog
-      v-model:open="createDialogOpen"
-      :payee="null"
+      v-model:open="editorOpen"
+      :payee="editorPayee"
       :initial-name="createDialogInitialName"
-      @saved="handlePayeeCreated"
+      @saved="handlePayeeSaved"
     />
+    <ResponsiveAlertDialog
+      v-model:open="deleteOpen"
+      :confirm-label="t('common.actions.delete')"
+      confirm-variant="destructive"
+      @confirm="removePayee"
+    >
+      <template #title>{{ t('payees.detail.deletePayeeTitle') }}</template>
+      <template #description>{{ t('payees.actions.deleteWithHistory', { name: actionPayee?.name }) }}</template>
+    </ResponsiveAlertDialog>
   </FieldLabel>
 </template>

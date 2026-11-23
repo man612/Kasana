@@ -15,5 +15,5 @@ export default createController(schema, async ({ user, params, body }) => {
     vehicleId: params.id,
     ...body,
   });
-  return { data: vehicle ? serializeVehicle(vehicle) : null };
+  return { data: vehicle ? serializeVehicle(vehicle, { userId: user.id }) : null };
 });

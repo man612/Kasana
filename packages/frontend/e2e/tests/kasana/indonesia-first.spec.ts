@@ -15,32 +15,53 @@ import { buildTestCredentials, signUpAndVerify } from '../../helpers/test-setup'
 // Playwright supports synthetic TouchEvents for legacy touch gesture handlers.
 // Use the real target geometry, so the same sequence works at 320 and 390px.
 async function swipeElement(element: Locator, from: number, to: number) {
-  await element.evaluate((node, { from, to }) => {
-    const rect = node.getBoundingClientRect();
-    const y = rect.top + rect.height / 2;
-    const touch = (x: number) => new Touch({
-      identifier: 1,
-      target: node,
-      clientX: rect.left + rect.width * x,
-      clientY: y,
-    });
-    const initial = touch(from);
-    node.dispatchEvent(new TouchEvent('touchstart', {
-      touches: [initial],
-      targetTouches: [initial],
-      changedTouches: [initial],
-      bubbles: true,
-      cancelable: true,
-    }));
-    const finalTouch = touch(to);
-    node.dispatchEvent(new TouchEvent('touchend', {
-      touches: [],
-      targetTouches: [],
-      changedTouches: [finalTouch],
-      bubbles: true,
-      cancelable: true,
-    }));
-  }, { from, to });
+  await element.evaluate(
+    async (node, { from: start, to: end }) => {
+      const rect = node.getBoundingClientRect();
+      const y = rect.top + rect.height / 2;
+      const touch = (x: number) =>
+        new Touch({
+          identifier: 1,
+          target: node,
+          clientX: rect.left + rect.width * x,
+          clientY: y,
+        });
+      const initial = touch(start);
+      node.dispatchEvent(
+        new TouchEvent('touchstart', {
+          touches: [initial],
+          targetTouches: [initial],
+          changedTouches: [initial],
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+      for (const fraction of [0.3, 0.65, 1]) {
+        const point = touch(start + (end - start) * fraction);
+        node.dispatchEvent(
+          new TouchEvent('touchmove', {
+            touches: [point],
+            targetTouches: [point],
+            changedTouches: [point],
+            bubbles: true,
+            cancelable: true,
+          }),
+        );
+        await new Promise(requestAnimationFrame);
+      }
+      const finalTouch = touch(end);
+      node.dispatchEvent(
+        new TouchEvent('touchend', {
+          touches: [],
+          targetTouches: [],
+          changedTouches: [finalTouch],
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    },
+    { from, to },
+  );
 }
 
 test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', () => {
@@ -50,6 +71,7 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
     page,
     playwright,
   }) => {
+    test.setTimeout(90_000);
     const credentials = buildTestCredentials({ prefix: 'kasana-idr' });
     const accountName = 'Dompet Uji Kasana IDR';
 
@@ -83,59 +105,13 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         password: credentials.password,
       });
 
-      // The generic onboarding fixture deliberately permanently dismisses the guide.
-      // Reopen it for this isolated timer check, then restore the fixture's original
-      // dismissed state before continuing the other interaction smoke assertions.
-      await apiPut({
-        request: api,
-        path: '/api/v1/user/settings/onboarding',
-        data: { isDismissed: false, dismissedAt: null },
-      });
-      // A short, cross-tab Quick Start hide must expire without reloading.
-      // The timer is owned by the Pinia store even when the floating button is hidden.
-      await page.goto('/dashboard');
-      const quickStart = page.locator('button.fixed:has(svg.lucide-rocket)');
-      await expect(quickStart).toBeVisible({ timeout: 20_000 });
-      await page.evaluate(() => {
-        const key = 'kasana.quick-start-hidden-until-v1';
-        const hiddenUntil = String(Date.now() + 2_500);
-        localStorage.setItem(key, hiddenUntil);
-        window.dispatchEvent(new StorageEvent('storage', { key, newValue: hiddenUntil }));
-      });
-      await expect(quickStart).toBeHidden();
-      await expect(quickStart).toBeVisible({ timeout: 8_000 });
-
-      // UX11 #1: a one-hour hide survives reload with exactly the original
-      // absolute expiry; reloads must never restart the countdown.
-      await page.evaluate(() => {
-        const key = 'kasana.quick-start-hidden-until-v1';
-        const deadline = String(Date.now() + 60 * 60_000);
-        localStorage.setItem(key, deadline);
-        window.dispatchEvent(new StorageEvent('storage', { key, newValue: deadline }));
-      });
-      await expect(quickStart).toBeHidden();
-      const originalDeadline = await page.evaluate(() => localStorage.getItem('kasana.quick-start-hidden-until-v1'));
-      await page.reload();
-      await expect(quickStart).toBeHidden();
-      expect(await page.evaluate(() => localStorage.getItem('kasana.quick-start-hidden-until-v1'))).toBe(originalDeadline);
-      await page.evaluate(() => {
-        const key = 'kasana.quick-start-hidden-until-v1';
-        const expired = String(Date.now() - 1);
-        localStorage.setItem(key, expired);
-        window.dispatchEvent(new StorageEvent('storage', { key, newValue: expired }));
-      });
-      await expect(quickStart).toBeVisible({ timeout: 8_000 });
-
-      await dismissOnboarding({ request: api });
-      await page.reload();
-      await expect(quickStart).toBeHidden();
-
       // Swipe from just inside the system-back edge to open the app sidebar.
+      await expect(page.getByText('Belanja simulasi Kasana', { exact: true })).toBeVisible();
       const shell = page.locator('.h-dvh').first();
       await swipeElement(shell, 0.14, 0.74);
       const sidebarSheet = page.locator('[role="dialog"][data-state="open"]').first();
       await expect(sidebarSheet).toBeVisible();
-      await swipeElement(sidebarSheet.locator(':scope > div.h-full').first(), 0.80, 0.18);
+      await swipeElement(sidebarSheet, 0.8, 0.18);
       await expect(sidebarSheet).toBeHidden();
 
       // Swiping the four-item bottom navbar moves one destination at a time.
@@ -239,37 +215,38 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       for (const label of [/Dasbor|Dashboard/i, /Akun|Accounts/i, /Transaksi|Transactions/i, /Analitik|Analytics/i]) {
         await expect(mobileNav.getByRole('link', { name: label })).toBeVisible();
       }
-      const mobileNewTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();
+      const mobileNewTransaction = page
+        .locator('.shadow-header')
+        .getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i })
+        .first();
       await expect(mobileNewTransaction).toBeVisible();
       await mobileNewTransaction.click();
       const mobileForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
       await expect(mobileForm).toBeVisible();
-      // At 320px, the date is on a separate row but its time remains
-      // directly editable, just like other transaction date-time fields.
       const amountDateStack = mobileForm.getByTestId('transaction-amount-date-stack');
       const primaryAmount = amountDateStack.locator('input[inputmode="decimal"]').first();
-      const mobileDateInput = amountDateStack.getByTestId('date-field-numeric-input');
+      const dateTrigger = amountDateStack.getByTestId('date-field-calendar-trigger');
       await expect(primaryAmount).toBeVisible();
-      await expect(mobileDateInput).toBeVisible();
-      await expect(amountDateStack).toHaveCSS('flex-direction', 'column');
-      // The sheet animates into the viewport with a transform. Two awaited
-      // boundingBox() calls can sample *different animation frames*, making
-      // correctly stacked fields look as though they overlap. Read both DOM
-      // rectangles in one browser evaluation (the same rendering snapshot).
-      // Keep the real geometry requirement: no overlap, even at 320px.
+      await expect(primaryAmount).toHaveAttribute('placeholder', '0');
+      await expect(dateTrigger).toBeVisible();
+      await expect(dateTrigger).toContainText(/\d{2}:\d{2}:\d{2}/);
+      // Read both rectangles in one animation frame while the sheet settles.
       await expect
-        .poll(
-          () =>
-            amountDateStack.evaluate((stack) => {
-              const amount = stack.querySelector<HTMLInputElement>('input[inputmode="decimal"]');
-              const date = stack.querySelector<HTMLInputElement>('[data-testid="date-field-numeric-input"]');
-              if (!amount || !date) return Number.NEGATIVE_INFINITY;
-              return date.getBoundingClientRect().top - amount.getBoundingClientRect().bottom;
-            }),
-          { message: '320px amount and date must be vertically separate', timeout: 8_000 },
+        .poll(() =>
+          amountDateStack.evaluate((stack) => {
+            const amount = stack.querySelector('input[inputmode="decimal"]');
+            const date = stack.querySelector('[data-testid="date-field-calendar-trigger"]');
+            if (!amount || !date) return Number.NEGATIVE_INFINITY;
+            return amount.getBoundingClientRect().top - date.getBoundingClientRect().bottom;
+          }),
         )
         .toBeGreaterThanOrEqual(4);
-      await expect(mobileForm.getByTestId('date-field-time-input')).toBeVisible();
+      await dateTrigger.click();
+      const dateDialog = page.getByTestId('transaction-date-dialog');
+      await expect(dateDialog.getByTestId('date-dialog-time-input')).toBeVisible();
+      await expect(dateDialog.getByRole('button', { name: /^(Tutup|Close)$/i })).toHaveCount(0);
+      await dateDialog.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
+      await expect(dateDialog).toBeHidden();
 
       // Closing account selection without picking must clear its search filter.
       const accountPickerTrigger = mobileForm.locator('[data-test="account-select-trigger"]').first();
@@ -293,7 +270,10 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       const payeePickerTrigger = mobileForm.locator('[data-test="payee-select-field"]').first();
       await expect(payeePickerTrigger).toBeVisible();
       await payeePickerTrigger.click();
-      const payeePicker = page.getByRole('dialog').filter({ has: page.locator('[data-test="payee-select-search"]') }).last();
+      const payeePicker = page
+        .getByRole('dialog')
+        .filter({ has: page.locator('[data-test="payee-select-search"]') })
+        .last();
       await expect(payeePicker).toBeVisible();
       await payeePicker.locator('[data-test="payee-select-search"]').fill('recipient-that-does-not-exist');
       // A recipient search field can own keyboard handling; exercise the
@@ -309,7 +289,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
         height: element.getBoundingClientRect().height,
       }));
       expect(mobileAmountMetrics.fontSize, '320px money input text should remain readable').toBeGreaterThanOrEqual(16);
-      expect(mobileAmountMetrics.height, '320px money input should have a full touch target').toBeGreaterThanOrEqual(43);
+      expect(mobileAmountMetrics.height, '320px money input should have a full touch target').toBeGreaterThanOrEqual(
+        43,
+      );
       const mobileSave = mobileForm.getByRole('button', { name: /Buat transaksi|Create transaction/i });
       await expect(mobileSave).toBeVisible();
       // Vaul animates the bottom sheet into the viewport. A nonzero box and
@@ -335,7 +317,10 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await primaryAmount.fill('1234');
       // On a short mobile viewport, templates must use a centered dialog with
       // reachable bottom actions, not a clipped nested bottom sheet.
-      await mobileForm.getByRole('button', { name: /^Templat|^Template/i }).first().click();
+      await mobileForm
+        .getByRole('button', { name: /^Templat|^Template/i })
+        .first()
+        .click();
       const templateDialog = page.getByRole('dialog', { name: /^Templat|^Template/i });
       await expect(templateDialog).toBeVisible();
       const templateBounds = await templateDialog.boundingBox();
@@ -375,19 +360,22 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       // A tap on the transaction sheet close button must work on Vaul too.
       // With unsaved input it must ask before discarding, not silently close.
       await primaryAmount.fill('1234');
-      await mobileForm.getByRole('button', { name: /Tutup|Close/i }).click();
+      await mobileForm.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
       const discardConfirmation = page.getByRole('alertdialog');
       await expect(discardConfirmation.getByText(/Tutup tanpa menyimpan|Close without saving/i)).toBeVisible();
       // Cancel must retain the form and must not dispatch the destructive action.
       await discardConfirmation.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
       await expect(mobileForm).toBeVisible();
-      await mobileForm.getByRole('button', { name: /Tutup|Close/i }).click();
+      await mobileForm.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
       await expect(discardConfirmation).toBeVisible();
       await discardConfirmation.getByRole('button', { name: /Buang|Discard/i }).click();
       await expect(mobileForm).toBeHidden();
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto('/dashboard');
-      const mobileDateTransaction = page.locator('.shadow-header').getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i }).first();
+      const mobileDateTransaction = page
+        .locator('.shadow-header')
+        .getByRole('button', { name: /^(Tambah|Add|Transaksi Baru|New transaction)$/i })
+        .first();
       await mobileDateTransaction.click();
       const mobileDateForm = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
       await expect(mobileDateForm).toBeVisible();
@@ -401,7 +389,9 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(mobilePickerBox!.y).toBeGreaterThanOrEqual(-2);
       expect(mobilePickerBox!.y + mobilePickerBox!.height).toBeLessThanOrEqual(846);
       const mobileUnusedScroll = await mobileDatePicker.evaluate((node) => node.scrollHeight - node.clientHeight);
-      expect(mobileUnusedScroll, '390px mobile date picker should not require needless scrolling').toBeLessThanOrEqual(2);
+      expect(mobileUnusedScroll, '390px mobile date picker should not require needless scrolling').toBeLessThanOrEqual(
+        2,
+      );
       await page.keyboard.press('Escape');
 
       // The accent is independent of light/dark mode and survives navigation
@@ -673,6 +663,75 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       expect(unusedScroll).toBeLessThanOrEqual(2);
       await page.keyboard.press('Escape');
       await expect(saveTransaction).toBeVisible();
+    } finally {
+      await api.dispose();
+    }
+  });
+
+  test('restores the account Quick Start deadline and reveals the trigger when it expires', async ({
+    page,
+    playwright,
+  }) => {
+    const credentials = buildTestCredentials({ prefix: 'kasana-quick-start' });
+    await signUpAndVerify({ creds: credentials });
+    const api = await signInViaApi({ playwright, email: credentials.email, password: credentials.password });
+
+    try {
+      await completeOnboarding({ request: api, currencyCode: 'IDR' });
+      await createAccount({ request: api, name: 'Dompet Uji Mulai Cepat', currencyCode: 'IDR', initialBalance: 0 });
+      await loginViaUI({ page, email: credentials.email, password: credentials.password });
+
+      // The onboarding fixture dismisses the guide by default. Restore it with a short expiry.
+      const onboardingPath = '/api/v1/user/settings/onboarding';
+      const shortHideMs = 30_000;
+      const shortDeadline = Date.now() + shortHideMs;
+      await apiPut({
+        request: api,
+        path: onboardingPath,
+        data: { isDismissed: false, dismissedAt: null, hiddenUntil: shortDeadline },
+      });
+      // The countdown uses the absolute expiry returned by the account API.
+      await page.clock.install();
+      const waitForOnboarding = (method: 'GET' | 'PUT') =>
+        page.waitForResponse(
+          (response) => new URL(response.url()).pathname === onboardingPath && response.request().method() === method,
+          { timeout: 25_000 },
+        );
+      const initialOnboarding = waitForOnboarding('GET');
+      await page.goto('/dashboard');
+      expect((await (await initialOnboarding).json()).response.hiddenUntil).toBe(shortDeadline);
+      await expect(page.getByTestId('dashboard-period-bar')).toBeVisible();
+      const quickStart = page.locator('button.fixed:has(svg.lucide-rocket)');
+      await expect(quickStart).toBeHidden();
+      await page.clock.fastForward(shortHideMs + 1_000);
+      await expect(quickStart).toBeVisible({ timeout: 8_000 });
+
+      // A one-hour hide saved from the UI survives reload with the original expiry.
+      await quickStart.click();
+      await page.getByRole('button', { name: /^(Sembunyikan|Hide)$/ }).click();
+      const savedOnboarding = waitForOnboarding('PUT');
+      const oneHour = 60 * 60_000;
+      const beforeSave = await page.evaluate(() => Date.now());
+      await page.getByRole('menuitem', { name: /^(Selama 1 jam|For 1 hour)$/ }).click();
+      const { hiddenUntil: originalDeadline } = (await (await savedOnboarding).json()).response;
+      expect(originalDeadline).toBeGreaterThanOrEqual(beforeSave + oneHour);
+      expect(originalDeadline).toBeLessThanOrEqual((await page.evaluate(() => Date.now())) + oneHour);
+      await expect(quickStart).toBeHidden();
+      const reloadedOnboarding = waitForOnboarding('GET');
+      await page.reload();
+      await expect(page.getByTestId('dashboard-period-bar')).toBeVisible();
+      // On reload the layout waits for idle before asking for Quick Start again.
+      await page.clock.fastForward(2_100);
+      expect((await (await reloadedOnboarding).json()).response.hiddenUntil).toBe(originalDeadline);
+      await expect(quickStart).toBeHidden();
+
+      await dismissOnboarding({ request: api });
+      const dismissedOnboarding = waitForOnboarding('GET');
+      await page.reload();
+      await expect(page.getByTestId('dashboard-period-bar')).toBeVisible();
+      await page.clock.fastForward(2_100);
+      expect((await (await dismissedOnboarding).json()).response.isDismissed).toBe(true);
+      await expect(quickStart).toBeHidden();
     } finally {
       await api.dispose();
     }

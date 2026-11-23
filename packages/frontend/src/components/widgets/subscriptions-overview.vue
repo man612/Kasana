@@ -273,7 +273,7 @@ function payPeriod({ subscription }: { subscription: SubscriptionListItem }) {
     </template>
 
     <template v-else-if="isEmpty && !isFetching">
-      <EmptyState>
+      <EmptyState :message="$t('dashboard.widgets.subscriptions.empty')">
         <RepeatIcon class="size-14" />
       </EmptyState>
     </template>

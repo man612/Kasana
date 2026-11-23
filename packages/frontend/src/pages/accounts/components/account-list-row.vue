@@ -3,13 +3,13 @@
     :to="{ name: ROUTES_NAMES.account, params: { id: account.id } }"
     :class="
       cn(
-        'grid grid-cols-[minmax(0,1fr)_auto_14px] items-center gap-3 px-4 py-3',
+        'grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_14px] items-center gap-2.5 px-3 py-3 @[30rem]/accounts-page:gap-3 @[30rem]/accounts-page:px-4',
         'hover:bg-muted/40 focus-visible:ring-ring/40 transition-colors focus-visible:ring-2 focus-visible:outline-none',
       )
     "
   >
     <div class="flex min-w-0 items-center gap-3">
-      <AccountLogo :account="account" :category="category" class="size-9" />
+      <AccountLogo :account="account" :category="category" :fallback-icon="fallbackIcon" class="size-9" />
       <div class="min-w-0">
         <div class="flex min-w-0 items-center gap-1.5">
           <DesktopOnlyTooltip
@@ -25,7 +25,7 @@
               class="text-muted-foreground size-3.5 shrink-0"
             />
           </DesktopOnlyTooltip>
-          <span class="truncate text-sm font-semibold">{{ account.name }}</span>
+          <span class="min-w-0 text-sm leading-tight font-semibold wrap-anywhere">{{ account.name }}</span>
           <DesktopOnlyTooltip v-if="needsReauth" :content="$t('sidebar.accountsView.needsReauthTooltip')">
             <TriangleAlertIcon class="text-destructive-text size-3.5 shrink-0" />
           </DesktopOnlyTooltip>
@@ -50,17 +50,14 @@
       </div>
     </div>
 
-    <div class="text-right">
+    <div class="min-w-0 text-right wrap-anywhere">
       <div
         class="text-sm font-semibold tabular-nums"
         :class="displayBalance < 0 ? 'text-destructive-text' : 'text-foreground'"
       >
         {{ formatAmountByCurrencyCode(displayBalance, account.currencyCode) }}
       </div>
-      <div
-        v-if="account.currencyCode !== baseCurrencyCode"
-        class="text-muted-foreground mt-0.5 text-[11px] tabular-nums"
-      >
+      <div v-if="account.currencyCode !== baseCurrencyCode" class="text-muted-foreground mt-0.5 text-xs tabular-nums">
         ≈ {{ formatBaseCurrency(displayRefBalance) }}
       </div>
     </div>
@@ -84,13 +81,14 @@ import { useCurrenciesStore } from '@/stores';
 import { ACCOUNT_CATEGORIES, AccountModel } from '@bt/shared/types';
 import { ChevronRightIcon, HomeIcon, TriangleAlertIcon, UsersIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { computed, ref, toRef } from 'vue';
+import { type Component, computed, ref, toRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
 
 const props = defineProps<{
   account: AccountModel;
   subtitle?: string;
+  fallbackIcon?: Component;
   categoryOverride?: ACCOUNT_CATEGORIES;
 }>();
 

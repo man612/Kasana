@@ -29,7 +29,7 @@
     },
     "dialog": {
       "createTitle": "Add a loan",
-      "createDescription": "Track a mortgage, auto loan, student loan, or any other liability. You can edit anything later.",
+      "createDescription": "Record your loan and its repayments.",
       "editTitle": "Edit loan",
       "editDescription": "Update the loan's terms. Changes to the rate, term, or planned payment are recorded in the events timeline."
     },
@@ -69,6 +69,7 @@
       "createFirstButton": "Add your first loan"
     },
     "paidOff": {
+      "allSettled": "All tracked loans are paid off",
       "sectionTitle": "Paid off",
       "repaid": "Repaid",
       "opened": "Opened",
@@ -100,7 +101,8 @@
       },
       "paidPercent": "{value}% paid",
       "monthsLeft": "{count} mo left",
-      "ofPrincipal": "of {amount}"
+      "ofPrincipal": "of {amount}",
+      "scheduledPayment": "Scheduled payment"
     },
     "types": {
       "mortgage": "Mortgage",
@@ -121,7 +123,7 @@
       "loadError": "Failed to load this loan.",
       "paidOffBadge": "Paid off",
       "summary": {
-        "outstanding": "Current balance",
+        "outstanding": "Outstanding principal",
         "principalOnlyTooltip": "Balance reflects principal payments only. Interest is not accrued automatically – your lender's statement is the source of truth.",
         "apr": "APR",
         "originalPrincipal": "Original principal",
@@ -216,6 +218,11 @@
           "actual": "Actual balance",
           "schedule": "Original schedule"
         }
+      },
+      "detailsToggle": "Loan details",
+      "tabs": {
+        "summary": "Overview",
+        "activity": "Activity"
       }
     }
   }

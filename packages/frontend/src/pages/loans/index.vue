@@ -1,11 +1,11 @@
 <template>
   <PageWrapper>
-    <div class="@container/loans-page mb-6 flex flex-wrap items-center justify-between gap-x-8 gap-y-4">
-      <h1 class="text-3xl font-semibold tracking-tight">{{ $t('loans.title') }}</h1>
+    <div class="@container/loans-page mb-4 flex flex-wrap items-center justify-between gap-2">
+      <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ $t('loans.title') }}</h1>
 
       <CreateLoanDialog v-if="loansQuery.isSuccess.value && loans.length > 0">
-        <UiButton>
-          <PlusIcon class="size-4" />
+        <UiButton class="min-h-11">
+          <PlusIcon class="size-4" aria-hidden="true" />
           {{ $t('loans.addButton.label') }}
         </UiButton>
       </CreateLoanDialog>
@@ -39,10 +39,17 @@
     </template>
 
     <template v-else-if="loans.length">
-      <AggregateCard v-if="trackedLoans.length" class="mb-6" :loans="trackedLoans" />
+      <AggregateCard v-if="activeLoans.length" class="mb-4" :loans="trackedLoans" />
+      <div
+        v-else-if="paidOffLoans.length"
+        class="bg-success/10 border-success/30 mb-4 flex items-center gap-2 rounded-xl border px-3 py-2.5"
+      >
+        <CircleCheckIcon class="text-success-text size-5 shrink-0" aria-hidden="true" />
+        <h2 class="text-sm font-semibold">{{ $t('loans.paidOff.allSettled') }}</h2>
+      </div>
       <LoanList v-if="activeLoans.length" :loans="activeLoans" />
 
-      <section v-if="paidOffLoans.length" class="mt-8">
+      <section v-if="paidOffLoans.length" class="mt-5">
         <div class="mb-3 flex items-center gap-2 px-1">
           <h2 class="text-muted-foreground text-xs font-semibold tracking-[0.14em] uppercase">
             {{ $t('loans.paidOff.sectionTitle') }}
@@ -52,7 +59,7 @@
         <PaidOffLoanList :loans="paidOffLoans" />
       </section>
 
-      <section v-if="archivedLoans.length" class="mt-8">
+      <section v-if="archivedLoans.length" class="mt-5">
         <Collapsible v-model:open="isArchivedOpen">
           <CollapsibleTrigger
             class="focus-visible:ring-ring/40 flex w-full items-center gap-2 rounded px-1 focus-visible:ring-2 focus-visible:outline-none"
@@ -101,7 +108,7 @@ import UiButton from '@/components/lib/ui/button/Button.vue';
 import { Card, CardContent } from '@/components/lib/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/lib/ui/collapsible';
 import { useLoans } from '@/composable/data-queries/loans';
-import { ChevronDownIcon, HandCoinsIcon, PlusIcon } from '@lucide/vue';
+import { ChevronDownIcon, CircleCheckIcon, HandCoinsIcon, PlusIcon } from '@lucide/vue';
 import { computed, ref } from 'vue';
 
 import AggregateCard from './components/aggregate-card.vue';

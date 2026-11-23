@@ -197,6 +197,7 @@ const routes: RouteRecordRaw[] = [
             path: 'recurring-payments/:id',
             name: ROUTES_NAMES.plannedSubscriptionDetails,
             component: () => import('@/pages/planned/subscriptions/subscription-details.vue'),
+            meta: { i18nChunks: ['pages/transactions'] },
           },
           {
             path: 'trackers',
@@ -306,13 +307,13 @@ const routes: RouteRecordRaw[] = [
         path: '/transactions/automations/new',
         name: ROUTES_NAMES.automationCreate,
         component: () => import('@/pages/automations/editor.vue'),
-        meta: { navSection: 'transactions', i18nChunks: ['pages/automations'] },
+        meta: { focusPage: true, navSection: 'transactions', i18nChunks: ['pages/automations'] },
       },
       {
         path: '/transactions/automations/:id',
         name: ROUTES_NAMES.automationDetails,
         component: () => import('@/pages/automations/editor.vue'),
-        meta: { navSection: 'transactions', i18nChunks: ['pages/automations'] },
+        meta: { focusPage: true, navSection: 'transactions', i18nChunks: ['pages/automations'] },
       },
       {
         path: '/settings',

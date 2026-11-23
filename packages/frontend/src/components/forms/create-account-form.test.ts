@@ -190,7 +190,8 @@ describe('CreateAccountForm', () => {
       const nameInput = wrapper.find<HTMLInputElement>('input:not([type="number"])');
       await nameInput.setValue(name);
 
-      await submitForm({ wrapper });
+      expect(wrapper.get('button[type="submit"]').attributes('disabled')).toBeDefined();
+      await wrapper.get('form').trigger('submit');
 
       expect(createAccountMock).not.toHaveBeenCalled();
     });
@@ -287,28 +288,9 @@ describe('CreateAccountForm', () => {
       expect(payload.currencyCode).toBe(dataMocks.USER_BASE_CURRENCY.currencyCode);
     });
 
-    it('updates currencyCode in payload when a different currency is selected', async () => {
+    it('hides the currency picker', async () => {
       const { wrapper } = await mountComponent();
-
-      // The currency Select uses a portal for its dropdown, which doesn't render
-      // in jsdom. Instead, emit the update directly on the Select component.
-      // The first Select.Select is the currency dropdown (see template order).
-      const selectComponents = wrapper.findAllComponents(Select.Select);
-      const currencySelect = selectComponents[0];
-
-      const eurCurrency = dataMocks.USER_CURRENCIES.find((c) => c.currency!.code === 'EUR');
-      currencySelect!.vm.$emit('update:modelValue', eurCurrency!.currencyCode);
-      await wrapper.vm.$nextTick();
-
-      const nameInput = wrapper.find<HTMLInputElement>('input:not([type="number"])');
-      await nameInput.setValue('EUR Account');
-
-      await submitForm({ wrapper });
-
-      expect(createAccountMock).toHaveBeenCalledTimes(1);
-      const payload = createAccountMock.mock.calls[0]![0];
-
-      expect(payload.currencyCode).toBe(eurCurrency!.currencyCode);
+      expect(wrapper.findComponent(Select.Select).exists()).toBe(false);
     });
   });
 

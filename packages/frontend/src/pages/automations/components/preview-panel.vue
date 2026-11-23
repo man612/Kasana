@@ -5,17 +5,27 @@ import { usePreviewAutomation } from '@/composable/data-queries/transaction-auto
 import { extractApiErrorMessage } from '@/js/errors';
 import type { AutomationConditions } from '@bt/shared/types';
 import { Loader2Icon, PlayIcon } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, shallowRef } from 'vue';
 
-const props = defineProps<{ conditions: AutomationConditions; disabled: boolean }>();
+import AutomationChipTrack from './automation-chip-track.vue';
+import type { AutomationChip } from './automation-chips';
+import type { AutomationActionDraft } from './condition-registry';
+
+const props = defineProps<{
+  conditions: AutomationConditions;
+  actions: AutomationActionDraft[];
+  actionChips: AutomationChip[];
+  disabled: boolean;
+}>();
 
 const preview = usePreviewAutomation();
 
-const lastRun = ref<string | null>(null);
-const isStale = computed(() => lastRun.value !== null && lastRun.value !== JSON.stringify(props.conditions));
+const signature = computed(() => JSON.stringify({ conditions: props.conditions, actions: props.actions }));
+const lastRun = shallowRef<{ signature: string; chips: AutomationChip[] }>();
+const isStale = computed(() => lastRun.value && lastRun.value.signature !== signature.value);
 
 const run = () => {
-  const snapshot = JSON.stringify(props.conditions);
+  const snapshot = { signature: signature.value, chips: [...props.actionChips] };
   preview.mutate({ conditions: props.conditions }, { onSuccess: () => (lastRun.value = snapshot) });
 };
 </script>
@@ -35,6 +45,7 @@ const run = () => {
       {{ $t('automations.editor.preview.run') }}
     </Button>
 
+    <p class="text-muted-foreground text-xs">{{ $t('automations.editor.preview.scope') }}</p>
     <p v-if="disabled" class="text-muted-foreground text-xs">{{ $t('automations.editor.preview.hint') }}</p>
 
     <p v-if="preview.isError.value" class="text-destructive-text text-xs">
@@ -42,9 +53,9 @@ const run = () => {
     </p>
 
     <template v-if="preview.data.value">
-      <p v-if="isStale" class="text-warning-text text-xs">{{ $t('automations.editor.preview.stale') }}</p>
+      <p v-if="isStale" class="text-warning-text text-xs" role="status">{{ $t('automations.editor.preview.stale') }}</p>
 
-      <p class="text-muted-foreground text-xs">
+      <p class="text-muted-foreground text-xs" role="status">
         {{
           $t('automations.editor.preview.summary', {
             matched: preview.data.value.matchedCount,
@@ -57,8 +68,14 @@ const run = () => {
         {{ $t('automations.editor.preview.empty') }}
       </p>
 
-      <div v-else class="flex flex-col gap-2">
-        <TransactionRecord v-for="tx in preview.data.value.matches" :key="tx.id" :tx="tx" compact />
+      <div v-else class="grid gap-2">
+        <div v-if="lastRun?.chips.length" class="bg-muted/40 grid gap-1 rounded-lg px-3 py-2">
+          <h3 class="text-sm font-medium">{{ $t('automations.editor.preview.after') }}</h3>
+          <AutomationChipTrack :chips="lastRun.chips" variant="then" density="comfortable" />
+          <p class="text-muted-foreground text-xs">{{ $t('automations.editor.preview.notApplied') }}</p>
+        </div>
+        <h3 class="text-muted-foreground text-xs font-medium">{{ $t('automations.editor.preview.before') }}</h3>
+        <TransactionRecord v-for="tx in preview.data.value.matches" :key="tx.id" :tx="tx" :as-button="false" compact />
       </div>
     </template>
   </div>

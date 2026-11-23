@@ -20,4 +20,6 @@ export const DEPRECIATION_PRESET_TRANSLATION_KEYS = Object.freeze({
   [DEPRECIATION_PRESET.average]: 'common.depreciationPresets.average',
   [DEPRECIATION_PRESET.fast]: 'common.depreciationPresets.fast',
   [DEPRECIATION_PRESET.custom]: 'common.depreciationPresets.custom',
+  [DEPRECIATION_PRESET.straightLine]: 'common.depreciationPresets.straightLine',
+  [DEPRECIATION_PRESET.manual]: 'common.depreciationPresets.manual',
 });
