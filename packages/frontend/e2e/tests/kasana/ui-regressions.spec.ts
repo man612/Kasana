@@ -164,7 +164,7 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
       await expect(account).toBeVisible();
     }
     await page.goto('/loans');
-    await page.getByText('Pinjaman regresi Lajur.', { exact: true }).first().click();
+    await page.getByRole('link', { name: /^Pinjaman regresi Lajur\./ }).click();
     await expect(page).toHaveURL(new RegExp(`/loans/${loanId}$`));
     await page.locator('.shadow-header').getByRole('button', { name: 'Kembali', exact: true }).click();
     await expect(page).toHaveURL(/\/loans$/);
