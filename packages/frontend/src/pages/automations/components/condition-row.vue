@@ -137,6 +137,7 @@ const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | n
           :option-disabled="(option) => isFieldDisabled(option.value)"
           class="min-w-0 flex-1 @xl/condition:w-37.5 @xl/condition:flex-none"
           :placeholder="$t('automations.editor.fieldPlaceholder')"
+          :trigger-aria-label="$t('automations.editor.fieldPlaceholder')"
           @update:model-value="(option) => option && emit('update:field', option.value)"
         />
         <SelectField
@@ -144,6 +145,7 @@ const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | n
           :values="operatorOptions"
           class="min-w-0 flex-1 @xl/condition:w-37.5 @xl/condition:flex-none"
           :placeholder="$t('automations.editor.operatorPlaceholder')"
+          :trigger-aria-label="$t('automations.editor.operatorPlaceholder')"
           @update:model-value="(option) => option && changeOperator({ operator: option.value })"
         />
       </div>
@@ -219,6 +221,7 @@ const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | n
                 :search-keys="['label']"
                 class="w-56"
                 :placeholder="$t('automations.editor.currencyPlaceholder')"
+                :trigger-aria-label="$t('automations.editor.currencyPlaceholder')"
                 @update:model-value="
                   (option) => option && setCurrency({ condition: modelValue as AmountCondition, code: option.value })
                 "

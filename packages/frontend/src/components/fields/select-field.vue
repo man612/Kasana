@@ -40,6 +40,8 @@ const props = withDefaults(
     /** Lists the matching options first under their own label; a search shows one flat list. */
     pinnedGroup?: SelectPinnedGroup<T>;
     triggerClass?: string;
+    /** Names a trigger in compact forms where a visible label would repeat nearby context. */
+    triggerAriaLabel?: string;
   }>(),
   {
     placeholder: undefined,
@@ -55,6 +57,7 @@ const props = withDefaults(
     required: false,
     pinnedGroup: undefined,
     triggerClass: undefined,
+    triggerAriaLabel: undefined,
   },
 );
 
@@ -199,6 +202,10 @@ watch(
                 $slots['field-right'] && 'rounded-r-none border-r-0',
                 triggerClass,
               )
+            "
+            :aria-label="
+              triggerAriaLabel &&
+              (displayItem ? `${triggerAriaLabel}, ${getLabelFromValue(displayItem)}` : triggerAriaLabel)
             "
             :aria-required="required || undefined"
           >

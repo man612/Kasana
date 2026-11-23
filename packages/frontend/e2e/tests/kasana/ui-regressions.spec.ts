@@ -192,6 +192,8 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await expect(page.locator('.shadow-header')).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Simpan', exact: true })).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Pilih rincian transaksi, Catatan' })).toBeVisible();
+    await expect(page.getByRole('combobox', { name: /^Pilih syarat, memuat/ })).toBeVisible();
     const name = page.getByRole('textbox', { name: /Nama otomatisasi/i });
     await name.focus();
     await name.press('Tab');
