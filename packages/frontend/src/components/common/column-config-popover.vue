@@ -12,6 +12,8 @@
             :size="triggerVariant === 'secondary' ? 'icon' : 'icon-sm'"
             :variant="triggerVariant"
             :aria-label="$t(titleKey)"
+            :aria-expanded="isOpen"
+            aria-haspopup="dialog"
           >
             <SettingsIcon
               :class="
@@ -29,7 +31,7 @@
     <PopoverContent
       class="w-72 overflow-hidden p-0"
       align="end"
-      @escape-key-down="restoreFocusOnClose = true"
+      @escape-key-down="markEscapeDismissal"
       @close-auto-focus="onCloseAutoFocus"
     >
       <SlidingPanels v-model="view" :panels="['main', 'columns']">
@@ -154,6 +156,9 @@ const emit = defineEmits<{
 const isOpen = defineModel<boolean>('open', { default: false });
 const trigger = useTemplateRef<HTMLElement>('trigger');
 let restoreFocusOnClose = false;
+const markEscapeDismissal = () => {
+  restoreFocusOnClose = true;
+};
 
 // The positioning wrapper is a span. Escape should return focus to its button.
 const onCloseAutoFocus = (event: Event) => {
