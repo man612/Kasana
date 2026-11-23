@@ -1,9 +1,16 @@
 import { useUserSettings } from '@/composable/data-queries/user-settings';
+import { useUserStore } from '@/stores/user';
 import type { TransactionTimeGrouping } from '@bt/shared/types';
+import { useLocalStorage } from '@vueuse/core';
 import { computed, ref } from 'vue';
 
 export function useTransactionTimeGrouping() {
   const { data, patchAsync } = useUserSettings();
+  const user = useUserStore();
+  const showTime = useLocalStorage(
+    computed(() => `lajur:transaction-clock:user:${user.user?.id ?? 'none'}`),
+    false,
+  );
   const localMode = ref<TransactionTimeGrouping>();
   const mode = computed(() => localMode.value ?? data.value?.ui?.transactionsList?.timeGrouping ?? 'none');
   let save = Promise.resolve();
@@ -26,5 +33,5 @@ export function useTransactionTimeGrouping() {
     });
   };
 
-  return { mode, setMode };
+  return { mode, setMode, showTime };
 }

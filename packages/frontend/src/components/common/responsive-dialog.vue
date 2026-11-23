@@ -38,8 +38,8 @@ const props = withDefaults(
     /** When true, the footer slot is not rendered in drawer (mobile) mode.
      * Use when the footer only contains a close action — swipe-to-close is enough on mobile. */
     hideDrawerFooter?: boolean;
-    /** Transfer forms keep a fixed footer but still need a visible mobile X. */
-    showDrawerCloseWithFooter?: boolean;
+    /** Use an X for an action-only footer that has no dismissal button. */
+    showCloseWithFooter?: boolean;
     /** When true, the drawer (mobile) skips the grey grab-handle indicator.
      * Use when the content paints its own flush element at the top edge. */
     drawerCustomIndicator?: boolean;
@@ -72,12 +72,9 @@ const setOpen = (open: boolean) => {
 };
 
 const close = () => setOpen(false);
-const hasDrawerClose = computed(
-  () =>
-    props.dismissible &&
-    !props.customClose &&
-    (!slots.footer || props.hideDrawerFooter || props.showDrawerCloseWithFooter),
-);
+const canShowClose = computed(() => props.dismissible && !props.customClose);
+const hasDialogClose = computed(() => canShowClose.value && (!slots.footer || props.showCloseWithFooter));
+const hasDrawerClose = computed(() => hasDialogClose.value || (canShowClose.value && props.hideDrawerFooter));
 const onCloseAutoFocus = (event: Event) => {
   emit('close-auto-focus', event);
   if (!isOpen.value) emit('closed');
@@ -183,7 +180,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
           isMobile && 'max-h-[88dvh] w-[calc(100vw-2rem)] max-w-md rounded-2xl',
         ]"
         :blur-overlay="isMobile || props.raised"
-        :custom-close="Boolean(customClose || $slots['header-actions'])"
+        :custom-close="!hasDialogClose || Boolean($slots['header-actions'])"
         :raised="props.raised"
         @close-auto-focus="onCloseAutoFocus"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
@@ -205,10 +202,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
               <Dialog.DialogTitle><slot name="title" /></Dialog.DialogTitle>
               <Dialog.DialogDescription><slot name="description" /></Dialog.DialogDescription>
             </div>
-            <DialogHeaderActions
-              v-if="$slots['header-actions']"
-              :close="!customClose && dismissible ? close : undefined"
-            >
+            <DialogHeaderActions v-if="$slots['header-actions']" :close="hasDialogClose ? close : undefined">
               <slot name="header-actions" />
             </DialogHeaderActions>
           </Dialog.DialogHeader>

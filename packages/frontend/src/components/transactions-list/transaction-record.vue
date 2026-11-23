@@ -226,11 +226,12 @@
         {{ rowAmount }}
       </div>
       <time
-        v-if="rowTimeLabel"
-        :datetime="new Date(transaction.time).toISOString()"
+        v-if="rowTimeLabel || rowDateLabel"
+        :datetime="rowTimeLabel ? new Date(transaction.time).toISOString() : undefined"
         class="text-muted-foreground block text-right text-xs tabular-nums"
       >
-        {{ rowTimeLabel }}
+        <span v-if="rowDateLabel" class="block">{{ rowDateLabel }}</span>
+        <span v-if="rowTimeLabel" class="block">{{ rowTimeLabel }}</span>
       </time>
     </div>
   </div>
@@ -311,6 +312,7 @@ const props = withDefaults(
     /** Set where a parent already shows the date, e.g. a single-day group. */
     hideDate?: boolean;
     showTime?: boolean;
+    showDateWithTime?: boolean;
     /** Set where planned rows already sit under their own collapsible header. */
     hidePlannedMarker?: boolean;
     hideRefundMarker?: boolean;
@@ -488,11 +490,14 @@ const rowAccount = computed(() =>
   shouldShowGroupedTransfer.value ? (transferFromAccount.value ?? accountFrom.value) : accountFrom.value,
 );
 const rowTimeLabel = computed(() =>
-  formatTransactionRowTime({
-    value: transaction.value.time,
-    hideDate: props.hideDate,
-    showTime: props.showTime,
-  }),
+  props.showTime
+    ? formatTransactionRowTime({ value: transaction.value.time, hideDate: props.hideDate, showTime: true })
+    : '',
+);
+const rowDateLabel = computed(() =>
+  !props.showTime || props.showDateWithTime
+    ? formatTransactionRowTime({ value: transaction.value.time, hideDate: props.hideDate })
+    : '',
 );
 
 const transactionEmit = () => {

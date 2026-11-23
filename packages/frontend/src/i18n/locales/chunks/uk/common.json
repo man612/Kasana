@@ -69,6 +69,7 @@
     },
     "errors": {
       "initializationFailed": "Не вдалося завантажити дані застосунку. Перевірте з’єднання.",
+      "pageLoadFailed": "Не вдалося завантажити сторінку. Спробуйте ще раз.",
       "copyToClipboardFailed": "Не вдалося скопіювати до буфера обміну",
       "settingsSaveFailed": "Не вдалося зберегти налаштування. Спробуйте ще раз."
     },
@@ -208,6 +209,10 @@
       "hours": "Години",
       "minutes": "Хвилини",
       "chooseMonthYear": "Вибрати місяць і рік, {month}",
+      "monthYearTitle": "Вибрати місяць і рік",
+      "year": "Рік",
+      "previousYear": "Попередній рік",
+      "nextYear": "Наступний рік",
       "dialogTitle": "Діапазон дат",
       "dueDate": "Дата",
       "quickSelect": "Швидкий вибір",

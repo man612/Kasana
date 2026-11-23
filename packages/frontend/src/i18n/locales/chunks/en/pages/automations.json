@@ -209,7 +209,8 @@
         "saveFailed": "Could not save the automation. Please try again.",
         "transactionTypeDuplicate": "Only one transaction type condition is allowed"
       },
-      "noResults": "No results"
+      "noResults": "No results",
+      "dirtyStatus": "Unsaved changes"
     },
     "summary": {
       "missingRef": "(deleted)",

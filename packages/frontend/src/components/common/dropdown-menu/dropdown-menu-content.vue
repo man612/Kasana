@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MenuScrim from '@/components/common/menu-scrim.vue';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenuContent,
@@ -21,13 +22,7 @@ const menu = injectDropdownMenuRootContext();
 
 <template>
   <DropdownMenuPortal>
-    <Transition name="lajur-info-reveal">
-      <div
-        v-if="menu.open.value && menu.modal.value && !menu.triggerElement.value?.closest('[role=dialog]')"
-        class="lajur-scrim-menu lajur-scrim-blur pointer-events-none fixed inset-0 z-(--z-dialog)"
-        aria-hidden="true"
-      />
-    </Transition>
+    <MenuScrim :open="menu.open.value" :anchor="menu.triggerElement.value" />
     <DropdownMenuContent
       :class="
         cn(

@@ -33,6 +33,7 @@ const props = defineProps<{
   previewLimit?: number;
   timeRange?: TransactionTimeRange;
   groupedByDay?: boolean;
+  showTime?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -141,7 +142,8 @@ const dateRange = computed(() => {
           v-for="(member, index) in visibleMembers"
           :key="member.id"
           :tx="member"
-          :show-time="groupedByDay && !dateRange"
+          :show-time="(groupedByDay && !dateRange) || showTime"
+          :show-date-with-time="!groupedByDay || !!dateRange"
           :index="index"
           @record-click="emit('record-click', $event)"
         />

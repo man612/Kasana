@@ -306,13 +306,13 @@ const routes: RouteRecordRaw[] = [
         path: '/transactions/automations/new',
         name: ROUTES_NAMES.automationCreate,
         component: () => import('@/pages/automations/editor.vue'),
-        meta: { navSection: 'transactions', i18nChunks: ['pages/automations'] },
+        meta: { focusPage: true, navSection: 'transactions', i18nChunks: ['pages/automations'] },
       },
       {
         path: '/transactions/automations/:id',
         name: ROUTES_NAMES.automationDetails,
         component: () => import('@/pages/automations/editor.vue'),
-        meta: { navSection: 'transactions', i18nChunks: ['pages/automations'] },
+        meta: { focusPage: true, navSection: 'transactions', i18nChunks: ['pages/automations'] },
       },
       {
         path: '/settings',

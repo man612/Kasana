@@ -209,7 +209,8 @@
         "saveFailed": "Tidak dapat menyimpan otomatisasi. Silakan coba lagi.",
         "transactionTypeDuplicate": "Hanya satu kondisi jenis transaksi yang diperbolehkan"
       },
-      "noResults": "Tidak ada hasil"
+      "noResults": "Tidak ada hasil",
+      "dirtyStatus": "Perubahan belum disimpan"
     },
     "summary": {
       "missingRef": "(dihapus)",

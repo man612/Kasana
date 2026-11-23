@@ -1,4 +1,5 @@
-import { format, isValid } from 'date-fns';
+import { getLocalTimeZoneLabel } from '@/common/utils/indonesian-time';
+import { format, isValid, parseISO } from 'date-fns';
 
 export function formatTransactionRowTime({
   value,
@@ -11,7 +12,7 @@ export function formatTransactionRowTime({
 }) {
   if (hideDate) return '';
   const dateOnly = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
-  const date = new Date(dateOnly ? `${value}T00:00:00` : value);
+  const date = dateOnly ? parseISO(value) : new Date(value);
   if (!isValid(date) || (showTime && dateOnly)) return '';
-  return format(date, showTime ? 'HH:mm' : 'd MMM y');
+  return showTime ? `${format(date, 'HH:mm')} ${getLocalTimeZoneLabel(date)}` : format(date, 'd MMM y');
 }

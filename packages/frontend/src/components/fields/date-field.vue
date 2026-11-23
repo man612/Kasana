@@ -145,17 +145,19 @@
       </template>
       <Dialog.DialogContent
         blur-overlay
-        class="grid max-h-[90dvh] w-[calc(100vw-1.5rem)] max-w-105 grid-rows-[auto_auto_minmax(0,1fr)_auto] gap-3 overflow-hidden p-4 sm:p-5"
+        custom-close
+        intrinsic-height-motion
+        class="grid max-h-[90dvh] w-[calc(100%-1.5rem)] max-w-96 grid-rows-[auto_minmax(0,1fr)_auto] gap-2 overflow-hidden p-3 sm:p-5"
         data-testid="transaction-date-dialog"
       >
-        <Dialog.DialogTitle class="pr-12 text-base font-semibold">
+        <Dialog.DialogTitle class="text-base font-semibold">
           {{
             i18n.global.t(
               mode === 'date' ? 'common.dateSelector.calendarDateTitle' : 'common.dateSelector.dateTimeTitle',
             )
           }}
         </Dialog.DialogTitle>
-        <Dialog.DialogDescription class="text-muted-foreground pr-12 text-xs leading-relaxed">
+        <Dialog.DialogDescription class="sr-only">
           {{ i18n.global.t('common.dateSelector.dateTimeHint') }}
         </Dialog.DialogDescription>
         <div class="grid min-h-0 min-w-0 gap-2 overflow-y-auto overscroll-contain">
@@ -170,7 +172,7 @@
             />
           </div>
           <div class="text-muted-foreground flex items-center gap-2 text-xs">
-            <span class="size-2 shrink-0 rounded-full bg-slate-400" aria-hidden="true" />
+            <span class="ring-border size-2 shrink-0 rounded-full ring-1" aria-hidden="true" />
             {{ i18n.global.t('common.dateSelector.todayIndicator') }}: {{ todayLabel }}
           </div>
           <div v-if="mode !== 'date'" class="flex items-center justify-between gap-3">
@@ -194,31 +196,31 @@
             {{ i18n.global.t('common.dateSelector.invalidTime') }}
           </p>
         </div>
-        <div class="border-border flex min-h-9 flex-wrap items-center justify-end gap-2 border-t pt-3">
+        <div class="border-border flex flex-wrap items-center justify-between gap-1 border-t pt-2">
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            class="text-muted-foreground mr-auto min-h-10 px-2"
+            class="text-muted-foreground min-h-11 px-2"
             :disabled="!isWithinCalendarBounds(clock)"
             data-testid="date-dialog-now"
             @click="setDialogNow"
           >
-            <Clock3Icon class="size-4" />
             {{ i18n.global.t('common.dateSelector.nowQuick') }}
           </Button>
           <div class="ml-auto flex gap-2">
-            <Button type="button" variant="outline" size="sm" @click="isPopoverOpen = false">
+            <Button type="button" variant="outline" size="sm" class="min-h-11" @click="isPopoverOpen = false">
               {{ i18n.global.t('common.actions.cancel') }}
             </Button>
             <Button
               type="button"
               size="sm"
+              class="min-h-11"
               data-testid="date-dialog-save"
               :disabled="dialogTimeError || !isWithinCalendarBounds(localValue)"
               @click="saveDialogDate"
             >
-              {{ i18n.global.t('common.dateSelector.saveDate') }}
+              {{ i18n.global.t('common.actions.save') }}
             </Button>
           </div>
         </div>

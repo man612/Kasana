@@ -91,15 +91,7 @@ const handleDelete = () => {
         <h1 class="text-2xl font-bold tracking-tight">
           {{ $t('automations.title') }}
         </h1>
-        <AutomationGuide>
-          <details class="text-muted-foreground border-t pt-2">
-            <summary class="cursor-pointer font-medium">{{ $t('automations.guide.advanced') }}</summary>
-            <p class="mt-2">{{ $t('automations.mcpTip.text') }}</p>
-            <RouterLink class="text-primary-text underline" :to="{ name: ROUTES_NAMES.settingsAiConnectedApps }">
-              {{ $t('automations.mcpTip.link') }}
-            </RouterLink>
-          </details>
-        </AutomationGuide>
+        <AutomationGuide />
       </div>
       <router-link v-if="!isLoading && list.length" :to="{ name: ROUTES_NAMES.automationCreate }">
         <Button as="span">

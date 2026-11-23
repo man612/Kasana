@@ -19,6 +19,7 @@ const props = defineProps<
     customIndicator?: boolean;
     dimBackdrop?: boolean;
     adaptiveHeight?: boolean;
+    intrinsicHeightMotion?: boolean;
   }
 >();
 const emits = defineEmits<DialogContentEmits>();
@@ -30,6 +31,7 @@ const delegatedProps = computed(() => {
     customIndicator: _customIndicator,
     dimBackdrop: _dimBackdrop,
     adaptiveHeight: _adaptiveHeight,
+    intrinsicHeightMotion: _intrinsicHeightMotion,
     ...delegated
   } = props;
 
@@ -50,7 +52,7 @@ const describedByAttrs = useDescribedByAttrs();
   <DrawerPortal>
     <DrawerOverlay :class="dimBackdrop && 'lajur-scrim-blur z-(--z-over-dialog)'" />
     <DrawerContent
-      v-animate-dialog-height="Boolean(adaptiveHeight)"
+      v-animate-dialog-height="Boolean(adaptiveHeight && !intrinsicHeightMotion)"
       v-bind="{ ...forwarded, ...describedByAttrs, ...$attrs }"
       :style="sheetStyle"
       :data-keyboard-resize="keyboard ? '' : undefined"

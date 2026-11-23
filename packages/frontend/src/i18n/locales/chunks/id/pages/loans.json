@@ -29,7 +29,7 @@
     },
     "dialog": {
       "createTitle": "Tambah pinjaman",
-      "createDescription": "Catat sisa utang dan rincian cicilan yang Anda ketahui. Data dapat diperbarui kapan saja.",
+      "createDescription": "Catat pinjaman dan cicilannya.",
       "editTitle": "Edit pinjaman",
       "editDescription": "Perbarui rincian pinjaman. Perubahan nilai dan ketentuan tercatat dalam riwayat."
     },

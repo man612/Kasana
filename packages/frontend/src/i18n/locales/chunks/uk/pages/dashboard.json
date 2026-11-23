@@ -534,7 +534,11 @@
       },
       "overdueBadge": "Прострочено",
       "scheduledBadge": "Заплановано",
-      "payAction": "Позначити як сплачено"
+      "payAction": "Позначити як сплачено",
+      "recordsShown": "Записи в цьому віджеті",
+      "paymentsDue": "Платежі до сплати",
+      "details": "Показати деталі",
+      "goToTransactions": "До списку транзакцій"
     },
     "fireProgress": {
       "title": "Прогрес FIRE",

@@ -1,5 +1,5 @@
 <template>
-  <WidgetWrapper :is-fetching="isWidgetDataFetching" class="@container/balance min-h-0">
+  <WidgetWrapper :is-fetching="isWidgetDataFetching" class="@container/balance min-h-0" fit-content>
     <template #title>
       {{ $t('dashboard.widgets.balanceTrend.title') }}
     </template>
@@ -18,16 +18,25 @@
       </EmptyState>
     </template>
     <template v-else>
-      <SelectField
-        :model-value="selectedBalanceType"
-        :values="balanceTypeOptions"
-        @update:model-value="selectBalanceType"
-        value-key="value"
-        label-key="label"
+      <div
+        role="group"
         :aria-label="$t('dashboard.widgets.balanceTrend.presentation.component')"
-        :placeholder="$t('dashboard.widgets.balanceTrend.presentation.component')"
-        class="mb-2 max-w-56"
-      />
+        data-no-nav-swipe
+        data-testid="balance-trend-components"
+        class="mb-2 flex min-w-0 [scrollbar-width:thin] gap-1 overflow-x-auto overscroll-x-contain px-1 py-1"
+      >
+        <Button
+          v-for="option in balanceTypeOptions"
+          :key="option.value"
+          type="button"
+          size="sm"
+          :variant="selectedBalanceType.value === option.value ? 'default' : 'ghost'"
+          :aria-pressed="selectedBalanceType.value === option.value"
+          class="min-h-11 shrink-0 rounded-full px-3"
+          @click="selectBalanceType(option)"
+          >{{ option.label }}</Button
+        >
+      </div>
       <p v-if="balanceHistoryError" class="text-warning-text mb-2 text-xs" role="status">
         {{ $t('dashboard.widgets.common.staleData') }}
         <Button variant="link" size="sm" @click="refetchBalanceHistory()">{{ $t('common.actions.retry') }}</Button>
@@ -37,13 +46,12 @@
         class="mb-2 grid min-w-0 grid-cols-1 gap-2 @md/balance:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]"
       >
         <div class="min-w-0">
-          <p class="text-muted-foreground text-xs font-medium">{{ metricLabel }}</p>
           <FitAmount
             :value="animatedBalance"
             :target="displayBalance.current"
             class="text-2xl leading-tight font-bold tracking-tight tabular-nums sm:text-3xl"
           />
-          <p class="text-muted-foreground mt-1 text-xs" data-testid="balance-trend-as-of">{{ periodLabel }}</p>
+          <p class="sr-only" data-testid="balance-trend-as-of">{{ periodLabel }}</p>
         </div>
 
         <!-- Right: Comparison -->
@@ -72,40 +80,17 @@
               {{ balancesDiff === null ? '—' : `${balancesDiff > 0 ? '+' : ''}${balancesDiff}%` }}
             </span>
           </div>
-          <div v-if="balancesDiffAbsolute !== null" class="text-muted-foreground text-xs tracking-tight">
+          <div v-if="balancesDiffAbsolute !== null" class="sr-only">
             {{ $t('dashboard.widgets.balanceTrend.vsPreviousPeriod') }}
           </div>
         </div>
       </div>
 
-      <!-- Projected balance from pending plans; the headline above stays real-money only. -->
-      <i18n-t
-        v-if="projection"
-        keypath="dashboard.widgets.balanceTrend.projection.summary"
-        :plural="projection.planCount"
-        tag="div"
-        data-testid="bt-projection-summary"
-        class="max-xs:px-2 text-muted-foreground -mt-2 mb-3 text-xs"
-      >
-        <template #amount>
-          <span class="text-foreground text-sm font-semibold">{{ formatBaseCurrency(projection.projectedValue) }}</span>
-        </template>
-        <template #count>{{ projection.planCount }}</template>
-        <template #date>{{ projectionThroughDate }}</template>
-      </i18n-t>
-
-      <Button
-        type="button"
-        variant="ghost"
-        class="hover:bg-muted/40 mb-1 grid h-auto min-h-20 w-full gap-1 rounded-lg px-2 py-1 text-left"
-        :aria-expanded="showDetails"
-        :aria-controls="detailsId"
-        @click="showDetails = !showDetails"
-      >
+      <div class="min-w-0 px-1" data-testid="balance-trend-sparkline">
         <svg
           v-if="miniTrend"
           viewBox="0 0 300 48"
-          class="text-primary-text h-12 w-full"
+          class="text-primary-text h-10 w-full"
           preserveAspectRatio="none"
           aria-hidden="true"
         >
@@ -120,17 +105,27 @@
           />
           <circle :cx="miniTrend.end.x" :cy="miniTrend.end.y" r="2.5" fill="currentColor" />
         </svg>
-        <span class="flex w-full items-center justify-between gap-2">
-          <span>{{ $t('dashboard.widgets.balanceTrend.presentation.details') }}</span>
-          <ChevronDownIcon
-            class="text-muted-foreground size-4 motion-safe:transition-transform"
-            :class="showDetails && 'rotate-180'"
-            aria-hidden="true"
-          />
-        </span>
-      </Button>
-      <section :id="detailsId" class="flex min-h-0 flex-col">
-        <LayoutCollapse :open="showDetails" class="shrink-0">
+      </div>
+      <ResponsiveDialog
+        v-model:open="showDetails"
+        dialog-content-class="sm:max-w-2xl"
+        drawer-content-class="max-h-[90dvh]"
+        intrinsic-height-motion
+      >
+        <template #trigger>
+          <Button
+            type="button"
+            variant="ghost"
+            class="min-h-11 w-full justify-between px-1"
+            data-testid="balance-trend-details"
+          >
+            {{ $t('dashboard.widgets.balanceTrend.presentation.details') }}
+            <ChevronRightIcon class="text-muted-foreground size-4" aria-hidden="true" />
+          </Button>
+        </template>
+        <template #title>{{ $t('dashboard.widgets.balanceTrend.presentation.details') }}</template>
+        <template #description>{{ metricLabel }} · {{ periodLabel }}</template>
+        <div class="min-w-0 space-y-4">
           <div data-testid="balance-trend-summary" class="grid gap-2 pb-1 text-xs">
             <p class="text-muted-foreground leading-relaxed">{{ metricDescription }}</p>
             <dl v-if="summaryStats" class="border-border/60 grid grid-cols-2 gap-3 border-t pt-2">
@@ -148,9 +143,25 @@
               </div>
             </dl>
           </div>
-        </LayoutCollapse>
-        <LayoutCollapse :open="showDetails" class="min-h-0" :class="showDetails && 'flex-1'">
-          <div ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative min-h-32 w-full flex-1 sm:min-h-44">
+          <!-- Projected balance from pending plans; the headline above stays real-money only. -->
+          <i18n-t
+            v-if="projection"
+            keypath="dashboard.widgets.balanceTrend.projection.summary"
+            :plural="projection.planCount"
+            tag="div"
+            data-testid="bt-projection-summary"
+            class="max-xs:px-2 text-muted-foreground -mt-2 mb-3 text-xs"
+          >
+            <template #amount>
+              <span class="text-foreground text-sm font-semibold">{{
+                formatBaseCurrency(projection.projectedValue)
+              }}</span>
+            </template>
+            <template #count>{{ projection.planCount }}</template>
+            <template #date>{{ projectionThroughDate }}</template>
+          </i18n-t>
+
+          <div ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative h-52 w-full sm:h-64">
             <svg
               ref="svgRef"
               class="focus-visible:ring-ring h-full w-full touch-pan-y focus-visible:ring-2 focus-visible:outline-none"
@@ -248,66 +259,47 @@
               {{ $t('dashboard.widgets.balanceTrend.showFullRange') }}
             </Button>
           </div>
-        </LayoutCollapse>
-      </section>
-      <!-- Accessible numerical alternative to hovering the SVG. Sampled evenly,
-           always including the first and latest real balance observations. -->
-      <section class="border-border/60 mt-3 border-t pt-2 text-xs">
-        <button
-          type="button"
-          :aria-expanded="isBalanceTableOpen"
-          class="text-muted-foreground hover:text-foreground focus-visible:ring-ring flex min-h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none"
-          @click="isBalanceTableOpen = !isBalanceTableOpen"
-        >
-          <ChartNoAxesCombinedIcon class="size-3.5 shrink-0" aria-hidden="true" />
-          {{ $t('dashboard.widgets.balanceTrend.table.toggle') }}
-          <ChevronDownIcon
-            class="ml-auto size-3.5 transition-transform duration-220 ease-out motion-reduce:transition-none"
-            :class="isBalanceTableOpen && 'rotate-180'"
-            aria-hidden="true"
-          />
-        </button>
-        <Transition name="lajur-balance-table">
-          <div
-            v-if="isBalanceTableOpen"
-            class="lajur-dialog-scroll max-h-60 overflow-y-auto overscroll-contain px-2 pt-2 pr-4"
-          >
-            <table class="w-full tabular-nums">
-              <caption class="sr-only">
-                {{
-                  $t('dashboard.widgets.balanceTrend.title')
-                }}
-              </caption>
-              <thead class="bg-card/90 sticky top-0 backdrop-blur-sm">
-                <tr class="text-muted-foreground border-border/50 border-b text-left">
-                  <th scope="col" class="py-2 font-medium">{{ $t('dashboard.widgets.balanceTrend.table.date') }}</th>
-                  <th scope="col" class="py-2 text-right font-medium">
-                    {{ $t('dashboard.widgets.balanceTrend.table.amount') }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="point in chartTableRows"
-                  :key="point.date"
-                  class="border-border/30 hover:bg-muted/30 border-b transition-colors last:border-0"
-                >
-                  <td class="py-2">
-                    {{
-                      new Date(point.date).toLocaleDateString(locale, {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })
-                    }}
-                  </td>
-                  <td class="py-2 text-right">{{ formatBaseCurrency(point.value) }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </Transition>
-      </section>
+
+          <section class="border-border/60 border-t pt-2 text-xs">
+            <h3 class="text-foreground mb-1 font-semibold">{{ $t('dashboard.widgets.balanceTrend.table.toggle') }}</h3>
+            <div class="max-h-64 overflow-y-auto overscroll-contain">
+              <table class="w-full tabular-nums">
+                <caption class="sr-only">
+                  {{
+                    $t('dashboard.widgets.balanceTrend.title')
+                  }}
+                </caption>
+                <thead class="bg-card/90 sticky top-0 backdrop-blur-sm">
+                  <tr class="text-muted-foreground border-border/50 border-b text-left">
+                    <th scope="col" class="py-2 font-medium">{{ $t('dashboard.widgets.balanceTrend.table.date') }}</th>
+                    <th scope="col" class="py-2 text-right font-medium">
+                      {{ $t('dashboard.widgets.balanceTrend.table.amount') }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="point in chartTableRows"
+                    :key="point.date"
+                    class="border-border/30 hover:bg-muted/30 border-b transition-colors last:border-0"
+                  >
+                    <td class="py-2">
+                      {{
+                        new Date(point.date).toLocaleDateString(locale, {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })
+                      }}
+                    </td>
+                    <td class="py-2 text-right">{{ formatBaseCurrency(point.value) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </ResponsiveDialog>
     </template>
   </WidgetWrapper>
 </template>
@@ -322,10 +314,9 @@ import {
   ChartTooltipHeader,
   ChartTooltipRow,
 } from '@/components/common/charts/chart-tooltip';
-import LayoutCollapse from '@/components/common/layout-collapse.vue';
+import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import FitAmount from '@/components/common/fit-amount.vue';
 import { Button } from '@/components/lib/ui/button';
-import SelectField from '@/components/fields/select-field.vue';
 import { useFormatCurrency } from '@/composable';
 import { getChartColors } from '@/composable/charts/chart-colors';
 import { formatAxisCurrency } from '@/composable/charts/format-axis-currency';
@@ -348,7 +339,7 @@ import { useQuery } from '@tanstack/vue-query';
 import { useLocalStorage, usePreferredReducedMotion, useResizeObserver } from '@vueuse/core';
 import * as d3 from 'd3';
 import { differenceInDays, endOfDay, format, min, startOfDay, subDays, parseISO } from 'date-fns';
-import { ChartLineIcon, ChartNoAxesCombinedIcon, ChevronDownIcon } from '@lucide/vue';
+import { ChartLineIcon, ChevronRightIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import type { Ref } from 'vue';
 import { computed, inject, nextTick, onMounted, onUnmounted, reactive, ref, useId, watch } from 'vue';
@@ -704,7 +695,6 @@ watch(hasLoanData, (val) => {
 });
 
 const showDetails = ref(false);
-const detailsId = useId();
 const user = useUserStore();
 const preferredBalanceType = useLocalStorage(
   computed(() => `dashboard-balance-type:${user.user?.id ?? 'anonymous'}`),
@@ -866,8 +856,6 @@ const protectChartPan = (event: MouseEvent) => {
   ignoreChartClick = false;
   event.stopPropagation();
 };
-
-const isBalanceTableOpen = ref(false);
 
 // Keep the alternative data view compact even for multi-year daily series.
 const chartTableRows = computed(() => {

@@ -548,7 +548,11 @@
       },
       "overdueBadge": "Overdue",
       "scheduledBadge": "Scheduled",
-      "payAction": "Mark paid"
+      "payAction": "Mark paid",
+      "recordsShown": "Shown in this widget",
+      "paymentsDue": "Payments due or overdue",
+      "details": "Show details",
+      "goToTransactions": "Go to transactions"
     },
     "fireProgress": {
       "title": "FIRE progress",

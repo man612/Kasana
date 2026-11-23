@@ -371,7 +371,9 @@
       "chronologicalOnly": "Gunakan urutan tanggal untuk mengelompokkan daftar.",
       "today": "Hari ini",
       "yesterday": "Kemarin",
-      "currentWeek": "Minggu ini · {range}"
+      "currentWeek": "Minggu ini · {range}",
+      "showTime": "Tampilkan jam",
+      "timeRequired": "Daftar harian selalu menampilkan jam karena tanggal ada di judul kelompok."
     }
   },
   "records": {

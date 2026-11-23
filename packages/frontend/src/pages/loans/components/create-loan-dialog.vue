@@ -37,7 +37,7 @@ const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen" show-drawer-close-with-footer dialog-content-class="sm:max-w-2xl">
+  <ResponsiveDialog v-model:open="isOpen" fit-keyboard dialog-content-class="sm:max-w-2xl">
     <template #trigger>
       <slot />
     </template>

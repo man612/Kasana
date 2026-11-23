@@ -61,14 +61,20 @@
       size="icon-sm"
       variant="ghost"
       class="absolute left-2 size-11 motion-safe:transition-opacity md:left-6"
-      :class="isCurrentPayPeriod(period) && 'pointer-events-none opacity-0'"
-      :disabled="isCurrentPayPeriod(period)"
-      :aria-hidden="isCurrentPayPeriod(period)"
+      :class="isCurrentPayPeriod(period) && !resetAnimating && 'pointer-events-none opacity-0'"
+      :disabled="isCurrentPayPeriod(period) || resetAnimating"
+      :aria-hidden="isCurrentPayPeriod(period) && !resetAnimating"
       :aria-label="$t('dashboard.periodSelector.backToCurrent')"
       :title="$t('dashboard.periodSelector.backToCurrent')"
-      @click="period = getCurrentPayPeriod()"
+      @click="resetPeriod"
     >
-      <RotateCcw class="size-4" aria-hidden="true" />
+      <RotateCcw
+        class="size-4"
+        :class="resetAnimating && 'lajur-period-reset'"
+        aria-hidden="true"
+        @animationend="resetAnimating = false"
+        @animationcancel="resetAnimating = false"
+      />
     </Button>
   </div>
 </template>
@@ -86,6 +92,12 @@ import { useI18n } from 'vue-i18n';
 import { type Period } from '../types';
 
 const { t, te } = useI18n();
+const resetAnimating = ref(false);
+const resetPeriod = () => {
+  if (isCurrentPayPeriod(period.value)) return;
+  resetAnimating.value = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  period.value = getCurrentPayPeriod();
+};
 
 let periodTouch: { x: number; y: number } | null = null;
 const clearPeriodTouch = () => {

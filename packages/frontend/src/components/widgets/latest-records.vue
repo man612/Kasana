@@ -146,7 +146,7 @@ const { displayTransactions } = useTransactionsDisplay({
 const visibleTransactionRows = computed(() => (txMaxDisplay.value > 0 ? displayTransactions.value.length : 0));
 const listId = useId();
 const [DefineScheduledRow, UseScheduledRow] = createReusableTemplate<{ sub: SubscriptionListItem }>();
-const remainingRows = computed(() => Math.max(0, visibleTransactionRows.value + scheduledRows.value.length - 1));
+
 const { format: formatDate } = useDateLocale();
 const hasQueryError = computed(() => txError.value || (includeScheduled.value && scheduledError.value));
 function retryQueries() {
@@ -267,8 +267,8 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
     </template>
     <template #action>
       <DesktopOnlyTooltip
-        v-if="!isDataEmpty && !isInitialLoading"
-        :content="$t('dashboard.widgets.latestTransactions.showAll')"
+        v-if="!compact && !isDataEmpty && !isInitialLoading"
+        :content="$t('widgets.latestRecords.goToTransactions')"
       >
         <span class="inline-flex">
           <router-link
@@ -280,7 +280,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
               })
             "
             :to="{ name: ROUTES_NAMES.transactions }"
-            :aria-label="$t('dashboard.widgets.latestTransactions.showAll')"
+            :aria-label="$t('widgets.latestRecords.goToTransactions')"
           >
             <ArrowUpRightIcon class="size-4" />
           </router-link>
@@ -290,9 +290,9 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
       <UiButton
         v-if="widgetConfigRef && !isDataEmpty && !isInitialLoading"
         type="button"
-        size="icon-sm"
+        :size="compact ? 'sm' : 'icon-sm'"
         variant="ghost"
-        class="text-muted-foreground max-sm:size-9"
+        class="text-muted-foreground min-h-11 shrink-0 px-1"
         :aria-label="$t(compact ? 'widgets.latestRecords.expand' : 'widgets.latestRecords.collapse')"
         :title="$t(compact ? 'widgets.latestRecords.expand' : 'widgets.latestRecords.collapse')"
         :aria-expanded="!compact"
@@ -300,6 +300,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
         data-testid="latest-transactions-compact-toggle"
         @click="setCompact({ value: !compact })"
       >
+        <span v-if="compact">{{ $t('widgets.latestRecords.details') }}</span>
         <ChevronDownIcon
           class="size-4 motion-safe:transition-transform"
           :class="!compact && 'rotate-180'"
@@ -326,30 +327,16 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
         <UiButton variant="link" size="sm" @click="retryQueries">{{ $t('common.actions.retry') }}</UiButton>
       </p>
       <LayoutCollapse :open="compact" class="shrink-0">
-        <div v-if="compact" data-testid="latest-transactions-compact-summary">
-          <UseScheduledRow v-if="scheduledRows[0]" :sub="scheduledRows[0]" />
-          <TransactionsList
-            v-else
-            raw-list
-            compact
-            :paginate="false"
-            :transactions="pastTransactions"
-            :max-display="1"
-            :tags-variant="tagsVariant"
-            :show-account="showAccount"
-          />
-          <div class="flex flex-wrap items-center justify-between gap-1 px-1">
-            <span v-if="remainingRows" class="text-muted-foreground text-xs">
-              {{ $t('widgets.latestRecords.otherRows', remainingRows) }}
-            </span>
-            <RouterLink
-              :class="buttonVariants({ variant: 'link', size: 'sm', class: 'ml-auto' })"
-              :to="{ name: ROUTES_NAMES.transactions }"
-            >
-              {{ $t('dashboard.widgets.latestTransactions.showAll') }}
-            </RouterLink>
+        <dl data-testid="latest-transactions-compact-summary" class="grid gap-1 px-1 pb-1 text-sm">
+          <div class="flex flex-wrap items-baseline justify-between gap-x-2">
+            <dt class="text-muted-foreground">{{ $t('widgets.latestRecords.recordsShown') }}</dt>
+            <dd class="font-semibold tabular-nums">{{ visibleTransactionRows }}</dd>
           </div>
-        </div>
+          <div v-if="scheduledItems.length" class="flex flex-wrap items-baseline justify-between gap-x-2">
+            <dt class="text-muted-foreground">{{ $t('widgets.latestRecords.paymentsDue') }}</dt>
+            <dd class="font-semibold tabular-nums">{{ scheduledItems.length }}</dd>
+          </div>
+        </dl>
       </LayoutCollapse>
 
       <LayoutCollapse :id="listId" :open="!compact" class="min-h-0" :class="!compact && 'flex-1'">

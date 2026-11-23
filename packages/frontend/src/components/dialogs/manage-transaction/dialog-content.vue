@@ -615,39 +615,6 @@ const isMutable = computed(() => canMutateCurrentTx.value && !isReadOnly.value);
 const isFormFieldsDisabled = computed(() => isLoading.value || !isInitialRefundsDataLoaded.value || !isMutable.value);
 
 const currentTxType = computed(() => form.value.type);
-watch(
-  () => currentTxType.value,
-  async (next, previous) => {
-    if (next === previous) return;
-    const container = transactionModeFieldsRef.value;
-    const previousHeight = container?.getBoundingClientRect().height ?? 0;
-    await nextTick();
-    const updated = transactionModeFieldsRef.value;
-    if (!updated || typeof updated.animate !== 'function') return;
-    if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
-      return;
-    updated.getAnimations().forEach((animation) => animation.cancel());
-    const nextHeight = updated.getBoundingClientRect().height;
-    // FLIP-like height interpolation avoids the abrupt jump of the payee,
-    // account, and destination rows while the surrounding modal remains stable.
-    updated.animate(
-      [
-        {
-          opacity: 0.45,
-          transform: 'translateY(5px)',
-          ...(previousHeight ? { height: `${previousHeight}px`, overflow: 'clip' } : {}),
-        },
-        {
-          opacity: 1,
-          transform: 'translateY(0)',
-          ...(previousHeight ? { height: `${nextHeight}px`, overflow: 'clip' } : {}),
-        },
-      ],
-      { duration: 260, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-    );
-  },
-  { flush: 'sync' },
-);
 
 const isTransferTx = computed(() => currentTxType.value === FORM_TYPES.transfer);
 
@@ -1385,7 +1352,17 @@ const {
     if (isMobileView.value) {
       // A programmatic focus into an input while the menu is closing opens and
       // then dismisses the software keyboard. Reveal the field before a deliberate tap.
-      fieldElement.scrollIntoView({ block: 'nearest' });
+      requestAnimationFrame(() => {
+        const scrollArea = fieldElement.closest<HTMLElement>('.lajur-transaction-scroll');
+        if (!scrollArea) return;
+        const fieldBounds = fieldElement.getBoundingClientRect();
+        const visibleBounds = scrollArea.getBoundingClientRect();
+        const delta =
+          fieldBounds.bottom > visibleBounds.bottom
+            ? fieldBounds.bottom - visibleBounds.bottom
+            : Math.min(fieldBounds.top - visibleBounds.top, 0);
+        if (delta) scrollArea.scrollBy({ top: delta });
+      });
       return;
     }
     (fieldElement.querySelector('input') ?? fieldElement.querySelector('button'))?.focus();
@@ -2268,10 +2245,9 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <!-- Explicit close works in both Reka Dialog and Vaul Drawer. A DialogClose
-           inside a Vaul drawer may not resolve the correct Reka root context. -->
+      <!-- Read-only mobile forms can open without a footer. -->
       <Button
-        v-if="isMobileView"
+        v-if="isMobileView && isReadOnly && !canDelete"
         type="button"
         variant="ghost"
         size="icon"
@@ -2281,7 +2257,7 @@ onUnmounted(() => {
       >
         <XIcon class="size-5" />
       </Button>
-      <Button v-else type="button" variant="ghost" @click="requestCloseModal">
+      <Button v-else-if="!isMobileView" type="button" variant="ghost" @click="requestCloseModal">
         {{ $t('dialogs.manageTransaction.form.closeButton') }}
       </Button>
     </div>
@@ -2694,7 +2670,13 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div v-if="!isReadOnly || canDelete" class="border-border bg-dialog flex items-center gap-3 border-t px-6 py-4">
+    <div
+      v-if="!isReadOnly || canDelete"
+      class="border-border bg-dialog flex shrink-0 flex-wrap items-center gap-2 border-t px-4 py-3 md:gap-3 md:px-6"
+    >
+      <Button v-if="isMobileView" type="button" variant="ghost" class="min-h-11" @click="requestCloseModal">
+        {{ $t('common.actions.cancel') }}
+      </Button>
       <Button
         v-if="canDelete"
         class="min-w-25"
@@ -2750,7 +2732,7 @@ onUnmounted(() => {
         <template #description>{{ $t('kasana.optionalFields.confirmDescription') }}</template>
       </ResponsiveAlertDialog>
 
-      <div class="ml-auto flex items-center gap-2">
+      <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
         <DesktopOnlyTooltip
           v-if="isDuplicateVisible"
           :content="$t('dialogs.manageTransaction.form.duplicateButton')"
@@ -2795,7 +2777,7 @@ onUnmounted(() => {
         </div>
         <Button
           v-if="!isReadOnly"
-          class="min-w-30"
+          class="min-h-11 min-w-19 md:min-w-30"
           :aria-label="
             isFormCreation
               ? $t('dialogs.manageTransaction.form.createAriaLabel')

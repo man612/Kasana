@@ -30,6 +30,7 @@ const submit = () => {
   <ResponsiveDialog
     v-model:open="isOpen"
     no-internal-scroll
+    show-close-with-footer
     dialog-content-class="max-w-[920px] h-[min(84dvh,700px)] overflow-hidden"
     drawer-content-class="h-[calc(100dvh-1.25rem)] max-h-[calc(100dvh-1.25rem)]"
   >

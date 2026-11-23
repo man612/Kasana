@@ -50,7 +50,7 @@ const handleSubmit = async (payload: CreateLoanPayload | UpdateLoanPayload) => {
 <template>
   <ResponsiveDialog
     :open="open"
-    show-drawer-close-with-footer
+    fit-keyboard
     dialog-content-class="sm:max-w-2xl"
     @update:open="emit('update:open', $event)"
   >

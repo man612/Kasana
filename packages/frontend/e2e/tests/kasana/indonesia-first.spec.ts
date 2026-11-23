@@ -244,7 +244,8 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       await dateTrigger.click();
       const dateDialog = page.getByTestId('transaction-date-dialog');
       await expect(dateDialog.getByTestId('date-dialog-time-input')).toBeVisible();
-      await dateDialog.getByRole('button', { name: /Tutup|Close/i }).click();
+      await expect(dateDialog.getByRole('button', { name: /^(Tutup|Close)$/i })).toHaveCount(0);
+      await dateDialog.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
       await expect(dateDialog).toBeHidden();
 
       // Closing account selection without picking must clear its search filter.
@@ -359,13 +360,13 @@ test.describe('Kasana Indonesia-first browser smoke (disposable stack only)', ()
       // A tap on the transaction sheet close button must work on Vaul too.
       // With unsaved input it must ask before discarding, not silently close.
       await primaryAmount.fill('1234');
-      await mobileForm.getByRole('button', { name: /Tutup|Close/i }).click();
+      await mobileForm.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
       const discardConfirmation = page.getByRole('alertdialog');
       await expect(discardConfirmation.getByText(/Tutup tanpa menyimpan|Close without saving/i)).toBeVisible();
       // Cancel must retain the form and must not dispatch the destructive action.
       await discardConfirmation.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
       await expect(mobileForm).toBeVisible();
-      await mobileForm.getByRole('button', { name: /Tutup|Close/i }).click();
+      await mobileForm.getByRole('button', { name: /^(Batal|Cancel)$/i }).click();
       await expect(discardConfirmation).toBeVisible();
       await discardConfirmation.getByRole('button', { name: /Buang|Discard/i }).click();
       await expect(mobileForm).toBeHidden();

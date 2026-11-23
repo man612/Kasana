@@ -74,7 +74,7 @@ const keyboard = useKeyboardViewport(isMobile);
 const visibleEditorHeight = computed(() =>
   keyboard.value
     ? {
-        height: `calc(${keyboard.value.height}px - var(--header-height, 3.5rem))`,
+        height: `${keyboard.value.height}px`,
       }
     : undefined,
 );
@@ -244,21 +244,21 @@ const confirmLeave = () => {
 </script>
 
 <template>
-  <div
-    class="flex h-[calc(100dvh-var(--header-height)-var(--bottom-navbar-height,0px)-1rem)] min-h-0 w-full max-w-5xl flex-col overflow-hidden md:h-[calc(100dvh-var(--header-height))]"
-    :style="visibleEditorHeight"
-  >
+  <div class="mx-auto flex h-dvh min-h-0 w-full max-w-5xl flex-col overflow-hidden" :style="visibleEditorHeight">
     <div class="border-border @container/editor-head flex shrink-0 items-center gap-2 border-b px-3 py-2 md:px-6">
       <DesktopOnlyTooltip :content="$t('automations.editor.back')">
-        <router-link :to="{ name: ROUTES_NAMES.automations }">
-          <Button as="span" variant="ghost" size="icon-sm" :aria-label="$t('automations.editor.back')">
-            <ArrowLeftIcon class="size-4" />
+        <router-link :to="{ name: ROUTES_NAMES.automations }" :aria-label="$t('automations.editor.back')">
+          <Button as="span" variant="ghost" size="icon" class="size-11">
+            <ArrowLeftIcon class="size-4" aria-hidden="true" />
           </Button>
         </router-link>
       </DesktopOnlyTooltip>
-      <h1 class="min-w-0 truncate text-2xl font-bold tracking-tight">
-        {{ isCreate ? $t('automations.editor.titleNew') : $t('automations.editor.titleEdit') }}
-      </h1>
+      <div class="min-w-0">
+        <h1 class="text-lg leading-tight font-bold tracking-tight md:text-2xl">
+          {{ isCreate ? $t('automations.editor.titleNew') : $t('automations.editor.titleEdit') }}
+        </h1>
+        <p v-if="isDirty" class="text-warning-text text-xs" role="status">{{ $t('automations.editor.dirtyStatus') }}</p>
+      </div>
 
       <div class="ml-auto flex shrink-0 items-center gap-1">
         <DesktopOnlyTooltip

@@ -79,6 +79,7 @@ const props = withDefaults(
     tagsVariant?: TagsIndicatorVariant;
     showAccount?: boolean;
     timeGrouping?: TransactionTimeGrouping;
+    showTime?: boolean;
     timeAscending?: boolean;
     timeGroupRange?: TransactionTimeRange;
   }>(),
@@ -422,6 +423,7 @@ watchEffect(() => {
         :preview-limit="groupPreviewLimit"
         :time-range="timeGrouping === 'none' ? undefined : timeGroupRange"
         :grouped-by-day="timeGrouping === 'day'"
+        :show-time="showTime"
         :expanded="expandedGroups.has(item.groupId)"
         @click="handleGroupRowClick"
         @toggle="toggleGroup"
@@ -437,7 +439,8 @@ watchEffect(() => {
             :show-checkbox="enableBulkEdit"
             :compact="compact"
             :hide-date="hideDate"
-            :show-time="timeGrouping === 'day'"
+            :show-time="timeGrouping === 'day' || showTime"
+            :show-date-with-time="timeGrouping !== 'day'"
             :tags-variant="tagsVariant"
             :show-account="showAccount"
             :hide-planned-marker="hidePlannedMarker || !rawList"

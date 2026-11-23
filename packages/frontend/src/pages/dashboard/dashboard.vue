@@ -4,9 +4,8 @@
     :class="[hasNoAccounts ? 'flex flex-col' : 'flex min-h-full flex-col', !isEditMode && 'max-md:touch-pan-y']"
   >
     <!-- Main period selector - floating on mobile, normal flow on desktop -->
-    <LayoutCollapse
+    <div
       v-if="!hasNoAccounts"
-      :open="!(isEditMode && isMobileView)"
       class="sticky top-(--header-height) z-(--z-navbar) order-first -mx-6 [overflow-anchor:none]"
     >
       <div
@@ -15,8 +14,9 @@
         data-testid="dashboard-period-bar"
       >
         <div aria-hidden="true" />
-        <PeriodSelector v-model="currentPeriod" :payday="payday" />
+        <PeriodSelector v-model="currentPeriod" :payday="payday" :inert="isEditMode && isMobileView" />
         <DashboardEditToolbar
+          v-show="!isEditMode || !isMobileView"
           class="justify-self-end"
           compact-mobile
           :is-edit-mode="isEditMode && !isMobileView"
@@ -35,7 +35,7 @@
           </div>
         </Transition>
       </div>
-    </LayoutCollapse>
+    </div>
 
     <template v-if="hasNoAccounts">
       <DashboardOnboarding />
@@ -69,7 +69,6 @@
 
 <script lang="ts" setup>
 import RecoveryMethodBanner from '@/components/banners/recovery-method-banner.vue';
-import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import PageWrapper from '@/components/common/page-wrapper.vue';
 import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import DashboardOnboarding from '@/components/widgets/dashboard-onboarding.vue';

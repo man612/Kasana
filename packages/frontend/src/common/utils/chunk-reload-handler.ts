@@ -96,8 +96,15 @@ export const scheduleRecovery = ({ error, redirectTo }: { error: Error; redirect
   return true;
 };
 
-export const installChunkReloadHandler = ({ router }: { router: Router }) => {
+export const installChunkReloadHandler = ({
+  router,
+  hasInAppRecovery = () => false,
+}: {
+  router: Router;
+  hasInAppRecovery?: () => boolean;
+}) => {
   window.addEventListener('vite:preloadError', (event) => {
+    if (hasInAppRecovery()) return;
     addBreadcrumb({
       category: 'chunk-reload',
       message: 'vite:preloadError caught',
@@ -113,7 +120,7 @@ export const installChunkReloadHandler = ({ router }: { router: Router }) => {
   // failure happened during a route navigation, this upgrades the pending
   // recovery to land on the route the user was navigating to.
   router.onError((error, to) => {
-    if (!isStaleChunkError(error)) return;
+    if (hasInAppRecovery() || !isStaleChunkError(error)) return;
     addBreadcrumb({
       category: 'chunk-reload',
       message: 'router chunk-load error, navigating to fresh bundle',

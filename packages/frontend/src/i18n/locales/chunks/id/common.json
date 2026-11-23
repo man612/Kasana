@@ -69,6 +69,7 @@
     },
     "errors": {
       "initializationFailed": "Data aplikasi belum dapat dimuat. Periksa koneksi Anda.",
+      "pageLoadFailed": "Halaman ini gagal dimuat. Coba lagi.",
       "copyToClipboardFailed": "Gagal menyalin ke papan klip",
       "settingsSaveFailed": "Pengaturan gagal disimpan. Silakan coba lagi."
     },
@@ -215,6 +216,10 @@
       "hours": "Jam",
       "minutes": "Menit",
       "chooseMonthYear": "Pilih bulan dan tahun, {month}",
+      "monthYearTitle": "Pilih bulan dan tahun",
+      "year": "Tahun",
+      "previousYear": "Tahun sebelumnya",
+      "nextYear": "Tahun berikutnya",
       "dialogTitle": "Rentang tanggal",
       "dueDate": "Tanggal jatuh tempo",
       "quickSelect": "Pilih cepat",

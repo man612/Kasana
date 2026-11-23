@@ -320,19 +320,14 @@
 [data-kasana-interactive]:not(:disabled):active {
   filter: brightness(0.96);
 }
-.kasana-page-enter-active,
-.kasana-page-leave-active {
+.kasana-page-enter-active {
   transition:
     opacity var(--kasana-motion-normal) var(--kasana-motion-ease),
     transform var(--kasana-motion-normal) var(--kasana-motion-ease);
 }
 .kasana-page-enter-from {
-  opacity: 0;
-  transform: translateY(5px);
-}
-.kasana-page-leave-to {
-  opacity: 0;
-  transform: translateY(-3px);
+  opacity: 0.9;
+  transform: translateY(4px);
 }
 
 /* User-accessibility setting wins over decorative motion, including existing
@@ -618,6 +613,63 @@
 }
 .lajur-scrim-blur {
   backdrop-filter: blur(2px);
+}
+.lajur-scrim-dialog:has(~ .lajur-scrim-dialog[data-state='open']) {
+  background-color: transparent;
+  backdrop-filter: none;
+}
+.lajur-menu-scrim-enter-active {
+  transition: opacity 180ms var(--kasana-motion-ease);
+}
+.lajur-menu-scrim-leave-active {
+  transition: opacity 140ms var(--kasana-motion-ease);
+}
+.lajur-menu-scrim-enter-from,
+.lajur-menu-scrim-leave-to {
+  opacity: 0;
+}
+.lajur-period-reset {
+  animation: lajur-period-reset 210ms var(--kasana-motion-ease);
+}
+@keyframes lajur-period-reset {
+  to {
+    transform: rotate(-1turn);
+  }
+}
+.lajur-sheet-close svg {
+  transition:
+    transform var(--kasana-motion-fast) var(--kasana-motion-ease),
+    opacity var(--kasana-motion-fast);
+}
+.lajur-sheet-close:active svg,
+[data-state='closed'] .lajur-sheet-close svg {
+  opacity: 0.55;
+  transform: rotate(25deg) scale(0.9);
+}
+.lajur-payee-value-enter-active,
+.lajur-payee-clear-enter-active {
+  transition:
+    opacity 160ms var(--kasana-motion-ease),
+    transform 160ms var(--kasana-motion-ease);
+}
+.lajur-payee-value-leave-active,
+.lajur-payee-clear-leave-active {
+  transition:
+    opacity 120ms var(--kasana-motion-ease),
+    transform 120ms var(--kasana-motion-ease);
+}
+.lajur-payee-value-enter-from,
+.lajur-payee-value-leave-to {
+  opacity: 0;
+  transform: translateY(3px);
+}
+.lajur-payee-clear-enter-from,
+.lajur-payee-clear-leave-to {
+  opacity: 0;
+  transform: scale(0.88) rotate(-15deg);
+}
+.lajur-payee-clear-leave-active {
+  pointer-events: none;
 }
 @media (prefers-reduced-transparency: reduce) {
   .lajur-scrim-blur {

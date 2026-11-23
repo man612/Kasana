@@ -12,6 +12,7 @@ import { queryClient } from '@/lib/query-client';
 import { stashResetPasswordToken } from '@/lib/reset-password-token';
 import { initSentry } from '@/lib/sentry';
 import { router } from '@/routes';
+import { ROUTES_NAMES } from '@/routes/constants';
 import { store } from '@/stores/setup';
 import type { SupportedLocale } from '@bt/shared/i18n/locales';
 import { VueQueryPlugin } from '@tanstack/vue-query';
@@ -25,7 +26,10 @@ stashResetPasswordToken();
 identifyCurrentTheme();
 identifyAccentTheme();
 if (!import.meta.env.DEV) {
-  installChunkReloadHandler({ router });
+  installChunkReloadHandler({
+    router,
+    hasInAppRecovery: () => router.currentRoute.value.matched[0]?.name === ROUTES_NAMES.dashboard,
+  });
 }
 
 // Localizes every date-fns call that passes no explicit locale. The default is read at call

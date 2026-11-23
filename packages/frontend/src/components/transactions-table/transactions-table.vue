@@ -246,6 +246,7 @@
             <TransactionTableRow
               v-else-if="txAt(virtualRow.index)"
               :tx="txAt(virtualRow.index)!"
+              :show-time="showTime"
               :visible-columns="visibleColumns"
               :index="virtualRow.index"
               :is-selected="isTransactionSelected(txAt(virtualRow.index)!.id)"
@@ -399,6 +400,7 @@ const props = defineProps<{
   /** Totals and filters of the whole result set; enables "select all" beyond the loaded rows. */
   matching?: MatchingTransactions;
   alwaysShowLockedCells?: boolean;
+  showTime?: boolean;
   rowClickSelects?: boolean;
 }>();
 

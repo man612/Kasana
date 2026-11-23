@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MenuScrim from '@/components/common/menu-scrim.vue';
 import { cn } from '@/lib/utils';
 import { reactiveOmit } from '@vueuse/core';
 import {
@@ -27,6 +28,7 @@ const props = withDefaults(
   {
     sideOffset: 6,
     class: '',
+    dimBackdrop: true,
   },
 );
 const emits = defineEmits<PopoverContentEmits>();
@@ -51,22 +53,7 @@ const lockedPosition = computed(() => (lockedSide.value ? { side: lockedSide.val
 
 <template>
   <PopoverPortal>
-    <Transition
-      enter-active-class="transition-opacity duration-200 ease-out motion-reduce:transition-none"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="pointer-events-none transition-opacity duration-200 ease-in motion-reduce:transition-none"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div
-        v-if="props.dimBackdrop && rootContext.open.value"
-        class="lajur-scrim-menu lajur-scrim-blur pointer-events-auto fixed inset-0 z-(--z-dialog)"
-        @pointerdown.stop
-        @click.stop.prevent="rootContext.onOpenChange(false)"
-        aria-hidden="true"
-      />
-    </Transition>
+    <MenuScrim :open="dimBackdrop && rootContext.open.value" :anchor="rootContext.triggerElement.value" />
     <PopoverContent
       v-bind="{ ...forwarded, ...$attrs, ...lockedPosition }"
       :collision-padding="12"

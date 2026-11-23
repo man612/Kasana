@@ -26,7 +26,7 @@
     </PopoverTrigger>
 
     <PopoverContent align="start" class="w-80 max-w-[calc(100vw-1.5rem)] p-1">
-      <slot name="list-settings" />
+      <slot name="list-settings" :close="close" />
       <ScrollArea class="max-h-72" viewport-class="max-h-72">
         <p v-if="views.length === 0" class="text-muted-foreground px-2 py-3 text-center text-sm">
           {{ $t('transactions.savedViews.empty') }}
@@ -65,7 +65,7 @@
                     <EllipsisIcon class="size-4" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="end" class="flex w-44 flex-col p-1">
+                <PopoverContent align="end" :dim-backdrop="false" class="flex w-44 flex-col p-1">
                   <Button variant="ghost" size="sm" class="justify-start font-normal" @click="openNameDialog({ view })">
                     <PencilIcon class="size-4" />
                     {{ $t('transactions.savedViews.rename') }}
@@ -250,6 +250,9 @@ const { addSuccessNotification, addErrorNotification } = useNotificationCenter()
 const { data: settings, patchAsync, isPatching } = useUserSettings();
 
 const isOpen = ref(false);
+const close = () => {
+  isOpen.value = false;
+};
 const views = computed<SavedTransactionView[]>(() => settings.value?.savedTransactionViews ?? []);
 const resolvedViews = computed(() => views.value.map((view) => resolveView({ view })));
 

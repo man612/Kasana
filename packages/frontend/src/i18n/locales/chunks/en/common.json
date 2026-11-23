@@ -69,6 +69,7 @@
     },
     "errors": {
       "initializationFailed": "App data could not load. Check your connection.",
+      "pageLoadFailed": "This page could not load. Try again.",
       "copyToClipboardFailed": "Failed to copy to clipboard",
       "settingsSaveFailed": "Couldn't save your settings. Please try again."
     },
@@ -215,6 +216,10 @@
       "hours": "Hours",
       "minutes": "Minutes",
       "chooseMonthYear": "Choose month and year, {month}",
+      "monthYearTitle": "Choose month and year",
+      "year": "Year",
+      "previousYear": "Previous year",
+      "nextYear": "Next year",
       "dialogTitle": "Date range",
       "dueDate": "Due date",
       "quickSelect": "Quick select",

@@ -29,7 +29,7 @@
     },
     "dialog": {
       "createTitle": "Add a loan",
-      "createDescription": "Track a mortgage, auto loan, student loan, or any other liability. You can edit anything later.",
+      "createDescription": "Record your loan and its repayments.",
       "editTitle": "Edit loan",
       "editDescription": "Update the loan's terms. Changes to the rate, term, or planned payment are recorded in the events timeline."
     },

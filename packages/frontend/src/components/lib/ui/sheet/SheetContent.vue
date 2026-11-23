@@ -67,13 +67,17 @@ const { t } = useI18n();
           'ring-offset-background absolute top-4 right-4 rounded-sm',
           'focus:ring-ring focus:ring-2 focus:ring-offset-2 focus:outline-hidden',
           'disabled:pointer-events-none',
-          'data-[state=open]:bg-secondary',
           compactClose &&
             'top-[calc(env(safe-area-inset-top)+0.625rem)] right-[calc(env(safe-area-inset-right)+0.75rem)]',
         ]"
       >
-        <Button size="icon" variant="secondary" :class="compactClose && 'size-11'" :aria-label="t('common.ui.close')">
-          <XIcon :class="compactClose ? 'size-3' : 'size-5'" aria-hidden="true" />
+        <Button
+          size="icon"
+          :variant="compactClose ? 'ghost' : 'secondary'"
+          :class="compactClose && 'lajur-sheet-close text-muted-foreground size-11 rounded-full'"
+          :aria-label="t('common.ui.close')"
+        >
+          <XIcon :class="compactClose ? 'size-3.5' : 'size-5'" aria-hidden="true" />
         </Button>
       </DialogClose>
     </DialogContent>

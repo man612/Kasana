@@ -71,6 +71,7 @@ export type I18nChunkName = (typeof I18N_CHUNKS)[number];
 // Extend vue-router RouteMeta to include i18nChunks
 declare module 'vue-router' {
   interface RouteMeta {
+    focusPage?: boolean;
     /**
      * i18n chunks to load for this route.
      * Chunks from parent routes are automatically inherited.

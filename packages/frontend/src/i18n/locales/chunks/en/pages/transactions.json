@@ -371,7 +371,9 @@
       "chronologicalOnly": "Choose a date sort to group the list.",
       "today": "Today",
       "yesterday": "Yesterday",
-      "currentWeek": "This week · {range}"
+      "currentWeek": "This week · {range}",
+      "showTime": "Show time",
+      "timeRequired": "Daily groups always show the time because the date is in the group heading."
     }
   },
   "records": {

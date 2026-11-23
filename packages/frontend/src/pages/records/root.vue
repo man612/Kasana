@@ -73,11 +73,14 @@
               secondary-trigger
               @applied="applyFilters"
             >
-              <template v-if="activeView === 'list'" #list-settings>
+              <template #list-settings="{ close }">
                 <TransactionTimeGroupingOptions
                   :model-value="timeGrouping"
+                  v-model:show-time="showTime"
+                  :hide-grouping="activeView === 'table'"
                   :unavailable="!isChronological"
                   @update:model-value="setTimeGrouping"
+                  @selected="close"
                 />
               </template>
             </SavedViewsMenu>
@@ -144,6 +147,7 @@
               enable-bulk-edit
               animate-changes
               :time-grouping="isChronological ? timeGrouping : 'none'"
+              :show-time="showTime"
               :time-ascending="sorting.order === SORT_DIRECTIONS.asc"
               :time-group-range="timeGroupRange"
               :content-filters-active="contentFiltersActive"
@@ -189,11 +193,13 @@
             </div>
 
             <SavedViewsMenu v-model:filters="filters" v-model:sorting="sorting" block @applied="applyFilters">
-              <template #list-settings>
+              <template #list-settings="{ close }">
                 <TransactionTimeGroupingOptions
                   :model-value="timeGrouping"
+                  v-model:show-time="showTime"
                   :unavailable="!isChronological"
                   @update:model-value="setTimeGrouping"
+                  @selected="close"
                 />
               </template>
             </SavedViewsMenu>
@@ -228,6 +234,7 @@
               enable-bulk-edit
               animate-changes
               :time-grouping="isChronological ? timeGrouping : 'none'"
+              :show-time="showTime"
               :time-ascending="sorting.order === SORT_DIRECTIONS.asc"
               :time-group-range="timeGroupRange"
               :content-filters-active="contentFiltersActive"
@@ -275,7 +282,15 @@
               </div>
             </div>
             <div class="mr-2 mb-2 inline-block align-top">
-              <SavedViewsMenu v-model:filters="filters" v-model:sorting="sorting" @applied="applyFilters" />
+              <SavedViewsMenu v-model:filters="filters" v-model:sorting="sorting" @applied="applyFilters">
+                <template #list-settings>
+                  <TransactionTimeGroupingOptions
+                    :model-value="timeGrouping"
+                    v-model:show-time="showTime"
+                    hide-grouping
+                  />
+                </template>
+              </SavedViewsMenu>
             </div>
           </template>
 
@@ -386,6 +401,7 @@
               ref="tableRef"
               :transactions="transactionsPages?.pages.flat() ?? []"
               :visible-columns="visibleColumns"
+              :show-time="showTime"
               @resize-column="setColumnWidth"
               :sorting="sorting"
               :has-next-page="hasNextPage"
@@ -464,7 +480,7 @@ import { useNotificationCenter } from '@/components/notification-center';
 import { useI18n } from 'vue-i18n';
 
 const sorting = ref<TableSorting>({ ...DEFAULT_SORTING });
-const { mode: timeGrouping, setMode: setTimeGrouping } = useTransactionTimeGrouping();
+const { mode: timeGrouping, setMode: setTimeGrouping, showTime } = useTransactionTimeGrouping();
 const isChronological = computed(() => sorting.value.sortBy === TRANSACTION_SORT_FIELD.time);
 
 const {

@@ -86,6 +86,7 @@ const preventMobileAutoFocus = (event: Event) => {
 };
 
 const isOpen = ref(false);
+const triggerRef = ref<HTMLButtonElement>();
 const inputValue = ref('');
 // Closing via Escape, outside tap, or the close X should never preserve stale
 // recipient search terms when this dialog is reopened.
@@ -180,6 +181,7 @@ defineExpose({ open: () => (isOpen.value = true) });
 
 function clearSelection() {
   emit('update:modelValue', null);
+  triggerRef.value?.focus({ preventScroll: true });
 }
 
 const editorOpen = ref(false);
@@ -231,45 +233,54 @@ async function removePayee() {
       :open="isOpen"
       @update:open="(open: boolean) => (isOpen = open)"
     >
-      <component :is="isMobile ? Dialog.DialogTrigger : Popover.PopoverTrigger" as-child>
-        <button
-          type="button"
-          :disabled="disabled"
-          :class="
-            cn(
-              'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full items-center gap-2 rounded-md border px-3 py-2 text-sm md:h-9',
-              'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
-              disabled && 'cursor-not-allowed opacity-50',
-            )
-          "
-          data-test="payee-select-field"
-        >
-          <BrandLogo
-            v-if="selectedPayee"
-            v-bind="toEntityLogoDisplayProps(selectedPayee)"
-            :name="selectedPayee.name"
-            class="size-5 shrink-0"
-          />
-          <span
-            class="text-muted-foreground min-w-0 flex-1 truncate text-left"
-            :class="{ 'text-foreground': selectedLabel }"
+      <div class="relative">
+        <component :is="isMobile ? Dialog.DialogTrigger : Popover.PopoverTrigger" as-child>
+          <button
+            ref="triggerRef"
+            type="button"
+            :disabled="disabled"
+            :class="
+              cn(
+                'border-input bg-input-background not-dark:hover:bg-accent ring-offset-background flex h-10 w-full items-center rounded-md border px-3 py-2 text-sm md:h-9',
+                'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-hidden',
+                modelValue && !disabled && 'pr-11',
+                disabled && 'cursor-not-allowed opacity-50',
+              )
+            "
+            data-test="payee-select-field"
           >
-            {{ selectedLabel || placeholderResolved }}
-          </span>
-          <span
+            <Transition name="lajur-payee-value" mode="out-in">
+              <span :key="modelValue || selectedLabel" class="flex min-w-0 flex-1 items-center gap-2">
+                <BrandLogo
+                  v-if="selectedPayee"
+                  v-bind="toEntityLogoDisplayProps(selectedPayee)"
+                  :name="selectedPayee.name"
+                  class="size-5 shrink-0"
+                />
+                <span
+                  class="text-muted-foreground min-w-0 flex-1 truncate text-left"
+                  :class="{ 'text-foreground': selectedLabel }"
+                >
+                  {{ selectedLabel || placeholderResolved }}
+                </span>
+              </span>
+            </Transition>
+          </button>
+        </component>
+        <Transition name="lajur-payee-clear">
+          <Button
             v-if="modelValue && !disabled"
-            role="button"
-            tabindex="0"
-            class="text-muted-foreground hover:text-foreground inline-flex shrink-0 cursor-pointer"
+            type="button"
+            variant="ghost"
+            size="icon"
+            class="text-muted-foreground absolute inset-y-0 right-0 h-full w-11"
             :aria-label="t('common.actions.clear')"
-            @click.stop="clearSelection"
-            @keydown.enter.stop="clearSelection"
-            @keydown.space.stop.prevent="clearSelection"
+            @click="clearSelection"
           >
-            <XIcon class="size-4" />
-          </span>
-        </button>
-      </component>
+            <XIcon class="size-4" aria-hidden="true" />
+          </Button>
+        </Transition>
+      </div>
 
       <component
         :is="isMobile ? Dialog.DialogContent : Popover.PopoverContent"

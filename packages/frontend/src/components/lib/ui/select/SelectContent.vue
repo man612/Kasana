@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MenuScrim from '@/components/common/menu-scrim.vue';
 import { cn } from '@/lib/utils';
 import {
   SelectContent,
@@ -41,13 +42,7 @@ const select = injectSelectRootContext();
 
 <template>
   <SelectPortal>
-    <Transition name="lajur-info-reveal">
-      <div
-        v-if="select.open.value && !select.triggerElement.value?.closest('[role=dialog]')"
-        class="lajur-scrim-menu lajur-scrim-blur pointer-events-none fixed inset-0 z-(--z-dialog)"
-        aria-hidden="true"
-      />
-    </Transition>
+    <MenuScrim :open="select.open.value" :anchor="select.triggerElement.value" />
     <SelectContent
       v-bind="{ ...forwarded, ...$attrs }"
       :collision-padding="12"

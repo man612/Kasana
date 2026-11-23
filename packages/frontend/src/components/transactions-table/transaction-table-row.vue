@@ -56,7 +56,10 @@
     >
       <!-- Date -->
       <template v-if="column.id === TABLE_COLUMN.date">
-        <span class="text-muted-foreground tabular-nums">{{ formattedDate }}</span>
+        <time class="text-muted-foreground block tabular-nums">
+          <span class="block">{{ formattedDate }}</span>
+          <span v-if="formattedClock" class="block text-xs">{{ formattedClock }}</span>
+        </time>
       </template>
 
       <!-- Account -->
@@ -294,7 +297,7 @@ import {
   RocketIcon,
   SquareArrowOutUpRightIcon,
 } from '@lucide/vue';
-import { format } from 'date-fns';
+import { formatTransactionRowTime } from '@/components/transactions-list/transaction-row-time';
 import { storeToRefs } from 'pinia';
 import { type Component, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -340,6 +343,7 @@ const props = defineProps<{
   visibleColumns: ColumnDefinition[];
   index: number;
   isSelected: boolean;
+  showTime?: boolean;
   isSelectable: boolean;
   /** Shown as an explainer tooltip in place of the checkbox when not selectable. */
   unselectableReason?: BulkUnselectableReason | null;
@@ -400,7 +404,10 @@ const transferDestinationName = computed(
   () => transferDestinationAccount.value?.name ?? t('common.transactions.record.hiddenAccount'),
 );
 
-const formattedDate = computed(() => format(new Date(props.tx.time), 'd MMM y'));
+const formattedDate = computed(() => formatTransactionRowTime({ value: props.tx.time }));
+const formattedClock = computed(() =>
+  props.showTime ? formatTransactionRowTime({ value: props.tx.time, showTime: true }) : '',
+);
 
 const amountColorClass = computed(() => {
   if (isTwoLegTransferRow.value) return 'text-app-transfer-color';
