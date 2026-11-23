@@ -6,13 +6,15 @@
     ]"
   >
     <slot></slot>
-    <p class="mt-3 text-center text-sm">{{ t('dashboard.widgets.emptyState') }}</p>
+    <p class="mt-3 text-center text-sm">{{ message ?? t('dashboard.widgets.emptyState') }}</p>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { inject } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+defineProps<{ message?: string }>();
 
 const { t } = useI18n();
 const isDashboard = inject<boolean>('dashboard-widget-stretch', false);

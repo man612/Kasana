@@ -143,6 +143,7 @@
         "showAll": "View all"
       },
       "subscriptions": {
+        "empty": "No active payments of this type",
         "title": "Subscriptions & bills",
         "titleSubscriptions": "Subscriptions",
         "titleBills": "Bills",
@@ -306,6 +307,7 @@
         }
       },
       "plannedOverview": {
+        "empty": "No pending planned transactions",
         "title": "Planned",
         "projectedBy": "Projected by {date}",
         "upcoming": "Upcoming · {count}",

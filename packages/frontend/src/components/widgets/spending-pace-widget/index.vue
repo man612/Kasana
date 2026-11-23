@@ -83,9 +83,10 @@ const TONES: Record<PaceTone, { stroke: string; fill: string; border: string; pi
   },
 };
 
-const { t } = useI18n();
+const { locale, t } = useI18n();
 const { addErrorNotification, addSuccessNotification } = useNotificationCenter();
 const { format: formatLocal } = useDateLocale();
+const shortDateFormatter = computed(() => new Intl.DateTimeFormat(locale.value, { day: 'numeric', month: 'short' }));
 const { formatBaseCurrency, formatWholeBaseCurrency, formatCompactBaseCurrency } = useFormatCurrency();
 const { isAppInitialized } = storeToRefs(useRootStore());
 const { categoriesMap } = storeToRefs(useCategoriesStore());
@@ -304,7 +305,9 @@ const axisTicks = computed(() => {
     const isToday = day === todayDay;
     return {
       key: isToday ? 'today' : String(day),
-      label: isToday ? t('dashboard.widgets.spendingPace.chart.today') : formatLocal(addDays(start, day - 1), 'MMM d'),
+      label: isToday
+        ? t('dashboard.widgets.spendingPace.chart.today')
+        : shortDateFormatter.value.format(addDays(start, day - 1)),
       left: left({ day }),
       shift: shift({ day }),
       isToday,
@@ -351,7 +354,7 @@ const spikeBreakdown = computed(() => {
   const items = spikeTransactions.value;
   if (!spikeDate.value || day === null || spikeError.value || items?.length === 0) return null;
   const title = t('dashboard.widgets.spendingPace.tooltip.spikeFrom', {
-    date: formatLocal(addDays(payMonth.value.prevStart, day), 'MMM d'),
+    date: shortDateFormatter.value.format(addDays(payMonth.value.prevStart, day)),
   });
   if (!items) return { title, rows: null };
   const amounts = items.map((tx) => Math.abs(tx.refAmount));
@@ -379,7 +382,7 @@ const hover = computed(() => {
   const x = chart.x(day);
   return {
     x,
-    date: formatLocal(addDays(start, day), 'MMM d'),
+    date: shortDateFormatter.value.format(addDays(start, day)),
     isToday: day === todayIndex,
     spent: isPast ? pace.value.spentCumulative[day]! : null,
     forecast: isPast ? null : (cmp?.forecastCumulative[day] ?? null),

@@ -38,6 +38,7 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
           widgets: [
             { widgetId: 'balance-trend', colSpan: 1 },
             { widgetId: 'latest-records', colSpan: 1, config: { compact: true } },
+            { widgetId: 'trackers', colSpan: 1 },
           ],
         },
         ui: { transactionsTable: { mobileView: 'list' }, transactionsList: { timeGrouping: 'day' } },
@@ -79,6 +80,10 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await latest.getByTestId('latest-transactions-compact-toggle').click();
     await expect(latest.locator('[data-transaction-row]').first()).toBeVisible();
     await expect(page).toHaveURL(/\/dashboard$/);
+
+    const trackers = page.locator('[data-widget-id="trackers"]');
+    await expect(trackers.getByRole('heading', { name: 'Pelacak', exact: true })).toBeVisible();
+    await expect(trackers.getByText('Belum ada pelacak aktif', { exact: true })).toBeVisible();
   });
 
   test('navigates months in a separate layer and keeps date and time edits in the draft', async ({ page }) => {
@@ -154,5 +159,25 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await page.getByRole('link', { name: /Kembali/i }).click();
     await expect(page.locator('.shadow-header')).toBeVisible();
     expect(pageErrors).toEqual([]);
+  });
+
+  test('closes focus mode settings with Escape and keeps focus mode active', async ({ page }) => {
+    await page.goto('/transactions');
+    await page.getByRole('button', { name: 'Lainnya', exact: true }).first().click();
+    await page.getByRole('menuitem', { name: 'Mode fokus', exact: true }).click();
+    const exit = page.getByRole('button', { name: 'Keluar mode fokus', exact: true });
+    await expect(exit).toBeVisible();
+    const settings = page.getByRole('button', { name: 'Pengaturan tabel', exact: true }).last();
+    await settings.click();
+    const columns = page.getByRole('button', { name: /^Kolom/ }).last();
+    await expect(page.locator('.lajur-scrim-menu:visible')).toHaveCount(1);
+    await columns.click();
+    await expect(page.getByRole('checkbox', { name: 'Tanggal', exact: true })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(columns).toBeHidden();
+    await expect(settings).toBeFocused();
+    await expect(exit).toBeVisible();
+    await exit.click();
+    await expect(exit).toBeHidden();
   });
 });

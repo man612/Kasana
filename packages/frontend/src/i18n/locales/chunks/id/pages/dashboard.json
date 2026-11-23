@@ -128,7 +128,7 @@
         "title": "Struktur Pengeluaran",
         "incomeTitle": "Rincian pemasukan",
         "today": "Hari ini",
-        "vsPreviousPeriod": "vs periode sebelumnya",
+        "vsPreviousPeriod": "Dibanding periode lalu",
         "viewButton": "Lihat",
         "back": "Kembali",
         "openInAnalytics": "Buka di Analitik",
@@ -143,6 +143,7 @@
         "showAll": "Lihat semua"
       },
       "subscriptions": {
+        "empty": "Belum ada pembayaran aktif untuk pilihan ini",
         "title": "Langganan & Tagihan",
         "titleSubscriptions": "Langganan",
         "titleBills": "Tagihan",
@@ -185,7 +186,7 @@
       "cashFlow": {
         "title": "Arus Kas",
         "description": "Menunjukkan tabungan bersih Anda: pemasukan dikurangi pengeluaran untuk periode yang dipilih, dengan tren periode sebelumnya",
-        "vsPrevious": "vs sebelumnya",
+        "vsPrevious": "Dibanding periode lalu",
         "notAvailable": "—",
         "income": "Pemasukan",
         "expenses": "Pengeluaran",
@@ -199,7 +200,7 @@
       "netWorth": {
         "title": "Kekayaan Bersih",
         "description": "Bagaimana kekayaan bersih Anda berubah selama periode yang dipilih. Menghitung setiap perubahan saldo: akun, investasi, pinjaman, dan nilai aset.",
-        "vsPrevious": "vs sebelumnya",
+        "vsPrevious": "Dibanding periode lalu",
         "start": "Awal",
         "end": "Akhir",
         "growth": "Pertumbuhan",
@@ -261,8 +262,8 @@
       },
       "spendingPace": {
         "tabs": {
-          "lastMonth": "vs bulan lalu",
-          "average": "vs rata-rata 3 bulan"
+          "lastMonth": "Bulan lalu",
+          "average": "Rata-rata 3 bulan"
         },
         "spentIn": "Dibelanjakan pada {month}",
         "onTrackFor": "Sesuai target untuk {amount}",
@@ -306,6 +307,7 @@
         }
       },
       "plannedOverview": {
+        "empty": "Belum ada transaksi terencana yang tertunda",
         "title": "Terencana",
         "projectedBy": "Perkiraan per {date}",
         "upcoming": "Mendatang · {count}",
@@ -364,7 +366,7 @@
         "inOut": "Masuk {income} · Keluar {expense}",
         "net": "Bersih",
         "noLimit": "Tanpa batas",
-        "empty": "Belum ada anggaran",
+        "empty": "Belum ada pelacak aktif",
         "ended": "Berakhir",
         "create": "Buat pelacak"
       },
@@ -414,7 +416,7 @@
         },
         "cashFlow": {
           "name": "Arus Kas",
-          "description": "Pemasukan vs pengeluaran dengan tingkat tabungan"
+          "description": "Perbandingan pemasukan, pengeluaran, dan tingkat tabungan"
         },
         "netWorth": {
           "name": "Kekayaan Bersih",
@@ -453,7 +455,7 @@
           "description": "Sisa setiap pos anggaran pada periode berjalan"
         },
         "trackers": {
-          "name": "Anggaran",
+          "name": "Pelacak",
           "description": "Batas terpakai dan nilai bersih setiap pelacak aktif"
         },
         "goals": {
