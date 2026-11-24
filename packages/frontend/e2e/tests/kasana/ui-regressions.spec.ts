@@ -88,7 +88,7 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await expect(page).toHaveURL(/\/dashboard$/);
 
     const trackers = page.locator('[data-widget-id="trackers"]');
-    await expect(trackers.getByRole('heading', { name: 'Pelacak', exact: true })).toBeVisible();
+    await expect(trackers.getByRole('heading', { name: 'Pelacak Pengeluaran', exact: true })).toBeVisible();
     await expect(trackers.getByText('Belum ada pelacak aktif', { exact: true })).toBeVisible();
   });
 
