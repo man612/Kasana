@@ -19,6 +19,10 @@ const detailRoutes = new Set<string>([
 ]);
 const stopDirection = router.afterEach((to, from, failure) => {
   if (failure || to.matched[1]?.path === from.matched[1]?.path) return;
+  if (to.meta.focusPage === true || from.meta.focusPage === true) {
+    direction.value = 'lajur-focus-page';
+    return;
+  }
   direction.value = detailRoutes.has(String(to.name))
     ? 'lajur-detail-forward'
     : detailRoutes.has(String(from.name))
@@ -79,7 +83,14 @@ const activateEnteringPage = (element: Element) => {
   <div v-if="!renderFailed" class="relative overflow-x-clip">
     <RouterView v-slot="{ Component }">
       <Transition :name="direction" @before-leave="deactivateLeavingPage" @enter="activateEnteringPage">
-        <div v-if="Component" :key="routeKey" class="outline-none" data-testid="route-page" tabindex="-1">
+        <div
+          v-if="Component"
+          :key="routeKey"
+          class="outline-none"
+          :class="route.meta.focusPage && 'bg-background'"
+          data-testid="route-page"
+          tabindex="-1"
+        >
           <component :is="Component" />
         </div>
       </Transition>
@@ -88,6 +99,29 @@ const activateEnteringPage = (element: Element) => {
 </template>
 
 <style scoped>
+.lajur-focus-page-enter-active {
+  position: relative;
+  z-index: 1;
+}
+
+.lajur-focus-page-leave-active {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+  transition: opacity var(--kasana-motion-fast) var(--kasana-motion-ease);
+}
+
+.lajur-focus-page-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lajur-focus-page-leave-active {
+    transition: none;
+  }
+}
+
 .lajur-detail-forward-enter-active,
 .lajur-detail-back-enter-active {
   position: relative;

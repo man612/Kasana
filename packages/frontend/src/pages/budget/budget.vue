@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import { loadBudgetPlans } from '@/api/budget-plans';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import PlanRestricted from '@/components/billing/plan-restricted.vue';
@@ -64,7 +65,11 @@ watch(
 <template>
   <PageWrapper class="grid gap-6">
     <div class="flex items-center justify-between gap-4">
-      <h1 class="text-2xl font-semibold tracking-tight">{{ $t('budgetPlans.title') }}</h1>
+      <NavigationSectionTitle
+        section="planned"
+        :label="$t('budgetPlans.title')"
+        class="text-2xl font-semibold tracking-tight"
+      />
       <Button v-if="trashedPlans.length && !activePlan" variant="outline" size="sm" @click="isDeletedOpen = true">
         <Trash2Icon class="size-4" />
         {{ $t('budgetPlans.trashed.open') }}

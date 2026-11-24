@@ -55,10 +55,12 @@ const filteredList = computed(() =>
 );
 
 const isApplyOpen = ref(false);
+const isApplyMounted = ref(false);
 const ruleToApply = ref<TransactionAutomationModel | null>(null);
 
 const openApply = ({ rule }: { rule: TransactionAutomationModel }) => {
   ruleToApply.value = rule;
+  isApplyMounted.value = true;
   isApplyOpen.value = true;
 };
 
@@ -164,7 +166,12 @@ const handleDelete = () => {
       </Card>
     </Transition>
 
-    <ApplyToHistoryDialog v-if="isApplyOpen" v-model:open="isApplyOpen" :rule="ruleToApply" />
+    <ApplyToHistoryDialog
+      v-if="isApplyMounted"
+      v-model:open="isApplyOpen"
+      @closed="isApplyMounted = false"
+      :rule="ruleToApply"
+    />
 
     <ResponsiveAlertDialog
       v-model:open="isDeleteOpen"

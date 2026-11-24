@@ -146,14 +146,6 @@
                 :title="$t('accounts.sections.bankConnections')"
                 :count="bankConnectionsCount"
               >
-                <template #action>
-                  <UiButton size="sm" @click="openAddIntegrationDialog">
-                    <LinkIcon class="size-4" />
-                    <span class="@[30rem]/accounts-page:hidden">{{ $t('accounts.connect') }}</span>
-                    <span class="hidden @[30rem]/accounts-page:inline">{{ $t('accounts.connectBank') }}</span>
-                  </UiButton>
-                </template>
-
                 <div
                   v-if="connectionRows.length"
                   class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border"
@@ -197,19 +189,7 @@
                   />
                 </template>
 
-                <div class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border">
-                  <AccountListRow
-                    v-for="vehicle in sortedVehicles"
-                    :key="vehicle.id"
-                    :account="vehicle.account!"
-                    :vehicle-id="vehicle.id"
-                    :subtitle="`${vehicle.year} ${vehicle.make} ${vehicle.model}`"
-                    :category-override="ACCOUNT_CATEGORIES.vehicle"
-                    :fallback-icon="
-                      getVehicleTypeIcon({ type: vehicle.vehicleType, legacyClass: vehicle.vehicleClass })
-                    "
-                  />
-                </div>
+                <VehicleInventoryRows :vehicles="sortedVehicles" />
               </AccountsSection>
             </div>
           </div>
@@ -261,31 +241,18 @@
                 {{ $t('accounts.empty.createManual') }}
               </UiButton>
             </CreateAccountDialog>
-            <UiButton variant="outline" size="sm" class="w-full" @click="openAddIntegrationDialog">
-              <LinkIcon class="size-4" />
-              Integrasi bank internasional (opsional)
-            </UiButton>
           </div>
-          <p class="text-muted-foreground mx-auto mt-4 max-w-sm text-xs leading-relaxed">
-            Sinkronisasi otomatis bank Indonesia belum tersedia secara bawaan. Jangan memasukkan PIN atau password
-            m-banking ke penyedia yang tidak mendukung bankmu.
-          </p>
         </section>
       </template>
-
-      <AddIntegrationDialog
-        v-model:open="isDialogOpen"
-        :providers="providers || []"
-        @integration-added="handleIntegrationAdded"
-      />
     </div>
   </PageWrapper>
 </template>
 
 <script setup lang="ts">
 import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
-import { type BankConnection, type BankProvider, listConnections, listProviders } from '@/api/bank-data-providers';
+import { type BankConnection, listConnections } from '@/api/bank-data-providers';
 import { getVehicles } from '@/api/vehicles';
+import VehicleInventoryRows from './components/vehicle-inventory-rows.vue';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import PageWrapper from '@/components/common/page-wrapper.vue';
@@ -300,19 +267,16 @@ import { collectGroupAccounts, flattenAccounts } from '@/components/sidebar/acco
 import { useAccountGroupsQuery } from '@/composable/data-queries/account-groups';
 import { useBaseBalanceTotals } from '@/composable/use-base-balance-totals';
 import { useProjectedBalance } from '@/composable/use-projected-balance';
-import AddIntegrationDialog from '@/pages/accounts/integrations/components/add-integration-dialog.vue';
 import { useAccountsStore } from '@/stores';
 import { ACCOUNT_CATEGORIES, ACCOUNT_STATUSES, AccountModel } from '@bt/shared/types';
-import { useQuery, useQueryClient } from '@tanstack/vue-query';
-import { CarIcon, ChevronDownIcon, LandmarkIcon, LinkIcon, PlusIcon } from '@lucide/vue';
+import { useQuery } from '@tanstack/vue-query';
+import { CarIcon, ChevronDownIcon, LandmarkIcon, PlusIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
 
 import { computeAccountsOverview } from './accounts-overview-totals';
 import AccountGroupRow from './components/account-group-row.vue';
-import { getVehicleTypeIcon } from '@/components/forms/vehicle-class-options';
 import AccountListRow from './components/account-list-row.vue';
 import AccountsOverviewCard from './components/accounts-overview-card.vue';
 import AccountsSection from './components/accounts-section.vue';
@@ -321,9 +285,6 @@ import BankConnectionRow from './components/bank-connection-row.vue';
 import { collectManualAccounts, mapFolderGroupNames, pruneBankLinkedAccounts } from './manual-accounts-split';
 import { useAccountsSort } from './use-accounts-sort';
 
-const route = useRoute();
-const router = useRouter();
-const queryClient = useQueryClient();
 const { t } = useI18n();
 
 const isActionsMenuOpen = ref(false);
@@ -349,13 +310,6 @@ const { data: accountGroups, isFetched: isGroupsFetched } = useAccountGroupsQuer
 const { data: vehicles } = useQuery({
   queryKey: VUE_QUERY_CACHE_KEYS.vehiclesList,
   queryFn: getVehicles,
-});
-
-const { data: providers } = useQuery({
-  queryKey: VUE_QUERY_CACHE_KEYS.bankProviders,
-  queryFn: listProviders,
-  staleTime: Infinity,
-  placeholderData: [] as BankProvider[],
 });
 
 const { data: bankConnections, isFetched: isConnectionsFetched } = useQuery({
@@ -499,26 +453,4 @@ const manualCount = computed(() => {
 const vehiclesBaseTotal = computed(() => sumBaseBalance({ accounts: vehicleAccounts.value }));
 
 const isArchivedOpen = ref(false);
-
-const isDialogOpen = ref(false);
-
-const openAddIntegrationDialog = () => {
-  isDialogOpen.value = true;
-};
-
-const handleIntegrationAdded = () => {
-  isDialogOpen.value = false;
-  queryClient.invalidateQueries({ queryKey: VUE_QUERY_CACHE_KEYS.bankConnections });
-};
-
-// Deep link from onboarding / dashboard: `?connect=bank` opens the add-bank dialog,
-// then the param is stripped so a refresh or back-nav doesn't reopen it.
-onMounted(() => {
-  if (route.query.connect === 'bank') {
-    isDialogOpen.value = true;
-    const nextQuery = { ...route.query };
-    delete nextQuery.connect;
-    router.replace({ query: nextQuery });
-  }
-});
 </script>

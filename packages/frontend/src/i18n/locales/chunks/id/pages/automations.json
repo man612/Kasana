@@ -1,7 +1,7 @@
 {
   "automations": {
     "title": "Otomatisasi",
-    "subtitle": "Atur kategori, tag, penerima, atau catatan secara otomatis saat transaksi baru masuk dari bank atau impor file. Aturan dijalankan dari urutan teratas.",
+    "subtitle": "Atur kategori, tag, penerima, atau catatan saat transaksi baru diimpor. Aturan berjalan mulai dari urutan teratas.",
     "newAutomation": "Buat otomatisasi",
     "new": "Buat",
     "dragHint": "Seret untuk mengurutkan ulang",
@@ -119,6 +119,7 @@
       }
     },
     "editor": {
+      "backToOptimizations": "Kembali ke Optimasi",
       "steps": {
         "conditions": "Kondisi yang harus cocok",
         "actions": "Tindakan yang dijalankan",
@@ -174,7 +175,7 @@
         "confirm": "Buang perubahan"
       },
       "preview": {
-        "scope": "Pratinjau memeriksa transaksi yang memenuhi syarat dari impor, sinkronisasi, atau API dengan Otomatisasi aktif.",
+        "scope": "Pratinjau memeriksa transaksi yang bisa diproses otomatis, termasuk hasil impor atau catatan dari API.",
         "after": "Perubahan yang direncanakan",
         "notApplied": "Belum diterapkan. Hasil akhir mengikuti transaksi dan aturan yang memenuhi syarat.",
         "before": "Contoh transaksi saat ini",
@@ -229,7 +230,7 @@
       "pickTitle": "Jalankan aturan pada transaksi lama",
       "pickHint": "Pilih aturan dari Otomatisasi, periksa transaksi yang cocok, lalu tentukan catatan yang ingin diperbarui.",
       "title": "Terapkan “{name}” ke transaksi lama",
-      "noRules": "Belum ada aturan. Buat aturan di Otomatisasi, lalu kembali untuk memilih transaksi lama.",
+      "noRules": "Belum ada aturan otomatisasi. Buat aturan terlebih dahulu untuk menggunakannya pada transaksi lama.",
       "summary": "{count} transaksi lama cocok dengan aturan ini",
       "moreMatches": "Hanya {shown} kecocokan terbaru yang ditampilkan. Terapkan pilihan ini, lalu periksa kembali.",
       "scanCapped": "Pencarian mencakup {limit} transaksi terbaru.",
@@ -237,7 +238,7 @@
         "settledTitle": "Semua sudah sesuai",
         "settledDescription": "{count} transaksi yang cocok sudah sesuai dengan aturan.",
         "noneTitle": "Tidak ada transaksi yang cocok",
-        "noneDescription": "Tidak ada transaksi hasil sinkronisasi atau impor yang memenuhi syarat aturan ini."
+        "noneDescription": "Belum ada transaksi yang memenuhi syarat aturan ini."
       },
       "selectAll": "Pilih semua",
       "selectedCount": "{count} dipilih",
@@ -256,7 +257,7 @@
     },
     "guide": {
       "title": "Cara kerja otomatisasi",
-      "intro": "Otomatisasi merapikan transaksi baru dari sinkronisasi bank atau impor file. Kamu memilih transaksi yang cocok dan rincian yang ingin diisi. Aturan ini berjalan tanpa AI.",
+      "intro": "Otomatisasi merapikan transaksi baru saat kamu mengimpor file. Pilih kondisi yang perlu dipenuhi dan rincian yang akan diisi. Aturan berjalan tanpa AI.",
       "choose": "Tentukan transaksi mana yang ingin dikenali, misalnya lewat kata tertentu di catatan atau rekening asalnya.",
       "act": "Pilih rincian yang ingin diubah: kategori, penerima, tag, atau catatan. Nominal dan saldo tetap sama.",
       "check": "Lihat transaksi yang cocok lewat Pratinjau, lalu simpan dan aktifkan aturan. Lajur. menjalankannya otomatis pada transaksi baru yang memenuhi syarat. Kamu hanya perlu mengonfirmasi jika ingin menerapkan aturan ke transaksi yang sudah tercatat.",

@@ -1,61 +1,61 @@
 {
   "goals": {
-    "title": "Goals",
-    "description": "Save toward targets from the accounts you already have",
-    "newGoal": "New goal",
+    "title": "Tujuan Keuangan",
+    "description": "Pantau dana yang kamu siapkan untuk kebutuhan seperti laptop atau dana darurat.",
+    "newGoal": "Buat tujuan",
     "list": {
-      "searchPlaceholder": "Search goals",
+      "searchPlaceholder": "Cari tujuan",
       "filters": {
         "all": "Semua",
-        "behind": "Behind schedule",
+        "behind": "Tertinggal dari target",
         "archived": "Diarsipkan"
       },
       "sections": {
         "active": "Aktif",
         "ended": "Berakhir",
         "archived": "Diarsipkan",
-        "show": "show",
-        "hide": "hide"
+        "show": "tampilkan",
+        "hide": "sembunyikan"
       },
-      "loadError": "Couldn't load your goals.",
+      "loadError": "Tujuan keuangan gagal dimuat.",
       "emptyState": {
-        "title": "No goals yet",
-        "description": "Point a goal at the accounts that hold the money. Progress updates as balances change."
+        "title": "Belum ada tujuan",
+        "description": "Misalnya, siapkan dana darurat Rp10 juta. Pilih rekening yang menyimpan dananya agar progres mengikuti saldo."
       },
       "noMatch": {
-        "title": "Nothing matches \"{query}\"",
-        "titleNoQuery": "No goals match these filters",
-        "description": "Try another name, or include archived goals.",
-        "includeArchived": "Include archived"
+        "title": "Tidak ada hasil untuk “{query}”",
+        "titleNoQuery": "Tidak ada tujuan yang sesuai dengan filter",
+        "description": "Coba nama lain atau tampilkan tujuan yang diarsipkan.",
+        "includeArchived": "Sertakan arsip"
       },
       "row": {
         "saved": "Ditabung",
         "ofTarget": "dari {amount}",
         "accountShare": "{name} {share}%",
         "accountFixed": "{name} {amount}",
-        "reachedOn": "reached {date}",
-        "byDate": "by {date}",
-        "noDate": "no date",
-        "neededMonthly": "needs {amount}/mo"
+        "reachedOn": "tercapai {date}",
+        "byDate": "sebelum {date}",
+        "noDate": "tanpa tenggat",
+        "neededMonthly": "perlu {amount}/bulan"
       },
       "menu": {
-        "moreActions": "More actions for {name}"
+        "moreActions": "Tindakan lain untuk {name}"
       }
     },
     "status": {
       "reached": "Tercapai",
-      "ahead": "Ahead",
-      "onTrack": "On track",
-      "behind": "Behind",
-      "behindBy": "Behind · {count} mo | Behind · {count} mo",
+      "ahead": "Lebih cepat dari target",
+      "onTrack": "Sesuai jadwal",
+      "behind": "Tertinggal",
+      "behindBy": "Tertinggal {count} bulan",
       "overdue": "Terlambat",
-      "noDate": "No date",
-      "around": "around {date}",
-      "insufficientHistory": "Not enough history",
+      "noDate": "Tanpa tenggat",
+      "around": "sekitar {date}",
+      "insufficientHistory": "Riwayat belum cukup",
       "noAccounts": "Tidak ada akun",
       "paused": "Dijeda",
       "archived": "Diarsipkan",
-      "noRate": "No exchange rate"
+      "noRate": "Kurs belum tersedia"
     },
     "actions": {
       "edit": "Sunting",
@@ -66,282 +66,282 @@
       "delete": "Hapus"
     },
     "deleteDialog": {
-      "title": "Delete this goal?",
-      "description": "The goal and its account shares are removed. Your accounts and transactions stay as they are."
+      "title": "Hapus tujuan ini?",
+      "description": "Tujuan dan pembagian saldonya akan dihapus. Saldo rekening dan transaksi tetap tercatat."
     },
     "toasts": {
-      "created": "Goal created",
-      "saved": "Goal saved",
-      "paused": "Goal paused",
-      "archived": "Goal archived",
-      "deleted": "Goal deleted",
-      "saveError": "Couldn't save the goal",
-      "deleteError": "Couldn't delete the goal"
+      "created": "Tujuan dibuat",
+      "saved": "Tujuan disimpan",
+      "paused": "Tujuan dijeda",
+      "archived": "Tujuan diarsipkan",
+      "deleted": "Tujuan dihapus",
+      "saveError": "Gagal menyimpan tujuan",
+      "deleteError": "Gagal menghapus tujuan"
     },
     "access": {
-      "trialDaysLeft": "Goals trial · {n} day left | Goals trial · {n} days left",
-      "trialTitle": "Try goals free for 14 days",
-      "trialDescription": "Creating and editing goals is part of Essential. Start a trial to set up your first goal.",
-      "startTrial": "Start free trial",
-      "trialEnded": "Your goals trial has ended. Your goals stay visible; upgrade to edit them."
+      "trialDaysLeft": "Masa uji Tujuan tersisa {n} hari",
+      "trialTitle": "Coba fitur Tujuan gratis selama 14 hari",
+      "trialDescription": "Membuat dan menyunting tujuan tersedia di paket Essential. Mulai masa uji untuk membuat tujuan pertama.",
+      "startTrial": "Mulai uji coba",
+      "trialEnded": "Masa uji fitur Tujuan berakhir. Tujuanmu tetap terlihat dan bisa disunting setelah meningkatkan paket."
     },
     "details": {
-      "backToList": "Back to goals",
+      "backToList": "Kembali ke daftar tujuan",
       "notFound": {
-        "title": "Goal not found",
-        "description": "It may have been deleted."
+        "title": "Tujuan tidak ditemukan",
+        "description": "Tujuan ini mungkin sudah dihapus."
       },
-      "loadError": "Couldn't load this goal",
-      "perMonth": "/mo",
+      "loadError": "Tujuan ini gagal dimuat",
+      "perMonth": "/bulan",
       "actions": {
-        "raiseTarget": "Raise target",
-        "more": "More goal actions"
+        "raiseTarget": "Naikkan target",
+        "more": "Tindakan tujuan lainnya"
       },
       "tabs": {
         "progress": "Progres",
         "accounts": "Akun",
-        "whatIf": "What if"
+        "whatIf": "Simulasi"
       },
       "strip": {
         "target": "Target",
         "saved": "Ditabung",
-        "left": "Left",
-        "needs": "Needs",
-        "pace": "Pace",
+        "left": "Sisa target",
+        "needs": "Kebutuhan",
+        "pace": "Laju tabungan",
         "reached": "Tercapai",
-        "aboveTarget": "{amount} above target",
-        "notEnoughHistory": "not enough history",
-        "around": "around {date}",
-        "dueInDays": "due in {count} day | due in {count} days",
-        "overdue": "overdue"
+        "aboveTarget": "{amount} di atas target",
+        "notEnoughHistory": "riwayat belum cukup",
+        "around": "sekitar {date}",
+        "dueInDays": "{count} hari lagi",
+        "overdue": "melewati tenggat"
       },
       "accounts": {
         "label": "Akun",
         "count": "{count} akun | {count} akun",
-        "showAll": "Show all {count} accounts",
-        "countedToward": "Counted toward {name}",
-        "shareOf": "{share}% of {amount}",
-        "fixed": "{amount} fixed",
-        "fixedShort": "{counted} of {amount} fixed. The account holds less than its fixed amounts.",
-        "shareOfLeft": "{share}% of {amount} left after fixed amounts",
+        "showAll": "Tampilkan semua {count} rekening",
+        "countedToward": "Dihitung untuk {name}",
+        "shareOf": "{share}% dari {amount}",
+        "fixed": "Nominal tetap {amount}",
+        "fixedShort": "{counted} dari nominal tetap {amount}. Saldo rekening lebih kecil dari total nominal tetap.",
+        "shareOfLeft": "{share}% dari sisa {amount} setelah bagian tetap",
         "sharePlain": "{share}%",
-        "totalCounted": "Total counted",
-        "readOnlyHint": "Reads balances, never moves money",
-        "wholeAccount": "Whole account",
-        "shareHere": "{share}% here",
-        "shareHereFree": "{share}% here · {free}% free",
-        "fixedHere": "Fixed {amount} from this account",
-        "emptyDescription": "Link accounts in Edit goal to track progress.",
+        "totalCounted": "Total yang dihitung",
+        "readOnlyHint": "Membaca saldo rekening tanpa memindahkan uang",
+        "wholeAccount": "Seluruh saldo",
+        "shareHere": "{share}% untuk tujuan ini",
+        "shareHereFree": "{share}% untuk tujuan ini · {free}% belum terpakai",
+        "fixedHere": "Nominal tetap {amount} dari rekening ini",
+        "emptyDescription": "Hubungkan rekening di Sunting tujuan untuk memantau progres.",
         "columns": {
           "account": "Akun",
-          "share": "Share",
+          "share": "Bagian",
           "balance": "Saldo",
-          "counted": "Counted"
+          "counted": "Dana terhitung"
         },
         "archived": "Diarsipkan",
-        "percentOfSaved": "{percent}% of saved",
-        "total": "Total · {count} account | Total · {count} accounts",
+        "percentOfSaved": "{percent}% dari dana terkumpul",
+        "total": "Total · {count} rekening",
         "ofBalance": "dari {amount}",
-        "unavailableAccount": "Unavailable account",
-        "balanceUnavailable": "Balance unavailable"
+        "unavailableAccount": "Rekening tidak tersedia",
+        "balanceUnavailable": "Saldo tidak tersedia"
       },
       "noRate": {
-        "title": "Exchange rate unavailable",
-        "description": "Progress shows once today's {currency} rate is available."
+        "title": "Kurs belum tersedia",
+        "description": "Progres tampil setelah kurs {currency} hari ini tersedia."
       },
       "progress": {
         "kpi": {
-          "monthlyPace": "Monthly pace",
-          "needs": "needs {amount}/mo",
-          "projectedFinish": "Projected finish",
-          "onTime": "on time",
+          "monthlyPace": "Laju bulanan",
+          "needs": "perlu {amount}/bulan",
+          "projectedFinish": "Perkiraan tercapai",
+          "onTime": "tepat waktu",
           "early": "{count} bln lebih awal",
-          "late": "{count} mo late",
+          "late": "terlambat {count} bulan",
           "targetDate": "Target {date}",
-          "savedIn": "Saved in {count} mo",
-          "bestMonth": "Best month",
-          "shareOfGrowth": "{percent}% of the period's growth",
-          "leftDueInDays": "{amount} left, due in {count} day | {amount} left, due in {count} days",
-          "leftOverdue": "{amount} left, overdue"
+          "savedIn": "Terkumpul dalam {count} bulan",
+          "bestMonth": "Bulan dengan kenaikan tertinggi",
+          "shareOfGrowth": "{percent}% dari kenaikan selama periode ini",
+          "leftDueInDays": "Kurang {amount}, tersisa {count} hari",
+          "leftOverdue": "Kurang {amount}, tenggat terlewati"
         },
         "timeline": "Garis Waktu",
-        "noHistory": "No history yet",
+        "noHistory": "Belum ada riwayat",
         "insufficient": {
-          "title": "Not enough history for a pace yet",
-          "description": "A pace needs {min} full months of history; these accounts have {count}. Set a monthly plan in Edit goal to see an ETA now."
+          "title": "Riwayat belum cukup untuk memperkirakan laju",
+          "description": "Perkiraan laju memerlukan {min} bulan penuh. Rekening ini punya riwayat {count} bulan. Isi rencana bulanan di Sunting tujuan untuk melihat perkiraannya sekarang."
         },
         "notes": {
-          "plannedPace": "Pace uses your planned {amount} a month.",
-          "historyPace": "Pace is the median monthly change over the last {count} month. | Pace is the median monthly change over the last {count} months.",
-          "fxDrift": "Past months of foreign-currency accounts include exchange rate moves.",
-          "marketMoves": "Market moves on investment accounts count as progress. Projections assume no growth.",
-          "staysReached": "Stays reached even if the balance dips later."
+          "plannedPace": "Laju mengikuti rencana tabungan {amount} per bulan.",
+          "historyPace": "Laju dihitung dari median perubahan saldo bulanan selama {count} bulan terakhir.",
+          "fxDrift": "Riwayat rekening mata uang asing mencakup perubahan kurs.",
+          "marketMoves": "Perubahan nilai investasi ikut dihitung sebagai progres. Perkiraan mengasumsikan nilainya tetap.",
+          "staysReached": "Status tercapai bertahan meskipun saldo kemudian turun."
         },
-        "chartAria": "Goal savings over time",
+        "chartAria": "Perkembangan dana untuk tujuan",
         "legend": {
           "saved": "Ditabung",
           "projection": "Proyeksi",
           "target": "Target"
         },
-        "monthlyChange": "Monthly change"
+        "monthlyChange": "Perubahan bulanan"
       },
-      "staleData": "Couldn't refresh this goal. Showing the last loaded data."
+      "staleData": "Gagal memperbarui tujuan. Data terakhir masih ditampilkan."
     },
     "form": {
-      "createTitle": "New goal",
-      "editTitle": "Edit goal",
-      "description": "Progress reads your account balances. No money moves.",
+      "createTitle": "Buat tujuan",
+      "editTitle": "Sunting tujuan",
+      "description": "Progres mengikuti saldo rekening yang kamu pilih, tanpa memindahkan uang.",
       "nameLabel": "Nama",
-      "namePlaceholder": "e.g. Car or Emergency fund",
+      "namePlaceholder": "Misalnya Dana darurat atau Laptop",
       "targetAmountLabel": "Jumlah target",
       "targetAmountPlaceholder": "Masukkan jumlah",
       "currencyLabel": "Mata Uang",
       "currencyPlaceholder": "Pilih mata uang",
-      "targetDateLabel": "Target date",
-      "targetDateHint": "Optional. Set a date to see if you're on pace. Without one, we'll estimate when you'll reach it.",
+      "targetDateLabel": "Tanggal target",
+      "targetDateHint": "Opsional. Isi tanggal untuk mengetahui apakah tabungan sesuai jadwal. Tanpa tanggal, kamu tetap bisa melihat perkiraan tercapai.",
       "accountsLabel": "Akun",
       "noAccounts": "Belum Ada Akun",
-      "countsNow": "Counts {amount} now",
-      "manageAccounts": "Manage accounts",
-      "addAccounts": "Add accounts",
-      "accountsHint": "Balances of these accounts count toward the goal.",
-      "plannedMonthlyLabel": "Set a monthly amount",
-      "plannedMonthlyHint": "Off uses the median monthly change of the last 6 months.",
-      "plannedMonthlyPlaceholder": "Enter a monthly amount",
-      "holdDaysLabel": "Keep “Reached” after a dip",
+      "countsNow": "{amount} terhitung sekarang",
+      "manageAccounts": "Atur rekening",
+      "addAccounts": "Tambah rekening",
+      "accountsHint": "Saldo rekening ini ikut dihitung untuk tujuan.",
+      "plannedMonthlyLabel": "Tetapkan tabungan per bulan",
+      "plannedMonthlyHint": "Jika opsi ini dimatikan, perkiraan memakai median perubahan saldo bulanan selama 6 bulan terakhir.",
+      "plannedMonthlyPlaceholder": "Masukkan tabungan per bulan",
+      "holdDaysLabel": "Pertahankan status tercapai saat saldo turun",
       "holdDaysPlaceholder": "30",
-      "holdDaysUnit": "days",
-      "holdDaysHint": "For this many days after the goal reaches its target, a drop below it doesn't undo Reached. Set 0 to follow the balance live.",
+      "holdDaysUnit": "hari",
+      "holdDaysHint": "Selama periode ini, saldo yang turun setelah target tercapai tidak mengubah status. Isi 0 untuk mengikuti saldo terkini.",
       "summary": {
-        "dated": "Reach {target} by {date}.",
-        "undated": "Reach {target}, no deadline.",
-        "needed": "That needs about {amount} a month from today.",
-        "covered": "Your accounts already cover it.",
-        "planned": "You plan to save {amount} a month."
+        "dated": "Kumpulkan {target} sebelum {date}.",
+        "undated": "Kumpulkan {target} tanpa tenggat.",
+        "needed": "Mulai hari ini, perlu sekitar {amount} per bulan.",
+        "covered": "Saldo rekening yang dipilih sudah mencukupi.",
+        "planned": "Kamu berencana menabung {amount} per bulan."
       },
-      "thisGoal": "this goal",
-      "createSubmit": "Create goal",
+      "thisGoal": "tujuan ini",
+      "createSubmit": "Buat tujuan",
       "errors": {
-        "nameRequired": "Enter a name",
-        "amountRequired": "Enter an amount above 0",
-        "dateNotFuture": "Pick a date after today",
-        "accountsRequired": "Add at least one account",
-        "shareCapacity": "{account} has only {free}% free. Lower its share in Manage accounts.",
-        "shareCapacityGeneric": "An account doesn't have enough free share. Lower its share in Manage accounts.",
-        "fixedBelowTarget": "Fixed amounts add up to less than the target. Raise an amount or count an account by percent.",
-        "holdDaysRange": "Enter whole days from 0 to 365"
+        "nameRequired": "Masukkan nama tujuan",
+        "amountRequired": "Masukkan nominal lebih dari 0",
+        "dateNotFuture": "Pilih tanggal setelah hari ini",
+        "accountsRequired": "Tambahkan setidaknya satu rekening",
+        "shareCapacity": "Bagian yang tersedia di {account} tinggal {free}%. Kurangi bagian rekening di Atur rekening.",
+        "shareCapacityGeneric": "Bagian saldo salah satu rekening tidak mencukupi. Kurangi bagiannya di Atur rekening.",
+        "fixedBelowTarget": "Jumlah nominal tetap masih di bawah target. Naikkan nominal atau gunakan persentase saldo.",
+        "holdDaysRange": "Masukkan jumlah hari dari 0 sampai 365 tanpa pecahan"
       },
-      "unavailableAccount": "Unavailable account",
-      "accountsMissing": "{count} account is unavailable and isn't counted | {count} accounts are unavailable and aren't counted"
+      "unavailableAccount": "Rekening tidak tersedia",
+      "accountsMissing": "{count} rekening tidak tersedia dan tidak ikut dihitung"
     },
     "accountsDialog": {
-      "title": "Accounts for {name}",
-      "description": "Tick the accounts that count toward {name} and how much of each.",
-      "fixedFirst": "Fixed amounts come out of an account's balance first. Percents split what's left.",
+      "title": "Rekening untuk {name}",
+      "description": "Centang rekening dan tentukan berapa bagian saldonya yang dihitung untuk {name}.",
+      "fixedFirst": "Nominal tetap diperhitungkan lebih dulu. Persentase memakai saldo yang tersisa.",
       "mode": {
-        "percent": "Percent",
+        "percent": "Persentase saldo",
         "amount": "Jumlah"
       },
-      "searchPlaceholder": "Search accounts",
-      "holder": "{share}% in {name}",
+      "searchPlaceholder": "Cari rekening",
+      "holder": "{share}% untuk {name}",
       "archived": "Diarsipkan",
-      "fixedOnly": "Fully used: {holders} · fixed amount only",
-      "free": "{free}% free",
-      "wholeAccount": "Whole account · counts {amount}",
-      "maxShare": "Max {max}% · counts {amount}",
-      "counts": "Counts {amount}",
-      "shareAriaLabel": "Share of {name}",
-      "amountAriaLabel": "Fixed amount from {name}",
+      "fixedOnly": "Seluruh bagian terpakai untuk {holders}. Pilih nominal tetap.",
+      "free": "{free}% masih tersedia",
+      "wholeAccount": "Seluruh saldo · terhitung {amount}",
+      "maxShare": "Maks. {max}% · terhitung {amount}",
+      "counts": "Terhitung {amount}",
+      "shareAriaLabel": "Bagian saldo {name}",
+      "amountAriaLabel": "Nominal tetap dari {name}",
       "errors": {
-        "invalid": "Enter a share above 0%",
-        "invalidAmount": "Enter an amount above 0",
-        "overMax": "Max {max}%",
-        "overMaxUsedBy": "Max {max}% ({holders})",
-        "noShareLeft": "No share left: {holders}. Use a fixed amount instead."
+        "invalid": "Masukkan persentase lebih dari 0%",
+        "invalidAmount": "Masukkan nominal lebih dari 0",
+        "overMax": "Maksimal {max}%",
+        "overMaxUsedBy": "Maksimal {max}% karena sudah dipakai oleh {holders}",
+        "noShareLeft": "Bagian saldo sudah dipakai oleh {holders}. Gunakan nominal tetap."
       },
-      "noMatch": "No accounts match “{query}”",
-      "marketNote": "Market moves in investment and crypto accounts count as progress. Projections assume no growth.",
-      "total": "No accounts selected | {count} account · counts {amount} | {count} accounts · counts {amount}",
-      "fixToSave": "Fix {name} to save",
+      "noMatch": "Tidak ada rekening yang cocok dengan “{query}”",
+      "marketNote": "Perubahan nilai investasi dan kripto ikut dihitung. Perkiraan mengasumsikan nilainya tetap.",
+      "total": "Belum ada rekening dipilih | {count} rekening · terhitung {amount} | {count} rekening · terhitung {amount}",
+      "fixToSave": "Perbaiki bagian untuk {name} agar bisa menyimpan",
       "done": "Selesai",
       "emptyState": {
-        "title": "No accounts to link",
-        "description": "Goals count cash, current, savings, investment and crypto accounts you own."
+        "title": "Tidak ada rekening yang bisa dihubungkan",
+        "description": "Tujuan bisa memakai rekening tunai, giro, tabungan, investasi, dan kripto milikmu."
       },
-      "unavailableCaption": "Unavailable · kept until you untick it",
+      "unavailableCaption": "Tidak tersedia · tetap tersimpan sampai centang dicabut",
       "sharePlaceholder": "100",
       "amountPlaceholder": "Jumlah",
       "order": {
-        "hint": "If the balance runs short, fixed amounts are filled top to bottom. Drag to change.",
-        "dragLabel": "Drag to change the order",
-        "thisGoal": "{name} · this goal",
-        "moveUp": "Move up",
-        "moveDown": "Move down"
+        "hint": "Jika saldo kurang, prioritas nominal tetap mengikuti urutan dari atas. Geser untuk mengubahnya.",
+        "dragLabel": "Geser untuk mengubah urutan",
+        "thisGoal": "{name} · tujuan ini",
+        "moveUp": "Naikkan urutan",
+        "moveDown": "Turunkan urutan"
       },
-      "fixedCurrencyNote": "Fixed amounts are in the account's currency."
+      "fixedCurrencyNote": "Nominal tetap mengikuti mata uang rekening."
     },
     "feasibility": {
-      "summary": "Your goals need {needed}/mo, you save a median {saving}/mo",
-      "short": "That's {amount} a month short.",
-      "showGoals": "Show goals",
-      "hideGoals": "Hide goals",
-      "perMonth": "{amount}/mo",
-      "goalFits": "Fits",
-      "goalDoesNotFit": "Doesn't fit",
-      "footnote": "\"Typically save\" is the median monthly net flow over the last 12 complete months. Transfers between your own accounts are left out. Goals are checked nearest date first.",
-      "dueIn": "Due in {count} day | Due in {count} days",
-      "dueNote": "Goals due within a month or overdue aren't in the monthly total."
+      "summary": "Tujuanmu perlu {needed}/bulan. Median tabunganmu {saving}/bulan.",
+      "short": "Masih kurang {amount} per bulan.",
+      "showGoals": "Tampilkan tujuan",
+      "hideGoals": "Sembunyikan tujuan",
+      "perMonth": "{amount}/bulan",
+      "goalFits": "Sesuai kemampuan",
+      "goalDoesNotFit": "Di atas kemampuan",
+      "footnote": "Tabungan bulanan memakai median arus kas bersih dari 12 bulan penuh terakhir. Transfer antar rekening sendiri dikeluarkan. Tujuan diperiksa dari tenggat terdekat.",
+      "dueIn": "Tersisa {count} hari",
+      "dueNote": "Tujuan yang jatuh tempo bulan ini atau yang sudah lewat tenggat dikeluarkan dari total bulanan."
     },
     "whatIf": {
       "monthly": {
-        "label": "Monthly toward this goal",
+        "label": "Tabungan bulanan untuk tujuan ini",
         "placeholder": "Otomatis",
-        "auto": "Auto {amount}",
-        "autoHint": "Auto {amount} is the median monthly change of the last {count} months",
-        "noAuto": "Not enough history for Auto yet. Enter an amount.",
-        "useAuto": "Use Auto"
+        "auto": "Otomatis {amount}",
+        "autoHint": "Nilai otomatis {amount} memakai median perubahan saldo bulanan selama {count} bulan terakhir.",
+        "noAuto": "Riwayat belum cukup untuk mengisi otomatis. Masukkan nominal.",
+        "useAuto": "Gunakan perkiraan otomatis"
       },
       "targetDate": {
-        "label": "Target date",
-        "hint": "Optional. Without it you get a projected month, never “behind”."
+        "label": "Tanggal target",
+        "hint": "Opsional. Tanpa tenggat, simulasi menampilkan perkiraan bulan tercapai."
       },
       "shares": {
-        "label": "Account shares",
-        "counted": "Counts {amount} · {percent}%",
-        "whole": "Whole account · counts {amount}",
-        "fixed": "Fixed amount · counts {amount}",
-        "free": "{free}% free · counts {amount}",
-        "inputLabel": "Share of {name}",
+        "label": "Bagian saldo rekening",
+        "counted": "Terhitung {amount} · {percent}%",
+        "whole": "Seluruh saldo · terhitung {amount}",
+        "fixed": "Nominal tetap · terhitung {amount}",
+        "free": "{free}% tersedia · terhitung {amount}",
+        "inputLabel": "Bagian saldo {name}",
         "placeholder": "0",
-        "capacityPending": "Shares can't be changed until your other goals load."
+        "capacityPending": "Bagian saldo bisa diubah setelah tujuan lain selesai dimuat."
       },
       "compare": {
-        "title": "Now vs what if",
-        "from": "from {date}",
-        "now": "Now",
-        "whatIf": "What if",
-        "monthly": "Monthly toward goal",
-        "reached": "Reached around",
-        "against": "Against target",
-        "needed": "Needs per month",
+        "title": "Sekarang dan hasil simulasi",
+        "from": "mulai {date}",
+        "now": "Sekarang",
+        "whatIf": "Simulasi",
+        "monthly": "Tabungan per bulan",
+        "reached": "Perkiraan tercapai",
+        "against": "Dibanding target",
+        "needed": "Kebutuhan per bulan",
         "reachedAlready": "Tercapai",
         "offset": {
           "early": "{count} bln lebih awal",
-          "onTime": "On time",
-          "late": "{count} mo late"
+          "onTime": "Sesuai jadwal",
+          "late": "Terlambat {count} bulan"
         }
       },
       "autoTag": "Otomatis",
       "deposit": {
-        "sentence": "To count {amount} a month toward this goal, deposit {deposits}.",
-        "item": "{amount} into {account}"
+        "sentence": "Untuk menambah {amount} per bulan ke tujuan ini, setorkan {deposits}.",
+        "item": "{amount} ke {account}"
       },
-      "sandboxHint": "A sandbox. Nothing changes until you apply it in Edit goal.",
+      "sandboxHint": "Ini simulasi. Terapkan hasilnya melalui Sunting tujuan.",
       "reset": "Setel ulang",
-      "apply": "Apply in Edit goal"
+      "apply": "Terapkan di Sunting tujuan"
     },
     "docs": {
-      "howItWorks": "How goals work"
+      "howItWorks": "Cara kerja Tujuan Keuangan"
     }
   }
 }

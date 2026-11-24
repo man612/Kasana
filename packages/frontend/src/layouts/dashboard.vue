@@ -17,7 +17,7 @@
     </div>
 
     <ScrollArea ref="scrollAreaRef" class="flex-1" scrollbar-class="z-40" :scroll-area-id="SCROLL_AREA_IDS.dashboard">
-      <ui-header v-if="!isFocusPage" class="bg-card dark:bg-background sticky top-0 z-30" />
+      <ui-header v-show="!isFocusPage" class="bg-card dark:bg-background sticky top-0 z-30" />
 
       <template v-if="isAppInitialized">
         <div :class="!isFocusPage && route.name !== ROUTES_NAMES.transactions && 'max-md:pb-4'">

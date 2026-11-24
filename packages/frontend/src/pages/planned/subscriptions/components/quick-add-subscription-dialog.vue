@@ -3,24 +3,21 @@ import { createSubscription } from '@/api/subscriptions';
 import LogoSquareField from '@/components/common/logo-square-field.vue';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import DateField from '@/components/fields/date-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import InputField from '@/components/fields/input-field.vue';
-import SelectField from '@/components/fields/select-field.vue';
 import TransactionTypeToggle from '@/components/fields/transaction-type-toggle.vue';
 import Button from '@/components/lib/ui/button/Button.vue';
 import { Callout } from '@/components/lib/ui/callout';
 import { Label } from '@/components/lib/ui/label';
+import { PillTabs } from '@/components/lib/ui/pill-tabs';
 import { useNotificationCenter } from '@/components/notification-center';
-import { usePrioritizedCurrencies } from '@/composable/data-queries/prioritized-currencies';
 import { useInvalidateSubscriptionQueries } from '@/composable/data-queries/subscriptions';
 import { useFormValidation } from '@/composable/form-validator';
-import { useCurrencyName, useFormatCurrency } from '@/composable/formatters';
+import { useFormatCurrency } from '@/composable/formatters';
 import { ApiErrorResponseError } from '@/js/errors';
 import { helpers, required } from '@/js/helpers/validators';
-import { cn } from '@/lib/utils';
 import { ROUTES_NAMES } from '@/routes';
-import { useCurrenciesStore } from '@/stores';
 import {
-  type CurrencyModel,
   SUBSCRIPTION_FREQUENCIES,
   SUBSCRIPTION_TYPES,
   type SubscriptionModel,
@@ -28,7 +25,6 @@ import {
 } from '@bt/shared/types';
 import { useMutation } from '@tanstack/vue-query';
 import { CreditCardIcon, ReceiptIcon, RepeatIcon } from '@lucide/vue';
-import { storeToRefs } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -53,9 +49,6 @@ const { t } = useI18n();
 const router = useRouter();
 const { addSuccessNotification } = useNotificationCenter();
 const invalidateSubscriptionQueries = useInvalidateSubscriptionQueries();
-const { baseCurrency } = storeToRefs(useCurrenciesStore());
-const { currencies } = usePrioritizedCurrencies();
-const { formatCurrencyLabel } = useCurrencyName();
 const { formatAmountByCurrencyCode } = useFormatCurrency();
 
 const getInitialState = (): QuickAddFormState => ({
@@ -63,7 +56,7 @@ const getInitialState = (): QuickAddFormState => ({
   transactionType: TRANSACTION_TYPES.expense,
   type: SUBSCRIPTION_TYPES.subscription,
   expectedAmount: null,
-  expectedCurrencyCode: baseCurrency.value?.currencyCode ?? '',
+  expectedCurrencyCode: 'IDR',
   frequency: SUBSCRIPTION_FREQUENCIES.monthly,
   nextPaymentDate: null,
   maxOccurrences: null,
@@ -93,10 +86,11 @@ const typeOptions = computed(() => [
   { value: SUBSCRIPTION_TYPES.installment, label: t('planned.subscriptions.typeInstallment'), icon: CreditCardIcon },
 ]);
 
-const FREQUENCY_OPTIONS = Object.values(SUBSCRIPTION_FREQUENCIES);
-
-const selectedCurrency = computed(
-  () => currencies.value.find((c) => c.code === form.value.expectedCurrencyCode) ?? null,
+const frequencyOptions = computed(() =>
+  Object.values(SUBSCRIPTION_FREQUENCIES).map((frequency) => ({
+    value: frequency,
+    label: formatFrequency({ frequency, t }),
+  })),
 );
 
 const installmentTotalLabel = computed(() => {
@@ -145,7 +139,7 @@ const validationRules = computed(() => ({
   },
 }));
 
-const { isFormValid, getFieldErrorMessage, touchField, resetValidation } = useFormValidation(
+const { isFormValid, isFormValidQuiet, getFieldErrorMessage, touchField, resetValidation } = useFormValidation(
   { form },
   computed(() => ({ form: validationRules.value })),
 );
@@ -217,77 +211,39 @@ const handleSubmit = () => {
 
       <div class="flex flex-col gap-2">
         <Label class="text-sm font-medium">{{ $t('planned.subscriptions.form.typeLabel') }}</Label>
-        <div class="grid grid-cols-3 gap-2">
-          <button
-            v-for="option in typeOptions"
-            :key="option.value"
-            type="button"
-            :aria-pressed="form.type === option.value"
-            :class="
-              cn(
-                'border-input focus-visible:ring-ring flex flex-col items-center justify-center gap-1.5 rounded-lg border px-2 py-3 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
-                form.type === option.value
-                  ? 'border-primary bg-primary/5'
-                  : 'hover:bg-accent hover:text-accent-foreground',
-              )
-            "
-            @click="form.type = option.value"
-          >
-            <component :is="option.icon" class="size-4 shrink-0" />
-            <span class="text-center text-xs leading-tight font-medium">{{ option.label }}</span>
-          </button>
-        </div>
+        <PillTabs
+          scrollable
+          size="sm"
+          :items="typeOptions"
+          :model-value="form.type"
+          @update:model-value="(value) => (form.type = value as SUBSCRIPTION_TYPES)"
+        />
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <InputField
-          v-model.number="form.expectedAmount"
-          type="number"
+      <div class="grid gap-1.5">
+        <FormattedAmountField
+          v-model="form.expectedAmount"
+          :currency-code="form.expectedCurrencyCode"
           :label="$t('planned.subscriptions.form.amountLabel')"
-          :placeholder="$t('planned.subscriptions.form.amountPlaceholder')"
-          :error-message="getFieldErrorMessage('form.expectedAmount')"
-          only-positive
+          :error-message="
+            getFieldErrorMessage('form.expectedAmount') || getFieldErrorMessage('form.expectedCurrencyCode')
+          "
           @blur="touchField('form.expectedAmount')"
-        >
-          <template v-if="form.type === SUBSCRIPTION_TYPES.subscription" #label-after>
-            <span class="text-destructive-text" aria-hidden="true">*</span>
-          </template>
-        </InputField>
-        <SelectField
-          :model-value="selectedCurrency"
-          :values="currencies"
-          value-key="code"
-          :label="$t('planned.subscriptions.form.currencyLabel')"
-          :placeholder="$t('planned.subscriptions.quickAdd.currencyPlaceholder')"
-          :error-message="getFieldErrorMessage('form.expectedCurrencyCode')"
-          with-search
-          :label-key="(item: CurrencyModel) => formatCurrencyLabel({ code: item.code, fallbackName: item.currency })"
-          @update:model-value="(v: CurrencyModel | null) => (form.expectedCurrencyCode = v?.code ?? '')"
-          @blur="touchField('form.expectedCurrencyCode')"
         />
+        <p v-if="form.expectedCurrencyCode !== 'IDR'" class="text-muted-foreground text-xs">
+          {{ form.expectedCurrencyCode }}
+        </p>
       </div>
 
       <div class="flex flex-col gap-2">
         <Label class="text-sm font-medium">{{ $t('planned.subscriptions.form.frequencyLabel') }}</Label>
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="frequency in FREQUENCY_OPTIONS"
-            :key="frequency"
-            type="button"
-            :aria-pressed="form.frequency === frequency"
-            :class="
-              cn(
-                'border-input focus-visible:ring-ring rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
-                form.frequency === frequency
-                  ? 'border-primary bg-primary/5'
-                  : 'hover:bg-accent hover:text-accent-foreground',
-              )
-            "
-            @click="form.frequency = frequency"
-          >
-            {{ formatFrequency({ frequency, t }) }}
-          </button>
-        </div>
+        <PillTabs
+          scrollable
+          size="sm"
+          :items="frequencyOptions"
+          :model-value="form.frequency"
+          @update:model-value="(value) => (form.frequency = value as SUBSCRIPTION_FREQUENCIES)"
+        />
       </div>
 
       <div class="grid gap-2">
@@ -333,7 +289,7 @@ const handleSubmit = () => {
           <Button variant="outline" type="button" :disabled="isPending" @click="isOpen = false">
             {{ $t('planned.subscriptions.cancel') }}
           </Button>
-          <Button type="submit" :form="FORM_ID" :disabled="isPending">
+          <Button type="submit" :form="FORM_ID" :disabled="isPending || !isFormValidQuiet()">
             {{ $t('planned.subscriptions.form.create') }}
           </Button>
         </div>

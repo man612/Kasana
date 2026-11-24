@@ -1,5 +1,26 @@
 {
   "optimizations": {
+    "aiAvailability": {
+      "unavailable": {
+        "label": "Koneksi AI bermasalah",
+        "description": "Model AI saat ini tidak dapat digunakan. Periksa koneksinya di pengaturan."
+      },
+      "settings": "Buka pengaturan AI",
+      "unknown": {
+        "label": "Status AI belum diketahui",
+        "description": "Status layanan AI belum dapat dimuat. Coba lagi dari pengaturan AI."
+      },
+      "loading": { "label": "Memeriksa status AI", "description": "Status layanan AI sedang dimuat." },
+      "access": { "label": "Akses AI terbatas", "description": "Periksa akses fitur ini di pengaturan AI." },
+      "allowance": {
+        "label": "Kuota AI habis",
+        "description": "Kuota AI bersama sudah habis. Periksa pengaturan model atau tunggu kuota diperbarui."
+      },
+      "setup": {
+        "label": "Perlu pengaturan AI",
+        "description": "Atur koneksi dan model AI untuk menjalankan kategorisasi."
+      }
+    },
     "title": "Optimasi",
     "landingDescription": "Rapikan kategori dan transfer, lalu periksa transaksi yang mungkin tercatat dua kali atau masih tertunda.",
     "backToOptimizations": "Kembali ke Optimasi",

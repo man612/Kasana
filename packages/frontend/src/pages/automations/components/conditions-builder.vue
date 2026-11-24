@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { Button } from '@/components/lib/ui/button';
-import { useAccountsStore } from '@/stores';
+import { useCurrenciesStore } from '@/stores';
 import {
   AUTOMATION_LIMITS,
-  type AutomationAmountCurrency,
   type AutomationCondition,
   type AutomationConditionField,
   type AutomationConditions,
@@ -20,7 +19,7 @@ const props = defineProps<{ modelValue: AutomationConditions; errors: (string | 
 const emit = defineEmits<{ 'update:modelValue': [value: AutomationConditions] }>();
 
 const { t } = useI18n();
-const { accountsRecord } = storeToRefs(useAccountsStore());
+const { baseCurrency } = storeToRefs(useCurrenciesStore());
 
 const joinLabel = computed(() =>
   props.modelValue.match === 'all' ? t('automations.editor.joinAnd') : t('automations.editor.joinOr'),
@@ -50,20 +49,12 @@ const setItems = ({ items }: { items: AutomationCondition[] }) =>
 const replaceAt = ({ index, condition }: { index: number; condition: AutomationCondition }) =>
   setItems({ items: props.modelValue.items.map((item, i) => (i === index ? condition : item)) });
 
-/** A rule scoped to a single account is almost always about that account's own currency. */
-const preferredCurrency = (): AutomationAmountCurrency => {
-  const scoped = props.modelValue.items.filter(
-    (item): item is Extract<AutomationCondition, { field: 'account' }> =>
-      item.field === 'account' && item.operator === 'in',
-  );
-  const accountId = scoped.length === 1 && scoped[0]!.value.length === 1 ? scoped[0]!.value[0]! : undefined;
-  const code = accountId ? accountsRecord.value[accountId]?.currencyCode : undefined;
-  return code ? { mode: 'specific', code } : { mode: 'transaction' };
-};
-
 const changeField = ({ index, field }: { index: number; field: AutomationConditionField }) => {
   const condition = CONDITION_REGISTRY[field].defaultValue();
-  if (condition.field === 'amount') condition.currency = preferredCurrency();
+  if (condition.field === 'amount') {
+    condition.currency =
+      baseCurrency.value?.currencyCode === 'IDR' ? { mode: 'base' } : { mode: 'specific', code: 'IDR' };
+  }
   replaceAt({ index, condition });
 };
 

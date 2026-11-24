@@ -1,5 +1,26 @@
 {
   "optimizations": {
+    "aiAvailability": {
+      "unavailable": {
+        "label": "AI connection unavailable",
+        "description": "The AI model is unavailable. Check the connection in settings."
+      },
+      "settings": "Open AI settings",
+      "unknown": {
+        "label": "AI status unavailable",
+        "description": "AI status could not be loaded. Try again in AI settings."
+      },
+      "loading": { "label": "Checking AI status", "description": "AI configuration is still loading." },
+      "access": { "label": "AI access limited", "description": "Check your access to this feature in AI settings." },
+      "allowance": {
+        "label": "AI allowance reached",
+        "description": "Your shared AI allowance has been used. Check your model settings or wait for the allowance to renew."
+      },
+      "setup": {
+        "label": "AI setup required",
+        "description": "Set up an AI connection and model to run categorization."
+      }
+    },
     "title": "Optimizations",
     "landingDescription": "Tools to help you organize and clean up your financial data.",
     "backToOptimizations": "Back to optimizations",

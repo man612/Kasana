@@ -2,7 +2,8 @@
   "navigation": {
     "dashboard": "Dasbor",
     "accounts": "Akun",
-    "accountsList": "Semua Akun",
+    "inventory": "Inventaris",
+    "accountsList": "Akun",
     "investments": "Investasi",
     "loans": "Pinjaman",
     "allTransactions": "Semua Transaksi",
@@ -23,8 +24,8 @@
     "planned": {
       "planned": "Terencana",
       "subscriptions": "Biaya Berulang",
-      "budgets": "Pelacak",
-      "goals": "Tujuan"
+      "budgets": "Pelacak Pengeluaran",
+      "goals": "Tujuan Keuangan"
     },
     "venture": "Ventura",
     "budget": "Anggaran"

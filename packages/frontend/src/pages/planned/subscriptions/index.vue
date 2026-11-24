@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import { type SubscriptionListItem, deleteSubscription, toggleSubscriptionActive } from '@/api/subscriptions';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import Button from '@/components/lib/ui/button/Button.vue';
@@ -157,7 +158,11 @@ function payPeriod({ subscription }: { subscription: SubscriptionListItem }) {
     <!-- Page Header -->
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2 sm:mb-6 sm:gap-4">
       <div>
-        <h1 class="text-xl font-semibold tracking-tight sm:text-2xl">{{ $t('planned.subscriptions.title') }}</h1>
+        <NavigationSectionTitle
+          section="planned"
+          :label="$t('planned.subscriptions.title')"
+          class="text-2xl font-semibold tracking-tight"
+        />
         <p class="text-muted-foreground mt-1 hidden text-sm sm:block">{{ $t('planned.subscriptions.description') }}</p>
       </div>
       <div class="flex shrink-0 gap-2">
@@ -172,7 +177,7 @@ function payPeriod({ subscription }: { subscription: SubscriptionListItem }) {
             <span class="hidden sm:inline">{{ $t('planned.subscriptions.candidates.discover') }}</span>
           </Button>
         </DesktopOnlyTooltip>
-        <Button size="sm" @click="isCreateDialogOpen = true">
+        <Button v-if="subscriptions?.length" size="sm" @click="isCreateDialogOpen = true">
           <PlusIcon class="size-4" />
           <span class="sm:hidden">{{ $t('planned.subscriptions.addSubscriptionShort') }}</span>
           <span class="hidden sm:inline">{{ $t('planned.subscriptions.addSubscription') }}</span>
@@ -182,7 +187,13 @@ function payPeriod({ subscription }: { subscription: SubscriptionListItem }) {
 
     <!-- Filter Tabs + Period + Sort -->
     <div class="mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-      <PillTabs :model-value="activeFilter" :items="filterItems" @update:model-value="setActiveFilter" />
+      <PillTabs
+        scrollable
+        size="sm"
+        :model-value="activeFilter"
+        :items="filterItems"
+        @update:model-value="setActiveFilter"
+      />
       <div class="flex flex-wrap items-center justify-between gap-2">
         <SubscriptionsPeriodSelector v-model="periodFilter" />
         <SubscriptionsSortSelect v-model="sortBy" />

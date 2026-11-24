@@ -119,6 +119,7 @@
       }
     },
     "editor": {
+      "backToOptimizations": "Back to Optimizations",
       "steps": {
         "conditions": "When the rule matches",
         "actions": "What the rule does",

@@ -18,19 +18,24 @@ test('the automation editor animates both ways and retains a draft until discard
     await page.addInitScript(() => localStorage.setItem('preferred-locale', 'id'));
     await page.goto('/transactions/automations');
     await page.evaluate(() => {
+      document.addEventListener('animationstart', (event) => {
+        if (event.target instanceof HTMLElement && event.target.hasAttribute('data-focus-page-body')) {
+          document.body.dataset.editorEntered = 'true';
+        }
+      });
       document.addEventListener('transitionrun', (event) => {
         const target = event.target;
         if (
           !(target instanceof HTMLElement) ||
           target.dataset.testid !== 'route-page' ||
-          event.propertyName !== 'transform'
+          event.propertyName !== 'opacity'
         ) {
           return;
         }
-        if (target.classList.contains('lajur-detail-forward-enter-active')) {
-          document.body.dataset.editorEntered = 'true';
-        }
-        if (target.classList.contains('lajur-detail-back-leave-active')) {
+        if (
+          target.classList.contains('lajur-focus-page-leave-active') &&
+          target.querySelector('[data-focus-page-body]')
+        ) {
           document.body.dataset.editorLeftInert = String(target.inert);
         }
       });

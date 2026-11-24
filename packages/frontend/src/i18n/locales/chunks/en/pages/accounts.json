@@ -1,5 +1,10 @@
 {
   "accounts": {
+    "inventory": {
+      "description": "View recorded vehicles and their estimated values.",
+      "empty": "No vehicles yet",
+      "hint": "Add a vehicle to see its history and estimated value."
+    },
     "title": "Accounts",
     "createAccount": "Create account",
     "createVehicle": "Add vehicle",

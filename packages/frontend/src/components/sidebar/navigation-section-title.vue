@@ -7,22 +7,21 @@ import {
 } from '@/components/common/dropdown-menu';
 import { Button } from '@/components/lib/ui/button';
 import { cn } from '@/lib/utils';
-import { ROUTES_NAMES } from '@/routes/constants';
 import { CheckIcon, ChevronDownIcon } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-import { SIDEBAR_NAV_CHILDREN } from './nav-items';
+import { SIDEBAR_NAV_CHILDREN, useAccountsNavChildren } from './nav-items';
 import { useSidebarNavRoutes } from './use-nav-routes';
 
-const props = defineProps<{ section: 'accounts' | 'transactions'; label: string }>();
+const props = defineProps<{ section: keyof typeof SIDEBAR_NAV_CHILDREN; label: string }>();
 const route = useRoute();
 const router = useRouter();
 const { isChildActive } = useSidebarNavRoutes();
-const accountChildren = SIDEBAR_NAV_CHILDREN.accounts.filter(
-  ({ routeName }) => routeName === ROUTES_NAMES.accounts || routeName === ROUTES_NAMES.loans,
+const accountChildren = useAccountsNavChildren();
+const children = computed(() =>
+  props.section === 'accounts' ? accountChildren.value : SIDEBAR_NAV_CHILDREN[props.section],
 );
-const children = computed(() => (props.section === 'accounts' ? accountChildren : SIDEBAR_NAV_CHILDREN.transactions));
 const open = ref(false);
 const destination = ref<string>();
 const activeChild = computed(() =>

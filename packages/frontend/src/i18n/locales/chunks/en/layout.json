@@ -2,6 +2,7 @@
   "navigation": {
     "dashboard": "Dashboard",
     "accounts": "Accounts",
+    "inventory": "Inventory",
     "accountsList": "All accounts",
     "investments": "Investments",
     "loans": "Loans",

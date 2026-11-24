@@ -196,7 +196,16 @@ const createMutation = useCreateAutomation();
 const updateMutation = useUpdateAutomation();
 const isSaving = computed(() => createMutation.isPending.value || updateMutation.isPending.value);
 
-const goToList = () => router.push({ name: ROUTES_NAMES.automations });
+const backToOptimizations = computed(() => isCreate.value && route.query.from === 'optimizations');
+const backLabel = computed(() =>
+  t(backToOptimizations.value ? 'automations.editor.backToOptimizations' : 'automations.editor.back'),
+);
+const returnRoute = computed(() =>
+  backToOptimizations.value
+    ? { name: ROUTES_NAMES.optimizations, query: { applyRules: '1' } }
+    : { name: ROUTES_NAMES.automations },
+);
+const goToList = () => (backToOptimizations.value ? router.replace(returnRoute.value) : router.push(returnRoute.value));
 
 const handleSave = () => {
   showErrors.value = true;
@@ -237,6 +246,11 @@ onBeforeRouteLeave((to) => guardUnsavedChanges({ to }));
 onBeforeRouteUpdate((to) => to.params.id === route.params.id || guardUnsavedChanges({ to }));
 
 const isApplyOpen = ref(false);
+const isApplyMounted = ref(false);
+const openApply = () => {
+  isApplyMounted.value = true;
+  isApplyOpen.value = true;
+};
 
 const confirmLeave = () => {
   const path = pendingPath.value;
@@ -251,8 +265,8 @@ const confirmLeave = () => {
     <header
       class="border-border @container/editor-head grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 border-b px-3 py-2 md:px-6"
     >
-      <DesktopOnlyTooltip :content="$t('automations.editor.back')">
-        <router-link :to="{ name: ROUTES_NAMES.automations }" :aria-label="$t('automations.editor.back')">
+      <DesktopOnlyTooltip :content="backLabel">
+        <router-link :to="returnRoute" :replace="backToOptimizations" :aria-label="backLabel">
           <Button as="span" variant="ghost" size="icon" class="size-11">
             <ArrowLeftIcon class="size-4" aria-hidden="true" />
           </Button>
@@ -276,7 +290,7 @@ const confirmLeave = () => {
               size="sm"
               :disabled="isDirty"
               :aria-label="$t('automations.applyToHistory.trigger')"
-              @click="isApplyOpen = true"
+              @click="openApply"
             >
               <HistoryIcon class="size-4" />
               <span class="hidden @md/editor-head:inline">{{ $t('automations.applyToHistory.trigger') }}</span>
@@ -315,6 +329,7 @@ const confirmLeave = () => {
       <form
         :id="formId"
         data-no-nav-swipe
+        data-focus-page-body
         class="lajur-dialog-scroll @container/editor min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-4 md:p-6"
         @submit.prevent="handleSave"
         @focusout="showErrors = true"
@@ -444,7 +459,12 @@ const confirmLeave = () => {
       </footer>
     </template>
 
-    <ApplyToHistoryDialog v-if="isApplyOpen" v-model:open="isApplyOpen" :rule="automation" />
+    <ApplyToHistoryDialog
+      v-if="isApplyMounted"
+      v-model:open="isApplyOpen"
+      @closed="isApplyMounted = false"
+      :rule="automation"
+    />
 
     <ResponsiveAlertDialog
       v-model:open="isLeaveDialogOpen"
@@ -457,3 +477,18 @@ const confirmLeave = () => {
     </ResponsiveAlertDialog>
   </div>
 </template>
+
+<style scoped>
+@media (prefers-reduced-motion: no-preference) {
+  [data-focus-page-body] {
+    animation: focus-page-body-enter var(--kasana-motion-normal) var(--kasana-motion-ease) both;
+  }
+}
+
+@keyframes focus-page-body-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+}
+</style>
