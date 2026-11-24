@@ -112,13 +112,18 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
         return Math.max(track.x - active.x, active.x + active.width - track.x - track.width, 0);
       })
       .toBeLessThanOrEqual(1);
-    await tabs.getByRole('button', { name: 'Total', exact: true }).click();
+    const total = tabs.getByRole('button', { name: 'Total', exact: true });
+    await total.click();
+    await expect(total).toHaveAttribute('aria-pressed', 'true');
 
-    const miniChart = trend.getByTestId('balance-trend-sparkline').locator('svg');
+    const sparkline = trend.getByTestId('balance-trend-sparkline');
+    await expect(sparkline).toHaveAttribute('aria-busy', 'false');
+    const miniChart = sparkline.locator('svg');
     await expect(miniChart).toBeVisible();
     const tooltip = page.getByTestId('balance-trend-tooltip');
+    // Hover in the unpainted upper-right area: the whole chart must be interactive.
     const bounds = (await miniChart.boundingBox())!;
-    await page.mouse.move(bounds.x + bounds.width - 4, bounds.y + bounds.height / 2);
+    await miniChart.hover({ position: { x: bounds.width - 4, y: 2 } });
     await expect(tooltip).toBeVisible();
     const miniGuide = miniChart.locator('g').filter({ has: page.getByTestId('balance-trend-guide') });
     await expect(miniGuide).toBeVisible();
@@ -135,7 +140,7 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     const chartOverlay = details.locator('svg rect.overlay');
     await chartOverlay.scrollIntoViewIfNeeded();
     const plot = (await chartOverlay.boundingBox())!;
-    await page.mouse.move(plot.x + 2, plot.y + plot.height / 2);
+    await chartOverlay.hover({ position: { x: 2, y: plot.height / 2 } });
     const activeRow = details
       .getByRole('table')
       .locator('tbody tr')

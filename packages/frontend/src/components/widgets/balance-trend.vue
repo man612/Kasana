@@ -76,7 +76,12 @@
         </div>
       </div>
 
-      <div ref="miniContainer" class="min-w-0 px-1" data-testid="balance-trend-sparkline">
+      <div
+        ref="miniContainer"
+        class="min-w-0 px-1"
+        data-testid="balance-trend-sparkline"
+        :aria-busy="isWidgetDataFetching"
+      >
         <svg
           v-if="miniTrend"
           viewBox="0 0 300 48"
@@ -84,12 +89,15 @@
           preserveAspectRatio="none"
           role="img"
           :aria-label="$t('dashboard.widgets.balanceTrend.title')"
+          @pointerenter="inspectMini"
           @pointerdown="inspectMini"
           @pointermove="inspectMini"
           @pointerup="finishTooltipPointer"
           @pointercancel="hidePoint()"
           @pointerleave="leaveChart"
         >
+          <!-- The unpainted parts of the SVG must accept pointer input too. -->
+          <rect width="300" height="48" fill="transparent" pointer-events="all" aria-hidden="true" />
           <path :d="miniAnimation?.area ?? miniTrend.area" fill="currentColor" opacity="0.13" />
           <path
             :d="miniAnimation?.path ?? miniTrend.path"
@@ -1240,10 +1248,10 @@ const formatAxisValue = (value: number, step?: number) =>
 let chartRenderFrame = 0;
 let chartHoverFrame = 0;
 const renderChart = () => {
-  cancelAnimationFrame(chartHoverFrame);
   showChartHover = undefined;
   clearChartHover = () => {};
   if (!showDetails.value || !svgRef.value || !containerRef.value || chartData.value.length === 0) return;
+  cancelAnimationFrame(chartHoverFrame);
 
   const points = chartWindow.value ?? chartData.value;
   const visibleProjection = chartWindow.value ? null : projection.value;
