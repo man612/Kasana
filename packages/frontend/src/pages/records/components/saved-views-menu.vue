@@ -2,6 +2,7 @@
   <Popover v-model:open="isOpen">
     <PopoverTrigger as-child>
       <Button
+        data-testid="saved-views-trigger"
         :variant="activeView ? 'soft-primary' : secondaryTrigger ? 'secondary' : 'outline'"
         :class="
           cn(
@@ -19,6 +20,7 @@
           <span class="sr-only">{{ $t('transactions.savedViews.modified') }}</span>
         </span>
         <ChevronDownIcon
+          data-testid="saved-views-chevron"
           class="size-4 shrink-0 transition-transform duration-200 ease-out motion-reduce:transition-none"
           :class="isOpen && 'rotate-180'"
         />

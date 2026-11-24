@@ -102,13 +102,13 @@
           class="flex min-w-0 flex-wrap items-center gap-2 @2xl/vehicle:col-span-2 @2xl/vehicle:justify-end"
         >
           <UiButton
-            class="min-h-11 min-w-0 flex-[1_1_6rem] rounded-lg px-2.5 text-center wrap-anywhere whitespace-normal @sm/vehicle:flex-none"
+            class="min-h-[44px] max-w-full min-w-[44px] flex-[1_1_6rem] rounded-lg px-2.5 text-center wrap-anywhere whitespace-normal @sm/vehicle:flex-none"
             @click="isOverrideOpen = true"
             >{{ $t('pages.vehicleDetails.overrideValueButton') }}</UiButton
           >
           <UiButton
             variant="outline"
-            class="min-h-11 min-w-0 flex-[1_1_6rem] rounded-lg px-2.5 text-center wrap-anywhere whitespace-normal @sm/vehicle:flex-none"
+            class="min-h-[44px] max-w-full min-w-[44px] flex-[1_1_6rem] rounded-lg px-2.5 text-center wrap-anywhere whitespace-normal @sm/vehicle:flex-none"
             @click="isEditOpen = true"
             >{{ $t('pages.vehicleDetails.editButton') }}</UiButton
           >
@@ -116,7 +116,7 @@
             <UiButton
               variant="ghost-destructive"
               size="icon"
-              class="size-11 shrink-0 rounded-lg"
+              class="size-[44px] shrink-0 rounded-lg"
               :aria-label="$t('pages.vehicleDetails.deleteTitle')"
               @click="isDeleteOpen = true"
             >
@@ -164,7 +164,10 @@
                     :formatted="formatAmountByCurrencyCode(Math.abs(depreciationAmount), currencyCode)"
                     :class="depreciationDirection === 'down' ? 'text-app-expense-color' : 'text-app-income-color'"
                   />
-                  <span data-testid="vehicle-kpi-percentage" class="text-muted-foreground block text-xs font-normal">
+                  <span
+                    data-testid="vehicle-kpi-percentage"
+                    class="text-muted-foreground block text-xs font-normal wrap-normal whitespace-nowrap [word-break:normal]"
+                  >
                     {{ Math.abs(depreciationPercent).toFixed(1) }}%
                   </span>
                   <div v-if="showRefValue" class="text-muted-foreground text-xs font-normal">

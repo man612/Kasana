@@ -42,14 +42,21 @@ test.describe('Lajur UX-25 mobile regression gates', () => {
 
       const views = page.getByRole('button', { name: /^Tampilan$/i });
       await expect(views).toBeVisible({ timeout: 20_000 });
-      const viewsChevron = views.locator('svg').last();
+      // A modal popover hides the background trigger from the accessibility tree.
+      // Keep checking the same DOM trigger and chevron during the open state.
+      const viewsTrigger = page.getByTestId('saved-views-trigger');
+      const viewsChevron = viewsTrigger.getByTestId('saved-views-chevron');
+      await expect(viewsTrigger).toHaveAttribute('aria-expanded', 'false');
       await expect(viewsChevron).not.toHaveClass(/rotate-180/);
       await views.click();
+      await expect(viewsTrigger).toHaveAttribute('aria-expanded', 'true');
       await expect(viewsChevron).toHaveClass(/rotate-180/);
       await expect(page.getByText('Belum ada tampilan tersimpan. Atur filter, lalu simpan sebagai tampilan.')).toBeVisible();
       await expect(page.getByRole('button', { name: 'Simpan sebagai tampilan baru' })).toBeVisible();
       await page.keyboard.press('Escape');
+      await expect(viewsTrigger).toHaveAttribute('aria-expanded', 'false');
       await expect(viewsChevron).not.toHaveClass(/rotate-180/);
+      await expect(views).toBeVisible();
 
       // UX25 #13: financial bulk actions must remain unavailable, but the
       // dimmed explanation trigger itself must be operable by touch, pointer,
