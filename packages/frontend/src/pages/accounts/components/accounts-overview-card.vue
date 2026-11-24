@@ -37,10 +37,20 @@
       <dl class="border-border/65 divide-border/55 min-w-0 divide-y border-t @[40rem]/accounts-page:border-t-0">
         <div
           v-for="row in overviewRows"
-          :key="row.label"
-          class="grid grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-baseline gap-2 py-2 last:pb-0"
+          :key="row.id"
+          class="grid min-h-10 grid-cols-[minmax(0,1fr)_minmax(0,2fr)] items-center gap-2 py-1.5 last:pb-0"
         >
-          <dt class="text-muted-foreground text-sm wrap-anywhere">{{ row.label }}</dt>
+          <dt class="text-muted-foreground text-sm wrap-anywhere">
+            <a
+              v-if="row.id === 'vehicles'"
+              class="text-primary-text inline-flex min-h-8 items-center gap-1 rounded-md font-medium focus-visible:ring-2 focus-visible:outline-none"
+              href="#account-vehicles"
+            >
+              {{ row.label }}
+              <ArrowDownIcon class="size-3.5 shrink-0" aria-hidden="true" />
+            </a>
+            <template v-else>{{ row.label }}</template>
+          </dt>
           <dd
             class="min-w-0 text-right text-sm font-semibold wrap-anywhere tabular-nums"
             :class="row.value < 0 && 'text-destructive-text'"
@@ -60,6 +70,7 @@ import { Card } from '@/components/lib/ui/card';
 import { useFormatCurrency } from '@/composable';
 import { type PlannedAggregate, usePlannedDateLabel } from '@/composable/use-projected-balance';
 import type { AccountsOverview } from '@/pages/accounts/accounts-overview-totals';
+import { ArrowDownIcon } from '@lucide/vue';
 import { computed } from 'vue';
 
 const props = defineProps<{
@@ -72,9 +83,11 @@ const props = defineProps<{
 const { t } = useI18n();
 const { formatBaseCurrency } = useFormatCurrency();
 const overviewRows = computed(() => [
-  { label: t('accounts.overview.assets'), value: props.overview.assets },
-  { label: t('accounts.overview.liabilities'), value: props.overview.liabilities },
-  ...(props.hasVehicles ? [{ label: t('accounts.overview.vehicles'), value: props.overview.vehicles }] : []),
+  { id: 'assets', label: t('accounts.overview.assets'), value: props.overview.assets },
+  { id: 'liabilities', label: t('accounts.overview.liabilities'), value: props.overview.liabilities },
+  ...(props.hasVehicles
+    ? [{ id: 'vehicles', label: t('accounts.overview.vehicles'), value: props.overview.vehicles }]
+    : []),
 ]);
 const { formatPlannedDate } = usePlannedDateLabel();
 

@@ -113,7 +113,7 @@ const mountEditor = async ({ path }: { path: string }) => {
     routes: [
       { path: '/transactions/automations', name: ROUTES_NAMES.automations, component: Stub },
       { path: '/transactions/automations/new', name: ROUTES_NAMES.automationCreate, component: Editor },
-      { path: '/transactions/automations/:id', name: ROUTES_NAMES.automationDetails, component: Editor },
+      { path: '/transactions/automations/:id', name: ROUTES_NAMES.automationDetails, component: Editor, props: true },
     ],
   });
   await router.push(path);

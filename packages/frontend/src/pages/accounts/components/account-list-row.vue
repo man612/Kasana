@@ -1,6 +1,10 @@
 <template>
   <RouterLink
-    :to="{ name: ROUTES_NAMES.account, params: { id: account.id } }"
+    :to="
+      vehicleId
+        ? { name: ROUTES_NAMES.accountsVehicleDetails, params: { id: vehicleId } }
+        : { name: ROUTES_NAMES.account, params: { id: account.id } }
+    "
     :class="
       cn(
         'grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_14px] items-center gap-2.5 px-3 py-3 @[30rem]/accounts-page:gap-3 @[30rem]/accounts-page:px-4',
@@ -32,7 +36,7 @@
         </div>
         <div class="text-muted-foreground mt-0.5 flex min-w-0 items-center gap-1 text-xs">
           <template v-if="subtitle">
-            <span class="truncate">{{ subtitle }}</span>
+            <span class="wrap-anywhere">{{ subtitle }}</span>
           </template>
           <template v-else>
             <span class="min-w-0 truncate">{{ categoryLabel }} ·</span>
@@ -88,6 +92,7 @@ import { RouterLink } from 'vue-router';
 const props = defineProps<{
   account: AccountModel;
   subtitle?: string;
+  vehicleId?: string;
   fallbackIcon?: Component;
   categoryOverride?: ACCOUNT_CATEGORIES;
 }>();

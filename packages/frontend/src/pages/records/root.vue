@@ -77,6 +77,7 @@
                 <TransactionTimeGroupingOptions
                   :model-value="timeGrouping"
                   v-model:show-time="showTime"
+                  v-model:show-checkboxes="showCheckboxes"
                   :hide-grouping="activeView === 'table'"
                   :unavailable="!isChronological"
                   @update:model-value="setTimeGrouping"
@@ -148,6 +149,7 @@
               animate-changes
               :time-grouping="isChronological ? timeGrouping : 'none'"
               :show-time="showTime"
+              :show-checkboxes="showCheckboxes"
               :time-ascending="sorting.order === SORT_DIRECTIONS.asc"
               :time-group-range="timeGroupRange"
               :content-filters-active="contentFiltersActive"
@@ -197,6 +199,7 @@
                 <TransactionTimeGroupingOptions
                   :model-value="timeGrouping"
                   v-model:show-time="showTime"
+                  v-model:show-checkboxes="showCheckboxes"
                   :unavailable="!isChronological"
                   @update:model-value="setTimeGrouping"
                   @selected="close"
@@ -235,6 +238,7 @@
               animate-changes
               :time-grouping="isChronological ? timeGrouping : 'none'"
               :show-time="showTime"
+              :show-checkboxes="showCheckboxes"
               :time-ascending="sorting.order === SORT_DIRECTIONS.asc"
               :time-group-range="timeGroupRange"
               :content-filters-active="contentFiltersActive"
@@ -287,6 +291,7 @@
                   <TransactionTimeGroupingOptions
                     :model-value="timeGrouping"
                     v-model:show-time="showTime"
+                    v-model:show-checkboxes="showCheckboxes"
                     hide-grouping
                   />
                 </template>
@@ -402,6 +407,7 @@
               :transactions="transactionsPages?.pages.flat() ?? []"
               :visible-columns="visibleColumns"
               :show-time="showTime"
+              :show-checkboxes="showCheckboxes"
               @resize-column="setColumnWidth"
               :sorting="sorting"
               :has-next-page="hasNextPage"
@@ -480,7 +486,14 @@ import { useNotificationCenter } from '@/components/notification-center';
 import { useI18n } from 'vue-i18n';
 
 const sorting = ref<TableSorting>({ ...DEFAULT_SORTING });
-const { mode: timeGrouping, setMode: setTimeGrouping, showTime } = useTransactionTimeGrouping();
+const {
+  mode: timeGrouping,
+  setMode: setTimeGrouping,
+  showTime,
+  showCheckboxes,
+} = useTransactionTimeGrouping({
+  defaultMode: 'day',
+});
 const isChronological = computed(() => sorting.value.sortBy === TRANSACTION_SORT_FIELD.time);
 
 const {

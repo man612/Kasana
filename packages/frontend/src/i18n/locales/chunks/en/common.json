@@ -1,5 +1,9 @@
 {
   "common": {
+    "status": {
+      "financialRefreshing": "Refreshing balances…",
+      "financialStale": "Showing saved balances. Refresh failed."
+    },
     "connection": {
       "offline": "No internet connection. Check your network and try again.",
       "unreachable": "Could not reach Lajur. Try again in a moment.",

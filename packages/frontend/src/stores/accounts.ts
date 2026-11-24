@@ -21,6 +21,7 @@ import { computed, ref, watch } from 'vue';
 
 import { useUserStore } from './user';
 
+const appStartedAt = Date.now();
 const BALANCE_AFFECTING_FIELDS = ['initialBalance', 'currentBalance', 'creditLimit', 'excludeFromStats'];
 
 export const useAccountsStore = defineStore('accounts', () => {
@@ -34,6 +35,8 @@ export const useAccountsStore = defineStore('accounts', () => {
     refetch: refetchAccounts,
     isFetched: isAccountsFetched,
     isError: isAccountsError,
+    isFetching: isAccountsRefreshing,
+    dataUpdatedAt,
   } = useQuery({
     queryKey: VUE_QUERY_CACHE_KEYS.allAccounts,
     queryFn: apiLoadAccounts,
@@ -41,6 +44,8 @@ export const useAccountsStore = defineStore('accounts', () => {
     placeholderData: [],
     enabled: isUserExists,
   });
+
+  const hasRestoredAccounts = computed(() => dataUpdatedAt.value > 0 && dataUpdatedAt.value < appStartedAt);
 
   // id→account map for O(1) lookups. Rebuilt (not upserted) so a deleted id is
   // pruned rather than lingering as a ghost consumers can still resolve.
@@ -186,6 +191,8 @@ export const useAccountsStore = defineStore('accounts', () => {
     accountsNeedingRelink,
     isAccountsFetched,
     isAccountsError,
+    isAccountsRefreshing,
+    hasRestoredAccounts,
 
     loadAccounts: refetchAccounts,
     refetchAccounts,

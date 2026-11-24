@@ -1,5 +1,9 @@
 {
   "common": {
+    "status": {
+      "financialRefreshing": "Memperbarui saldo…",
+      "financialStale": "Saldo tersimpan ditampilkan. Pembaruan gagal."
+    },
     "connection": {
       "offline": "Tidak ada koneksi internet. Periksa jaringan dan coba lagi.",
       "unreachable": "Lajur. belum bisa dihubungi. Coba lagi beberapa saat.",

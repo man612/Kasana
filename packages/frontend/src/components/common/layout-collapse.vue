@@ -4,7 +4,7 @@ defineProps<{ open: boolean }>();
 
 <template>
   <div
-    class="grid transition-[grid-template-rows,opacity] duration-220 motion-reduce:transition-none"
+    class="grid transition-[grid-template-rows,opacity] duration-(--kasana-motion-normal) ease-(--kasana-motion-ease) motion-reduce:transition-none"
     :class="open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'"
     :inert="!open"
   >

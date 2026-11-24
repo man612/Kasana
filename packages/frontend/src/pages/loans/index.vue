@@ -47,7 +47,10 @@
         <CircleCheckIcon class="text-success-text size-5 shrink-0" aria-hidden="true" />
         <h2 class="text-sm font-semibold">{{ $t('loans.paidOff.allSettled') }}</h2>
       </div>
-      <LoanList v-if="activeLoans.length" :loans="activeLoans" />
+      <section v-if="activeLoans.length" class="grid gap-2">
+        <h2 class="px-1 text-base font-semibold">{{ $t('loans.detail.status.active') }}</h2>
+        <LoanList :loans="activeLoans" />
+      </section>
 
       <section v-if="paidOffLoans.length" class="mt-5">
         <div class="mb-3 flex items-center gap-2 px-1">

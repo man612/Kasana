@@ -13,6 +13,7 @@ import InputField from '@/components/fields/input-field.vue';
 import { Button } from '@/components/lib/ui/button';
 import { CardHeader } from '@/components/lib/ui/card';
 import * as Popover from '@/components/lib/ui/popover';
+import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import * as Tooltip from '@/components/lib/ui/tooltip';
 import { useNotificationCenter } from '@/components/notification-center';
 import { useFormValidation } from '@/composable';
@@ -81,23 +82,6 @@ const { isFormValid, touchField, getFieldErrorMessage, resetValidation } = useFo
   },
 );
 
-/**
- * Guard to prevent the dropdown's dismiss cascade from immediately
- * closing the popover. When the dropdown closes it fires pointer /
- * focus-outside events that the Popover picks up via @update:open.
- */
-let openedFromDropdownAt = 0;
-
-const openRenameFromDropdown = () => {
-  openedFromDropdownAt = Date.now();
-  formEditingPopoverOpen.value = true;
-};
-
-const onPopoverOpenChange = (value: boolean) => {
-  if (!value && Date.now() - openedFromDropdownAt < 200) return;
-  formEditingPopoverOpen.value = value;
-};
-
 const updateAccount = async () => {
   if (!isFormValid()) return;
 
@@ -122,173 +106,155 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
 </script>
 
 <template>
-  <CardHeader class="px-4 pt-3 pb-2 md:px-6 md:pt-5 md:pb-3">
-    <div class="flex flex-col">
-      <div class="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-        <div class="flex min-w-0 items-center gap-3">
-          <!-- Account logo — hover reveals the edit affordance (owner only) -->
-          <AccountLogoPicker v-if="isOwner" :account-id="account.id" class="size-9 shrink-0 md:size-10" />
-          <AccountLogo v-else :account="account" class="size-9 shrink-0 md:size-10" />
+  <CardHeader class="@container/account-hero gap-3 px-4 py-4">
+    <div class="flex min-w-0 items-start gap-3">
+      <AccountLogoPicker v-if="isOwner" :account-id="account.id" class="size-10 shrink-0" />
+      <AccountLogo v-else :account="account" class="size-10 shrink-0" />
+      <div class="min-w-0 flex-1">
+        <h1 class="text-xl leading-tight font-semibold tracking-tight wrap-anywhere">{{ account.name }}</h1>
+        <p class="text-muted-foreground mt-0.5 text-sm">
+          {{ $t(ACCOUNT_CATEGORIES_TRANSLATION_KEYS[account.accountCategory]) }}
+        </p>
+      </div>
+      <DropdownMenu v-if="isOwner">
+        <DropdownMenuTrigger as-child>
+          <Button type="button" variant="ghost" size="icon" :aria-label="$t('pages.account.header.accountActions')">
+            <MoreVerticalIcon class="size-5" aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <Tooltip.TooltipProvider>
+            <Tooltip.Tooltip :delay-duration="0">
+              <Tooltip.TooltipTrigger as-child>
+                <span class="block">
+                  <DropdownMenuItem
+                    class="gap-2"
+                    :disabled="!isSystemAccount"
+                    :class="!isSystemAccount ? 'pointer-events-none' : ''"
+                    @select="isSystemAccount && (adjustmentDialogOpen = true)"
+                  >
+                    <ScaleIcon class="size-4" aria-hidden="true" />
+                    {{ $t('pages.account.header.adjustBalance') }}
+                  </DropdownMenuItem>
+                </span>
+              </Tooltip.TooltipTrigger>
+              <Tooltip.TooltipContent v-if="!isSystemAccount">
+                {{ $t('pages.account.header.adjustBalanceTooltip') }}
+              </Tooltip.TooltipContent>
+            </Tooltip.Tooltip>
+          </Tooltip.TooltipProvider>
+          <DropdownMenuItem class="gap-2" @select="shareDialogOpen = true">
+            <Share2Icon class="size-4" aria-hidden="true" />
+            {{ $t('pages.account.header.share') }}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
 
-          <!-- Account name — click to open rename popover (owner only) -->
-          <Popover.Popover v-if="isOwner" :open="formEditingPopoverOpen" @update:open="onPopoverOpenChange">
-            <Popover.PopoverTrigger as-child>
-              <button
-                type="button"
-                :aria-label="`${t('pages.account.header.editAccountName')}: ${account.name}`"
-                class="focus-visible:ring-ring -mx-1 flex min-h-10 min-w-0 cursor-pointer items-center rounded-md px-1 text-xl transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:outline-none"
-              >
-                <span class="text-left wrap-anywhere">{{ account.name }}</span>
-              </button>
-            </Popover.PopoverTrigger>
-            <Popover.PopoverContent>
-              <form class="grid gap-6" @submit.prevent="updateAccount">
-                <InputField
-                  v-model="accountNameForm.name"
-                  :label="$t('pages.account.header.nameLabel')"
-                  :placeholder="$t('pages.account.header.namePlaceholder')"
-                  :error-message="getFieldErrorMessage('form.name')"
-                  @blur="touchField('form.name')"
-                />
+    <div
+      v-if="isSharedWithCaller && ownerHandle"
+      class="text-muted-foreground flex flex-wrap items-center gap-2 text-sm"
+    >
+      <span v-if="isHouseholdGranted">{{ $t('accounts.viaHousehold', { handle: `@${ownerHandle}` }) }}</span>
+      <span v-else>{{ $t('accounts.sharedBy', { handle: `@${ownerHandle}` }) }}</span>
+      <span
+        v-if="permissionBadgeLabel"
+        class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium"
+      >
+        {{ permissionBadgeLabel }}
+      </span>
+    </div>
 
-                <Button type="submit" :disabled="accountNameForm.name === account.name || !accountNameForm.name.trim()">
-                  {{ t('pages.account.header.save') }}
-                </Button>
-              </form>
-            </Popover.PopoverContent>
-          </Popover.Popover>
-          <div v-else class="flex min-w-0 items-center gap-2 text-xl">
-            <span class="text-left wrap-anywhere">{{ account.name }}</span>
-          </div>
-        </div>
+    <div class="border-border/65 flex flex-wrap items-end justify-between gap-3 border-t pt-3">
+      <div class="min-w-0 grow">
+        <p class="text-muted-foreground text-xs">{{ $t('accounts.overview.totalBalance') }}</p>
+        <component
+          :is="isSystemAccount && isOwner ? Button : 'div'"
+          :variant="isSystemAccount && isOwner ? 'ghost' : undefined"
+          :aria-label="
+            isSystemAccount && isOwner
+              ? `${t('pages.account.header.adjustBalance')}: ${formatUIAmount(displayBalance, { currency: account.currencyCode })}`
+              : undefined
+          "
+          class="flex h-auto max-w-full min-w-0 flex-wrap items-baseline justify-start gap-x-2 px-0 text-start whitespace-normal"
+          @click="isSystemAccount && isOwner && (adjustmentDialogOpen = true)"
+        >
+          <Transition name="kasana-page">
+            <span
+              :key="displayBalance"
+              class="text-amount min-w-0 text-3xl leading-tight wrap-anywhere tabular-nums @sm/account-hero:text-4xl"
+              :class="displayBalance < 0 && 'text-destructive-text'"
+            >
+              {{ formatUIAmount(displayBalance, { currency: account.currencyCode }) }}
+            </span>
+          </Transition>
+          <span
+            v-if="baseCurrency && account.currencyCode !== baseCurrency.currencyCode"
+            class="text-muted-foreground min-w-0 text-sm wrap-anywhere tabular-nums"
+          >
+            ≈ {{ formatUIAmount(displayRefBalance, { currency: baseCurrency.currencyCode }) }}
+          </span>
+        </component>
 
-        <div class="flex gap-2">
-          <PortfolioTransferDialog v-if="isOwner" :account="account" context="account">
+        <i18n-t
+          v-if="hasPendingPlans"
+          keypath="pages.account.header.projectedBalance"
+          :plural="plannedCount"
+          tag="div"
+          class="text-muted-foreground mt-1 text-sm"
+        >
+          <template #amount>
+            <span class="text-amount text-foreground">{{ projectedBalanceDisplay }}</span>
+          </template>
+          <template #count>{{ plannedCount }}</template>
+          <template #date>{{ latestPlannedDisplay }}</template>
+        </i18n-t>
+      </div>
+
+      <div v-if="isOwner" class="flex flex-wrap items-center gap-2">
+        <Popover.Popover v-model:open="formEditingPopoverOpen">
+          <Popover.PopoverTrigger as-child>
             <Button
               type="button"
-              variant="ghost"
-              size="icon"
-              :title="t('pages.account.header.transferToPortfolio')"
-              :aria-label="t('pages.account.header.transferToPortfolio')"
+              variant="outline"
+              class="min-h-11"
+              :aria-label="`${t('pages.account.header.editAccountName')}: ${account.name}`"
             >
-              <ArrowRightLeftIcon :size="20" />
+              <PencilIcon class="size-4" aria-hidden="true" />
+              {{ $t('common.actions.edit') }}
             </Button>
-          </PortfolioTransferDialog>
-
-          <!-- Kebab dropdown — recipients have no actions here (rename/adjust/share are owner-only) -->
-          <DropdownMenu v-if="isOwner">
-            <DropdownMenuTrigger as-child>
+          </Popover.PopoverTrigger>
+          <Popover.PopoverContent dim-backdrop align="end">
+            <form class="grid gap-3" @submit.prevent="updateAccount">
+              <InputField
+                v-model="accountNameForm.name"
+                :label="$t('pages.account.header.nameLabel')"
+                :placeholder="$t('pages.account.header.namePlaceholder')"
+                :error-message="getFieldErrorMessage('form.name')"
+                @blur="touchField('form.name')"
+              />
+              <Button type="submit" :disabled="accountNameForm.name === account.name || !accountNameForm.name.trim()">
+                {{ $t('pages.account.header.save') }}
+              </Button>
+            </form>
+          </Popover.PopoverContent>
+        </Popover.Popover>
+        <DesktopOnlyTooltip :content="$t('pages.account.header.transferToPortfolio')">
+          <span class="inline-flex">
+            <PortfolioTransferDialog :account="account" context="account">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                :title="t('pages.account.header.accountActions')"
-                :aria-label="t('pages.account.header.accountActions')"
+                class="size-11"
+                :aria-label="$t('pages.account.header.transferToPortfolio')"
               >
-                <MoreVerticalIcon :size="20" />
+                <ArrowRightLeftIcon class="size-4" aria-hidden="true" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem class="gap-2" @click="openRenameFromDropdown">
-                <PencilIcon class="size-4" />
-                {{ t('pages.account.header.renameAccount') }}
-              </DropdownMenuItem>
-
-              <Tooltip.TooltipProvider>
-                <Tooltip.Tooltip :delay-duration="0">
-                  <Tooltip.TooltipTrigger as-child>
-                    <span class="block">
-                      <DropdownMenuItem
-                        class="gap-2"
-                        :disabled="!isSystemAccount"
-                        :class="!isSystemAccount ? 'pointer-events-none' : ''"
-                        @click="isSystemAccount && (adjustmentDialogOpen = true)"
-                      >
-                        <ScaleIcon class="size-4" />
-                        {{ t('pages.account.header.adjustBalance') }}
-                      </DropdownMenuItem>
-                    </span>
-                  </Tooltip.TooltipTrigger>
-                  <Tooltip.TooltipContent v-if="!isSystemAccount">
-                    {{ t('pages.account.header.adjustBalanceTooltip') }}
-                  </Tooltip.TooltipContent>
-                </Tooltip.Tooltip>
-              </Tooltip.TooltipProvider>
-
-              <DropdownMenuItem class="gap-2" @click="shareDialogOpen = true">
-                <Share2Icon class="size-4" />
-                {{ t('pages.account.header.share') }}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            </PortfolioTransferDialog>
+          </span>
+        </DesktopOnlyTooltip>
       </div>
-
-      <div
-        v-if="isSharedWithCaller && ownerHandle"
-        class="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-sm"
-      >
-        <span v-if="isHouseholdGranted">{{ $t('accounts.viaHousehold', { handle: `@${ownerHandle}` }) }}</span>
-        <span v-else>{{ $t('accounts.sharedBy', { handle: `@${ownerHandle}` }) }}</span>
-        <span
-          v-if="permissionBadgeLabel"
-          class="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-medium"
-        >
-          {{ permissionBadgeLabel }}
-        </span>
-      </div>
-
-      <p class="text-muted-foreground mt-1 text-xs">
-        {{ t(ACCOUNT_CATEGORIES_TRANSLATION_KEYS[account.accountCategory]) }}
-      </p>
-
-      <!-- Balance -->
-      <div class="flex items-center">
-        <button
-          v-if="isSystemAccount && isOwner"
-          type="button"
-          :aria-label="`${t('pages.account.header.adjustBalance')}: ${formatUIAmount(displayBalance, { currency: account.currencyCode })}`"
-          class="focus-visible:ring-ring flex min-h-11 cursor-pointer flex-wrap items-end justify-start gap-x-2 rounded-md transition-opacity hover:opacity-75 focus-visible:ring-2 focus-visible:outline-none"
-          @click="adjustmentDialogOpen = true"
-        >
-          <span
-            class="text-amount min-w-0 text-3xl leading-tight wrap-anywhere tabular-nums"
-            :class="displayBalance < 0 && 'text-destructive-text'"
-          >
-            {{ formatUIAmount(displayBalance, { currency: account.currencyCode }) }}
-          </span>
-          <span v-if="baseCurrency && account.currencyCode !== baseCurrency.currencyCode" class="text-white opacity-50">
-            ~
-            {{ formatUIAmount(displayRefBalance, { currency: baseCurrency.currencyCode }) }}
-          </span>
-        </button>
-        <div v-else class="flex flex-wrap items-end justify-start gap-2">
-          <span
-            class="text-amount min-w-0 text-3xl leading-tight wrap-anywhere tabular-nums"
-            :class="displayBalance < 0 && 'text-destructive-text'"
-          >
-            {{ formatUIAmount(displayBalance, { currency: account.currencyCode }) }}
-          </span>
-          <span v-if="baseCurrency && account.currencyCode !== baseCurrency.currencyCode" class="text-white opacity-50">
-            ~
-            {{ formatUIAmount(displayRefBalance, { currency: baseCurrency.currencyCode }) }}
-          </span>
-        </div>
-      </div>
-
-      <i18n-t
-        v-if="hasPendingPlans"
-        keypath="pages.account.header.projectedBalance"
-        :plural="plannedCount"
-        tag="div"
-        class="text-muted-foreground mt-1 text-sm"
-      >
-        <template #amount>
-          <span class="text-amount text-foreground">{{ projectedBalanceDisplay }}</span>
-        </template>
-        <template #count>{{ plannedCount }}</template>
-        <template #date>{{ latestPlannedDisplay }}</template>
-      </i18n-t>
     </div>
 
     <BalanceAdjustmentDialog v-if="adjustmentDialogOpen" :account="account" @close="adjustmentDialogOpen = false" />

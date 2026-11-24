@@ -18,16 +18,18 @@
       </EmptyState>
     </template>
     <template v-else>
-      <PillTabs
-        role="group"
-        :aria-label="$t('dashboard.widgets.balanceTrend.presentation.component')"
-        data-testid="balance-trend-components"
-        class="mb-2"
-        scrollable
-        :items="balanceTypeOptions"
-        :model-value="selectedBalanceType.value"
-        @update:model-value="selectBalanceTypeValue"
-      />
+      <div class="mb-2">
+        <PillTabs
+          role="group"
+          :aria-label="$t('dashboard.widgets.balanceTrend.presentation.component')"
+          data-testid="balance-trend-components"
+          size="sm"
+          scrollable
+          :items="balanceTypeOptions"
+          :model-value="selectedBalanceType.value"
+          @update:model-value="selectBalanceTypeValue"
+        />
+      </div>
       <p v-if="balanceHistoryError" class="text-warning-text mb-2 text-xs" role="status">
         {{ $t('dashboard.widgets.common.staleData') }}
         <Button variant="link" size="sm" @click="refetchBalanceHistory()">{{ $t('common.actions.retry') }}</Button>
@@ -84,9 +86,9 @@
           :aria-label="$t('dashboard.widgets.balanceTrend.title')"
           @pointerdown="inspectMini"
           @pointermove="inspectMini"
-          @pointerup="hideTouchTooltip"
-          @pointercancel="hideTouchTooltip"
-          @pointerleave="leaveMini"
+          @pointerup="finishTooltipPointer"
+          @pointercancel="hidePoint()"
+          @pointerleave="leaveChart"
         >
           <path :d="miniAnimation?.area ?? miniTrend.area" fill="currentColor" opacity="0.13" />
           <path
@@ -98,14 +100,24 @@
             stroke-linecap="round"
             vector-effect="non-scaling-stroke"
           />
-          <circle
-            v-if="!showDetails && tooltip.visible && inspectedDate !== null"
-            :cx="miniTrend.x(inspectedDate)"
-            :cy="miniTrend.y(tooltip.totalBalance)"
-            r="3"
-            fill="currentColor"
-          />
           <circle :cx="miniTrend.end.x" :cy="miniTrend.end.y" r="2.5" fill="currentColor" />
+          <g
+            v-if="!showDetails && tooltip.visible && inspectedDate !== null"
+            :transform="`translate(${miniTrend.x(inspectedDate)},0)`"
+            class="pointer-events-none"
+            aria-hidden="true"
+          >
+            <line
+              data-testid="balance-trend-guide"
+              y1="2"
+              y2="46"
+              stroke="currentColor"
+              stroke-opacity="0.5"
+              stroke-dasharray="3,3"
+              vector-effect="non-scaling-stroke"
+            />
+            <circle :cy="miniTrend.y(tooltip.totalBalance)" r="3" fill="currentColor" />
+          </g>
         </svg>
       </div>
       <!-- Tooltip is teleported so transforms/overflow on widgets never offset fixed viewport coordinates. -->
@@ -114,16 +126,17 @@
           <div
             v-show="tooltip.visible && !spikePanel.visible"
             ref="tooltipRef"
-            class="pointer-events-none fixed isolate max-w-[calc(100vw-1.25rem)] [@media(pointer:coarse)]:motion-safe:transition-[left,top] [@media(pointer:coarse)]:motion-safe:duration-150"
+            data-testid="balance-trend-tooltip"
+            class="pointer-events-none fixed top-0 left-0 isolate max-w-[calc(100vw-1.25rem)]"
             :class="showDetails ? 'z-(--z-chart-in-dialog)' : 'z-(--z-chart-floating)'"
-            :style="{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }"
+            :style="{ translate: `${tooltip.x}px ${tooltip.y}px` }"
           >
             <ChartTooltip>
               <ChartTooltipHeader>{{ tooltip.date }}</ChartTooltipHeader>
 
               <ChartTooltipRow v-for="row in tooltipComponentRows" :key="row.key" :label="row.label">
                 <template #value>
-                  {{ formatTooltipMoney(row.value)
+                  {{ formatBaseCurrency(row.value)
                   }}<span
                     v-if="shouldDisplayBalanceDelta({ delta: row.delta })"
                     class="ml-1 text-xs font-medium"
@@ -142,16 +155,18 @@
                     ? $t('dashboard.widgets.balanceTrend.tooltip.total')
                     : metricLabel
                 "
-                :value="formatTooltipMoney(tooltip.totalBalance)"
+                :value="formatBaseCurrency(tooltip.totalBalance)"
               />
 
               <div
-                v-if="tooltip.hasDelta"
+                v-if="tooltip.deltaAbsolute !== null"
                 class="mt-1 text-xs font-semibold tabular-nums"
                 :class="deltaColorClass(usesLoanBalance ? -tooltip.deltaAbsolute : tooltip.deltaAbsolute)"
               >
                 {{ formatBalanceDelta({ delta: tooltip.deltaAbsolute, currency: tooltipCurrency }) }}
-                ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
+                <template v-if="tooltip.deltaPercent !== null">
+                  ({{ formatBalanceDeltaPercent({ percent: tooltip.deltaPercent }) }})
+                </template>
               </div>
             </ChartTooltip>
           </div>
@@ -213,17 +228,17 @@
             <template #date>{{ projectionThroughDate }}</template>
           </i18n-t>
 
-          <div ref="containerRef" data-no-nav-swipe class="max-xs:px-1 relative h-52 w-full sm:h-64">
+          <div ref="containerRef" data-no-nav-swipe data-vaul-no-drag class="max-xs:px-1 relative h-52 w-full sm:h-64">
             <svg
               ref="svgRef"
               class="focus-visible:ring-ring h-full w-full touch-pan-y focus-visible:ring-2 focus-visible:outline-none"
               role="group"
               :aria-label="$t('dashboard.widgets.balanceTrend.title')"
-              :aria-describedby="canPanChart ? chartPanHelpId : undefined"
               :tabindex="canPanChart ? 0 : undefined"
               @pointerdown="rememberChartPointer"
               @pointerup="finishChartPointer"
               @pointercancel="cancelChartPointer"
+              @pointerleave="leaveChart"
               @click.capture="protectChartPan"
               @keydown.left.prevent="moveChartWindow({ points: -CHART_WINDOW_POINTS })"
               @keydown.right.prevent="moveChartWindow({ points: CHART_WINDOW_POINTS })"
@@ -231,13 +246,11 @@
 
             <!-- Spike transactions panel -->
             <SpikeTransactionsPanel
-              ref="spikePanelRef"
               :visible="spikePanel.visible"
-              :x="spikePanel.x"
-              :y="spikePanel.y"
+              :anchor="spikeAnchor"
               :spike-date="spikeDateLabel"
               :delta-absolute="spikePanel.spikePoint?.deltaAbsolute ?? 0"
-              :delta-percent="spikePanel.spikePoint?.deltaPercent ?? 0"
+              :delta-percent="spikePanel.deltaPercent"
               :is-positive="spikePanel.spikePoint ? spikePanel.spikePoint.isPositive !== usesLoanBalance : true"
               :transactions="spikeTransactions ?? []"
               :is-loading="isSpikeTransactionsLoading"
@@ -250,32 +263,55 @@
               @see-all="navigateToSpikeTransactions"
             />
           </div>
-          <div v-if="canPanChart" class="flex flex-wrap items-center justify-between gap-x-2 px-2 text-xs">
-            <p :id="chartPanHelpId" class="text-muted-foreground">{{ $t('dashboard.widgets.balanceTrend.panHint') }}</p>
-            <Button
-              v-if="chartWindowStart !== null"
-              type="button"
-              size="sm"
-              variant="ghost"
-              @click="chartWindowStart = null"
-            >
+          <div v-if="canPanChart" class="flex flex-wrap items-center justify-end gap-1">
+            <DesktopOnlyTooltip :content="$t('dashboard.periodSelector.previousPeriod')">
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="ghost"
+                :aria-label="$t('dashboard.periodSelector.previousPeriod')"
+                :disabled="chartWindowStart === 0"
+                @click="moveChartWindow({ points: -CHART_WINDOW_POINTS })"
+              >
+                <ChevronLeftIcon aria-hidden="true" />
+              </Button>
+            </DesktopOnlyTooltip>
+            <DesktopOnlyTooltip :content="$t('dashboard.periodSelector.nextPeriod')">
+              <Button
+                type="button"
+                size="icon-sm"
+                variant="ghost"
+                :aria-label="$t('dashboard.periodSelector.nextPeriod')"
+                :disabled="chartWindowStart === lastChartWindowStart"
+                @click="moveChartWindow({ points: CHART_WINDOW_POINTS })"
+              >
+                <ChevronRightIcon aria-hidden="true" />
+              </Button>
+            </DesktopOnlyTooltip>
+            <Button v-if="chartWindowStart !== null" type="button" size="sm" variant="ghost" @click="resetChartWindow">
               {{ $t('dashboard.widgets.balanceTrend.showFullRange') }}
             </Button>
           </div>
 
           <section class="border-border/60 border-t pt-2 text-xs">
             <h3 class="text-foreground mb-1 font-semibold">{{ $t('dashboard.widgets.balanceTrend.table.toggle') }}</h3>
-            <div class="max-h-64 overflow-y-auto overscroll-contain">
-              <table class="w-full tabular-nums">
+            <ScrollArea class="max-h-56 min-w-0" viewport-class="max-h-56 overscroll-contain" data-vaul-no-drag>
+              <table class="w-full table-fixed text-sm tabular-nums">
                 <caption class="sr-only">
                   {{
                     $t('dashboard.widgets.balanceTrend.title')
                   }}
                 </caption>
-                <thead class="bg-card/90 sticky top-0 backdrop-blur-sm">
-                  <tr class="text-muted-foreground border-border/50 border-b text-left">
-                    <th scope="col" class="py-2 font-medium">{{ $t('dashboard.widgets.balanceTrend.table.date') }}</th>
-                    <th scope="col" class="py-2 text-right font-medium">
+                <colgroup>
+                  <col class="w-26" />
+                  <col />
+                </colgroup>
+                <thead class="bg-card sticky top-0 z-1">
+                  <tr class="text-muted-foreground border-border/50 border-b text-left text-xs">
+                    <th scope="col" class="px-2 py-2 font-medium">
+                      {{ $t('dashboard.widgets.balanceTrend.table.date') }}
+                    </th>
+                    <th scope="col" class="py-2 pr-3 text-right font-medium">
                       {{ $t('dashboard.widgets.balanceTrend.table.amount') }}
                     </th>
                   </tr>
@@ -284,23 +320,29 @@
                   <tr
                     v-for="point in chartTableRows"
                     :key="point.date"
-                    class="border-border/30 hover:bg-muted/30 border-b transition-colors last:border-0"
+                    class="border-border/30 hover:bg-muted/40 cursor-pointer border-b transition-colors last:border-0 motion-reduce:transition-none"
                     :class="inspectedDate === point.date && 'bg-primary/10'"
+                    @click.stop="selectTablePoint({ point })"
                   >
-                    <td class="py-2">
-                      {{
-                        new Date(point.date).toLocaleDateString(locale, {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })
-                      }}
+                    <td>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        class="h-auto min-h-9 w-full justify-start px-2 py-1.5 text-xs whitespace-normal"
+                        :aria-pressed="inspectedDate === point.date"
+                        @click.stop="selectTablePoint({ point })"
+                      >
+                        {{ formatDate(point.date, 'PP') }}
+                      </Button>
                     </td>
-                    <td class="py-2 text-right">{{ formatBaseCurrency(point.value) }}</td>
+                    <td class="py-1.5 pr-3 pl-2 text-right font-medium wrap-anywhere">
+                      {{ formatBaseCurrency(point.value) }}
+                    </td>
                   </tr>
                 </tbody>
               </table>
-            </div>
+            </ScrollArea>
           </section>
         </div>
       </ResponsiveDialog>
@@ -321,6 +363,8 @@ import {
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import FitAmount from '@/components/common/fit-amount.vue';
 import { Button } from '@/components/lib/ui/button';
+import { ScrollArea } from '@/components/lib/ui/scroll-area';
+import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { useFormatCurrency } from '@/composable';
 import { getChartColors } from '@/composable/charts/chart-colors';
 import { formatAxisCurrency } from '@/composable/charts/format-axis-currency';
@@ -333,8 +377,8 @@ import {
   useSpikeDetection,
 } from '@/composable/charts/use-spike-detection';
 import { useAnimatedNumber } from '@/composable/use-animated-number';
+import { useDateLocale } from '@/composable/use-date-locale';
 import { currentTheme } from '@/common/utils/color-theme';
-import { formatLargeNumber } from '@/js/helpers';
 import { compareBalancePeriods } from './compare-balance-periods';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { loadCombinedBalanceTrendData } from '@/services/stats';
@@ -344,7 +388,7 @@ import { useQuery } from '@tanstack/vue-query';
 import { useLocalStorage, usePreferredReducedMotion, useResizeObserver } from '@vueuse/core';
 import * as d3 from 'd3';
 import { differenceInDays, endOfDay, format, min, startOfDay, subDays, parseISO } from 'date-fns';
-import { ChartLineIcon, ChevronRightIcon } from '@lucide/vue';
+import { ChartLineIcon, ChevronLeftIcon, ChevronRightIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import type { Ref } from 'vue';
 import {
@@ -410,9 +454,10 @@ const props = defineProps<{
 }>();
 
 const { t, locale } = useI18n();
+const { format: formatDate } = useDateLocale();
 const CHART_WINDOW_POINTS = 31;
-const CHART_PAN_THRESHOLD = 10;
-const chartPanHelpId = useId();
+const SPIKE_TAP_MOVE_LIMIT = 10;
+const TOUCH_TOOLTIP_LINGER_MS = 320;
 
 type BalanceTypeValue = 'total' | 'accounts' | 'portfolios' | 'ventures' | 'vehicles' | 'loans';
 type BalanceTypeOption = { value: BalanceTypeValue; label: string };
@@ -498,9 +543,8 @@ const tooltip = reactive({
   vehiclesDelta: 0,
   loansDelta: 0,
   // Change of the currently-charted line (matches the selected balance type).
-  deltaAbsolute: 0,
-  deltaPercent: 0,
-  hasDelta: false,
+  deltaAbsolute: null as number | null,
+  deltaPercent: null as number | null,
 });
 
 const { updateTooltipPosition } = useChartTooltipPosition({
@@ -624,8 +668,6 @@ const showLoansRow = computed(() => {
 });
 
 const tooltipCurrency = computed(() => baseCurrency.value?.currency?.code);
-const formatTooltipMoney = (value: number) =>
-  formatLargeNumber(value, { isFiat: true, currency: tooltipCurrency.value });
 const deltaColorClass = (delta: number) => ({
   'text-success-text': delta > 0,
   'text-app-expense-color': delta < 0,
@@ -758,44 +800,49 @@ const periodLabel = computed(() => {
 const chartData = computed(() => {
   if (!balanceHistory.value) return [];
 
-  return balanceHistory.value.map((point) => {
-    const effectiveTotal = getEffectiveTotal(point);
+  return balanceHistory.value
+    .map((point) => {
+      const effectiveTotal = getEffectiveTotal(point);
 
-    let value: number;
-    switch (selectedBalanceType.value.value) {
-      case 'accounts':
-        value = point.accountsBalance;
-        break;
-      case 'portfolios':
-        value = point.portfoliosBalance;
-        break;
-      case 'ventures':
-        value = point.venturesBalance;
-        break;
-      case 'vehicles':
-        value = point.vehiclesBalance;
-        break;
-      case 'loans':
-        value = -point.loansBalance;
-        break;
-      default:
-        value = effectiveTotal;
-    }
+      let value: number;
+      switch (selectedBalanceType.value.value) {
+        case 'accounts':
+          value = point.accountsBalance;
+          break;
+        case 'portfolios':
+          value = point.portfoliosBalance;
+          break;
+        case 'ventures':
+          value = point.venturesBalance;
+          break;
+        case 'vehicles':
+          value = point.vehiclesBalance;
+          break;
+        case 'loans':
+          value = -point.loansBalance;
+          break;
+        default:
+          value = effectiveTotal;
+      }
 
-    return {
-      date: startOfDay(parseISO(point.date)).getTime(),
-      value,
-      accountsBalance: point.accountsBalance,
-      portfoliosBalance: point.portfoliosBalance,
-      venturesBalance: point.venturesBalance,
-      vehiclesBalance: point.vehiclesBalance,
-      loansBalance: point.loansBalance,
-      totalBalance: effectiveTotal,
-    };
-  });
+      return {
+        date: startOfDay(parseISO(point.date)).getTime(),
+        value,
+        accountsBalance: point.accountsBalance,
+        portfoliosBalance: point.portfoliosBalance,
+        venturesBalance: point.venturesBalance,
+        vehiclesBalance: point.vehiclesBalance,
+        loansBalance: point.loansBalance,
+        totalBalance: effectiveTotal,
+      };
+    })
+    .filter(({ date, value }) => Number.isFinite(date) && Number.isFinite(value));
 });
+type ChartPoint = (typeof chartData.value)[number];
+const pointIndices = computed(() => new Map(chartData.value.map(({ date }, index) => [date, index])));
+const nearestPointIndex = d3.bisector<ChartPoint, number>(({ date }) => date).center;
 const miniTrend = computed(() => {
-  const points = chartData.value.filter((point) => Number.isFinite(point.value));
+  const points = chartData.value;
   if (!points.length) return null;
   const first = points[0]!;
   const last = points.at(-1)!;
@@ -827,120 +874,157 @@ const summaryStats = computed(() => {
   return { start: first.value, change: last.value - first.value };
 });
 const chartWindowStart = ref<number | null>(null);
-const canPanChart = computed(() => chartData.value.length > CHART_WINDOW_POINTS);
+const lastChartWindowStart = computed(() => Math.max(0, chartData.value.length - CHART_WINDOW_POINTS));
+const canPanChart = computed(() => lastChartWindowStart.value > 0);
 const chartWindow = computed(() => {
   if (!canPanChart.value || chartWindowStart.value === null) return null;
-  const start = Math.min(chartWindowStart.value, chartData.value.length - CHART_WINDOW_POINTS);
+  const start = Math.min(chartWindowStart.value, lastChartWindowStart.value);
   return chartData.value.slice(start, start + CHART_WINDOW_POINTS);
 });
 
 watch(
   () => [props.selectedPeriod.from.getTime(), props.selectedPeriod.to.getTime(), selectedBalanceType.value.value],
   () => {
-    chartWindowStart.value = null;
+    resetChartWindow();
   },
 );
 
 const moveChartWindow = ({ points }: { points: number }) => {
   if (!canPanChart.value) return;
-  const lastStart = chartData.value.length - CHART_WINDOW_POINTS;
-  const from = chartWindowStart.value ?? (points < 0 ? lastStart : 0);
-  chartWindowStart.value = Math.max(0, Math.min(lastStart, from + points));
+  const lastStart = lastChartWindowStart.value;
+  const start = chartWindowStart.value;
+  hidePoint();
+  inspectedDate.value = null;
+  chartWindowStart.value =
+    start === null ? (points < 0 ? lastStart : 0) : Math.max(0, Math.min(lastStart, start + points));
+};
+
+const resetChartWindow = () => {
+  hidePoint();
+  inspectedDate.value = null;
+  chartWindowStart.value = null;
 };
 
 let chartPointer: { id: number; x: number; y: number } | null = null;
 let ignoreChartClick = false;
 let chartTooltipTimer: ReturnType<typeof setTimeout> | undefined;
+let pointSelectedFromTable = false;
 let clearChartHover = () => {};
-const hideTouchTooltip = () => {
-  clearTimeout(chartTooltipTimer);
-  chartTooltipTimer = setTimeout(() => {
-    chartTooltipTimer = undefined;
-    cancelAnimationFrame(chartHoverFrame);
-    tooltip.visible = false;
-    clearChartHover();
-  }, 480);
-};
-const rememberChartPointer = (event: PointerEvent) => {
-  if (!event.isPrimary || event.button !== 0) return;
+let showChartHover: ((point: ChartPoint) => DOMPoint | null) | undefined;
+
+const stopTooltipTimer = () => {
   clearTimeout(chartTooltipTimer);
   chartTooltipTimer = undefined;
+};
+
+function hidePoint({ preserveSelection = false }: { preserveSelection?: boolean } = {}) {
+  stopTooltipTimer();
+  cancelAnimationFrame(chartHoverFrame);
+  tooltip.visible = false;
+  if (preserveSelection && pointSelectedFromTable) return;
+  pointSelectedFromTable = false;
+  clearChartHover();
+}
+
+const finishTooltipPointer = (event: PointerEvent) => {
+  if (!event.isPrimary || event.pointerType === 'mouse') return;
+  stopTooltipTimer();
+  chartTooltipTimer = setTimeout(() => hidePoint(), TOUCH_TOOLTIP_LINGER_MS);
+};
+
+const leaveChart = (event: PointerEvent) => {
+  if (event.pointerType === 'mouse') {
+    hidePoint({ preserveSelection: true });
+  } else if (chartTooltipTimer === undefined) {
+    finishTooltipPointer(event);
+  }
+};
+
+const rememberChartPointer = (event: PointerEvent) => {
+  if (!event.isPrimary || event.button !== 0) return;
   chartPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
   ignoreChartClick = false;
 };
 const finishChartPointer = (event: PointerEvent) => {
   if (chartPointer?.id !== event.pointerId) return;
-  if (event.pointerType !== 'mouse') hideTouchTooltip();
-  const dx = event.clientX - chartPointer.x;
-  const dy = event.clientY - chartPointer.y;
+  finishTooltipPointer(event);
+  // A drag may start on an enlarged spike hit target. Only taps and clicks open it.
+  ignoreChartClick = Math.hypot(event.clientX - chartPointer.x, event.clientY - chartPointer.y) >= SPIKE_TAP_MOVE_LIMIT;
   chartPointer = null;
-  if (!canPanChart.value || Math.abs(dx) < Math.max(CHART_PAN_THRESHOLD, Math.abs(dy))) return;
-  const width = svgRef.value?.clientWidth || 1;
-  const steps = Math.max(1, Math.round((Math.abs(dx) * CHART_WINDOW_POINTS) / width));
-  ignoreChartClick = true;
-  moveChartWindow({ points: -Math.sign(dx) * steps });
 };
 const cancelChartPointer = () => {
   chartPointer = null;
-  hideTouchTooltip();
+  hidePoint();
 };
-const inspectPoint = (d: (typeof chartData.value)[number], event: PointerEvent) => {
-  inspectedDate.value = d.date;
-  tooltip.date = new Date(d.date).toLocaleDateString(locale.value, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-  tooltip.accountsBalance = d.accountsBalance;
-  tooltip.portfoliosBalance = d.portfoliosBalance;
-  tooltip.venturesBalance = d.venturesBalance;
-  tooltip.vehiclesBalance = d.vehiclesBalance;
-  tooltip.loansBalance = d.loansBalance;
-  tooltip.totalBalance = d.value;
 
-  // Compute point-over-point deltas (charted line + each component)
-  const previousIndex = chartData.value.indexOf(d) - 1;
-  if (previousIndex >= 0) {
-    const prevPoint = chartData.value[previousIndex]!;
-    tooltip.deltaAbsolute = d.value - prevPoint.value;
-    tooltip.deltaPercent = prevPoint.value !== 0 ? ((d.value - prevPoint.value) / Math.abs(prevPoint.value)) * 100 : 0;
-    tooltip.accountsDelta = d.accountsBalance - prevPoint.accountsBalance;
-    tooltip.portfoliosDelta = d.portfoliosBalance - prevPoint.portfoliosBalance;
-    tooltip.venturesDelta = d.venturesBalance - prevPoint.venturesBalance;
-    tooltip.vehiclesDelta = d.vehiclesBalance - prevPoint.vehiclesBalance;
-    tooltip.loansDelta = d.loansBalance - prevPoint.loansBalance;
-    tooltip.hasDelta = true;
-  } else {
-    tooltip.deltaAbsolute = 0;
-    tooltip.deltaPercent = 0;
-    tooltip.accountsDelta = 0;
-    tooltip.portfoliosDelta = 0;
-    tooltip.venturesDelta = 0;
-    tooltip.vehiclesDelta = 0;
-    tooltip.loansDelta = 0;
-    tooltip.hasDelta = false;
-  }
+const inspectPoint = ({ point, anchor }: { point: ChartPoint; anchor: { clientX: number; clientY: number } }) => {
+  if (tooltip.visible && inspectedDate.value === point.date) return;
+  inspectedDate.value = point.date;
+  tooltip.date = formatDate(point.date, 'PP');
+  tooltip.accountsBalance = point.accountsBalance;
+  tooltip.portfoliosBalance = point.portfoliosBalance;
+  tooltip.venturesBalance = point.venturesBalance;
+  tooltip.vehiclesBalance = point.vehiclesBalance;
+  tooltip.loansBalance = point.loansBalance;
+  tooltip.totalBalance = point.value;
 
+  const previous = chartData.value[(pointIndices.value.get(point.date) ?? 0) - 1];
+  const diff = compareBalancePeriods({ current: point.value, previous: previous?.value });
+  tooltip.deltaAbsolute = diff.absolute;
+  tooltip.deltaPercent = diff.percent;
+  tooltip.accountsDelta = previous ? point.accountsBalance - previous.accountsBalance : 0;
+  tooltip.portfoliosDelta = previous ? point.portfoliosBalance - previous.portfoliosBalance : 0;
+  tooltip.venturesDelta = previous ? point.venturesBalance - previous.venturesBalance : 0;
+  tooltip.vehiclesDelta = previous ? point.vehiclesBalance - previous.vehiclesBalance : 0;
+  tooltip.loansDelta = previous ? point.loansBalance - previous.loansBalance : 0;
   tooltip.visible = true;
 
-  updateTooltipPosition(event);
+  // Measure the new tooltip content after Vue commits it, including on the first touch.
+  void nextTick(() => {
+    if (tooltip.visible && inspectedDate.value === point.date) updateTooltipPosition(anchor);
+  });
 };
-const leaveMini = () => {
-  if (chartTooltipTimer === undefined) hideTouchTooltip();
+
+const queuePointInspection = ({ event, inspect }: { event: PointerEvent; inspect: () => void }) => {
+  if (!event.isPrimary || (event.pointerType !== 'mouse' && !(event.buttons & 1))) return;
+  stopTooltipTimer();
+  cancelAnimationFrame(chartHoverFrame);
+  chartHoverFrame = requestAnimationFrame(inspect);
 };
+
 const inspectMini = (event: PointerEvent) => {
-  if (!miniTrend.value || (event.pointerType !== 'mouse' && !(event.buttons & 1))) return;
   const host = event.currentTarget;
   if (!(host instanceof SVGSVGElement)) return;
-  clearTimeout(chartTooltipTimer);
-  chartTooltipTimer = undefined;
-  const bounds = host.getBoundingClientRect();
-  const x = (300 * (event.clientX - bounds.left)) / Math.max(1, bounds.width);
-  const targetDate = miniTrend.value.x.invert(x);
-  const points = chartData.value;
-  const index = d3.bisector((point: (typeof points)[number]) => point.date).center(points, targetDate);
-  const point = points[index];
-  if (point) inspectPoint(point, event);
+  queuePointInspection({
+    event,
+    inspect: () => {
+      const trend = miniTrend.value;
+      const matrix = host.getScreenCTM();
+      if (!trend || !matrix) return;
+      const target = new DOMPoint(event.clientX, event.clientY).matrixTransform(matrix.inverse());
+      const points = chartData.value;
+      const point = points[nearestPointIndex(points, trend.x.invert(target.x))];
+      if (!point) return;
+      const anchor = new DOMPoint(trend.x(point.date), trend.y(point.value)).matrixTransform(matrix);
+      inspectPoint({ point, anchor: { clientX: anchor.x, clientY: anchor.y } });
+    },
+  });
+};
+
+const selectTablePoint = ({ point }: { point: ChartPoint }) => {
+  hidePoint();
+  pointSelectedFromTable = true;
+  inspectedDate.value = point.date;
+  const index = pointIndices.value.get(point.date) ?? 0;
+  const start = chartWindowStart.value;
+  if (start !== null && (index < start || index >= start + CHART_WINDOW_POINTS)) {
+    chartWindowStart.value = Math.min(
+      lastChartWindowStart.value,
+      Math.max(0, index - Math.floor(CHART_WINDOW_POINTS / 2)),
+    );
+    return;
+  }
+  showChartHover?.(point);
 };
 const protectChartPan = (event: MouseEvent) => {
   if (!ignoreChartClick) return;
@@ -1041,20 +1125,19 @@ const isPortfolioMode = computed(() => selectedBalanceType.value.value === 'port
 
 // Spike panel state
 const router = useRouter();
-const spikePanelRef = ref<InstanceType<typeof SpikeTransactionsPanel> | null>(null);
+const spikeAnchor = shallowRef<SVGCircleElement>();
 
 const spikePanel = reactive({
   visible: false,
-  x: 0,
-  y: 0,
   spikePoint: null as SpikePoint | null,
   accountsDelta: 0,
   portfoliosDelta: 0,
+  deltaPercent: null as number | null,
 });
 
 const spikeDateLabel = computed(() => {
   if (!spikePanel.spikePoint) return '';
-  return format(spikePanel.spikePoint.date, 'MMM d, yyyy');
+  return formatDate(spikePanel.spikePoint.date, 'PP');
 });
 
 const selectedSpikeDate = ref<string | null>(null);
@@ -1063,8 +1146,8 @@ const { data: spikeTransactions, isLoading: isSpikeTransactionsLoading } = useQu
   queryKey: ['spike-transactions', selectedSpikeDate],
   queryFn: async () => {
     if (!selectedSpikeDate.value) return [];
-    const dateStart = startOfDay(new Date(selectedSpikeDate.value));
-    const dateEnd = endOfDay(new Date(selectedSpikeDate.value));
+    const dateStart = startOfDay(parseISO(selectedSpikeDate.value));
+    const dateEnd = endOfDay(parseISO(selectedSpikeDate.value));
     const transactions = await loadTransactions({
       offset: 0,
       limit: 20,
@@ -1074,28 +1157,19 @@ const { data: spikeTransactions, isLoading: isSpikeTransactionsLoading } = useQu
     // Sort by highest refAmount (base currency) so the biggest transactions show first
     return transactions.sort((a, b) => Math.abs(b.refAmount) - Math.abs(a.refAmount));
   },
-  enabled: computed(() => selectedSpikeDate.value !== null),
+  enabled: computed(() => spikePanel.visible && selectedSpikeDate.value !== null),
   staleTime: Infinity,
 });
 
-let spikeAnchor: { clientX: number; clientY: number } | null = null;
-const spikePanelElement = computed(() => spikePanelRef.value?.panelRef ?? null);
-const { updateTooltipPosition: positionSpikePanel } = useChartTooltipPosition({
-  containerRef,
-  tooltipRef: spikePanelElement,
-  tooltip: spikePanel,
-  strategy: 'fixed',
-});
-useResizeObserver(spikePanelElement, () => {
-  if (spikeAnchor && spikePanel.visible) positionSpikePanel(spikeAnchor);
-});
-
-function openSpikePanel({ event, spike }: { event: MouseEvent; spike: SpikePoint }) {
-  spikeAnchor = { clientX: event.clientX, clientY: event.clientY };
+function openSpikePanel({ marker, spike }: { marker: SVGCircleElement; spike: SpikePoint }) {
+  spikeAnchor.value = marker;
+  marker.setAttribute('aria-expanded', 'true');
   spikePanel.spikePoint = spike;
 
   // Compute per-component deltas from chartData
-  const spikeIndex = chartData.value.findIndex((d) => d.date === spike.date);
+  const spikeIndex = pointIndices.value.get(spike.date) ?? 0;
+  const priorValue = chartData.value[spikeIndex - 1]?.value;
+  spikePanel.deltaPercent = compareBalancePeriods({ current: spike.value, previous: priorValue }).percent;
   if (spikeIndex > 0) {
     const curr = chartData.value[spikeIndex]!;
     const prev = chartData.value[spikeIndex - 1]!;
@@ -1106,10 +1180,8 @@ function openSpikePanel({ event, spike }: { event: MouseEvent; spike: SpikePoint
     spikePanel.portfoliosDelta = 0;
   }
 
+  hidePoint();
   spikePanel.visible = true;
-  void nextTick(() => {
-    if (spikeAnchor && spikePanel.visible) positionSpikePanel(spikeAnchor);
-  });
 
   // Trigger transaction fetch by setting the date
   selectedSpikeDate.value = format(spike.date, 'yyyy-MM-dd');
@@ -1117,40 +1189,31 @@ function openSpikePanel({ event, spike }: { event: MouseEvent; spike: SpikePoint
 
 function closeSpikePanel() {
   spikePanel.visible = false;
-  spikeAnchor = null;
-  spikePanel.spikePoint = null;
-  spikePanel.accountsDelta = 0;
-  spikePanel.portfoliosDelta = 0;
-  selectedSpikeDate.value = null;
+  spikeAnchor.value?.setAttribute('aria-expanded', 'false');
 }
 
 function navigateToSpikeTransactions() {
-  if (!spikePanel.spikePoint) return;
+  if (!spikePanel.visible || !spikePanel.spikePoint) return;
   const dateStr = format(new Date(spikePanel.spikePoint.date), 'yyyy-MM-dd');
 
+  closeSpikePanel();
+  showDetails.value = false;
   router.push({
     name: ROUTES_NAMES.transactions,
     query: { start: dateStr, end: dateStr },
   });
 }
 
-// Close spike panel on click outside
 function handleDocumentClick(event: MouseEvent) {
   const target = event.target as Element;
-  if (!svgRef.value?.contains(target)) tooltip.visible = false;
-  if (!spikePanel.visible) return;
-  // Ignore clicks on spike markers — they have their own handler
-  if (target.classList?.contains('spike-hit-area') || target.classList?.contains('spike-dot')) return;
-  const panelEl = spikePanelRef.value?.panelRef;
-  if (panelEl && !panelEl.contains(target)) {
-    closeSpikePanel();
+  if (!svgRef.value?.contains(target) && !miniContainer.value?.contains(target)) {
+    hidePoint({ preserveSelection: true });
   }
 }
 
 function handleEscapeKey(event: KeyboardEvent) {
   if (event.key !== 'Escape') return;
-  tooltip.visible = false;
-  if (spikePanel.visible) closeSpikePanel();
+  hidePoint();
 }
 
 onMounted(() => {
@@ -1178,6 +1241,8 @@ let chartRenderFrame = 0;
 let chartHoverFrame = 0;
 const renderChart = () => {
   cancelAnimationFrame(chartHoverFrame);
+  showChartHover = undefined;
+  clearChartHover = () => {};
   if (!showDetails.value || !svgRef.value || !containerRef.value || chartData.value.length === 0) return;
 
   const points = chartWindow.value ?? chartData.value;
@@ -1349,90 +1414,65 @@ const renderChart = () => {
       axis.selectAll('.tick text').attr('fill', colors.text).attr('font-size', '11px').attr('dx', '-0.3em');
     });
 
-  // Invisible overlay for mouse tracking
-  const bisect = d3.bisector<(typeof chartData.value)[0], number>((d) => d.date).left;
-
-  // Hover dot (hidden by default)
-  const hoverDot = g
-    .append('circle')
-    .attr('class', 'hover-dot')
-    .attr('r', 5)
-    .attr('fill', 'var(--primary)')
-    .attr('stroke', 'var(--card)')
-    .attr('stroke-width', 2)
-    .style('opacity', 0);
-
-  // Vertical line (hidden by default)
-  const hoverLine = g
+  const hoverGuide = g.append('g').attr('pointer-events', 'none').attr('visibility', 'hidden');
+  const hoverLine = hoverGuide
     .append('line')
     .attr('class', 'hover-line')
     .attr('stroke', 'var(--primary)')
     .attr('stroke-width', 1)
     .attr('stroke-dasharray', '4,4')
+    .attr('stroke-opacity', 0.5)
     .attr('y1', 0)
-    .attr('y2', innerHeight)
-    .style('opacity', 0);
+    .attr('y2', innerHeight);
+  const hoverDot = hoverGuide
+    .append('circle')
+    .attr('class', 'hover-dot')
+    .attr('r', 5)
+    .attr('fill', 'var(--primary)')
+    .attr('stroke', 'var(--card)')
+    .attr('stroke-width', 2);
 
-  clearChartHover = () => {
-    hoverDot.style('opacity', 0);
-    hoverLine.style('opacity', 0);
+  clearChartHover = () => hoverGuide.attr('visibility', 'hidden');
+  showChartHover = (point) => {
+    const x = xScale(point.date);
+    const y = yScale(point.value);
+    hoverDot.attr('cx', x).attr('cy', y);
+    hoverLine.attr('x1', x).attr('x2', x);
+    hoverGuide.attr('visibility', 'visible');
+    const matrix = g.node()?.getScreenCTM();
+    return matrix ? new DOMPoint(x, y).matrixTransform(matrix) : null;
   };
+  if (inspectedDate.value !== null && (pointSelectedFromTable || tooltip.visible)) {
+    const point = points.find(({ date }) => date === inspectedDate.value);
+    if (point) showChartHover(point);
+  }
 
+  const plot = g.node()!;
   g.append('rect')
     .attr('class', 'overlay')
     .attr('width', innerWidth)
     .attr('height', innerHeight)
     .attr('fill', 'transparent')
-    .attr('cursor', 'crosshair')
-    .on('mouseenter', () => {
-      hoverDot.style('opacity', 1);
-      hoverLine.style('opacity', 0.5);
-    })
-    .on('pointermove pointerdown', (event: PointerEvent) => {
-      if (!event.isPrimary || (event.pointerType !== 'mouse' && !(event.buttons & 1))) return;
-      const interactionTarget = event.currentTarget;
-      if (!(interactionTarget instanceof SVGRectElement)) return;
-      cancelAnimationFrame(chartHoverFrame);
-      chartHoverFrame = requestAnimationFrame(() => {
-        const [mouseX, mouseY] = d3.pointer(event, interactionTarget);
-        if (event.pointerType !== 'mouse' && chartPointer?.id === event.pointerId) {
-          if (mouseX < 0 || mouseX > innerWidth || mouseY < 0 || mouseY > innerHeight) {
-            if (chartTooltipTimer === undefined) hideTouchTooltip();
-            return;
-          }
-          clearTimeout(chartTooltipTimer);
-          chartTooltipTimer = undefined;
+    .attr('cursor', 'crosshair');
+
+  g.on('pointermove pointerdown', (event: PointerEvent) => {
+    queuePointInspection({
+      event,
+      inspect: () => {
+        const [x, y] = d3.pointer(event, plot);
+        if (x < 0 || x > innerWidth || y < 0 || y > innerHeight) {
+          hidePoint({ preserveSelection: true });
+          return;
         }
-        hoverDot.style('opacity', 1);
-        hoverLine.style('opacity', 0.5);
-        const x0 = xScale.invert(mouseX);
-        const index = bisect(points, x0, 1);
-        const d0 = points[index - 1];
-        const d1 = points[index];
 
-        if (!d0) return;
-
-        const isCloserToD1 = d1 && x0 - d0.date > d1.date - x0;
-        const d = isCloserToD1 ? d1 : d0;
-
-        // Update hover dot position
-        hoverDot.attr('cx', xScale(d.date)).attr('cy', yScale(d.value));
-
-        // Update hover line position
-        hoverLine.attr('x1', xScale(d.date)).attr('x2', xScale(d.date));
-
-        inspectPoint(d, event);
-      });
-    })
-    .on('pointerleave', (event: PointerEvent) => {
-      if (event.pointerType !== 'mouse') {
-        hideTouchTooltip();
-        return;
-      }
-      cancelAnimationFrame(chartHoverFrame);
-      tooltip.visible = false;
-      clearChartHover();
+        const point = points[nearestPointIndex(points, xScale.invert(x))];
+        if (!point || (tooltip.visible && inspectedDate.value === point.date)) return;
+        pointSelectedFromTable = false;
+        const anchor = showChartHover?.(point);
+        if (anchor) inspectPoint({ point, anchor: { clientX: anchor.x, clientY: anchor.y } });
+      },
     });
+  });
 
   // Spike markers — appended after overlay so they sit on top in SVG z-order
   const markerRadius = isMobile ? 5 : 6;
@@ -1441,7 +1481,7 @@ const renderChart = () => {
 
   // Invisible hit areas (larger click target)
   markers
-    .selectAll('.spike-hit-area')
+    .selectAll<SVGCircleElement, SpikePoint>('.spike-hit-area')
     .data(visibleSpikes)
     .join('circle')
     .attr('class', 'spike-hit-area')
@@ -1452,24 +1492,24 @@ const renderChart = () => {
     .attr('cursor', 'pointer')
     .attr('tabindex', 0)
     .attr('role', 'button')
+    .attr('aria-haspopup', 'dialog')
+    .attr('aria-expanded', (d) => String(spikePanel.visible && spikePanel.spikePoint?.date === d.date))
     .attr(
       'aria-label',
       (d) =>
-        `${t('dashboard.widgets.balanceTrend.title')}, ${new Date(d.date).toLocaleDateString(locale.value)}, ${formatBaseCurrency(d.deltaAbsolute)}`,
+        `${t('dashboard.widgets.balanceTrend.title')}, ${formatDate(d.date, 'PP')}, ${formatBaseCurrency(d.deltaAbsolute)}`,
     )
-    .on('click', (event: MouseEvent, d) => {
-      event.stopPropagation();
-      openSpikePanel({ event, spike: d });
+    .each(function (spike) {
+      if (spikePanel.visible && spikePanel.spikePoint?.date === spike.date) spikeAnchor.value = this;
     })
-    .on('keydown', (event: KeyboardEvent, d) => {
+    .on('click', function (event: MouseEvent, spike) {
+      event.stopPropagation();
+      openSpikePanel({ marker: this, spike });
+    })
+    .on('keydown', function (event: KeyboardEvent, spike) {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       event.preventDefault();
-      const rect = (event.currentTarget as SVGCircleElement).getBoundingClientRect();
-      const click = new MouseEvent('click', {
-        clientX: rect.left + rect.width / 2,
-        clientY: rect.top + rect.height / 2,
-      });
-      openSpikePanel({ event: click, spike: d });
+      openSpikePanel({ marker: this, spike });
     });
 
   // Visible markers
@@ -1547,6 +1587,7 @@ const renderChart = () => {
           .join('\n'),
       );
   }
+  hoverGuide.raise();
 };
 
 const displayBalance = computed(() => {
@@ -1623,14 +1664,17 @@ const scheduleChartRender = () => {
 };
 useResizeObserver(containerRef, scheduleChartRender);
 watch(
-  [svgRef, chartData, actualDataPeriod, currentTheme, spikePoints, chartXAxisEnd, projection, chartWindow, showDetails],
+  [svgRef, chartData, actualDataPeriod, currentTheme, spikePoints, chartXAxisEnd, projection, showDetails],
   () => {
     closeSpikePanel();
-    tooltip.visible = false;
+    hidePoint();
+    inspectedDate.value = null;
     scheduleChartRender();
   },
   { flush: 'post' },
 );
+
+watch(chartWindow, scheduleChartRender, { flush: 'post' });
 
 const miniAnimation = shallowRef<{ path: string; area: string }>();
 let miniFrame = 0;

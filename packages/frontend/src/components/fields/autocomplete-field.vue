@@ -41,6 +41,11 @@ const emit = defineEmits<{
 }>();
 
 const isOpen = ref(false);
+const anchor = ref<InstanceType<typeof ComboboxAnchor>>();
+const overlay = computed(() => {
+  const element = anchor.value?.$el;
+  return element instanceof HTMLElement ? element.closest<HTMLElement>('[data-lajur-overlay-layer]') : undefined;
+});
 // Filters by what was typed since the list opened, so opening a filled field still shows every option.
 const query = ref('');
 
@@ -73,7 +78,7 @@ const handlePick = (value: unknown) => {
         ignore-filter
         @update:model-value="handlePick"
       >
-        <ComboboxAnchor class="relative">
+        <ComboboxAnchor ref="anchor" class="relative">
           <ComboboxInput
             :model-value="modelValue"
             :placeholder="placeholder"
@@ -92,11 +97,12 @@ const handlePick = (value: unknown) => {
           />
         </ComboboxAnchor>
 
-        <ComboboxPortal>
+        <ComboboxPortal :to="overlay ?? 'body'">
           <ComboboxContent
             position="popper"
             :side-offset="4"
-            class="bg-popover text-popover-foreground z-(--z-dialog) w-(--reka-combobox-trigger-width) overflow-hidden rounded-md border shadow-md"
+            class="bg-popover text-popover-foreground w-(--reka-combobox-trigger-width) overflow-hidden rounded-md border shadow-md"
+            :class="overlay ? 'z-[calc(var(--z-over-dialog)_+_2)]' : 'z-(--z-dialog)'"
           >
             <ComboboxViewport class="max-h-64 p-1">
               <template v-if="!items.length">

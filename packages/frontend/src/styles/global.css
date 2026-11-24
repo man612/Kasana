@@ -615,15 +615,22 @@
 .lajur-scrim-blur {
   backdrop-filter: blur(2px);
 }
-.lajur-scrim-dialog:has(~ .lajur-scrim-dialog[data-state='open']) {
-  background-color: transparent;
-  backdrop-filter: none;
+[data-lajur-nested-overlay] .lajur-scrim-dialog {
+  background-color: rgb(0 0 0 / 52%);
 }
-.lajur-menu-scrim-enter-active {
-  transition: opacity 180ms var(--kasana-motion-ease);
+[data-lajur-backdrop]:not(.lajur-dialog-scroll) {
+  touch-action: none;
+  overscroll-behavior: contain;
 }
+.lajur-menu-scrim-enter-active,
 .lajur-menu-scrim-leave-active {
-  transition: opacity 140ms var(--kasana-motion-ease);
+  transition: opacity 200ms var(--kasana-motion-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lajur-menu-scrim-enter-active,
+  .lajur-menu-scrim-leave-active {
+    transition: none;
+  }
 }
 .lajur-menu-scrim-enter-from,
 .lajur-menu-scrim-leave-to {
@@ -1111,8 +1118,8 @@ select:focus-visible,
 .lajur-flow-row-enter-active,
 .lajur-flow-row-leave-active {
   transition:
-    grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 220ms ease;
+    grid-template-rows var(--kasana-motion-normal) var(--kasana-motion-ease),
+    opacity var(--kasana-motion-normal) ease;
 }
 .lajur-flow-row-enter-active > :is(div, span),
 .lajur-flow-row-leave-active > :is(div, span) {

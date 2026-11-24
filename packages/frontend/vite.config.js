@@ -104,12 +104,10 @@ export default async ({ mode }) => {
       sourcemap: true,
       rollupOptions: {
         output: {
-          // Split large vendor libraries into separate chunks
-          manualChunks: {
-            // Analytics - can be deferred
-            posthog: ['posthog-js'],
-            // Error tracking - separate but still loaded early
-            sentry: ['@sentry/vue'],
+          onlyExplicitManualChunks: true,
+          manualChunks(id) {
+            // Shared icons otherwise become many tiny requests on the dashboard.
+            if (id.includes('/@lucide/vue/dist/esm/')) return 'lucide-icons';
           },
         },
       },

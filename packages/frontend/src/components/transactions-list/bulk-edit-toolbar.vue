@@ -86,7 +86,7 @@ const handleEdit = () => {
     <div class="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1.5 sm:gap-x-4">
       <!-- Select all / deselect all checkbox -->
       <div class="flex min-h-9 cursor-pointer items-center gap-2 whitespace-nowrap" @click="handleSelectAllClick">
-        <Checkbox :model-value="isAllSelected" />
+        <Checkbox :model-value="isAllSelected" :aria-label="$t('transactions.bulkEdit.selectAll')" />
         <span class="text-sm @sm/bulk-toolbar:hidden">{{ t('transactions.bulkEdit.selectAllShort') }}</span>
         <span class="hidden text-sm @sm/bulk-toolbar:inline">{{ t('transactions.bulkEdit.selectAll') }}</span>
       </div>

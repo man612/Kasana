@@ -65,7 +65,7 @@
                     <EllipsisIcon class="size-4" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent align="end" :dim-backdrop="false" class="flex w-44 flex-col p-1">
+                <PopoverContent align="end" class="flex w-44 flex-col p-1">
                   <Button variant="ghost" size="sm" class="justify-start font-normal" @click="openNameDialog({ view })">
                     <PencilIcon class="size-4" />
                     {{ $t('transactions.savedViews.rename') }}

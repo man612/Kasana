@@ -1,25 +1,21 @@
 import { config } from '@/common/config';
-import * as Sentry from '@sentry/vue';
-import { makeFetchTransport } from '@sentry/vue';
 import type { App } from 'vue';
 import type { Router } from 'vue-router';
 
-/**
- * Check if Sentry should be enabled.
- * Only enabled in production with valid DSN.
- */
-function isSentryEnabled(): boolean {
-  const isProduction = import.meta.env.PROD;
-  const hasDsn = Boolean(config.sentryDsn);
-
-  return isProduction && hasDsn;
-}
+type SentryModule = typeof import('@sentry/vue');
+let sentry: SentryModule | undefined;
 
 /**
  * Custom transport that silently handles errors (e.g., when blocked by ad blockers).
  * Wraps the default fetch transport and catches any network failures.
  */
-function makeSilentFetchTransport(options: Parameters<typeof makeFetchTransport>[0]) {
+function makeSilentFetchTransport({
+  makeFetchTransport,
+  options,
+}: {
+  makeFetchTransport: SentryModule['makeFetchTransport'];
+  options: Parameters<SentryModule['makeFetchTransport']>[0];
+}) {
   const transport = makeFetchTransport(options);
 
   return {
@@ -39,17 +35,17 @@ function makeSilentFetchTransport(options: Parameters<typeof makeFetchTransport>
  * Initialize Sentry error tracking.
  * Should be called before app.mount().
  */
-export function initSentry({ app, router }: { app: App; router: Router }): void {
-  if (!isSentryEnabled()) {
-    return;
-  }
+export async function initSentry({ app, router }: { app: App; router: Router }): Promise<void> {
+  const dsn = config.sentryDsn;
+  if (!import.meta.env.PROD || !dsn) return;
+  const Sentry = await import('@sentry/vue');
 
   Sentry.init({
     app,
-    dsn: config.sentryDsn,
+    dsn,
     release: config.sentryRelease,
     // Use custom transport that silently handles blocked requests
-    transport: makeSilentFetchTransport,
+    transport: (options) => makeSilentFetchTransport({ options, makeFetchTransport: Sentry.makeFetchTransport }),
     integrations: [
       // Browser tracing for performance monitoring
       Sentry.browserTracingIntegration({
@@ -145,6 +141,7 @@ export function initSentry({ app, router }: { app: App; router: Router }): void 
       return event;
     },
   });
+  sentry = Sentry;
 }
 
 /**
@@ -160,11 +157,7 @@ export function setSentryUser({
   email?: string;
   username?: string;
 }): void {
-  if (!isSentryEnabled()) {
-    return;
-  }
-
-  Sentry.setUser({
+  sentry?.setUser({
     id: String(userId),
     email,
     username,
@@ -175,11 +168,7 @@ export function setSentryUser({
  * Clear user context (call on logout).
  */
 export function clearSentryUser(): void {
-  if (!isSentryEnabled()) {
-    return;
-  }
-
-  Sentry.setUser(null);
+  sentry?.setUser(null);
 }
 
 /**
@@ -193,11 +182,7 @@ export function captureException({
   error: Error | unknown;
   context?: Record<string, unknown>;
 }): void {
-  if (!isSentryEnabled()) {
-    return;
-  }
-
-  Sentry.captureException(error, {
+  sentry?.captureException(error, {
     extra: context,
   });
 }
@@ -217,11 +202,7 @@ export function addBreadcrumb({
   level?: 'debug' | 'info' | 'warning' | 'error';
   data?: Record<string, unknown>;
 }): void {
-  if (!isSentryEnabled()) {
-    return;
-  }
-
-  Sentry.addBreadcrumb({
+  sentry?.addBreadcrumb({
     category,
     message,
     level: level || 'info',

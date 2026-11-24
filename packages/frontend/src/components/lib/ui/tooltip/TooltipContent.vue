@@ -5,6 +5,7 @@ import {
   type TooltipContentEmits,
   type TooltipContentProps,
   TooltipPortal,
+  injectTooltipRootContext,
   useForwardPropsEmits,
 } from 'reka-ui';
 import { type HTMLAttributes, computed } from 'vue';
@@ -28,16 +29,21 @@ const delegatedProps = computed(() => {
 });
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
+const { trigger } = injectTooltipRootContext();
+
+// Keep a dialog tooltip in its own layer, including when another dialog opens above it.
+const overlay = computed(() => trigger.value?.closest<HTMLElement>('[data-lajur-overlay-layer]'));
 </script>
 
 <template>
-  <TooltipPortal>
+  <TooltipPortal :to="overlay ?? 'body'">
     <TooltipContent
       v-bind="{ ...forwarded, ...$attrs }"
       :collision-padding="12"
       :class="
         cn(
-          'bg-popover text-popover-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-(--z-over-dialog) max-h-[min(40dvh,16rem)] max-w-[min(20rem,calc(100vw-24px))] overflow-y-auto overscroll-contain wrap-anywhere rounded-md border px-3 py-2 text-sm leading-relaxed text-pretty shadow-md',
+          'bg-popover text-popover-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 max-h-[min(40dvh,16rem)] max-w-[min(20rem,calc(100vw-24px))] overflow-y-auto overscroll-contain rounded-md border px-3 py-2 text-sm leading-relaxed text-pretty wrap-anywhere shadow-md',
+          overlay ? 'z-[calc(var(--z-over-dialog)_+_2)]' : 'z-(--z-over-dialog)',
           props.class,
         )
       "

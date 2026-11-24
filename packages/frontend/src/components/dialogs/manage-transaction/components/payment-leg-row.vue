@@ -117,16 +117,15 @@ defineExpose({
         <slot name="actions" />
       </div>
     </div>
-    <FieldError :error-message="errorMessage" />
-    <Transition name="lajur-form-panel">
-      <p
-        v-if="accountWarningVisible && !account"
-        class="text-warning-text mt-1 text-xs"
-        role="status"
-        aria-live="polite"
-      >
-        {{ $t('dialogs.manageTransaction.form.paymentLegs.chooseAccountFirst') }}
-      </p>
+    <FieldError animated :error-message="errorMessage" />
+    <Transition name="lajur-flow-row">
+      <div v-if="accountWarningVisible && !account" class="lajur-flow-row">
+        <div>
+          <p class="text-warning-text mt-1 text-xs" role="status">
+            {{ $t('dialogs.manageTransaction.form.paymentLegs.chooseAccountFirst') }}
+          </p>
+        </div>
+      </div>
     </Transition>
   </div>
 </template>

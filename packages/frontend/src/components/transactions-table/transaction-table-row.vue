@@ -9,14 +9,25 @@
     <!-- Selection checkbox (sticky so it survives horizontal scroll) -->
     <td
       :class="[
-        'sticky left-0 z-1 w-8 border-b px-1',
-        isPlannedRow ? ['bg-muted border-l-[3px]', isPlanExpired ? 'border-l-warning' : 'border-l-primary'] : 'bg-card',
+        'sticky left-0 z-1 w-(--selection-width) overflow-hidden border-b',
+        isPlannedRow ? 'bg-muted' : 'bg-card',
+        isPlannedRow && showCheckbox && ['border-l-[3px]', isPlanExpired ? 'border-l-warning' : 'border-l-primary'],
       ]"
+      :aria-hidden="!showCheckbox"
       @click.stop
     >
-      <div class="flex flex-col items-center justify-center gap-0.5">
+      <div
+        class="flex w-8 flex-col items-center justify-center gap-0.5 motion-safe:transition-opacity"
+        :class="!showCheckbox && 'opacity-0'"
+        :inert="!showCheckbox"
+      >
         <label class="flex items-center justify-center">
-          <Checkbox v-if="isSelectable" :model-value="isSelected" @update:model-value="onSelectionChange" />
+          <Checkbox
+            v-if="isSelectable"
+            :aria-label="$t('common.transactions.record.selectRow')"
+            :model-value="isSelected"
+            @update:model-value="showCheckbox && onSelectionChange($event)"
+          />
           <ResponsiveTooltip
             v-else-if="unselectableReason"
             :delay-duration="100"
@@ -56,6 +67,7 @@
     >
       <!-- Date -->
       <template v-if="column.id === TABLE_COLUMN.date">
+        <PlannedIndicator v-if="!showCheckbox && !isPlannedRow" compact hide-confirmed :transaction="tx" />
         <time class="text-muted-foreground block tabular-nums">
           <span class="block">{{ formattedDate }}</span>
           <span v-if="formattedClock" class="block text-xs">{{ formattedClock }}</span>
@@ -345,6 +357,7 @@ const props = defineProps<{
   isSelected: boolean;
   showTime?: boolean;
   isSelectable: boolean;
+  showCheckbox: boolean;
   /** Shown as an explainer tooltip in place of the checkbox when not selectable. */
   unselectableReason?: BulkUnselectableReason | null;
   /** Resolved payee (name + logo fields) for the beneficiary cell; undefined for transfers/unassigned. */

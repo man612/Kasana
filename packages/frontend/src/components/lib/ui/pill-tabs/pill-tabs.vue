@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { cn } from '@/lib/utils';
 import { usePreferredReducedMotion, useResizeObserver } from '@vueuse/core';
-import { nextTick, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from 'vue';
 import {
   type PillTabItem,
   type PillTabsSize,
@@ -30,21 +30,22 @@ const emit = defineEmits<{
 }>();
 
 const containerRef = ref<HTMLElement | null>(null);
+const triggerRefs = useTemplateRef<HTMLElement[]>('triggers');
 const reducedMotion = usePreferredReducedMotion();
 const fades = ref({ start: false, end: false });
 const updateFades = () => {
   const el = containerRef.value;
   if (!el || !props.scrollable) return;
-  fades.value = { start: el.scrollLeft > 1, end: el.scrollWidth - el.clientWidth - el.scrollLeft > 1 };
+  const offset = Math.abs(el.scrollLeft);
+  fades.value = { start: offset > 1, end: el.scrollWidth - el.clientWidth - offset > 1 };
 };
 const indicatorStyle = ref({ left: '0px', width: '0px' });
 
 function updateIndicator(reveal = false) {
-  if (!containerRef.value) return;
+  const el = containerRef.value;
+  if (!el) return;
   updateFades();
-  const activeBtn = [...containerRef.value.querySelectorAll<HTMLElement>('[data-value]')].find(
-    (button) => button.dataset.value === props.modelValue,
-  );
+  const activeBtn = triggerRefs.value?.find((button) => button.dataset.value === props.modelValue);
   if (!activeBtn) {
     indicatorStyle.value = { left: '0px', width: '0px' };
     return;
@@ -55,13 +56,13 @@ function updateIndicator(reveal = false) {
     width: `${activeBtn.offsetWidth}px`,
   };
   if (reveal && props.scrollable) {
-    const el = containerRef.value;
-    const inset = 8;
-    const before = activeBtn.offsetLeft - inset;
-    const after = activeBtn.offsetLeft + activeBtn.offsetWidth + inset - el.clientWidth;
-    const target = el.scrollLeft > before ? before : Math.max(el.scrollLeft, after);
-    if (target !== el.scrollLeft) {
-      el.scrollTo({ left: target, behavior: reducedMotion.value === 'reduce' ? 'instant' : 'smooth' });
+    const trackBounds = el.getBoundingClientRect();
+    const activeBounds = activeBtn.getBoundingClientRect();
+    const leftOverflow = activeBounds.left - trackBounds.left;
+    const rightOverflow = activeBounds.right - trackBounds.right;
+    const delta = leftOverflow < 0 ? leftOverflow : Math.max(0, rightOverflow);
+    if (Math.abs(delta) > 0.5) {
+      el.scrollBy({ left: delta, behavior: reducedMotion.value === 'reduce' ? 'instant' : 'smooth' });
     }
   }
 }
@@ -70,8 +71,9 @@ onMounted(() => {
   updateIndicator(true);
 });
 
-// Covers mounting inside a hidden panel, where every trigger measures 0 until it is shown.
-useResizeObserver(containerRef, () => updateIndicator());
+// Tab labels can resize independently of the scrollport, e.g. when a font loads.
+const observedElements = computed(() => [containerRef.value, ...(triggerRefs.value ?? [])]);
+useResizeObserver(observedElements, () => updateIndicator(true));
 
 watch(
   () => [props.modelValue, props.items],
@@ -80,7 +82,19 @@ watch(
 </script>
 
 <template>
-  <div class="relative min-w-0" :class="scrollable ? 'w-full' : 'contents'">
+  <div
+    :class="
+      scrollable
+        ? 'bg-muted border-border/50 grid w-full min-w-0 grid-cols-[0.5rem_minmax(0,1fr)_0.5rem] rounded-full border'
+        : 'contents'
+    "
+  >
+    <span
+      v-if="scrollable"
+      aria-hidden="true"
+      class="from-muted-foreground/35 pointer-events-none rounded-s-full bg-linear-to-r transition-opacity motion-reduce:transition-none rtl:bg-linear-to-l"
+      :class="fades.start ? 'opacity-100' : 'opacity-0'"
+    />
     <div
       ref="containerRef"
       v-bind="$attrs"
@@ -89,7 +103,7 @@ watch(
         cn(
           pillTabsContainerVariants({ size }),
           fullWidth && 'flex w-full self-auto',
-          scrollable && 'flex w-full overscroll-x-contain rounded-full',
+          scrollable && 'flex w-full overscroll-x-contain rounded-none border-0 bg-transparent',
         )
       "
       @scroll.passive="updateFades"
@@ -104,6 +118,7 @@ watch(
       <button
         v-for="item in items"
         :key="item.value"
+        ref="triggers"
         type="button"
         :data-value="item.value"
         :aria-pressed="modelValue === item.value"
@@ -116,7 +131,8 @@ watch(
                 ? 'text-primary-foreground'
                 : 'text-foreground'
               : 'text-muted-foreground',
-            scrollable && 'min-h-11 shrink-0 rounded-full',
+            scrollable && 'shrink-0 rounded-full duration-200 ease-out motion-reduce:transition-none',
+            scrollable && (size === 'sm' ? 'min-h-8 px-2.5' : 'min-h-11'),
             (disabled || item.disabled) && 'cursor-not-allowed opacity-50',
             fullWidth && 'flex-1',
           )
@@ -133,17 +149,11 @@ watch(
         </span>
       </button>
     </div>
-    <template v-if="scrollable">
-      <span
-        aria-hidden="true"
-        class="from-muted pointer-events-none absolute inset-y-1 left-1 z-2 w-5 rounded-l-full bg-linear-to-r transition-opacity motion-reduce:transition-none"
-        :class="fades.start ? 'opacity-100' : 'opacity-0'"
-      />
-      <span
-        aria-hidden="true"
-        class="from-muted pointer-events-none absolute inset-y-1 right-1 z-2 w-5 rounded-r-full bg-linear-to-l transition-opacity motion-reduce:transition-none"
-        :class="fades.end ? 'opacity-100' : 'opacity-0'"
-      />
-    </template>
+    <span
+      v-if="scrollable"
+      aria-hidden="true"
+      class="from-muted-foreground/35 pointer-events-none rounded-e-full bg-linear-to-l transition-opacity motion-reduce:transition-none rtl:bg-linear-to-r"
+      :class="fades.end ? 'opacity-100' : 'opacity-0'"
+    />
   </div>
 </template>

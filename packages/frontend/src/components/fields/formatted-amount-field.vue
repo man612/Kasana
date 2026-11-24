@@ -48,7 +48,7 @@
       </div>
       <slot name="field-right" />
     </div>
-    <FieldError :error-message="errorMessage" />
+    <FieldError :animated="animateError" :error-message="errorMessage" />
   </FieldLabel>
 </template>
 
@@ -70,6 +70,7 @@ const props = defineProps<{
   placeholder?: string;
   disabled?: boolean;
   errorMessage?: string;
+  animateError?: boolean;
   embedded?: boolean;
   currencyCode?: string;
   autofocus?: boolean;

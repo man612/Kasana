@@ -14,6 +14,8 @@ const detailRoutes = new Set<string>([
   ROUTES_NAMES.account,
   ROUTES_NAMES.accountsVehicleDetails,
   ROUTES_NAMES.loanDetail,
+  ROUTES_NAMES.automationCreate,
+  ROUTES_NAMES.automationDetails,
 ]);
 const stopDirection = router.afterEach((to, from, failure) => {
   if (failure || to.matched[1]?.path === from.matched[1]?.path) return;
@@ -24,7 +26,10 @@ const stopDirection = router.afterEach((to, from, failure) => {
       : 'kasana-page';
 });
 onScopeDispose(stopDirection);
-const routeKey = computed(() => `${route.matched[1]?.path ?? route.path}:${attempt.value}`);
+const routeKey = computed(() => {
+  const path = route.name === ROUTES_NAMES.automationDetails ? route.path : (route.matched[1]?.path ?? route.path);
+  return `${path}:${attempt.value}`;
+});
 
 const stopListening = router.onError((_error, to) => {
   failedPath.value = to.fullPath;
@@ -51,7 +56,15 @@ const retry = async () => {
   }
 };
 
-const finishLeave = (_element: Element, done: () => void) => done();
+const deactivateLeavingPage = (element: Element) => {
+  if (element instanceof HTMLElement) element.inert = true;
+};
+
+const activateEnteringPage = (element: Element) => {
+  if (!(element instanceof HTMLElement)) return;
+  element.inert = false;
+  if (direction.value !== 'kasana-page') element.focus({ preventScroll: true });
+};
 </script>
 
 <template>
@@ -63,11 +76,48 @@ const finishLeave = (_element: Element, done: () => void) => done();
     <p role="alert">{{ $t('common.errors.pageLoadFailed') }}</p>
     <Button type="button" variant="outline" @click="retry">{{ $t('common.actions.retry') }}</Button>
   </section>
-  <RouterView v-if="!renderFailed" v-slot="{ Component }">
-    <Transition :name="direction" @leave="finishLeave">
-      <div v-if="Component" :key="routeKey" data-testid="route-page">
-        <component :is="Component" />
-      </div>
-    </Transition>
-  </RouterView>
+  <div v-if="!renderFailed" class="relative overflow-x-clip">
+    <RouterView v-slot="{ Component }">
+      <Transition :name="direction" @before-leave="deactivateLeavingPage" @enter="activateEnteringPage">
+        <div v-if="Component" :key="routeKey" class="outline-none" data-testid="route-page" tabindex="-1">
+          <component :is="Component" />
+        </div>
+      </Transition>
+    </RouterView>
+  </div>
 </template>
+
+<style scoped>
+.lajur-detail-forward-enter-active,
+.lajur-detail-back-enter-active {
+  position: relative;
+}
+
+.lajur-detail-forward-leave-active,
+.lajur-detail-back-leave-active {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+  transition:
+    opacity var(--kasana-motion-fast) var(--kasana-motion-ease),
+    transform var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+
+.lajur-detail-forward-leave-to {
+  opacity: 0;
+  transform: translateX(-1rem);
+}
+
+.lajur-detail-back-leave-to {
+  opacity: 0;
+  transform: translateX(1rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lajur-detail-forward-leave-active,
+  .lajur-detail-back-leave-active {
+    transition: none;
+  }
+}
+</style>

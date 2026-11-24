@@ -38,11 +38,12 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   click: [groupId: string];
-  toggle: [groupId: string];
+  toggle: [payload: { id: string; groupElement: HTMLElement }];
   'record-click': [[transaction: TransactionModel, opposite: TransactionModel | undefined]];
 }>();
 
 const membersId = useId();
+const groupElement = ref<HTMLElement | null>(null);
 const hasExpanded = ref(Boolean(props.expanded));
 watch(
   () => props.expanded,
@@ -90,7 +91,7 @@ const dateRange = computed(() => {
 </script>
 
 <template>
-  <div class="bg-primary/5 border-primary/20 rounded-lg border">
+  <div ref="groupElement" class="bg-primary/5 border-primary/20 rounded-lg border">
     <div class="flex min-w-0 items-center">
       <Button
         type="button"
@@ -124,7 +125,7 @@ const dateRange = computed(() => {
             { name: group.groupName },
           )
         "
-        @click="emit('toggle', group.groupId)"
+        @click="groupElement && emit('toggle', { id: group.groupId, groupElement })"
       >
         <ChevronDownIcon
           class="size-4 motion-safe:transition-transform motion-safe:duration-200"
@@ -132,7 +133,7 @@ const dateRange = computed(() => {
         />
       </Button>
     </div>
-    <LayoutCollapse v-if="expandable" :id="membersId" :open="Boolean(expanded)">
+    <LayoutCollapse v-if="expandable" :id="membersId" :open="Boolean(expanded)" data-group-disclosure>
       <div
         v-if="hasExpanded"
         class="border-border/60 mx-2 mb-2 grid gap-1 border-t pt-2 pl-2"

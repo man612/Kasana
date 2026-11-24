@@ -3,6 +3,7 @@
  * */
 export enum SCROLL_AREA_IDS {
   dashboard = 'scroll-area-dashboard',
+  latestRecords = 'scroll-area-latest-records',
   txRefundInfo = 'scroll-area-tx-refund-info',
   accountTransactions = 'scroll-area-account-transactions',
   transactionsPage = 'scroll-area-transactions-page',

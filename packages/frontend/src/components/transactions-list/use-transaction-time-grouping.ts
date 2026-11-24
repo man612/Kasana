@@ -4,15 +4,19 @@ import type { TransactionTimeGrouping } from '@bt/shared/types';
 import { useLocalStorage } from '@vueuse/core';
 import { computed, ref } from 'vue';
 
-export function useTransactionTimeGrouping() {
+export function useTransactionTimeGrouping({ defaultMode = 'none' }: { defaultMode?: TransactionTimeGrouping } = {}) {
   const { data, patchAsync } = useUserSettings();
   const user = useUserStore();
   const showTime = useLocalStorage(
     computed(() => `lajur:transaction-clock:user:${user.user?.id ?? 'none'}`),
     false,
   );
+  const showCheckboxes = useLocalStorage(
+    computed(() => `lajur:transaction-checkboxes:user:${user.user?.id ?? 'none'}`),
+    true,
+  );
   const localMode = ref<TransactionTimeGrouping>();
-  const mode = computed(() => localMode.value ?? data.value?.ui?.transactionsList?.timeGrouping ?? 'none');
+  const mode = computed(() => localMode.value ?? data.value?.ui?.transactionsList?.timeGrouping ?? defaultMode);
   let save = Promise.resolve();
   let revision = 0;
 
@@ -33,5 +37,5 @@ export function useTransactionTimeGrouping() {
     });
   };
 
-  return { mode, setMode, showTime };
+  return { mode, setMode, showTime, showCheckboxes };
 }

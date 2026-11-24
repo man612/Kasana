@@ -35,6 +35,7 @@ import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
+  backToDetail?: boolean;
   /** Destination loan account. Required for both create and edit modes. */
   loanAccount: AccountModel;
   /** Source-side leg in edit mode (the expense transaction on the user's bank account). */
@@ -43,7 +44,7 @@ const props = defineProps<{
   oppositeTransaction?: TransactionModel;
 }>();
 
-const emit = defineEmits<{ 'close-modal': []; committed: [] }>();
+const emit = defineEmits<{ 'close-modal': []; committed: []; 'request-close': [] }>();
 
 const { t } = useI18n();
 const { txTargetableSourceAccountsActiveFirst, accountsRecord } = storeToRefs(useAccountsStore());
@@ -153,7 +154,7 @@ const currentDraft = () =>
 const originalDraft = currentDraft();
 defineExpose({
   hasUnsavedChanges: () => originalDraft !== currentDraft(),
-  isSaving: () => submitMutation.isPending.value || deleteMutation.isPending.value,
+  isSaving: () => isLoading.value,
 });
 const unlinkMutation = useUnlinkLoanPayment();
 
@@ -328,7 +329,10 @@ const unlinkPayment = () => {
           {{ isEdit ? $t('dialogs.loanPayment.editTitle') : $t('dialogs.loanPayment.createTitle') }}
         </span>
       </DialogTitle>
-      <DialogClose as-child>
+      <Button v-if="backToDetail" variant="ghost" :disabled="isLoading" @click="emit('request-close')">
+        {{ $t('dialogs.manageTransaction.form.closeButton') }}
+      </Button>
+      <DialogClose v-else as-child>
         <Button variant="ghost">{{ $t('dialogs.manageTransaction.form.closeButton') }}</Button>
       </DialogClose>
     </div>

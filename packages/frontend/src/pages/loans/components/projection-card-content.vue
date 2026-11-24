@@ -5,9 +5,15 @@
         <span class="text-muted-foreground">{{ $t('loans.detail.projection.paidLabel') }}</span>
         <span class="font-medium">{{ paidPercentDisplay }}</span>
       </div>
-      <div class="bg-muted h-2 w-full overflow-hidden rounded-full">
+      <div
+        class="bg-muted h-2 w-full overflow-hidden rounded-full"
+        role="progressbar"
+        :aria-label="$t('loans.detail.projection.paidLabel')"
+        :aria-valuenow="progressBarWidth"
+        :aria-valuetext="paidPercentDisplay"
+      >
         <div
-          class="bg-app-income-color h-full rounded-full transition-[width] duration-300"
+          class="bg-app-income-color h-full rounded-full motion-safe:transition-[width] motion-safe:duration-200"
           :style="{ width: `${progressBarWidth}%` }"
         />
       </div>
@@ -28,32 +34,16 @@
       {{ $t(`loans.warnings.${loan.projection.warning}`) }}
     </div>
 
-    <div class="grid grid-cols-2 gap-4 text-sm">
-      <div>
-        <div class="text-muted-foreground text-xs">{{ $t('loans.detail.projection.payoffDate') }}</div>
-        <div class="mt-0.5 font-medium">{{ payoffDateDisplay }}</div>
+    <dl class="divide-border/60 border-border/60 divide-y border-t text-sm">
+      <div
+        v-for="{ label, value } in projectionMetrics"
+        :key="label"
+        class="grid grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] items-baseline gap-2 py-2 wrap-anywhere"
+      >
+        <dt class="text-muted-foreground">{{ $t(label) }}</dt>
+        <dd class="text-right font-medium tabular-nums">{{ value }}</dd>
       </div>
-      <div>
-        <div class="text-muted-foreground text-xs">{{ $t('loans.detail.projection.monthsRemaining') }}</div>
-        <div class="mt-0.5 font-medium">{{ monthsRemainingDisplay }}</div>
-      </div>
-      <div>
-        <div class="text-muted-foreground text-xs">{{ $t('loans.detail.projection.totalInterestRemaining') }}</div>
-        <div class="mt-0.5 font-medium">{{ formatCurrency(loan.projection.totalInterestRemaining) }}</div>
-      </div>
-      <div>
-        <div class="text-muted-foreground text-xs">{{ $t('loans.detail.projection.nextMonthInterest') }}</div>
-        <div class="mt-0.5 font-medium">{{ formatCurrency(loan.projection.monthlyInterest) }}</div>
-      </div>
-      <div>
-        <div class="text-muted-foreground text-xs">{{ $t('loans.detail.projection.nextMonthPrincipal') }}</div>
-        <div class="mt-0.5 font-medium">{{ formatCurrency(loan.projection.monthlyPrincipal) }}</div>
-      </div>
-      <div>
-        <div class="text-muted-foreground text-xs">{{ $t('loans.detail.projection.plannedPayment') }}</div>
-        <div class="mt-0.5 font-medium">{{ formatCurrency(loan.loanDetails.plannedPayment) }}</div>
-      </div>
-    </div>
+    </dl>
   </div>
 </template>
 
@@ -81,4 +71,17 @@ const { progressBarWidth, monthsRemainingDisplay, payoffDateDisplay } = useLoanP
   loan: () => props.loan,
   payoffDateFormat: 'MMM d, yyyy',
 });
+const projectionMetrics = computed(() => [
+  { label: 'loans.detail.projection.payoffDate', value: payoffDateDisplay.value },
+  { label: 'loans.detail.projection.monthsRemaining', value: monthsRemainingDisplay.value },
+  {
+    label: 'loans.detail.projection.totalInterestRemaining',
+    value: formatCurrency(props.loan.projection.totalInterestRemaining),
+  },
+  { label: 'loans.detail.projection.nextMonthInterest', value: formatCurrency(props.loan.projection.monthlyInterest) },
+  {
+    label: 'loans.detail.projection.nextMonthPrincipal',
+    value: formatCurrency(props.loan.projection.monthlyPrincipal),
+  },
+]);
 </script>

@@ -67,6 +67,18 @@
         </div>
       </div>
 
+      <LayoutCollapse :open="!!accounts?.length && (hasRestoredAccounts || isAccountsRefreshing || isAccountsError)">
+        <p class="text-muted-foreground mb-3 flex min-h-8 flex-wrap items-center gap-x-2 text-sm" role="status">
+          <template v-if="isAccountsError">
+            {{ $t('common.status.financialStale') }}
+            <UiButton variant="link" size="sm" @click="accountsStore.refetchAccounts()">
+              {{ $t('common.actions.retry') }}
+            </UiButton>
+          </template>
+          <template v-else>{{ $t('common.status.financialRefreshing') }}</template>
+        </p>
+      </LayoutCollapse>
+
       <template v-if="isInitialLoading">
         <div class="grid grid-cols-1 gap-8">
           <Card>
@@ -107,78 +119,96 @@
             :projected-total="projectedTotal"
           />
 
-          <AccountsSection v-if="manualItems.length" :title="$t('accounts.sections.manual')" :count="manualCount">
-            <div class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border">
-              <template v-for="item in manualItems" :key="item.id">
-                <AccountGroupRow v-if="item.kind === 'group'" :group="item.group" />
-                <AccountListRow v-else :account="item.account" />
-              </template>
-            </div>
-          </AccountsSection>
-
-          <AccountsSection
-            v-if="connectionRows.length"
-            :title="$t('accounts.sections.bankConnections')"
-            :count="bankConnectionsCount"
+          <div
+            class="grid min-w-0 items-start gap-5"
+            :class="
+              (manualItems.length > 0 || connectionRows.length > 0) &&
+              (sharedAccounts.length > 0 || vehiclesWithAccount.length > 0) &&
+              '@4xl/accounts-page:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]'
+            "
           >
-            <template #action>
-              <UiButton size="sm" @click="openAddIntegrationDialog">
-                <LinkIcon class="size-4" />
-                <span class="@[30rem]/accounts-page:hidden">{{ $t('accounts.connect') }}</span>
-                <span class="hidden @[30rem]/accounts-page:inline">{{ $t('accounts.connectBank') }}</span>
-              </UiButton>
-            </template>
+            <div v-if="manualItems.length || connectionRows.length" class="grid min-w-0 gap-5">
+              <AccountsSection v-if="manualItems.length" :title="$t('accounts.sections.manual')" :count="manualCount">
+                <div class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border">
+                  <template v-for="item in manualItems" :key="item.id">
+                    <AccountGroupRow v-if="item.kind === 'group'" :group="item.group" />
+                    <AccountListRow v-else :account="item.account" />
+                  </template>
+                </div>
+              </AccountsSection>
 
-            <div
-              v-if="connectionRows.length"
-              class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border"
-            >
-              <BankConnectionRow
-                v-for="row in sortedConnectionRows"
-                :key="row.connection.id"
-                :connection="row.connection"
-                :accounts="row.accounts"
-                :folder-group-names="folderGroupNames"
-              />
+              <AccountsSection
+                v-if="connectionRows.length"
+                :title="$t('accounts.sections.bankConnections')"
+                :count="bankConnectionsCount"
+              >
+                <template #action>
+                  <UiButton size="sm" @click="openAddIntegrationDialog">
+                    <LinkIcon class="size-4" />
+                    <span class="@[30rem]/accounts-page:hidden">{{ $t('accounts.connect') }}</span>
+                    <span class="hidden @[30rem]/accounts-page:inline">{{ $t('accounts.connectBank') }}</span>
+                  </UiButton>
+                </template>
+
+                <div
+                  v-if="connectionRows.length"
+                  class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border"
+                >
+                  <BankConnectionRow
+                    v-for="row in sortedConnectionRows"
+                    :key="row.connection.id"
+                    :connection="row.connection"
+                    :accounts="row.accounts"
+                    :folder-group-names="folderGroupNames"
+                  />
+                </div>
+                <p v-else class="text-muted-foreground px-1 py-2 text-sm">{{ $t('accounts.noBanksConnected') }}</p>
+              </AccountsSection>
             </div>
-            <p v-else class="text-muted-foreground px-1 py-2 text-sm">{{ $t('accounts.noBanksConnected') }}</p>
-          </AccountsSection>
 
-          <AccountsSection
-            v-if="sharedAccounts.length"
-            :title="$t('accounts.sections.sharedWithMe')"
-            :count="sharedAccounts.length"
-          >
-            <div class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border">
-              <AccountListRow v-for="account in sortedShared" :key="account.id" :account="account" />
+            <div v-if="sharedAccounts.length || vehiclesWithAccount.length" class="grid min-w-0 gap-5">
+              <AccountsSection
+                v-if="sharedAccounts.length"
+                :title="$t('accounts.sections.sharedWithMe')"
+                :count="sharedAccounts.length"
+              >
+                <div class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border">
+                  <AccountListRow v-for="account in sortedShared" :key="account.id" :account="account" />
+                </div>
+              </AccountsSection>
+
+              <AccountsSection
+                v-if="vehiclesWithAccount.length"
+                id="account-vehicles"
+                class="scroll-mt-[calc(var(--header-height,0px)+1rem)]"
+                :title="$t('accounts.sections.vehicles')"
+                :count="vehiclesWithAccount.length"
+              >
+                <template v-if="baseCurrencyCode" #action>
+                  <GroupTotal
+                    :amount="vehiclesBaseTotal.total"
+                    :currency-code="baseCurrencyCode"
+                    :is-approx="vehiclesBaseTotal.isApprox"
+                    emphasis
+                  />
+                </template>
+
+                <div class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border">
+                  <AccountListRow
+                    v-for="vehicle in sortedVehicles"
+                    :key="vehicle.id"
+                    :account="vehicle.account!"
+                    :vehicle-id="vehicle.id"
+                    :subtitle="`${vehicle.year} ${vehicle.make} ${vehicle.model}`"
+                    :category-override="ACCOUNT_CATEGORIES.vehicle"
+                    :fallback-icon="
+                      getVehicleTypeIcon({ type: vehicle.vehicleType, legacyClass: vehicle.vehicleClass })
+                    "
+                  />
+                </div>
+              </AccountsSection>
             </div>
-          </AccountsSection>
-
-          <AccountsSection
-            v-if="vehiclesWithAccount.length"
-            :title="$t('accounts.sections.vehicles')"
-            :count="vehiclesWithAccount.length"
-          >
-            <template v-if="baseCurrencyCode" #action>
-              <GroupTotal
-                :amount="vehiclesBaseTotal.total"
-                :currency-code="baseCurrencyCode"
-                :is-approx="vehiclesBaseTotal.isApprox"
-                emphasis
-              />
-            </template>
-
-            <div class="border-border/60 bg-card divide-border/60 divide-y overflow-hidden rounded-xl border">
-              <AccountListRow
-                v-for="vehicle in sortedVehicles"
-                :key="vehicle.id"
-                :account="vehicle.account!"
-                :subtitle="`${vehicle.year} ${vehicle.make} ${vehicle.model}`"
-                :category-override="ACCOUNT_CATEGORIES.vehicle"
-                :fallback-icon="getVehicleTypeIcon({ type: vehicle.vehicleType, legacyClass: vehicle.vehicleClass })"
-              />
-            </div>
-          </AccountsSection>
+          </div>
 
           <section v-if="archivedAccounts.length">
             <Collapsible v-model:open="isArchivedOpen">
@@ -252,6 +282,7 @@
 import { type BankConnection, type BankProvider, listConnections, listProviders } from '@/api/bank-data-providers';
 import { getVehicles } from '@/api/vehicles';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import PageWrapper from '@/components/common/page-wrapper.vue';
 import CreateAccountDialog from '@/components/dialogs/create-account-dialog.vue';
 import CreateVehicleDialog from '@/components/dialogs/create-vehicle-dialog.vue';
@@ -304,7 +335,9 @@ const openMobileCreateAction = async (kind: 'account' | 'vehicle') => {
 
 const { sortConnectionRows, sortLeafAccounts, sortVehicles, sortManual } = useAccountsSort();
 
-const { accounts, activeAccounts, isAccountsFetched } = storeToRefs(useAccountsStore());
+const accountsStore = useAccountsStore();
+const { accounts, activeAccounts, isAccountsFetched, isAccountsError, isAccountsRefreshing, hasRestoredAccounts } =
+  storeToRefs(accountsStore);
 
 const { data: accountGroups, isFetched: isGroupsFetched } = useAccountGroupsQuery({ placeholderData: [] });
 

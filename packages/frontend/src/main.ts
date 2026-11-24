@@ -7,6 +7,7 @@ import { identifyCurrentTheme } from '@/common/utils/color-theme';
 import { installMobileInteractionSounds } from '@/common/utils/mobile-interaction-sound';
 import { getDateFnsLocale } from '@/composable/use-date-locale';
 import { i18n, initializeLocale, loadChunks } from '@/i18n';
+import { i18nChunkGuard } from '@/i18n/route-guard';
 import { initPostHog, trackPageviews } from '@/lib/posthog';
 import { queryClient } from '@/lib/query-client';
 import { stashResetPasswordToken } from '@/lib/reset-password-token';
@@ -41,69 +42,70 @@ watchEffect(
   { flush: 'sync' },
 );
 
-// Initialize locale from localStorage/browser
 const initialLocale = initializeLocale();
+const localeReady = (async () => {
+  if (initialLocale === 'en') return;
+  await loadChunks({ locale: initialLocale, chunks: ['common'] });
+  i18n.global.locale.value = initialLocale as SupportedLocale;
+})().catch((error: unknown) => {
+  console.warn('i18n initialization failed, using defaults:', error);
+});
 
-// Load common chunk for the initial locale (if not English, English is preloaded)
-// The route guard will load page-specific chunks on navigation
-const initI18n = async () => {
-  if (initialLocale !== 'en') {
-    // For non-English locales, load the common chunk
-    await loadChunks({ locale: initialLocale, chunks: ['common'] });
-    i18n.global.locale.value = initialLocale as SupportedLocale;
-  }
+const app = createApp(App);
+const head = createHead();
+
+const start = async () => {
+  // When configured, attach Sentry's Vue hooks before mount.
+  await initSentry({ app, router }).catch((error: unknown) => {
+    console.warn('Could not initialize error tracking:', error);
+  });
+
+  void initPostHog();
+  trackPageviews({ router });
+
+  app.use(store);
+  app.use(head);
+  app.use(i18n);
+  app.use(VueQueryPlugin, { queryClient });
+
+  // Session verification can run while the locale is loading. The first route
+  // still waits for its own messages before the splash is removed.
+  router.beforeResolve(async (...args) => {
+    await localeReady;
+    return i18nChunkGuard(...args);
+  });
+  app.use(router);
+  await localeReady;
+  app.mount('#app');
+  // The document splash remains until the router's first component is mounted.
+  void router
+    .isReady()
+    .then(async () => {
+      await nextTick();
+      const splash = document.getElementById('lajur-boot');
+      if (!splash) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !splash.animate) {
+        splash.remove();
+        return;
+      }
+      splash.setAttribute('aria-hidden', 'true');
+      splash.style.pointerEvents = 'none';
+      const exit = splash.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, fill: 'forwards' });
+      void exit.finished.catch(() => undefined).then(() => splash.remove());
+    })
+    .catch((error: unknown) => {
+      console.error('Initial navigation failed:', error);
+      const status = document.getElementById('lajur-boot-status');
+      const indicator = document.getElementById('lajur-boot-indicator');
+      const retry = document.getElementById('lajur-boot-retry');
+      if (status) status.textContent = 'Aplikasi belum dapat dimuat. Periksa koneksi Anda.';
+      if (indicator) indicator.hidden = true;
+      if (retry) {
+        retry.hidden = false;
+        retry.addEventListener('click', () => window.location.reload(), { once: true });
+      }
+    });
+  installMobileInteractionSounds();
 };
 
-// Initialize i18n before mounting
-initI18n()
-  .catch((err) => {
-    console.warn('i18n initialization failed, using defaults:', err);
-  })
-  .finally(() => {
-    const app = createApp(App);
-    const head = createHead();
-
-    // Initialize Sentry before mounting (must be early to catch errors)
-    initSentry({ app, router });
-
-    initPostHog();
-    trackPageviews({ router });
-
-    app.use(router);
-    app.use(store);
-    app.use(head);
-    app.use(i18n); // Register vue-i18n plugin
-
-    app.use(VueQueryPlugin, { queryClient });
-
-    app.mount('#app');
-    // The document splash remains until the router's first component is mounted.
-    void router
-      .isReady()
-      .then(async () => {
-        await nextTick();
-        const splash = document.getElementById('lajur-boot');
-        if (!splash) return;
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !splash.animate) {
-          splash.remove();
-          return;
-        }
-        splash.setAttribute('aria-hidden', 'true');
-        splash.style.pointerEvents = 'none';
-        const exit = splash.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 150, fill: 'forwards' });
-        void exit.finished.catch(() => undefined).then(() => splash.remove());
-      })
-      .catch((error: unknown) => {
-        console.error('Initial navigation failed:', error);
-        const status = document.getElementById('lajur-boot-status');
-        const indicator = document.getElementById('lajur-boot-indicator');
-        const retry = document.getElementById('lajur-boot-retry');
-        if (status) status.textContent = 'Aplikasi belum dapat dimuat. Periksa koneksi Anda.';
-        if (indicator) indicator.hidden = true;
-        if (retry) {
-          retry.hidden = false;
-          retry.addEventListener('click', () => window.location.reload(), { once: true });
-        }
-      });
-    installMobileInteractionSounds();
-  });
+void start();

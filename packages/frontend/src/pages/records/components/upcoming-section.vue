@@ -350,15 +350,18 @@ function confirmDeletePlan() {
     <SubscriptionMarkPaidDialog ref="markPaidDialogRef" />
 
     <TransactionDetailsModal
-      v-slot="{ requestClose }"
+      v-slot="{ requestClose, transaction, committed, finish, deleted }"
       v-model:open="isEditDialogOpen"
+      :transaction="editedPlan"
       :session="editSession"
       :mobile="isMobile"
     >
       <ManageTransactionDialogContent
         ref="editSession"
-        :transaction="editedPlan"
-        @close-modal="isEditDialogOpen = false"
+        :transaction="transaction"
+        @committed="committed"
+        @deleted="deleted"
+        @close-modal="finish"
         @request-close="requestClose"
       />
     </TransactionDetailsModal>

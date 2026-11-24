@@ -387,6 +387,7 @@
       "yesterday": "Yesterday",
       "currentWeek": "This week · {range}",
       "showTime": "Show time",
+      "showCheckbox": "Show checkboxes",
       "timeRequired": "Daily groups always show the time because the date is in the group heading."
     }
   },

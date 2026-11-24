@@ -135,13 +135,13 @@
             </DesktopOnlyTooltip>
           </div>
         </div>
-        <FieldError :error-message="errorMessage" />
+        <FieldError :animated="animateError" :error-message="errorMessage" />
       </FieldLabel>
       <template v-else>
         <Dialog.DialogTrigger as-child>
           <slot name="trigger" :disabled="disabled || !isPopoverAvailable" />
         </Dialog.DialogTrigger>
-        <FieldError :error-message="errorMessage" />
+        <FieldError :animated="animateError" :error-message="errorMessage" />
       </template>
       <Dialog.DialogContent
         blur-overlay
@@ -166,6 +166,7 @@
               :key="calendarPageKey"
               v-model="localValue"
               v-bind="calendarOptions"
+              :min-date="calendarOptions?.minDate ?? MIN_DATE"
               mode="date"
               type="single"
               month-navigation
@@ -179,16 +180,40 @@
             <label :for="timeInputId" class="text-sm font-medium">
               {{ i18n.global.t('common.dateSelector.timeLabel') }} ({{ timeZoneLabel }})
             </label>
+            <div v-if="usesNativeTime" class="relative">
+              <Button
+                :id="timeInputId"
+                type="button"
+                variant="outline"
+                class="bg-input-background active:bg-muted h-9 w-24 px-2 tabular-nums"
+                aria-haspopup="dialog"
+                :aria-label="`${$t('common.dateSelector.timeLabel')} (${timeZoneLabel}) ${dialogTimeValue}`"
+                data-testid="date-dialog-time-input"
+                @click="showNativeTimePicker"
+              >
+                {{ dialogTimeValue }}
+              </Button>
+              <input
+                ref="nativeTimeInput"
+                :value="dialogTimeValue"
+                type="time"
+                tabindex="-1"
+                aria-hidden="true"
+                class="pointer-events-none absolute inset-0 h-full w-full opacity-0"
+                @input="handleDialogTimeTyping"
+              />
+            </div>
             <input
+              v-else
               :id="timeInputId"
+              ref="typedTimeInput"
               :value="dialogTimeValue"
-              :type="usesNativeTime ? 'time' : 'text'"
-              :inputmode="usesNativeTime ? undefined : 'numeric'"
-              :maxlength="usesNativeTime ? undefined : 5"
+              type="text"
+              inputmode="numeric"
+              maxlength="5"
               placeholder="HH:mm"
               class="border-input bg-input-background focus-visible:ring-ring h-9 w-24 rounded-md border px-2 text-center text-sm tabular-nums focus-visible:ring-2 focus-visible:outline-none"
               data-testid="date-dialog-time-input"
-              @click="showNativeTimePicker"
               @input="handleDialogTimeTyping"
             />
           </div>
@@ -242,7 +267,7 @@ import { i18n } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { format, getDate, getMonth, getYear, parse, set, startOfDay } from 'date-fns';
 import { CalendarClockIcon, Clock3Icon, XIcon } from '@lucide/vue';
-import { computed, ref, useId, watch } from 'vue';
+import { computed, nextTick, ref, useId, watch } from 'vue';
 import { useDocumentVisibility, useIntervalFn, useMediaQuery } from '@vueuse/core';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { getDateFnsLocale } from '@/composable/use-date-locale';
@@ -257,6 +282,7 @@ const props = withDefaults(
     type?: string;
     tabindex?: string;
     errorMessage?: string;
+    animateError?: boolean;
     inputFieldStyles?: Record<string, string>;
     disabled?: boolean;
     calendarOptions?: {
@@ -381,19 +407,20 @@ const showDialogNow = computed(
 const dialogTimeError = computed(() => props.mode !== 'date' && !parsedTime(dialogTimeValue.value));
 const isTouchPointer = useMediaQuery('(pointer: coarse)');
 const nativeTimeUnavailable = ref(false);
+const nativeTimeInput = ref<HTMLInputElement | null>(null);
+const typedTimeInput = ref<HTMLInputElement | null>(null);
 const usesNativeTime = computed(
   () =>
     isTouchPointer.value && !nativeTimeUnavailable.value && typeof HTMLInputElement.prototype.showPicker === 'function',
 );
 
-function showNativeTimePicker(event: MouseEvent) {
-  if (!usesNativeTime.value) return;
-  const input = event.currentTarget as HTMLInputElement;
+function showNativeTimePicker() {
   try {
-    input.showPicker();
+    nativeTimeInput.value?.showPicker();
   } catch {
     // Embedded browsers can expose showPicker but reject opening the OS surface.
     nativeTimeUnavailable.value = true;
+    void nextTick(() => typedTimeInput.value?.focus());
   }
 }
 

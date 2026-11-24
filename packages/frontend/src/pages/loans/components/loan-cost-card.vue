@@ -4,7 +4,9 @@
       <div class="text-base font-semibold">{{ $t('loans.detail.paidOff.cost.title') }}</div>
     </CardHeader>
     <CardContent>
-      <div class="text-3xl font-semibold tracking-tight">{{ formatCurrency(costSplit.total) }}</div>
+      <div class="text-3xl font-semibold tracking-tight wrap-anywhere tabular-nums">
+        {{ formatCurrency(costSplit.total) }}
+      </div>
       <div class="text-muted-foreground mt-1 text-xs">{{ $t('loans.detail.paidOff.cost.totalLabel') }}</div>
 
       <!-- Split bar: principal vs. estimated interest, proportional, with a 2px gap between segments. -->
@@ -22,14 +24,14 @@
           <span class="bg-loan-principal size-2.5 shrink-0 rounded-full" aria-hidden="true" />
           <div class="min-w-0">
             <div class="text-muted-foreground text-xs">{{ $t('loans.detail.paidOff.cost.principal') }}</div>
-            <div class="text-sm font-medium tabular-nums">{{ formatCurrency(costSplit.principal) }}</div>
+            <div class="text-sm font-medium wrap-anywhere tabular-nums">{{ formatCurrency(costSplit.principal) }}</div>
           </div>
         </div>
         <div class="flex items-center gap-2">
           <span class="bg-loan-interest size-2.5 shrink-0 rounded-full" aria-hidden="true" />
           <div class="min-w-0">
             <div class="text-muted-foreground text-xs">{{ $t('loans.detail.paidOff.cost.interest') }}</div>
-            <div class="text-sm font-medium tabular-nums">{{ interestDisplay }}</div>
+            <div class="text-sm font-medium wrap-anywhere tabular-nums">{{ interestDisplay }}</div>
           </div>
         </div>
       </div>
