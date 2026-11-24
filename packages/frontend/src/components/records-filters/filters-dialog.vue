@@ -2,8 +2,13 @@
   <div class="flex items-center justify-end">
     <ResponsiveDialog :open="open" @update:open="$emit('update:open', $event)">
       <template #trigger>
-        <UiButton variant="secondary" :size="size">
-          {{ t('transactions.filters.filtersLabel') }}
+        <UiButton
+          variant="secondary"
+          :size="iconOnly ? 'icon' : size"
+          :aria-label="t('transactions.filters.filtersLabel')"
+          :data-filters-active="isAnyFiltersApplied || undefined"
+        >
+          <span v-if="!iconOnly">{{ t('transactions.filters.filtersLabel') }}</span>
 
           <div class="relative">
             <ListFilterIcon class="size-4" />
@@ -31,9 +36,12 @@ import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
 
-withDefaults(defineProps<{ open: boolean; isAnyFiltersApplied: boolean; size?: ButtonVariantProps['size'] }>(), {
-  size: 'default',
-});
+withDefaults(
+  defineProps<{ open: boolean; isAnyFiltersApplied: boolean; size?: ButtonVariantProps['size']; iconOnly?: boolean }>(),
+  {
+    size: 'default',
+  },
+);
 
 defineEmits(['update:open']);
 </script>

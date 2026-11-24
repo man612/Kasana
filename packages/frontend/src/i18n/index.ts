@@ -208,7 +208,11 @@ export function ensureChunkLoaded(chunk: I18nChunkName): Promise<void> {
 /**
  * Load chunks required for a route (collects from route and all parent routes)
  */
-export async function loadChunksForRoute({ route }: { route: RouteLocationNormalized }): Promise<void> {
+export async function loadChunksForRoute({
+  route,
+}: {
+  route: Pick<RouteLocationNormalized, 'matched'>;
+}): Promise<void> {
   const locale = i18n.global.locale.value;
   const requiredChunks = new Set<I18nChunkName>();
 

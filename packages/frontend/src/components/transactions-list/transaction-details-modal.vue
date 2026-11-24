@@ -7,7 +7,7 @@ import { captureException } from '@/lib/sentry';
 import type { AccountModel, TransactionModel } from '@bt/shared/types';
 import { createReusableTemplate } from '@vueuse/core';
 import { useRoute } from 'vue-router';
-import { computed, defineAsyncComponent, nextTick, onScopeDispose, ref, shallowRef, watch } from 'vue';
+import { computed, defineAsyncComponent, onScopeDispose, ref, shallowRef, watch } from 'vue';
 import * as Dialog from '@/components/lib/ui/dialog';
 import * as Drawer from '@/components/lib/ui/drawer';
 
@@ -51,7 +51,15 @@ const preparingEditor = ref(false);
 const refreshingCommit = ref(false);
 const body = ref<HTMLElement | null>(null);
 let bodyMotion: Animation | undefined;
-onScopeDispose(() => bodyMotion?.cancel());
+let heldBody: { element: HTMLElement; height: number } | undefined;
+
+const stopBodyMotion = () => {
+  if (heldBody) heldBody.element.style.removeProperty('height');
+  heldBody = undefined;
+  bodyMotion?.cancel();
+  bodyMotion = undefined;
+};
+onScopeDispose(stopBodyMotion);
 let detailLoad: Promise<void> | undefined;
 const loanSession = shallowRef<TransactionDialogSession | null>(null);
 const opener = shallowRef<HTMLElement | null>(null);
@@ -66,21 +74,30 @@ const close = () => {
   open.value = false;
 };
 
-const changeMode = async ({ edit }: { edit: boolean }) => {
+const changeMode = ({ edit }: { edit: boolean }) => {
+  if (editing.value === edit) return;
   const element = body.value;
-  const from = element?.offsetHeight ?? 0;
-  bodyMotion?.cancel();
+  const height = element ? Number.parseFloat(getComputedStyle(element).height) : 0;
+  stopBodyMotion();
+  if (element?.animate && height > 0 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    // The outgoing panel leaves before the incoming panel mounts. Keep the
+    // sheet anchored while neither panel contributes to the intrinsic height.
+    heldBody = { element, height };
+    element.style.height = `${height}px`;
+  }
   editing.value = edit;
-  await nextTick();
-  if (!element?.isConnected || !open.value || editing.value !== edit || !element.animate) return;
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const to = element.offsetHeight;
-  if (Math.abs(to - from) < 2) return;
+};
 
-  // The mode owns one height transition. Child field transitions can continue
-  // to drive intrinsic height once the edit screen is in place.
+const animateModeHeight = () => {
+  const held = heldBody;
+  if (!held) return;
+  const { element, height } = held;
+  stopBodyMotion();
+  if (!element.isConnected || !open.value) return;
+  const to = element.offsetHeight;
+  if (Math.abs(to - height) < 2) return;
   const motion = getComputedStyle(element);
-  const animation = element.animate([{ height: `${from}px` }, { height: `${to}px` }], {
+  const animation = element.animate([{ height: `${height}px` }, { height: `${to}px` }], {
     duration: Number.parseFloat(motion.getPropertyValue('--kasana-motion-normal')),
     easing: motion.getPropertyValue('--kasana-motion-ease').trim(),
   });
@@ -94,7 +111,7 @@ const changeMode = async ({ edit }: { edit: boolean }) => {
 
 const returnToRead = () => {
   if (props.creation) close();
-  else void changeMode({ edit: false });
+  else changeMode({ edit: false });
 };
 
 const requestOpen = (value: boolean) => {
@@ -144,7 +161,7 @@ const startEditing = async () => {
       detailLoad,
       props.loanAccount ? loadLoanPaymentForm() : import('@/components/dialogs/manage-transaction/dialog-content.vue'),
     ]);
-    if (open.value && requestVersion === version) await changeMode({ edit: true });
+    if (open.value && requestVersion === version) changeMode({ edit: true });
   } catch (error) {
     captureException({ error, context: { source: 'transaction-editor', transactionId: selected.value?.id } });
   } finally {
@@ -157,7 +174,7 @@ const onCommit = () => {
 };
 const finishEditing = async () => {
   if (!open.value) return;
-  if (props.creation || (!committed && props.loanAccount)) {
+  if (props.creation) {
     close();
     return;
   }
@@ -172,7 +189,7 @@ const finishEditing = async () => {
   await refresh;
   if (requestVersion !== version || !open.value) return;
   refreshingCommit.value = false;
-  await changeMode({ edit: false });
+  changeMode({ edit: false });
 };
 watch(
   () => [open.value, props.transaction?.id] as const,
@@ -181,6 +198,7 @@ watch(
     confirmOpen.value = false;
     preparingEditor.value = false;
     refreshingCommit.value = false;
+    stopBodyMotion();
     if (!visible) return;
     if (!wasVisible) opener.value = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     committed = false;
@@ -218,9 +236,11 @@ const restoreFocus = (event: Event) => {
       class="relative grid min-h-0 min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)] overflow-hidden"
     >
       <Transition
+        mode="out-in"
         :name="showEditor ? 'lajur-detail-edit' : 'lajur-detail-read'"
         @before-leave="setLeaving"
         @before-enter="setEntering"
+        @enter="animateModeHeight"
         @after-enter="focusView"
       >
         <TransactionReadView

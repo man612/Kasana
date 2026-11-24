@@ -1358,6 +1358,7 @@ select:focus-visible,
   position: absolute;
   inset: 0;
   pointer-events: none;
+  transition-duration: var(--kasana-motion-fast);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1369,5 +1370,28 @@ select:focus-visible,
   .lajur-detail-edit-enter-active,
   .lajur-detail-edit-leave-active {
     transition: none;
+  }
+}
+
+.lajur-dashboard {
+  --lajur-dashboard-period-height: 3rem;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .lajur-dashboard-scroll-widget {
+      animation: lajur-dashboard-widget-exit linear both;
+      animation-timeline: view(block calc(var(--header-height, 0px) + var(--lajur-dashboard-period-height)) 0px);
+      animation-range: exit 0% exit 65%;
+    }
+  }
+}
+
+@keyframes lajur-dashboard-widget-exit {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.35;
   }
 }

@@ -32,34 +32,55 @@ const emit = defineEmits<{
 const containerRef = ref<HTMLElement | null>(null);
 const triggerRefs = useTemplateRef<HTMLElement[]>('triggers');
 const reducedMotion = usePreferredReducedMotion();
-const fades = ref({ start: false, end: false });
+const EDGE_FADE = 8;
+const EDGE_PADDING = 6;
+const activeTab = ref<{ left: number; width: number }>();
+const maskImage = ref('none');
+const readViewportLeft = ({ track }: { track: HTMLElement }) =>
+  track.matches(':dir(rtl)')
+    ? Math.max(0, track.scrollWidth - track.clientWidth + track.scrollLeft)
+    : Math.max(0, track.scrollLeft);
+
 const updateFades = () => {
   const el = containerRef.value;
   if (!el || !props.scrollable) return;
-  const offset = Math.abs(el.scrollLeft);
-  fades.value = { start: offset > 1, end: el.scrollWidth - el.clientWidth - offset > 1 };
+  const viewport = el.clientWidth;
+  const content = el.scrollWidth;
+  const left = readViewportLeft({ track: el });
+  const right = left + viewport;
+  const tab = activeTab.value;
+  const tabIsVisible = tab && tab.left + tab.width > left && tab.left < right;
+  const start = left > 1 ? Math.min(EDGE_FADE, tabIsVisible ? Math.max(0, tab.left - left) : EDGE_FADE) : 0;
+  const end =
+    content - right > 1 ? Math.min(EDGE_FADE, tabIsVisible ? Math.max(0, right - tab.left - tab.width) : EDGE_FADE) : 0;
+  maskImage.value =
+    start || end
+      ? `linear-gradient(to right, ${start ? 'transparent' : 'black'}, black ${start}px, black calc(100% - ${end}px), ${end ? 'transparent' : 'black'})`
+      : 'none';
 };
 const indicatorStyle = ref({ left: '0px', width: '0px' });
 
 function updateIndicator(reveal = false) {
   const el = containerRef.value;
   if (!el) return;
-  updateFades();
   const activeBtn = triggerRefs.value?.find((button) => button.dataset.value === props.modelValue);
   if (!activeBtn) {
     indicatorStyle.value = { left: '0px', width: '0px' };
+    activeTab.value = undefined;
+    updateFades();
     return;
   }
 
+  activeTab.value = { left: activeBtn.offsetLeft, width: activeBtn.offsetWidth };
+  updateFades();
   indicatorStyle.value = {
     left: `${activeBtn.offsetLeft}px`,
     width: `${activeBtn.offsetWidth}px`,
   };
   if (reveal && props.scrollable) {
-    const trackBounds = el.getBoundingClientRect();
-    const activeBounds = activeBtn.getBoundingClientRect();
-    const leftOverflow = activeBounds.left - trackBounds.left;
-    const rightOverflow = activeBounds.right - trackBounds.right;
+    const left = readViewportLeft({ track: el });
+    const leftOverflow = activeBtn.offsetLeft - left - EDGE_PADDING;
+    const rightOverflow = activeBtn.offsetLeft + activeBtn.offsetWidth - left - el.clientWidth + EDGE_PADDING;
     const delta = leftOverflow < 0 ? leftOverflow : Math.max(0, rightOverflow);
     if (Math.abs(delta) > 0.5) {
       el.scrollBy({ left: delta, behavior: reducedMotion.value === 'reduce' ? 'instant' : 'smooth' });
@@ -82,28 +103,17 @@ watch(
 </script>
 
 <template>
-  <div
-    :class="
-      scrollable
-        ? 'bg-muted border-border/50 grid w-full min-w-0 grid-cols-[0.5rem_minmax(0,1fr)_0.5rem] rounded-full border'
-        : 'contents'
-    "
-  >
-    <span
-      v-if="scrollable"
-      aria-hidden="true"
-      class="from-muted-foreground/35 pointer-events-none rounded-s-full bg-linear-to-r transition-opacity motion-reduce:transition-none rtl:bg-linear-to-l"
-      :class="fades.start ? 'opacity-100' : 'opacity-0'"
-    />
+  <div :class="scrollable ? 'bg-muted border-border/50 min-w-0 rounded-full border' : 'contents'">
     <div
       ref="containerRef"
       v-bind="$attrs"
+      :style="scrollable ? { maskImage } : undefined"
       :data-no-nav-swipe="scrollable ? '' : undefined"
       :class="
         cn(
           pillTabsContainerVariants({ size }),
           fullWidth && 'flex w-full self-auto',
-          scrollable && 'flex w-full overscroll-x-contain rounded-none border-0 bg-transparent',
+          scrollable && 'flex w-full overscroll-x-contain rounded-full border-0 bg-transparent px-2',
         )
       "
       @scroll.passive="updateFades"
@@ -149,11 +159,5 @@ watch(
         </span>
       </button>
     </div>
-    <span
-      v-if="scrollable"
-      aria-hidden="true"
-      class="from-muted-foreground/35 pointer-events-none rounded-e-full bg-linear-to-l transition-opacity motion-reduce:transition-none rtl:bg-linear-to-r"
-      :class="fades.end ? 'opacity-100' : 'opacity-0'"
-    />
   </div>
 </template>

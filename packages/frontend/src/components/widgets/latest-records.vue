@@ -56,6 +56,11 @@ const transferNatures = computed(() => buildLatestRecordsTransferNatures(exclusi
 const excludeBalanceAdjustments = computed(() => exclusions.value.excludeBalanceAdjustments);
 const { includePlanned } = useIncludePlannedConfig();
 const tagsVariant = computed(() => readLatestRecordsTagsVariant({ widgetConfig: widgetConfigRef?.value }));
+const { isOn: showTime } = useWidgetConfigFlag({
+  key: 'showTime',
+  defaultValue: false,
+  saveErrorKey: 'errors.api.unexpectedError',
+});
 const { isOn: showAccount } = useWidgetConfigFlag({
   key: 'showAccount',
   saveErrorKey: 'widgets.latestRecords.settings.showAccountSaveError',
@@ -425,6 +430,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
                 :max-display="txMaxDisplay"
                 :tags-variant="tagsVariant"
                 :show-account="showAccount"
+                :show-time="showTime"
               />
             </div>
           </ScrollArea>

@@ -1,7 +1,11 @@
 <template>
   <PageWrapper>
     <div class="@container/loans-page mb-4 flex flex-wrap items-center justify-between gap-2">
-      <h1 class="text-2xl font-semibold tracking-tight sm:text-3xl">{{ $t('loans.title') }}</h1>
+      <NavigationSectionTitle
+        section="accounts"
+        :label="$t('loans.title')"
+        class="text-2xl font-semibold tracking-tight sm:text-3xl"
+      />
 
       <CreateLoanDialog v-if="loansQuery.isSuccess.value && loans.length > 0">
         <UiButton class="min-h-11">
@@ -106,6 +110,7 @@
 </template>
 
 <script setup lang="ts">
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import PageWrapper from '@/components/common/page-wrapper.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import { Card, CardContent } from '@/components/lib/ui/card';

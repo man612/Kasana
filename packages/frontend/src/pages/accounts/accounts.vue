@@ -2,7 +2,11 @@
   <PageWrapper>
     <div class="@container/accounts-page">
       <div class="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 class="text-2xl font-semibold tracking-tight @md/accounts-page:text-3xl">{{ $t('accounts.title') }}</h1>
+        <NavigationSectionTitle
+          section="accounts"
+          :label="$t('accounts.title')"
+          class="text-2xl font-semibold tracking-tight @md/accounts-page:text-3xl"
+        />
 
         <!-- Wide: both buttons inline. Narrow: collapse into a kebab menu so the actions
              never wrap onto their own row. Popover-with-dialog-trigger mirrors the sidebar. -->
@@ -279,6 +283,7 @@
 </template>
 
 <script setup lang="ts">
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import { type BankConnection, type BankProvider, listConnections, listProviders } from '@/api/bank-data-providers';
 import { getVehicles } from '@/api/vehicles';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';

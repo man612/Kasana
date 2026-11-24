@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import PageWrapper from '@/components/common/page-wrapper.vue';
 import { Card } from '@/components/lib/ui/card';
 import { useTransactionAutomations } from '@/composable/data-queries/transaction-automations';
@@ -27,7 +28,11 @@ const tools = [
   <PageWrapper>
     <div class="grid max-w-2xl gap-4">
       <header>
-        <h1 class="text-2xl font-semibold tracking-tight">{{ $t('optimizations.title') }}</h1>
+        <NavigationSectionTitle
+          section="transactions"
+          :label="$t('optimizations.title')"
+          class="text-2xl font-semibold tracking-tight"
+        />
         <p class="text-muted-foreground mt-1 text-sm">{{ $t('optimizations.landingDescription') }}</p>
       </header>
 

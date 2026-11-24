@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import { Button } from '@/components/lib/ui/button';
@@ -88,9 +89,11 @@ const handleDelete = () => {
   <div class="@container/automations flex max-w-5xl flex-col gap-6 p-4 md:p-6">
     <div class="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1">
       <div class="flex items-center gap-2">
-        <h1 class="text-2xl font-bold tracking-tight">
-          {{ $t('automations.title') }}
-        </h1>
+        <NavigationSectionTitle
+          section="transactions"
+          :label="$t('automations.title')"
+          class="text-2xl font-bold tracking-tight"
+        />
         <AutomationGuide />
       </div>
       <router-link v-if="!isLoading && list.length" :to="{ name: ROUTES_NAMES.automationCreate }">

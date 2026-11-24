@@ -58,6 +58,16 @@
                   @update:model-value="(value) => setShowAccount({ value: !!value })"
                 />
               </div>
+
+              <label class="flex items-center justify-between gap-2 rounded-md px-2 py-2 text-sm">
+                <span>{{ $t('transactions.timeGrouping.showTime') }}</span>
+                <Switch
+                  data-testid="lr-show-time-switch"
+                  :model-value="showTime"
+                  :disabled="isUpdating"
+                  @update:model-value="(value) => setShowTime({ value: !!value })"
+                />
+              </label>
             </div>
           </div>
         </template>
@@ -212,6 +222,11 @@ const { setFlag: setIncludeScheduled } = useWidgetConfigFlag({
 const { isOn: showAccount, setFlag: setShowAccount } = useWidgetConfigFlag({
   key: 'showAccount',
   saveErrorKey: 'widgets.latestRecords.settings.showAccountSaveError',
+});
+const { isOn: showTime, setFlag: setShowTime } = useWidgetConfigFlag({
+  key: 'showTime',
+  defaultValue: false,
+  saveErrorKey: 'errors.api.unexpectedError',
 });
 const tagsVariantItems = computed<PillTabItem[]>(() => [
   { value: 'chips', label: t('widgets.latestRecords.settings.tagsStyleNames') },

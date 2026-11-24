@@ -234,9 +234,13 @@
         v-if="rowTimeLabel || rowDateLabel"
         :datetime="rowTimeLabel ? new Date(transaction.time).toISOString() : undefined"
         class="text-muted-foreground block text-right text-xs tabular-nums"
+        :class="compact && 'flex flex-wrap items-baseline justify-end gap-x-1'"
       >
         <span v-if="rowDateLabel" class="block">{{ rowDateLabel }}</span>
-        <Transition name="lajur-flow-row">
+        <Transition v-if="compact" name="lajur-info-reveal">
+          <span v-if="rowTimeLabel" class="whitespace-nowrap">{{ rowTimeLabel }}</span>
+        </Transition>
+        <Transition v-else name="lajur-flow-row">
           <span v-if="rowTimeLabel" class="lajur-flow-row">
             <span>{{ rowTimeLabel }}</span>
           </span>

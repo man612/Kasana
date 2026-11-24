@@ -92,6 +92,61 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await expect(trackers.getByText('Belum ada pelacak aktif', { exact: true })).toBeVisible();
   });
 
+  test('keeps the period bar stable and saves the latest-transactions clock separately', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 620 });
+    await page.goto('/dashboard');
+    const bar = page.getByTestId('dashboard-period-bar');
+    await expect(bar).toBeVisible();
+    const before = (await bar.boundingBox())!;
+    const viewport = page.locator('[data-reka-scroll-area-viewport]').filter({ has: bar }).first();
+    await viewport.evaluate((element) => {
+      element.scrollTop = 180;
+    });
+    await expect.poll(() => viewport.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expect.poll(async () => Math.abs((await bar.boundingBox())!.y - before.y)).toBeLessThanOrEqual(1);
+    expect((await bar.boundingBox())!.height).toBeCloseTo(before.height, 0);
+    await viewport.evaluate((element) => {
+      element.scrollTop = 0;
+    });
+
+    const widget = page.locator('[data-widget-id="latest-records"]');
+    await widget.getByTestId('latest-transactions-compact-toggle').click();
+    await expect(widget.locator('[data-transaction-row]').first()).toBeVisible();
+    await widget.getByRole('button', { name: 'Pengaturan', exact: true }).click();
+    const clock = page.getByTestId('lr-show-time-switch');
+    const wasEnabled = (await clock.getAttribute('aria-checked')) === 'true';
+    if (!wasEnabled) await clock.click();
+    await expect(clock).toBeChecked();
+    await page.keyboard.press('Escape');
+    await expect(widget.locator('time').first()).toContainText(/\d{2}:\d{2} WIB/);
+    await page.reload();
+    await widget.getByRole('button', { name: 'Pengaturan', exact: true }).click();
+    await expect(clock).toBeChecked();
+  });
+
+  test('routes title shortcuts and reopens only the active sidebar group', async ({ page }) => {
+    await page.goto('/accounts');
+    const title = page.getByTestId('section-navigation-title');
+    await title.click();
+    await page.getByRole('menuitem', { name: 'Pinjaman', exact: true }).click();
+    await expect(page).toHaveURL(/\/loans$/);
+    await expect(page.locator('nav a[href="/accounts"]:visible').last()).toHaveAttribute('aria-current', 'page');
+
+    const sidebar = page.locator('[data-mobile-sidebar]');
+    const openSidebar = page.getByRole('button', { name: 'Buka menu navigasi' });
+    await openSidebar.click();
+    const accounts = sidebar.getByRole('button', { name: 'Akun', exact: true });
+    const transactions = sidebar.getByRole('button', { name: 'Transaksi', exact: true });
+    await expect(accounts).toHaveAttribute('aria-expanded', 'true');
+    await transactions.click();
+    await expect(transactions).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Escape');
+    await expect(sidebar).toBeHidden();
+    await openSidebar.click();
+    await expect(accounts).toHaveAttribute('aria-expanded', 'true');
+    await expect(transactions).toHaveAttribute('aria-expanded', 'false');
+  });
+
   test('snaps both balance trend charts to real points and selects dates from the detail table', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 780 });
     let balanceRequests = 0;

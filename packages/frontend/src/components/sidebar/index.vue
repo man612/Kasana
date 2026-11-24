@@ -4,14 +4,28 @@ import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
+import { isMobileSheetOpen } from '@/composable/global-state/mobile-sheet';
+import { watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { APP_BRAND } from '@/common/brand';
 import { PanelLeftIcon } from '@lucide/vue';
 import AccountsView from './accounts-view/index.vue';
 import NavigationLinks from './navigation-links.vue';
 import UserMenu from './user-menu.vue';
+import { useSidebarNavCollapse } from './use-nav-collapse';
 import { useSidebarCollapsed } from './use-sidebar-collapsed';
 
-defineProps<{ mobileView?: boolean }>();
+const props = defineProps<{ mobileView?: boolean }>();
+const route = useRoute();
+const { resetToActive } = useSidebarNavCollapse();
+resetToActive({ section: route.meta.navSection });
+watch(
+  () => props.mobileView && isMobileSheetOpen.value,
+  (open) => {
+    if (open) resetToActive({ section: route.meta.navSection });
+  },
+  { flush: 'sync' },
+);
 const { isCollapsed } = useSidebarCollapsed();
 </script>
 

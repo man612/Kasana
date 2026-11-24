@@ -1,53 +1,58 @@
 import { chromium, devices, request } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 
 const base = new URL(process.env.LAJUR_PROFILE_ORIGIN ?? 'http://localhost:8851').origin;
 if (!['localhost', '127.0.0.1', '[::1]'].includes(new URL(base).hostname)) {
   throw new Error('Use an isolated loopback frontend and synthetic API.');
 }
 const runName = process.argv[2] ?? 'baseline';
-const api = await request.newContext({ baseURL: base, extraHTTPHeaders: { Origin: base } });
-const email = `perf-${randomUUID()}@test.local`;
-const password = 'SyntheticAudit-123456!';
+const seedMinimalFixture = async () => {
+  const api = await request.newContext({ baseURL: base, extraHTTPHeaders: { Origin: base } });
+  const email = `perf-${randomUUID()}@test.local`;
+  const password = 'SyntheticAudit-123456!';
 
-async function send(method, path, data) {
-  const response = await api.fetch(`/api/v1${path}`, { method, data });
-  if (path === '/tests/verify-email' && response.status() === 404) return;
-  if (!response.ok())
-    throw new Error(`${method} ${path} HTTP ${response.status()}: ${(await response.text()).slice(0, 200)}`);
-  return response.json();
-}
-await send('POST', '/auth/sign-up/email', { email, password, name: 'Audit sintetis' });
-await send('POST', '/tests/verify-email', { email });
-await send('POST', '/auth/sign-in/email', { email, password });
-await send('POST', '/user/currencies/base', { currencyCode: 'IDR' });
-await send('POST', '/user/currencies', { currencies: [{ currencyCode: 'IDR' }] });
-await send('PUT', '/user/settings/onboarding', { isDismissed: true, dismissedAt: new Date().toISOString() });
-const { response } = await send('POST', '/accounts', {
-  name: 'Dompet audit',
-  initialBalance: 1800000,
-  creditLimit: 0,
-  accountCategory: 'general',
-  currencyCode: 'IDR',
-});
-const accountId = Array.isArray(response) ? response[0].id : response.id;
-const result = await send('GET', '/categories');
-const categories = result.response ?? result;
-for (let index = 0; index < 7; index++) {
-  await send('POST', '/transactions', {
-    accountId,
-    categoryId: categories[0].id,
-    amount: 25000 + index * 100,
-    transactionType: 'expense',
-    paymentType: 'creditCard',
-    transferNature: 'not_transfer',
-    time: new Date(Date.now() - index * 86400000).toISOString(),
-    note: `Transaksi sintetis ${index + 1}`,
+  async function send(method, path, data) {
+    const response = await api.fetch(`/api/v1${path}`, { method, data });
+    if (path === '/tests/verify-email' && response.status() === 404) return;
+    if (!response.ok())
+      throw new Error(`${method} ${path} HTTP ${response.status()}: ${(await response.text()).slice(0, 200)}`);
+    return response.json();
+  }
+  await send('POST', '/auth/sign-up/email', { email, password, name: 'Audit sintetis' });
+  await send('POST', '/tests/verify-email', { email });
+  await send('POST', '/auth/sign-in/email', { email, password });
+  await send('POST', '/user/currencies/base', { currencyCode: 'IDR' });
+  await send('POST', '/user/currencies', { currencies: [{ currencyCode: 'IDR' }] });
+  await send('PUT', '/user/settings/onboarding', { isDismissed: true, dismissedAt: new Date().toISOString() });
+  const { response } = await send('POST', '/accounts', {
+    name: 'Dompet audit',
+    initialBalance: 1800000,
+    creditLimit: 0,
+    accountCategory: 'general',
+    currencyCode: 'IDR',
   });
-}
-const cookies = (await api.storageState()).cookies;
-await api.dispose();
+  const accountId = Array.isArray(response) ? response[0].id : response.id;
+  const result = await send('GET', '/categories');
+  const categories = result.response ?? result;
+  for (let index = 0; index < 7; index++) {
+    await send('POST', '/transactions', {
+      accountId,
+      categoryId: categories[0].id,
+      amount: 25000 + index * 100,
+      transactionType: 'expense',
+      paymentType: 'creditCard',
+      transferNature: 'not_transfer',
+      time: new Date(Date.now() - index * 86400000).toISOString(),
+      note: `Transaksi sintetis ${index + 1}`,
+    });
+  }
+  const cookies = (await api.storageState()).cookies;
+  await api.dispose();
+  return cookies;
+};
+const fixtureState = process.env.LAJUR_AUDIT_STATE_PATH;
+const cookies = fixtureState ? JSON.parse(await readFile(fixtureState, 'utf8')).cookies : await seedMinimalFixture();
 
 for (let retry = 0; !(await fetch(`${base}/dashboard`)).ok; retry++) {
   if (retry >= 240) throw new Error('Dashboard build unavailable');

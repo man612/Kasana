@@ -2,6 +2,7 @@
 import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import { Button, buttonVariants } from '@/components/lib/ui/button';
 import { cn } from '@/lib/utils';
+import { loadChunksForRoute } from '@/i18n';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { useEventListener, usePreferredReducedMotion, createReusableTemplate } from '@vueuse/core';
 import {
@@ -13,7 +14,7 @@ import {
   LayoutDashboardIcon,
 } from '@lucide/vue';
 import { computed, nextTick, onScopeDispose, ref, watch, type Component } from 'vue';
-import { useRoute } from 'vue-router';
+import { loadRouteLocation, useRoute, useRouter } from 'vue-router';
 
 import { SIDEBAR_NAV_CHILDREN, useAccountsNavChildren, type SidebarNavChild } from './nav-items';
 import { useSidebarNavCollapse } from './use-nav-collapse';
@@ -21,6 +22,17 @@ import { useSidebarNavRoutes } from './use-nav-routes';
 
 const props = defineProps<{ bottomNav?: boolean }>();
 const route = useRoute();
+const router = useRouter();
+const warmed = new Set<string>();
+const warmRoute = ({ name }: { name: string }) => {
+  if (name === route.name || warmed.has(name) || !navigator.onLine) return;
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } })
+    .connection;
+  if (connection?.saveData || connection?.effectiveType?.endsWith('2g')) return;
+  warmed.add(name);
+  const target = router.resolve({ name });
+  void Promise.all([loadRouteLocation(target), loadChunksForRoute({ route: target })]).catch(() => warmed.delete(name));
+};
 const nav = ref<HTMLElement | null>(null);
 const pendingHref = ref('');
 const reducedMotion = usePreferredReducedMotion();
@@ -171,6 +183,9 @@ onScopeDispose(() => {
             'data-[nav-pending]:bg-accent',
           )
         "
+        @pointerenter="$event.pointerType === 'mouse' && warmRoute({ name })"
+        @pointerdown="$event.isPrimary && warmRoute({ name })"
+        @focus="warmRoute({ name })"
         @click="onActivate($event, href, navigate)"
       >
         <span
