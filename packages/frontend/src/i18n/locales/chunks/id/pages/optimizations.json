@@ -10,8 +10,14 @@
         "label": "Status AI belum diketahui",
         "description": "Status layanan AI belum dapat dimuat. Coba lagi dari pengaturan AI."
       },
-      "loading": { "label": "Memeriksa status AI", "description": "Status layanan AI sedang dimuat." },
-      "access": { "label": "Akses AI terbatas", "description": "Periksa akses fitur ini di pengaturan AI." },
+      "loading": {
+        "label": "Memeriksa status AI",
+        "description": "Status layanan AI sedang dimuat."
+      },
+      "access": {
+        "label": "Akses AI terbatas",
+        "description": "Periksa akses fitur ini di pengaturan AI."
+      },
       "allowance": {
         "label": "Kuota AI habis",
         "description": "Kuota AI bersama sudah habis. Periksa pengaturan model atau tunggu kuota diperbarui."
@@ -27,19 +33,19 @@
     "cards": {
       "transfers": {
         "title": "Cari transfer yang belum terhubung",
-        "description": "Temukan pengeluaran dan pemasukan yang mungkin berasal dari satu transfer antar rekening."
+        "description": "Temukan transfer antar rekening."
       },
       "aiCategorization": {
         "title": "Rapikan kategori dengan AI",
-        "description": "Isi kategori transaksi yang masih memakai kategori bawaan dan tinjau hasilnya di Riwayat."
+        "description": "Bantu merapikan kategori transaksi."
       },
       "applyRules": {
         "title": "Jalankan aturan pada transaksi lama",
-        "description": "Pilih aturan dari Otomatisasi dan tinjau catatan yang dapat diperbarui."
+        "description": "Terapkan otomatisasi pada transaksi lama."
       },
       "reconciliation": {
         "title": "Periksa transaksi ganda dan tertunda",
-        "description": "Bandingkan catatan bank, hapus duplikat, dan tindak lanjuti transaksi tertunda."
+        "description": "Periksa transaksi ganda atau tertunda."
       }
     },
     "aiCategorization": {

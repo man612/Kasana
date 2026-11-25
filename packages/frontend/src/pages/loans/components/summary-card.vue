@@ -1,6 +1,6 @@
 <template>
-  <Card class="@container/loan-summary">
-    <CardHeader class="gap-3 px-4 py-4">
+  <Card class="@container/loan-summary shrink-0 gap-0">
+    <CardHeader class="gap-2 px-3 py-3">
       <div class="flex min-w-0 items-start gap-3">
         <AccountLogoPicker :account-id="loan.id" class="size-10 shrink-0" />
         <div class="min-w-0 flex-1">
@@ -27,7 +27,7 @@
             <Transition name="kasana-page">
               <div
                 :key="outstandingBalanceDisplay"
-                class="text-3xl font-semibold tracking-tight wrap-anywhere tabular-nums @sm/loan-summary:text-4xl"
+                class="text-2xl font-semibold tracking-tight wrap-anywhere tabular-nums @sm/loan-summary:text-4xl"
               >
                 {{ outstandingBalanceDisplay }}
               </div>

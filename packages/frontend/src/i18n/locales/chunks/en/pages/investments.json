@@ -46,7 +46,7 @@
       "help": "Total includes assets and cash in active portfolios. Unrealized gain or loss is the change in value of assets you still own.",
       "refreshing": "Refreshing portfolio totals…",
       "incomplete": "The IDR total is unavailable. Open a portfolio to see its values in its own currency.",
-      "contributions": "View contributions and withdrawals",
+      "contributions": "Deposits & withdrawals",
       "unpriced": "Value and gains are provisional. Market prices are missing for {count} holdings."
     }
   }

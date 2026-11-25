@@ -36,6 +36,7 @@ const EDGE_FADE = 8;
 const EDGE_PADDING = 6;
 const activeTab = ref<{ left: number; width: number }>();
 const maskImage = ref('none');
+const isIndicatorPositioned = ref(false);
 const readViewportLeft = ({ track }: { track: HTMLElement }) =>
   track.matches(':dir(rtl)')
     ? Math.max(0, track.scrollWidth - track.clientWidth + track.scrollLeft)
@@ -67,10 +68,16 @@ function updateIndicator(reveal = false) {
   if (!activeBtn) {
     indicatorStyle.value = { left: '0px', width: '0px' };
     activeTab.value = undefined;
+    isIndicatorPositioned.value = false;
     updateFades();
     return;
   }
 
+  const initial = !isIndicatorPositioned.value;
+  if (initial)
+    requestAnimationFrame(() => {
+      isIndicatorPositioned.value = true;
+    });
   activeTab.value = { left: activeBtn.offsetLeft, width: activeBtn.offsetWidth };
   updateFades();
   indicatorStyle.value = {
@@ -83,7 +90,7 @@ function updateIndicator(reveal = false) {
     const rightOverflow = activeBtn.offsetLeft + activeBtn.offsetWidth - left - el.clientWidth + EDGE_PADDING;
     const delta = leftOverflow < 0 ? leftOverflow : Math.max(0, rightOverflow);
     if (Math.abs(delta) > 0.5) {
-      el.scrollBy({ left: delta, behavior: reducedMotion.value === 'reduce' ? 'instant' : 'smooth' });
+      el.scrollBy({ left: delta, behavior: initial || reducedMotion.value === 'reduce' ? 'instant' : 'smooth' });
     }
   }
 }
@@ -121,7 +128,13 @@ watch(
       <!-- Sliding indicator -->
       <div
         aria-hidden="true"
-        :class="cn(pillTabsIndicatorVariants({ size }), scrollable && 'bg-primary! rounded-full')"
+        :class="
+          cn(
+            pillTabsIndicatorVariants({ size }),
+            scrollable && 'bg-primary! rounded-full',
+            !isIndicatorPositioned && 'opacity-0 transition-none!',
+          )
+        "
         :style="indicatorStyle"
       />
       <!-- Buttons -->

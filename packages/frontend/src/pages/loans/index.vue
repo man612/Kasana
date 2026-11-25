@@ -8,7 +8,7 @@
       />
 
       <CreateLoanDialog v-if="loansQuery.isSuccess.value && loans.length > 0">
-        <UiButton class="min-h-11">
+        <UiButton size="sm" class="min-h-10">
           <PlusIcon class="size-4" aria-hidden="true" />
           {{ $t('loans.addButton.label') }}
         </UiButton>

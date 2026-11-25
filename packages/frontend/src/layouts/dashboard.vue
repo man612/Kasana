@@ -4,6 +4,8 @@
     @touchstart.passive="onDashboardTouchStart"
     @touchend="onDashboardTouchEnd"
     @touchcancel="clearDashboardTouch"
+    @scroll.capture="onDetailScroll"
+    @focusin="revealNavigationOnKeyboard"
   >
     <div
       v-if="!isMobileView && !isSettingsRoute && !isFocusPage"
@@ -16,34 +18,44 @@
       </Transition>
     </div>
 
-    <ScrollArea ref="scrollAreaRef" class="flex-1" scrollbar-class="z-40" :scroll-area-id="SCROLL_AREA_IDS.dashboard">
-      <ui-header v-show="!isFocusPage" class="bg-card dark:bg-background sticky top-0 z-30" />
+    <div class="[container-type:size] min-h-0 min-w-0 flex-1">
+      <ScrollArea ref="scrollAreaRef" class="h-full" scrollbar-class="z-40" :scroll-area-id="SCROLL_AREA_IDS.dashboard">
+        <ui-header v-show="!isFocusPage" class="bg-card dark:bg-background sticky top-0 z-30" />
 
-      <template v-if="isAppInitialized">
-        <div :class="!isFocusPage && route.name !== ROUTES_NAMES.transactions && 'max-md:pb-4'">
-          <RoutePageOutlet />
+        <template v-if="isAppInitialized">
+          <div :class="!isFocusPage && !isDetailPage && route.name !== ROUTES_NAMES.transactions && 'max-md:pb-4'">
+            <RoutePageOutlet />
+          </div>
+        </template>
+        <div v-else-if="initializationFailed" class="grid justify-items-start gap-3 p-6">
+          <p role="status">{{ $t('common.errors.initializationFailed') }}</p>
+          <Button type="button" variant="outline" @click="rootStore.fetchInitialData">{{
+            $t('common.actions.retry')
+          }}</Button>
         </div>
-      </template>
-      <div v-else-if="initializationFailed" class="grid justify-items-start gap-3 p-6">
-        <p role="status">{{ $t('common.errors.initializationFailed') }}</p>
-        <Button type="button" variant="outline" @click="rootStore.fetchInitialData">{{
-          $t('common.actions.retry')
-        }}</Button>
-      </div>
-      <div v-else class="mx-auto grid w-full max-w-5xl gap-3 p-4" aria-busy="true" data-testid="dashboard-startup">
-        <div class="bg-muted h-10 rounded-lg motion-safe:animate-pulse" aria-hidden="true" />
-        <div
-          v-for="index in 3"
-          :key="index"
-          class="bg-muted/75 h-32 rounded-xl border motion-safe:animate-pulse"
-          aria-hidden="true"
-        />
-      </div>
-    </ScrollArea>
+        <div v-else class="mx-auto grid w-full max-w-5xl gap-3 p-4" aria-busy="true" data-testid="dashboard-startup">
+          <div class="bg-muted h-10 rounded-lg motion-safe:animate-pulse" aria-hidden="true" />
+          <div
+            v-for="index in 3"
+            :key="index"
+            class="bg-muted/75 h-32 rounded-xl border motion-safe:animate-pulse"
+            aria-hidden="true"
+          />
+        </div>
+      </ScrollArea>
+    </div>
 
-    <template v-if="isMobileView && !isFocusPage">
-      <BottomNavbar />
-    </template>
+    <div
+      v-if="isMobileView && !isFocusPage"
+      class="grid shrink-0 overflow-hidden motion-safe:transition-[grid-template-rows] motion-safe:duration-180"
+      :class="hideBottomNavigation ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'"
+      :inert="hideBottomNavigation"
+      :aria-hidden="hideBottomNavigation ? true : undefined"
+    >
+      <div class="min-h-0">
+        <BottomNavbar />
+      </div>
+    </div>
 
     <!-- Quick Start Onboarding Sidebar (desktop only) -->
     <template v-if="!isMobileView && !isFocusPage">
@@ -99,6 +111,64 @@ const { isCollapsed } = useSidebarCollapsed();
 // The settings page owns a fully functional navigator; hide the main sidebar there.
 const isSettingsRoute = computed(() => String(route.name ?? '').startsWith(ROUTES_NAMES.settings));
 const isFocusPage = computed(() => route.meta.focusPage === true);
+const detailRoutes = new Set<string>([
+  ROUTES_NAMES.account,
+  ROUTES_NAMES.accountsVehicleDetails,
+  ROUTES_NAMES.loanDetail,
+  ROUTES_NAMES.portfolioDetail,
+]);
+const isDetailPage = computed(() => detailRoutes.has(String(route.name)));
+const scrollHidesNavigation = computed(
+  () => (isDetailPage.value && route.name !== ROUTES_NAMES.portfolioDetail) || route.name === ROUTES_NAMES.investments,
+);
+const isNavigationScrolledAway = ref(false);
+const hideBottomNavigation = computed(
+  () => route.name === ROUTES_NAMES.portfolioDetail || isNavigationScrolledAway.value,
+);
+const SCROLL_DIRECTION_THRESHOLD = 24;
+let scrollTarget: HTMLElement | undefined;
+let previousScrollTop = 0;
+let directionDistance = 0;
+let ignoreScrollUntil = 0;
+const resetNavigationScroll = () => {
+  isNavigationScrolledAway.value = false;
+  scrollTarget = undefined;
+  directionDistance = 0;
+  ignoreScrollUntil = 0;
+};
+watch(() => route.path, resetNavigationScroll, { flush: 'sync' });
+const onDetailScroll = (event: Event) => {
+  if (!isMobileView.value || !scrollHidesNavigation.value) return;
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  const viewport = scrollAreaRef.value?.viewportRef?.viewportElement;
+  const isTabViewport = target.classList.contains('lajur-detail-scroll-viewport');
+  if (!isTabViewport && target !== viewport) return;
+  const top = target.scrollTop;
+  if (scrollTarget !== target) {
+    scrollTarget = target;
+    previousScrollTop = 0;
+    directionDistance = 0;
+  }
+  const delta = top - previousScrollTop;
+  previousScrollTop = top;
+  if (top <= 1) {
+    isNavigationScrolledAway.value = false;
+    directionDistance = 0;
+    return;
+  }
+  if (performance.now() < ignoreScrollUntil || target.scrollHeight <= target.clientHeight + 1) return;
+  if (Math.sign(delta) !== Math.sign(directionDistance)) directionDistance = 0;
+  directionDistance += delta;
+  if (Math.abs(directionDistance) < SCROLL_DIRECTION_THRESHOLD) return;
+  isNavigationScrolledAway.value = directionDistance > 0;
+  directionDistance = 0;
+  ignoreScrollUntil = performance.now() + 210;
+};
+const revealNavigationOnKeyboard = (event: FocusEvent) => {
+  if (event.target instanceof Element && event.target.matches(':focus-visible')) resetNavigationScroll();
+};
+
 const isMobileView = useWindowBreakpoints(CUSTOM_BREAKPOINTS.uiMobile, {
   wait: 50,
 });
@@ -131,7 +201,7 @@ const onDashboardTouchStart = (event: TouchEvent) => {
   if (
     target instanceof Element &&
     target.closest(
-      'button, input, select, textarea, a, nav, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe]',
+      'button, input, select, textarea, a, nav, [role="slider"], [role="dialog"], svg, canvas, [data-no-nav-swipe], [data-tab-swipe]',
     )
   )
     return;

@@ -1395,3 +1395,23 @@ select:focus-visible,
     opacity: 0.35;
   }
 }
+
+/* The scrolling body uses the space the app shell actually allocates. Short
+ * windows keep the document scrollable so the header never traps its content. */
+@media (min-height: 480px) {
+  .lajur-detail-page {
+    height: calc(100cqh - var(--header-height, 0px));
+  }
+
+  .lajur-detail-outer {
+    height: calc(100cqh - var(--header-height, 0px));
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lajur-detail-in-wrapper {
+    height: auto;
+    flex: 1 1 0;
+    min-height: 0;
+  }
+}

@@ -227,10 +227,10 @@
     "applyToHistory": {
       "trigger": "Terapkan ke transaksi lama",
       "saveFirst": "Simpan perubahan terlebih dahulu",
-      "pickTitle": "Jalankan aturan pada transaksi lama",
+      "pickTitle": "Jalankan aturan",
       "pickHint": "Pilih aturan dari Otomatisasi, periksa transaksi yang cocok, lalu tentukan catatan yang ingin diperbarui.",
       "title": "Terapkan “{name}” ke transaksi lama",
-      "noRules": "Belum ada aturan otomatisasi. Buat aturan terlebih dahulu untuk menggunakannya pada transaksi lama.",
+      "noRules": "Belum ada otomatisasi. Buat aturan terlebih dahulu.",
       "summary": "{count} transaksi lama cocok dengan aturan ini",
       "moreMatches": "Hanya {shown} kecocokan terbaru yang ditampilkan. Terapkan pilihan ini, lalu periksa kembali.",
       "scanCapped": "Pencarian mencakup {limit} transaksi terbaru.",
@@ -276,7 +276,8 @@
       "summaryTitle": "Ringkasan aturan",
       "secondExampleTitle": "Contoh tag langganan internet",
       "secondExample": "Pilih rekening yang biasa dipakai dan isi “Internet” sebagai kata di catatan. Pilih Tambah tag, lalu pilih tag Langganan. Saat mutasi berikutnya masuk dari rekening itu dengan catatan yang cocok, tag ditambahkan. Buka transaksi untuk melihat tag dan daftar Otomatisasi untuk melihat kapan aturan terakhir dipakai.",
-      "openRecurring": "Buka Pembayaran Berulang"
+      "openRecurring": "Buka Pembayaran Berulang",
+      "trigger": "Cara kerja"
     }
   }
 }

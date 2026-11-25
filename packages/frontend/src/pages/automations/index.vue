@@ -96,15 +96,17 @@ const handleDelete = () => {
           :label="$t('automations.title')"
           class="text-2xl font-bold tracking-tight"
         />
-        <AutomationGuide />
       </div>
-      <router-link v-if="!isLoading && list.length" :to="{ name: ROUTES_NAMES.automationCreate }">
-        <Button as="span">
-          <PlusIcon class="size-4" />
-          <span class="hidden @md/automations:inline">{{ $t('automations.newAutomation') }}</span>
-          <span class="@md/automations:hidden">{{ $t('automations.new') }}</span>
-        </Button>
-      </router-link>
+      <div class="flex flex-wrap justify-end gap-2">
+        <AutomationGuide />
+        <router-link v-if="!isLoading && list.length" :to="{ name: ROUTES_NAMES.automationCreate }">
+          <Button as="span">
+            <PlusIcon class="size-4" />
+            <span class="hidden @md/automations:inline">{{ $t('automations.newAutomation') }}</span>
+            <span class="@md/automations:hidden">{{ $t('automations.new') }}</span>
+          </Button>
+        </router-link>
+      </div>
       <p class="text-muted-foreground col-span-2 text-sm">
         {{ $t('automations.subtitle') }}
       </p>

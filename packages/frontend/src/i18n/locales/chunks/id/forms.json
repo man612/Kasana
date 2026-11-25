@@ -51,12 +51,15 @@
         "previewFee": "≈ biaya {fee} {currency} akan dicatat (nilai tukar {rate})",
         "previewUnavailable": "Tidak ada nilai tukar pasar untuk tanggal ini – masukkan biaya atau nilai tukar secara manual.",
         "previewFetchFailed": "Tidak dapat memuat nilai tukar pasar. Periksa koneksi Anda atau masukkan nilai tukar secara manual.",
-        "previewPlaceholder": "Pratinjau muncul di sini saat Anda mengisi formulir."
+        "previewPlaceholder": "Pratinjau muncul di sini saat Anda mengisi formulir.",
+        "advanced": "Pengaturan kas lanjutan"
       },
       "invalidLots": "Masukkan jumlah lot bulat di atas nol.",
       "quantityShares": "Lembar",
       "quantityLots": "Lot",
-      "beiLotHelp": "Satu lot saham BEI berisi 100 lembar. Isi harga per lembar sesuai catatan broker."
+      "beiLotHelp": "Satu lot saham BEI berisi 100 lembar. Isi harga per lembar sesuai catatan broker.",
+      "pricePerShare": "Harga per lembar",
+      "estimatedCash": "Perkiraan perubahan kas"
     },
     "portfolioSettings": {
       "nameLabel": "Nama Portofolio",

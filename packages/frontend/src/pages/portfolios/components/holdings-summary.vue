@@ -1,7 +1,7 @@
 <template>
   <Card class="min-w-0">
     <CardHeader class="pb-4">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2">
         <div class="flex items-center gap-3">
           <div class="bg-primary/10 flex size-9 items-center justify-center rounded-lg">
             <LayoutListIcon class="text-primary-text size-5" />
@@ -14,37 +14,39 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-3">
-          <!-- Search Filter -->
-          <div class="relative flex-1 sm:w-64">
-            <SearchIcon class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <input
-              v-model="filterText"
-              type="text"
-              :placeholder="$t('portfolioDetail.holdings.filterPlaceholder')"
-              class="border-input bg-input-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 w-full rounded-md border pr-8 pl-9 text-sm focus-visible:ring-1 focus-visible:outline-none"
-            />
-            <button
-              v-if="filterText"
-              @click="filterText = ''"
-              class="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2"
-            >
-              <XIcon class="size-4" />
-            </button>
-          </div>
+        <div class="relative col-span-2 col-start-1 row-start-2">
+          <SearchIcon class="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <input
+            v-model="filterText"
+            type="search"
+            :aria-label="$t('portfolioDetail.holdings.filterPlaceholder')"
+            :placeholder="$t('portfolioDetail.holdings.filterPlaceholder')"
+            class="border-input bg-input-background placeholder:text-muted-foreground focus-visible:ring-ring h-9 w-full rounded-md border pr-8 pl-9 text-sm focus-visible:ring-1 focus-visible:outline-none"
+          />
+          <button
+            v-if="filterText"
+            type="button"
+            :aria-label="$t('dialogs.addSymbols.clearSearch')"
+            @click="filterText = ''"
+            class="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2"
+          >
+            <XIcon class="size-4" />
+          </button>
+        </div>
 
-          <RouterLink :to="{ name: ROUTES_NAMES.portfolioTransactionsImport, params: { portfolioId } }">
-            <UiButton size="sm" variant="outline">
-              <FileUpIcon class="mr-1 size-4" />
-              <span class="md:hidden">{{ $t('portfolioDetail.holdings.importButtonShort') }}</span>
-              <span class="hidden md:inline">{{ $t('portfolioDetail.holdings.importButton') }}</span>
-            </UiButton>
-          </RouterLink>
+        <div class="col-start-2 row-start-1 flex items-center gap-1.5">
+          <UiButton as-child size="icon" variant="outline">
+            <RouterLink
+              :aria-label="$t('portfolioDetail.holdings.importButton')"
+              :to="{ name: ROUTES_NAMES.portfolioTransactionsImport, params: { portfolioId } }"
+            >
+              <FileUpIcon class="size-4" />
+            </RouterLink>
+          </UiButton>
 
           <AddSymbolsDialog v-model:open="isAddSymbolsOpen" :portfolio-id="portfolioId" @updated="onHoldingAdded">
-            <UiButton size="sm">
-              <PlusIcon class="mr-1 size-4" />
-              {{ $t('portfolioDetail.holdings.addButton') }}
+            <UiButton size="icon" :aria-label="$t('portfolioDetail.holdings.addButton')">
+              <PlusIcon class="size-4" />
             </UiButton>
           </AddSymbolsDialog>
         </div>

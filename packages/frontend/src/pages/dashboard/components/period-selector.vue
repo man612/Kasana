@@ -60,7 +60,7 @@
     <Button
       size="icon-sm"
       variant="ghost"
-      class="absolute left-2 size-11 motion-safe:transition-opacity md:left-6"
+      class="absolute left-0 z-10 size-11 touch-manipulation motion-safe:transition-opacity md:left-6"
       :class="isCurrentPayPeriod(period) && !resetAnimating && 'pointer-events-none opacity-0'"
       :disabled="isCurrentPayPeriod(period) || resetAnimating"
       :aria-hidden="isCurrentPayPeriod(period) && !resetAnimating"

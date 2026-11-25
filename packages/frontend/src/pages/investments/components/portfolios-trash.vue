@@ -24,77 +24,79 @@
     </CollapsibleTrigger>
 
     <CollapsibleContent class="mt-3">
-      <!-- Loading: skeleton cards (matches the live-list pattern in investments.vue). -->
-      <div v-if="isLoading" class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-        <Card v-for="i in 2" :key="i" class="border-dashed">
-          <CardHeader class="p-4 pb-2">
-            <div class="space-y-1.5">
-              <div class="bg-muted h-5 w-32 animate-pulse rounded" />
-              <div class="bg-muted h-3 w-20 animate-pulse rounded" />
-            </div>
-          </CardHeader>
-          <CardContent class="flex gap-2 p-4 pt-1">
-            <div class="bg-muted h-8 flex-1 animate-pulse rounded" />
-            <div class="bg-muted h-8 flex-1 animate-pulse rounded" />
-          </CardContent>
-        </Card>
-      </div>
+      <div ref="revealedContent">
+        <!-- Loading: skeleton cards (matches the live-list pattern in investments.vue). -->
+        <div v-if="isLoading" class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+          <Card v-for="i in 2" :key="i" class="border-dashed">
+            <CardHeader class="p-4 pb-2">
+              <div class="space-y-1.5">
+                <div class="bg-muted h-5 w-32 animate-pulse rounded" />
+                <div class="bg-muted h-3 w-20 animate-pulse rounded" />
+              </div>
+            </CardHeader>
+            <CardContent class="flex gap-2 p-4 pt-1">
+              <div class="bg-muted h-8 flex-1 animate-pulse rounded" />
+              <div class="bg-muted h-8 flex-1 animate-pulse rounded" />
+            </CardContent>
+          </Card>
+        </div>
 
-      <!-- Error: surface a retry instead of silently hiding the section. -->
-      <div v-else-if="isError" class="bg-card/40 rounded-md border border-dashed p-6 text-center">
-        <p class="text-destructive-text mb-3 text-sm">{{ $t('investments.trash.loadError') }}</p>
-        <UiButton size="sm" variant="outline" @click="refetch()">
-          {{ $t('investments.trash.tryAgain') }}
-        </UiButton>
-      </div>
+        <!-- Error: surface a retry instead of silently hiding the section. -->
+        <div v-else-if="isError" class="bg-card/40 rounded-md border border-dashed p-6 text-center">
+          <p class="text-destructive-text mb-3 text-sm">{{ $t('investments.trash.loadError') }}</p>
+          <UiButton size="sm" variant="outline" @click="refetch()">
+            {{ $t('investments.trash.tryAgain') }}
+          </UiButton>
+        </div>
 
-      <div v-else class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
-        <Card
-          v-for="portfolio in trashedPortfolios"
-          :key="portfolio.id"
-          class="border-dashed opacity-80 transition-all duration-200 hover:opacity-100"
-        >
-          <CardHeader class="p-4 pb-2">
-            <div class="min-w-0 flex-1">
-              <h3 class="truncate text-base leading-tight font-semibold tracking-tight">
-                {{ portfolio.name }}
-              </h3>
-              <p class="text-muted-foreground mt-0.5 text-xs">
-                {{ $t('investments.trash.deletedAgo', { time: formatDeletedAt(portfolio.deletedAt) }) }}
-              </p>
-            </div>
-          </CardHeader>
-          <CardContent class="flex items-center gap-2 p-4 pt-1">
-            <UiButton
-              variant="secondary"
-              size="sm"
-              class="flex-1"
-              :disabled="isRowBusy(portfolio.id)"
-              @click="onRestore(portfolio.id)"
-            >
-              <Undo2Icon class="mr-2 size-4" />
-              {{
-                pendingAction === 'restore' && pendingId === portfolio.id
-                  ? $t('investments.trash.restoringButton')
-                  : $t('investments.trash.restoreButton')
-              }}
-            </UiButton>
-            <UiButton
-              variant="destructive"
-              size="sm"
-              class="flex-1"
-              :disabled="isRowBusy(portfolio.id)"
-              @click="openPurgeConfirm(portfolio)"
-            >
-              <Trash2Icon class="mr-2 size-4" />
-              {{
-                pendingAction === 'purge' && pendingId === portfolio.id
-                  ? $t('investments.trash.purgingButton')
-                  : $t('investments.trash.purgeButton')
-              }}
-            </UiButton>
-          </CardContent>
-        </Card>
+        <div v-else class="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4">
+          <Card
+            v-for="portfolio in trashedPortfolios"
+            :key="portfolio.id"
+            class="border-dashed opacity-80 transition-all duration-200 hover:opacity-100"
+          >
+            <CardHeader class="p-4 pb-2">
+              <div class="min-w-0 flex-1">
+                <h3 class="truncate text-base leading-tight font-semibold tracking-tight">
+                  {{ portfolio.name }}
+                </h3>
+                <p class="text-muted-foreground mt-0.5 text-xs">
+                  {{ $t('investments.trash.deletedAgo', { time: formatDeletedAt(portfolio.deletedAt) }) }}
+                </p>
+              </div>
+            </CardHeader>
+            <CardContent class="flex items-center gap-2 p-4 pt-1">
+              <UiButton
+                variant="secondary"
+                size="sm"
+                class="flex-1"
+                :disabled="isRowBusy(portfolio.id)"
+                @click="onRestore(portfolio.id)"
+              >
+                <Undo2Icon class="mr-2 size-4" />
+                {{
+                  pendingAction === 'restore' && pendingId === portfolio.id
+                    ? $t('investments.trash.restoringButton')
+                    : $t('investments.trash.restoreButton')
+                }}
+              </UiButton>
+              <UiButton
+                variant="destructive"
+                size="sm"
+                class="flex-1"
+                :disabled="isRowBusy(portfolio.id)"
+                @click="openPurgeConfirm(portfolio)"
+              >
+                <Trash2Icon class="mr-2 size-4" />
+                {{
+                  pendingAction === 'purge' && pendingId === portfolio.id
+                    ? $t('investments.trash.purgingButton')
+                    : $t('investments.trash.purgeButton')
+                }}
+              </UiButton>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </CollapsibleContent>
   </Collapsible>
@@ -129,7 +131,8 @@ import { cn } from '@/lib/utils';
 import { PORTFOLIO_TRASH_RETENTION_DAYS } from '@bt/shared/types/investments';
 import { useDateLocale } from '@/composable/use-date-locale';
 import { ChevronDownIcon, Trash2Icon, Undo2Icon } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
+import { revealInScrollViewport } from '@/composable/reveal-in-scroll-viewport';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -148,6 +151,18 @@ const shouldRender = computed(() => trashedPortfolios.value.length > 0 || isLoad
 const pendingId = ref<string | null>(null);
 const pendingAction = ref<'restore' | 'purge' | null>(null);
 const isOpen = ref(false);
+const revealedContent = useTemplateRef<HTMLElement>('revealedContent');
+watch(isOpen, async (open) => {
+  if (!open) return;
+  await nextTick();
+  const target = revealedContent.value;
+  const viewport = target?.closest<HTMLElement>('[data-reka-scroll-area-viewport]');
+  if (!target || !viewport) return;
+  requestAnimationFrame(async () => {
+    await Promise.allSettled(target.parentElement?.getAnimations().map(({ finished }) => finished) ?? []);
+    if (isOpen.value && target.isConnected) revealInScrollViewport({ target, viewport });
+  });
+});
 
 const purgeCandidate = ref<{ id: string; name: string } | null>(null);
 const isPurgeConfirmOpen = ref(false);

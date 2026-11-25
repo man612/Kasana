@@ -106,12 +106,17 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
 </script>
 
 <template>
-  <CardHeader class="@container/account-hero gap-3 px-4 py-4">
+  <CardHeader class="@container/account-hero gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-4">
     <div class="flex min-w-0 items-start gap-3">
       <AccountLogoPicker v-if="isOwner" :account-id="account.id" class="size-10 shrink-0" />
       <AccountLogo v-else :account="account" class="size-10 shrink-0" />
       <div class="min-w-0 flex-1">
-        <h1 class="text-xl leading-tight font-semibold tracking-tight wrap-anywhere">{{ account.name }}</h1>
+        <h1
+          :title="account.name"
+          class="line-clamp-2 text-base leading-tight font-semibold tracking-tight wrap-anywhere sm:text-xl"
+        >
+          {{ account.name }}
+        </h1>
         <p class="text-muted-foreground mt-0.5 text-sm">
           {{ $t(ACCOUNT_CATEGORIES_TRANSLATION_KEYS[account.accountCategory]) }}
         </p>
@@ -165,7 +170,7 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
       </span>
     </div>
 
-    <div class="border-border/65 flex flex-wrap items-end justify-between gap-3 border-t pt-3">
+    <div class="border-border/65 flex flex-wrap items-end justify-between gap-x-2 gap-y-1.5 border-t pt-2">
       <div class="min-w-0 grow">
         <p class="text-muted-foreground text-xs">{{ $t('accounts.overview.totalBalance') }}</p>
         <component
@@ -182,7 +187,7 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
           <Transition name="kasana-page">
             <span
               :key="displayBalance"
-              class="text-amount min-w-0 text-3xl leading-tight wrap-anywhere tabular-nums @sm/account-hero:text-4xl"
+              class="text-amount min-w-0 text-2xl leading-tight wrap-anywhere tabular-nums @sm/account-hero:text-4xl"
               :class="displayBalance < 0 && 'text-destructive-text'"
             >
               {{ formatUIAmount(displayBalance, { currency: account.currencyCode }) }}
@@ -217,7 +222,8 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
             <Button
               type="button"
               variant="outline"
-              class="min-h-11"
+              size="sm"
+              class="min-h-10"
               :aria-label="`${t('pages.account.header.editAccountName')}: ${account.name}`"
             >
               <PencilIcon class="size-4" aria-hidden="true" />
@@ -246,7 +252,7 @@ watch([formEditingPopoverOpen, () => props.account.id], () => {
                 type="button"
                 variant="outline"
                 size="icon"
-                class="size-11"
+                class="size-10"
                 :aria-label="$t('pages.account.header.transferToPortfolio')"
               >
                 <ArrowRightLeftIcon class="size-4" aria-hidden="true" />

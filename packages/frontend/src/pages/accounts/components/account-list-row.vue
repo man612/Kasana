@@ -39,16 +39,16 @@
             <span class="wrap-anywhere">{{ subtitle }}</span>
           </template>
           <template v-else>
-            <span class="min-w-0 truncate">{{ categoryLabel }} ·</span>
+            <span class="min-w-0 truncate">{{ categoryLabel }}</span>
             <img
-              v-if="currencyFlagUrl && !flagFailed"
+              v-if="account.currencyCode !== baseCurrencyCode && currencyFlagUrl && !flagFailed"
               :src="currencyFlagUrl"
               :alt="account.currencyCode"
               class="size-3.5 shrink-0 rounded-[2px]"
               loading="lazy"
               @error="flagFailed = true"
             />
-            <span class="shrink-0">{{ account.currencyCode }}</span>
+            <span v-if="account.currencyCode !== baseCurrencyCode" class="shrink-0">{{ account.currencyCode }}</span>
           </template>
         </div>
       </div>

@@ -52,7 +52,7 @@ const dialogDescription = computed(() =>
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen" show-close-with-footer>
+  <ResponsiveDialog v-model:open="isOpen" show-close-with-footer centered-title fit-keyboard>
     <template #trigger>
       <slot />
     </template>
@@ -72,7 +72,12 @@ const dialogDescription = computed(() =>
     />
 
     <template #footer>
-      <UiButton type="submit" :form="formId" class="ml-auto min-w-30" :disabled="formRef?.isSubmitDisabled ?? true">
+      <UiButton
+        type="submit"
+        :form="formId"
+        class="w-full sm:ml-auto sm:w-auto sm:min-w-30"
+        :disabled="formRef?.isSubmitDisabled ?? true"
+      >
         {{
           formRef?.isSubmitting
             ? $t('forms.portfolioTransfer.submitButtonLoading')

@@ -41,6 +41,7 @@ interface Emit {
 }
 
 const props = defineProps<{
+  formId?: string;
   portfolioId: string;
   portfolio: PortfolioModel;
   disabled?: boolean;
@@ -54,9 +55,11 @@ const accountsStore = useAccountsStore();
 // Loan accounts excluded – money only flows INTO a loan (transfer_to_loan), so they can't be a transfer source.
 const { txTargetableSourceAccountsActiveFirst: txTargetableAccountsActiveFirst, accountsRecord } =
   storeToRefs(accountsStore);
-const { currencies } = storeToRefs(useCurrenciesStore());
+const { baseCurrency, currencies } = storeToRefs(useCurrenciesStore());
 const { formatAmountByCurrencyCode } = useFormatCurrency();
-const { sortedCurrencies, currencyLabel } = usePortfolioCurrencySorting(computed(() => props.portfolioId));
+const { balancesByCurrency, sortedCurrencies, currencyLabel } = usePortfolioCurrencySorting(
+  computed(() => props.portfolioId),
+);
 const { resolveDefaultAccount } = useAccountDropdownPrefs();
 
 const defaultTransferAccount = () =>
@@ -110,6 +113,20 @@ const directForm = reactive<{
   description: '',
   isAdjustment: false,
 });
+
+const hasForeignCash = computed(() => [...balancesByCurrency.value.keys()].some((code) => code !== 'IDR'));
+const rupiah = computed(() => currencies.value?.find(({ currencyCode }) => currencyCode === 'IDR') ?? null);
+const showCurrencySelection = computed(
+  () => hasForeignCash.value || baseCurrency.value?.currencyCode !== 'IDR' || !rupiah.value,
+);
+
+watch(
+  rupiah,
+  (currency) => {
+    directForm.selectedCurrency ??= currency;
+  },
+  { immediate: true },
+);
 
 const directAmountValue = computed({
   get: () => (directForm.amount === '' ? null : Number(directForm.amount)),
@@ -245,7 +262,7 @@ const {
 
 const resetDirectForm = () => {
   directForm.amount = '';
-  directForm.selectedCurrency = null;
+  directForm.selectedCurrency = rupiah.value;
   directForm.date = new Date();
   directForm.description = '';
   directForm.isAdjustment = false;
@@ -255,7 +272,7 @@ const resetDirectForm = () => {
 const resetTransferForm = () => {
   transferForm.selectedAccount = defaultTransferAccount();
   transferForm.amount = '';
-  transferForm.selectedCurrency = null;
+  transferForm.selectedCurrency = rupiah.value;
   transferForm.date = new Date();
   transferForm.description = '';
   resetTransferValidation();
@@ -435,20 +452,28 @@ const accountLabel = computed(() =>
     ? t('forms.directCashTransaction.fromAccountLabel')
     : t('forms.directCashTransaction.toAccountLabel'),
 );
+defineExpose({ isSubmitDisabled: isSubmitDisabled, isSubmitting: isAnyMutationPending });
 </script>
 
 <template>
   <div class="grid w-full max-w-150 gap-6">
     <!-- Outer tabs: Deposit / Withdrawal -->
-    <PillTabs v-model="operationType" :items="outerItems" :disabled="isAnyMutationPending || disabled" size="lg" />
+    <PillTabs
+      full-width
+      v-model="operationType"
+      :items="outerItems"
+      :disabled="isAnyMutationPending || disabled"
+      size="lg"
+    />
 
     <!-- Inner tabs: Direct / Transfer -->
-    <PillTabs v-model="methodType" :items="innerItems" :disabled="isAnyMutationPending || disabled" />
+    <PillTabs full-width v-model="methodType" :items="innerItems" :disabled="isAnyMutationPending || disabled" />
 
-    <form class="grid gap-6" @submit.prevent="onSubmit">
+    <form :id="formId" class="grid gap-6" @submit.prevent="onSubmit">
       <!-- ─── Direct mode ─── -->
       <template v-if="methodType === 'direct'">
         <SelectField
+          v-if="showCurrencySelection"
           v-model="directForm.selectedCurrency"
           :label="$t('forms.directCashTransaction.currencyLabel')"
           :values="sortedCurrencies"
@@ -478,6 +503,8 @@ const accountLabel = computed(() =>
         />
 
         <TextareaField
+          :rows="1"
+          :max-rows="3"
           v-model="directForm.description"
           :label="$t('forms.directCashTransaction.descriptionLabel')"
           :placeholder="$t('forms.directCashTransaction.descriptionPlaceholder')"
@@ -543,7 +570,7 @@ const accountLabel = computed(() =>
           />
 
           <SelectField
-            v-if="showTransferCurrency"
+            v-if="showTransferCurrency && showCurrencySelection"
             v-model="transferForm.selectedCurrency"
             :label="$t('forms.directCashTransaction.currencyLabel')"
             :values="sortedCurrencies"
@@ -577,6 +604,8 @@ const accountLabel = computed(() =>
           />
 
           <TextareaField
+            :rows="1"
+            :max-rows="3"
             v-model="transferForm.description"
             :label="$t('forms.directCashTransaction.descriptionLabel')"
             :placeholder="$t('forms.directCashTransaction.descriptionPlaceholder')"
@@ -611,25 +640,6 @@ const accountLabel = computed(() =>
           @select="(tx: TransactionModel) => (linkedTransaction = tx)"
         />
       </template>
-
-      <!-- Submit / Cancel buttons -->
-      <div class="flex justify-end gap-4">
-        <UiButton
-          type="button"
-          variant="secondary"
-          :disabled="isAnyMutationPending || disabled"
-          @click="emit('cancel')"
-        >
-          {{ $t('forms.directCashTransaction.cancelButton') }}
-        </UiButton>
-        <UiButton type="submit" class="min-w-30" :disabled="isSubmitDisabled">
-          {{
-            isAnyMutationPending
-              ? $t('forms.directCashTransaction.submitButtonLoading')
-              : $t('forms.directCashTransaction.submitButton')
-          }}
-        </UiButton>
-      </div>
     </form>
 
     <!-- Confirmation dialog for transfer mode -->

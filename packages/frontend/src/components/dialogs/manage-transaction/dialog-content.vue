@@ -116,6 +116,7 @@ import {
 } from './composables';
 import type { TransferDestinationType } from './composables/transfer-form';
 import { useDefaultPaymentType } from './composables/use-default-payment-type';
+import { revealInScrollViewport } from '@/composable/reveal-in-scroll-viewport';
 import { useFieldReveal, type MountableField } from './composables/use-field-reveal';
 import { useMapPickerSetting } from './composables/use-map-picker-setting';
 import { useOptionalFields } from './composables/use-optional-fields';
@@ -1336,38 +1337,25 @@ const {
   isRefundLinked,
   isOptionalFieldEnabled,
   onLinkRefund: () => refundFieldRef.value!.open(),
-  onReveal: async ({ field }) => {
-    // Tapping a revealed field is what opens the software keyboard on mobile.
-    if (isMobileView.value) {
-      optionalFieldToReveal = field;
-      return;
-    }
-    await nextTick();
-    const fieldElement = moreOptionsRef.value?.querySelector(`[data-optional-field="${field}"]`);
-    (fieldElement?.querySelector('input') ?? fieldElement?.querySelector('button'))?.focus();
+  onReveal: ({ field }) => {
+    optionalFieldToReveal = field;
   },
 });
 
 const revealOptionalField = (element: Element) => {
-  const requested = optionalFieldToReveal;
-  if (!requested || !isMobileView.value) return;
-  const field = element.querySelector(`[data-optional-field="${requested}"]`);
+  if (!optionalFieldToReveal) return;
+  const selector = `[data-optional-field="${optionalFieldToReveal}"]`;
+  const field = element.matches(selector) ? element : element.querySelector(selector);
   if (!field) return;
   optionalFieldToReveal = undefined;
-  const scrollArea = element.closest<HTMLElement>('.lajur-transaction-scroll');
-  const sticky = scrollArea?.querySelector('[data-transaction-sticky-header]');
-  if (!scrollArea) return;
-  const viewport = scrollArea.getBoundingClientRect();
-  const visibleTop = sticky?.getBoundingClientRect().bottom ?? viewport.top;
-  const bounds = field.getBoundingClientRect();
-  // A field taller than the visible area starts at its label.
-  const topDelta = bounds.top - visibleTop;
-  const bottomDelta = bounds.bottom - viewport.bottom;
-  if (topDelta < 0 || bottomDelta > 0) {
-    const delta = bounds.height > viewport.bottom - visibleTop ? topDelta : Math.max(bottomDelta, 0) || topDelta;
-    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth';
-    scrollArea.scrollBy({ top: delta, behavior });
-  }
+  const viewport = element.closest<HTMLElement>('.lajur-transaction-scroll');
+  if (!viewport) return;
+  const header = viewport.querySelector('[data-transaction-sticky-header]');
+  requestAnimationFrame(() => {
+    if (!field.isConnected) return;
+    const topInset = Math.max(0, (header?.getBoundingClientRect().bottom ?? 0) - viewport.getBoundingClientRect().top);
+    revealInScrollViewport({ target: field, viewport, topInset });
+  });
 };
 
 // Reversible optional-column visibility with confirmation before discarding

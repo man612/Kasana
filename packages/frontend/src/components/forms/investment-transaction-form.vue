@@ -4,21 +4,21 @@ import { beiLotsToShares } from '@/common/utils/investment-units';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import { type SettlementMode, calculateSettlementPreview } from '@/common/utils/settlement-preview';
 import DateField from '@/components/fields/date-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import InputField from '@/components/fields/input-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
-import UiButton from '@/components/lib/ui/button/Button.vue';
 import { Checkbox } from '@/components/lib/ui/checkbox';
 import { type PillTabItem, PillTabs } from '@/components/lib/ui/pill-tabs';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
 import { useCreateInvestmentTransaction } from '@/composable/data-queries/investment-transactions';
 import { useFormValidation } from '@/composable/form-validator';
-import { useCurrencyName } from '@/composable/formatters';
+import { useCurrencyName, useFormatCurrency } from '@/composable/formatters';
 import { useLinkedCurrencyGroup } from '@/composable/use-linked-currency-group';
 import { useCurrenciesStore } from '@/stores/currencies';
 import { INVESTMENT_TRANSACTION_CATEGORY, type CurrencyModel } from '@bt/shared/types';
 import { useQuery } from '@tanstack/vue-query';
-import { required, requiredIf } from '@vuelidate/validators';
+import { minValue, required, requiredIf } from '@vuelidate/validators';
 import { format } from 'date-fns';
 import { computed, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -34,12 +34,13 @@ interface SecurityOption {
 }
 
 const props = defineProps<{
+  formId?: string;
   portfolioId: string;
   securities: SecurityOption[];
   securityId?: string | null;
 }>();
 
-const emit = defineEmits(['success', 'cancel']);
+const emit = defineEmits(['success']);
 
 const { addNotification } = useNotificationCenter();
 const createTransactionMutation = useCreateInvestmentTransaction();
@@ -104,9 +105,33 @@ const settlementMode = ref<SettlementMode>('fee');
 
 const currenciesStore = useCurrenciesStore();
 const { formatCurrencyLabel } = useCurrencyName();
+const { formatAmountByCurrencyCode } = useFormatCurrency();
 const linkedCurrencyGroup = useLinkedCurrencyGroup();
 
 const securityCurrencyCode = computed(() => form.security?.currencyCode ?? null);
+
+const priceAmount = computed<number | null>({
+  get: () => (form.price === '' ? null : Number(form.price)),
+  set: (value) => {
+    form.price = value === null ? '' : String(value);
+  },
+});
+const feeAmount = computed<number | null>({
+  get: () => (form.fees === '' ? null : Number(form.fees)),
+  set: (value) => {
+    form.fees = value === null ? '' : String(value);
+  },
+});
+
+const basicCashAmount = computed(() => {
+  if (!transactionQuantity.value || form.price === '' || useSettlement.value) return null;
+  const gross = Number(transactionQuantity.value) * Number(form.price);
+  const fees = Number(form.fees);
+  if (!Number.isFinite(gross) || !Number.isFinite(fees)) return null;
+  if (form.type.value === INVESTMENT_TRANSACTION_CATEGORY.buy) return -(gross + fees);
+  if (form.type.value === INVESTMENT_TRANSACTION_CATEGORY.sell) return gross - fees;
+  return null;
+});
 
 const isCrossCurrency = computed(
   () =>
@@ -220,12 +245,15 @@ const previewData = computed(() => {
 
 const validationRules = computed(() => ({
   security: { required },
-  quantity: { required },
-  price: { required },
+  quantity: { required, minValue: minValue(Number.MIN_VALUE) },
+  price: { required, minValue: minValue(0) },
   date: { required },
   settlementCurrency: { required: requiredIf(() => useSettlement.value) },
-  settlementAmount: { required: requiredIf(() => useSettlement.value) },
-  settlementRate: { required: requiredIf(() => isCrossCurrency.value && settlementMode.value === 'rate') },
+  settlementAmount: { required: requiredIf(() => useSettlement.value), minValue: minValue(0) },
+  settlementRate: {
+    required: requiredIf(() => isCrossCurrency.value && settlementMode.value === 'rate'),
+    minValue: minValue(Number.MIN_VALUE),
+  },
 }));
 
 const { isFormValid, getFieldErrorMessage, touchField, resetValidation } = useFormValidation(
@@ -263,7 +291,7 @@ const onSubmit = async () => {
     return;
   }
 
-  if (!form.security || !transactionQuantity.value || createTransactionMutation.isPending.value) return;
+  if (!form.security || !transactionQuantity.value || isSubmitDisabled.value) return;
 
   try {
     const trimmedNote = form.note.trim();
@@ -310,10 +338,25 @@ const onSubmit = async () => {
     });
   }
 };
+const isSubmitDisabled = computed(
+  () =>
+    createTransactionMutation.isPending.value ||
+    !form.security ||
+    !transactionQuantity.value ||
+    Number(transactionQuantity.value) <= 0 ||
+    form.price === '' ||
+    Number(form.price) < 0 ||
+    Number(form.fees) < 0 ||
+    (form.type.value === INVESTMENT_TRANSACTION_CATEGORY.sell &&
+      basicCashAmount.value != null &&
+      basicCashAmount.value < 0) ||
+    (useSettlement.value && (!form.settlementCurrency || form.settlementAmount === '')),
+);
+defineExpose({ isSubmitDisabled, isSubmitting: createTransactionMutation.isPending });
 </script>
 
 <template>
-  <form class="@container grid gap-5" @submit.prevent="onSubmit">
+  <form :id="formId" class="@container grid gap-5" @submit.prevent="onSubmit">
     <div class="grid grid-cols-1 gap-4 @md:grid-cols-2">
       <SelectField
         v-model="form.type"
@@ -338,6 +381,7 @@ const onSubmit = async () => {
       />
 
       <PillTabs
+        full-width
         v-if="showLotPicker"
         v-model="quantityUnit"
         :items="quantityUnits"
@@ -370,7 +414,20 @@ const onSubmit = async () => {
       </p>
 
       <div>
+        <FormattedAmountField
+          v-if="securityCurrencyCode === 'IDR'"
+          v-model="priceAmount"
+          currency-code="IDR"
+          :maximum-fraction-digits="10"
+          :label="
+            $t(showLotPicker ? 'forms.investmentTransaction.pricePerShare' : 'forms.investmentTransaction.priceLabel')
+          "
+          :disabled="createTransactionMutation.isPending.value"
+          :error-message="getFieldErrorMessage('form.price')"
+          @blur="touchField('form.price')"
+        />
         <InputField
+          v-else
           v-model="form.price"
           :label="
             securityCurrencyCode
@@ -387,8 +444,16 @@ const onSubmit = async () => {
         <p class="text-muted-foreground mt-1.5 text-xs">{{ $t('forms.investmentTransaction.priceHelp') }}</p>
       </div>
 
+      <FormattedAmountField
+        v-if="!useSettlement && securityCurrencyCode === 'IDR'"
+        v-model="feeAmount"
+        currency-code="IDR"
+        :maximum-fraction-digits="10"
+        :label="$t('forms.investmentTransaction.feesLabel')"
+        :disabled="createTransactionMutation.isPending.value"
+      />
       <InputField
-        v-if="!useSettlement"
+        v-else-if="!useSettlement"
         v-model="form.fees"
         :label="$t('forms.investmentTransaction.feesLabel')"
         type="number"
@@ -406,7 +471,24 @@ const onSubmit = async () => {
       />
     </div>
 
-    <div class="border-border overflow-hidden rounded-md border">
+    <p
+      v-if="securityCurrencyCode && basicCashAmount != null"
+      class="border-border flex justify-between gap-2 border-t pt-2 text-sm"
+    >
+      <span class="text-muted-foreground">{{ $t('forms.investmentTransaction.estimatedCash') }}</span>
+      <strong class="text-right tabular-nums">{{
+        formatAmountByCurrencyCode(basicCashAmount, securityCurrencyCode)
+      }}</strong>
+    </p>
+
+    <details
+      :open="securityCurrencyCode !== 'IDR' || useSettlement"
+      class="border-border overflow-hidden rounded-md border"
+    >
+      <summary v-if="securityCurrencyCode === 'IDR'" class="cursor-pointer px-3 py-2 text-sm">
+        {{ $t('forms.investmentTransaction.settlement.advanced') }}
+      </summary>
+      <summary v-else class="sr-only">{{ $t('forms.investmentTransaction.settlement.advanced') }}</summary>
       <label class="hover:bg-muted/50 flex cursor-pointer items-center gap-3 p-4 transition-colors">
         <Checkbox
           v-model="useSettlement"
@@ -550,7 +632,7 @@ const onSubmit = async () => {
           </template>
         </div>
       </Transition>
-    </div>
+    </details>
 
     <TextareaField
       v-model="form.note"
@@ -558,26 +640,8 @@ const onSubmit = async () => {
       :placeholder="$t('forms.investmentTransaction.notePlaceholder')"
       :disabled="createTransactionMutation.isPending.value"
       :maxlength="2000"
-      rows="3"
+      :rows="1"
+      :max-rows="3"
     />
-
-    <div class="flex justify-end gap-4">
-      <UiButton
-        type="button"
-        variant="secondary"
-        :disabled="createTransactionMutation.isPending.value"
-        @click="emit('cancel')"
-      >
-        {{ $t('forms.investmentTransaction.cancelButton') }}
-      </UiButton>
-
-      <UiButton type="submit" :disabled="createTransactionMutation.isPending.value">
-        {{
-          createTransactionMutation.isPending.value
-            ? $t('forms.investmentTransaction.submitButtonLoading')
-            : $t('forms.investmentTransaction.submitButton')
-        }}
-      </UiButton>
-    </div>
   </form>
 </template>

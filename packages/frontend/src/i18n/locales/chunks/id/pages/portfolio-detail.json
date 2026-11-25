@@ -64,15 +64,18 @@
       "buysSells": {
         "emptyState": "Tidak ada transaksi beli/jual",
         "shares": "saham"
-      }
+      },
+      "availableCash": "Dana tersedia",
+      "negativeCash": "Kas negatif"
     },
     "holdings": {
-      "title": "Kepemilikan",
-      "subtitle": "{count} simbol",
-      "filterPlaceholder": "Filter berdasarkan simbol atau nama...",
-      "addButton": "Tambah Simbol",
+      "title": "Aset",
+      "subtitle": "{count} aset",
+      "filterPlaceholder": "Cari saham atau aset",
+      "addButton": "Tambah Aset",
       "importButton": "Impor transaksi",
-      "importButtonShort": "Impor"
+      "importButtonShort": "Impor",
+      "noFilterResultsDescription": "Aset tidak ditemukan. Coba kode atau nama lain."
     },
     "holdingsTable": {
       "loadError": "Tidak dapat memuat kepemilikan",
@@ -81,7 +84,7 @@
       "noFilterResultsDescription": "Tidak ada kepemilikan yang sesuai dengan pencarian Anda. Coba simbol atau nama lain.",
       "clearFilterButton": "Hapus pencarian",
       "headers": {
-        "symbol": "Simbol",
+        "symbol": "Kode",
         "name": "Nama",
         "shares": "Saham",
         "price": "Harga",

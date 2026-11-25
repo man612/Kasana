@@ -1,5 +1,5 @@
 <template>
-  <PageWrapper>
+  <PageWrapper class="lajur-detail-outer">
     <div v-if="isLoading" class="@container/vehicle grid min-w-0 grid-cols-1 gap-6">
       <div class="bg-card h-28 animate-pulse rounded-2xl"></div>
       <div class="grid gap-4 @lg/vehicle:grid-cols-3">
@@ -21,9 +21,12 @@
       </RouterLink>
     </div>
 
-    <div v-else class="@container/vehicle grid min-w-0 grid-cols-1 gap-3 wrap-anywhere @2xl/vehicle:gap-5">
+    <div
+      v-else
+      class="lajur-detail-page lajur-detail-in-wrapper @container/vehicle flex min-w-0 flex-col gap-3 wrap-anywhere @2xl/vehicle:gap-5"
+    >
       <section
-        class="bg-card grid min-w-0 gap-3 rounded-xl border p-4 @2xl/vehicle:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] @2xl/vehicle:gap-4 @2xl/vehicle:p-6"
+        class="bg-card grid min-w-0 shrink-0 gap-2 rounded-xl border p-3 @2xl/vehicle:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] @2xl/vehicle:gap-4 @2xl/vehicle:p-6"
       >
         <div class="flex min-w-0 items-start gap-3">
           <AccountLogoPicker
@@ -102,13 +105,13 @@
           class="flex min-w-0 flex-wrap items-center gap-2 @2xl/vehicle:col-span-2 @2xl/vehicle:justify-end"
         >
           <UiButton
-            class="min-h-[44px] max-w-full min-w-[44px] flex-[1_1_6rem] rounded-lg px-2.5 text-center wrap-anywhere whitespace-normal @sm/vehicle:flex-none"
+            class="min-h-[44px] max-w-full min-w-[44px] flex-1 rounded-lg px-2.5 text-center wrap-anywhere whitespace-normal @sm/vehicle:flex-none"
             @click="isOverrideOpen = true"
             >{{ $t('pages.vehicleDetails.overrideValueButton') }}</UiButton
           >
           <UiButton
             variant="outline"
-            class="min-h-[44px] max-w-full min-w-[44px] flex-[1_1_6rem] rounded-lg px-2.5 text-center wrap-anywhere whitespace-normal @sm/vehicle:flex-none"
+            class="min-h-[44px] max-w-full min-w-[44px] flex-1 rounded-lg px-2.5 text-center wrap-anywhere whitespace-normal @sm/vehicle:flex-none"
             @click="isEditOpen = true"
             >{{ $t('pages.vehicleDetails.editButton') }}</UiButton
           >
@@ -126,12 +129,14 @@
         </div>
       </section>
 
-      <Tabs v-model="activeVehicleTab">
-        <TabsList class="max-w-full">
-          <TabsTrigger value="summary">{{ $t('pages.vehicleDetails.tabs.summary') }}</TabsTrigger>
-          <TabsTrigger value="activity">{{ $t('pages.vehicleDetails.tabs.activity') }}</TabsTrigger>
-          <TabsTrigger value="information">{{ $t('pages.vehicleDetails.tabs.information') }}</TabsTrigger>
-        </TabsList>
+      <DetailTabs v-model="activeVehicleTab" :values="['summary', 'activity', 'information']">
+        <template #tabs>
+          <TabsList class="max-w-full">
+            <TabsTrigger value="summary">{{ $t('pages.vehicleDetails.tabs.summary') }}</TabsTrigger>
+            <TabsTrigger value="activity">{{ $t('pages.vehicleDetails.tabs.activity') }}</TabsTrigger>
+            <TabsTrigger value="information">{{ $t('pages.vehicleDetails.tabs.information') }}</TabsTrigger>
+          </TabsList>
+        </template>
         <TabsContent value="summary" class="min-w-0">
           <section class="bg-card divide-border/60 divide-y rounded-xl border">
             <dl
@@ -166,7 +171,7 @@
                   />
                   <span
                     data-testid="vehicle-kpi-percentage"
-                    class="text-muted-foreground block text-xs font-normal wrap-normal whitespace-nowrap [word-break:normal]"
+                    class="text-muted-foreground block text-xs font-normal wrap-normal [word-break:normal] whitespace-nowrap"
                   >
                     {{ Math.abs(depreciationPercent).toFixed(1) }}%
                   </span>
@@ -203,6 +208,7 @@
 
             <section
               v-if="vehicle.depreciationPreset !== DEPRECIATION_PRESET.manual || vehicle.valuationSegments?.length"
+              data-no-nav-swipe
               class="@container/chart-card min-w-0 p-4 @md/vehicle:p-6"
             >
               <h2 class="text-base font-semibold tracking-tight">{{ $t('pages.vehicleDetails.chart.title') }}</h2>
@@ -281,7 +287,7 @@
             </DetailsCard>
           </section>
         </TabsContent>
-      </Tabs>
+      </DetailTabs>
 
       <BalanceAdjustmentDialog
         v-if="isOwner && isOverrideOpen && vehicle.account"
@@ -306,6 +312,8 @@
 </template>
 
 <script setup lang="ts">
+import DetailTabs from '@/components/common/detail-tabs.vue';
+
 import { deleteVehicle, getVehicleById } from '@/api/vehicles';
 import { VUE_QUERY_CACHE_KEYS, VUE_QUERY_GLOBAL_PREFIXES } from '@/common/const';
 import {
@@ -319,7 +327,7 @@ import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.v
 import EditVehicleDialog from '@/components/dialogs/edit-vehicle-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/lib/ui/tabs';
+import { TabsContent, TabsList, TabsTrigger } from '@/components/lib/ui/tabs';
 import { getVehicleTypeIcon } from '@/components/forms/vehicle-class-options';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
 import { useFormatCurrency } from '@/composable';

@@ -14,6 +14,7 @@ const detailRoutes = new Set<string>([
   ROUTES_NAMES.account,
   ROUTES_NAMES.accountsVehicleDetails,
   ROUTES_NAMES.loanDetail,
+  ROUTES_NAMES.portfolioDetail,
   ROUTES_NAMES.automationCreate,
   ROUTES_NAMES.automationDetails,
 ]);

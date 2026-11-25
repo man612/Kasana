@@ -34,7 +34,14 @@
         {{ $t('dashboard.widgets.common.staleData') }}
         <Button variant="link" size="sm" @click="refetchBalanceHistory()">{{ $t('common.actions.retry') }}</Button>
       </p>
-      <div class="mb-2 grid min-w-0 grid-cols-1 gap-2 @md/balance:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+      <div
+        data-tab-swipe
+        data-testid="balance-trend-swipe"
+        class="mb-2 grid min-w-0 touch-pan-y grid-cols-1 gap-2 @md/balance:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]"
+        @touchstart.passive="balanceSwipe.begin"
+        @touchend.passive="balanceSwipe.end"
+        @touchcancel="balanceSwipe.cancel"
+      >
         <div class="min-w-0">
           <FitAmount
             :value="animatedBalance"
@@ -376,6 +383,7 @@ import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { useFormatCurrency } from '@/composable';
 import { getChartColors } from '@/composable/charts/chart-colors';
 import { formatAxisCurrency } from '@/composable/charts/format-axis-currency';
+import { useHorizontalTabSwipe } from '@/composable/use-horizontal-tab-swipe';
 import { PillTabs } from '@/components/lib/ui/pill-tabs';
 import { useChartTooltipPosition } from '@/composable/charts/use-chart-tooltip-position';
 import {
@@ -786,6 +794,11 @@ const selectBalanceTypeValue = (value: string) => {
   const option = balanceTypeOptions.value.find((item) => item.value === value);
   if (option) selectBalanceType(option);
 };
+const balanceSwipe = useHorizontalTabSwipe({
+  current: computed(() => selectedBalanceType.value.value),
+  values: () => balanceTypeOptions.value.map(({ value }) => value),
+  select: selectBalanceTypeValue,
+});
 
 const usesLoanBalance = computed(() => selectedBalanceType.value.value === 'loans');
 const metricLabel = computed(() =>

@@ -48,7 +48,7 @@ const finishAdvancedMotion = (event: TransitionEvent) => {
         class="shrink-0"
       >
         <component :is="compactTrigger ? CircleHelpIcon : LightbulbIcon" class="size-4" aria-hidden="true" />
-        <template v-if="!compactTrigger">{{ $t('automations.guide.title') }}</template>
+        <template v-if="!compactTrigger">{{ $t('automations.guide.trigger') }}</template>
       </Button>
     </template>
     <p>{{ $t('automations.guide.intro') }}</p>

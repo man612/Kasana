@@ -2,7 +2,6 @@
 import FieldLabel from '@/components/fields/components/field-label.vue';
 import InputField from '@/components/fields/input-field.vue';
 import TextareaField from '@/components/fields/textarea-field.vue';
-import UiButton from '@/components/lib/ui/button/Button.vue';
 import * as Select from '@/components/lib/ui/select';
 import { NotificationType, useNotificationCenter } from '@/components/notification-center';
 import { useUpdatePortfolio } from '@/composable/data-queries/portfolios';
@@ -14,10 +13,10 @@ const { t } = useI18n();
 
 interface Emit {
   (e: 'updated', portfolio: PortfolioModel): void;
-  (e: 'cancel'): void;
 }
 
 const props = defineProps<{
+  formId?: string;
   portfolio: PortfolioModel;
   /** Disable the form inputs */
   disabled?: boolean;
@@ -88,10 +87,11 @@ const onSubmit = async () => {
     });
   }
 };
+defineExpose({ isSubmitDisabled, isSubmitting: updateMutation.isPending });
 </script>
 
 <template>
-  <form class="grid w-full max-w-150 gap-6" @submit.prevent="onSubmit">
+  <form :id="formId" class="grid w-full max-w-150 gap-6" @submit.prevent="onSubmit">
     <InputField
       v-model="form.name"
       :label="$t('forms.portfolioSettings.nameLabel')"
@@ -121,23 +121,5 @@ const onSubmit = async () => {
       :placeholder="$t('forms.portfolioSettings.descriptionPlaceholder')"
       :disabled="updateMutation.isPending.value || disabled"
     />
-
-    <div class="flex justify-end gap-4">
-      <UiButton
-        type="button"
-        variant="secondary"
-        @click="emit('cancel')"
-        :disabled="updateMutation.isPending.value || disabled"
-      >
-        {{ $t('forms.portfolioSettings.cancelButton') }}
-      </UiButton>
-      <UiButton type="submit" class="min-w-30" :disabled="isSubmitDisabled">
-        {{
-          updateMutation.isPending.value
-            ? $t('forms.portfolioSettings.submitButtonLoading')
-            : $t('forms.portfolioSettings.submitButton')
-        }}
-      </UiButton>
-    </div>
   </form>
 </template>

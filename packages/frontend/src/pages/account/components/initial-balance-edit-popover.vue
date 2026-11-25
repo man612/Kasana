@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
-import DocsLink from '@/components/common/docs-link.vue';
+import ContextualHelp from '@/components/common/contextual-help.vue';
 import { Button } from '@/components/lib/ui/button';
 import * as Popover from '@/components/lib/ui/popover';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
@@ -100,7 +100,9 @@ watch([isOpen, () => props.account.id], () => {
           </FormattedAmountField>
           <p class="text-muted-foreground text-xs">
             {{ $t('pages.account.details.initialBalanceHint') }}
-            <DocsLink path="/accounts/manage-accounts/#change-the-initial-balance" class="text-xs" />
+            <ContextualHelp :title="$t('pages.account.details.initialBalance')">
+              <p>{{ $t('pages.account.details.initialBalanceGuide') }}</p>
+            </ContextualHelp>
           </p>
           <Button
             type="submit"

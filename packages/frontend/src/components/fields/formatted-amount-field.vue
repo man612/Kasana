@@ -74,6 +74,7 @@ const props = defineProps<{
   embedded?: boolean;
   currencyCode?: string;
   autofocus?: boolean;
+  maximumFractionDigits?: number;
 }>();
 
 const emit = defineEmits<{
@@ -91,14 +92,17 @@ const trailingFragment = ref<string>('');
 const separators = getAmountSeparators('id-ID');
 
 // Locale grouping/decimal separators, matching the rest of the app's number rendering.
-const formatter = new Intl.NumberFormat('id-ID', {
-  maximumFractionDigits: 2,
-  minimumFractionDigits: 0,
-});
+const formatter = computed(
+  () =>
+    new Intl.NumberFormat('id-ID', {
+      maximumFractionDigits: props.maximumFractionDigits ?? 2,
+      minimumFractionDigits: 0,
+    }),
+);
 
 const formatNumber = (value: number): string => {
   if (Number.isNaN(value)) return '';
-  return formatter.format(value);
+  return formatter.value.format(value);
 };
 
 const displayValue = computed(() => {
@@ -122,6 +126,7 @@ const onInput = (event: Event) => {
     raw,
     decimalSeparator: separators.decimal,
     groupSeparator: separators.group,
+    maximumFractionDigits: props.maximumFractionDigits,
   });
   trailingFragment.value = fragment;
 

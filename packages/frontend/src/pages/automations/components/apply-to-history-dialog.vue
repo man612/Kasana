@@ -183,7 +183,6 @@ const handleApply = () => {
     <template v-if="step === 'pick' && $slots['pick-help']" #header-actions>
       <slot name="pick-help" />
     </template>
-    <template v-if="step === 'pick'" #description>{{ $t('automations.applyToHistory.pickHint') }}</template>
 
     <template v-if="step === 'pick'">
       <div v-if="rulesLoading" class="flex flex-col gap-2">

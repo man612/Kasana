@@ -128,8 +128,8 @@ test.describe('Lajur planned pages and optimization', () => {
     await page.goto('/transactions/optimizations');
     const trigger = page.getByRole('button', { name: /Jalankan aturan pada transaksi lama/i });
     await trigger.click();
-    const sheet = page.getByRole('dialog', { name: 'Jalankan aturan pada transaksi lama' });
-    await expect(sheet.getByText(/Belum ada aturan otomatisasi/)).toBeVisible();
+    const sheet = page.getByRole('dialog', { name: 'Jalankan aturan' });
+    await expect(sheet.getByText(/Belum ada otomatisasi/)).toBeVisible();
     const create = sheet.getByRole('button', { name: 'Buat otomatisasi', exact: true });
     const cancel = sheet.getByRole('button', { name: 'Batal', exact: true });
     const cancelBox = (await cancel.boundingBox())!;

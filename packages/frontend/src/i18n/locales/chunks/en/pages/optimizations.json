@@ -10,8 +10,14 @@
         "label": "AI status unavailable",
         "description": "AI status could not be loaded. Try again in AI settings."
       },
-      "loading": { "label": "Checking AI status", "description": "AI configuration is still loading." },
-      "access": { "label": "AI access limited", "description": "Check your access to this feature in AI settings." },
+      "loading": {
+        "label": "Checking AI status",
+        "description": "AI configuration is still loading."
+      },
+      "access": {
+        "label": "AI access limited",
+        "description": "Check your access to this feature in AI settings."
+      },
       "allowance": {
         "label": "AI allowance reached",
         "description": "Your shared AI allowance has been used. Check your model settings or wait for the allowance to renew."

@@ -1,11 +1,15 @@
 <template>
   <PageWrapper>
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-      <h1 class="text-2xl font-semibold tracking-tight">{{ $t('investments.title') }}</h1>
+      <NavigationSectionTitle
+        section="accounts"
+        :label="$t('investments.title')"
+        class="text-2xl font-semibold tracking-tight"
+      />
 
       <DemoRestricted feature="create_portfolio_header" :message="$t('demo.featureNotAvailable')">
         <CreatePortfolioDialog v-if="!isDemo && portfolios.length > 0">
-          <UiButton>
+          <UiButton size="sm" class="min-h-10">
             <PlusIcon class="size-4" />
             {{ $t('investments.createButton') }}
           </UiButton>
@@ -18,9 +22,9 @@
     </div>
 
     <template v-if="portfoliosQuery.isLoading.value">
-      <div class="mb-6 grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3">
+      <div class="mb-4 grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3">
         <Card v-for="i in 3" :key="i" class="overflow-hidden">
-          <CardHeader class="p-4 pr-14 pb-2">
+          <CardHeader class="p-3 pr-14 pb-1">
             <div class="flex items-start gap-3">
               <div class="bg-muted size-10 shrink-0 animate-pulse rounded-lg" />
               <div class="min-w-0 flex-1 space-y-1.5">
@@ -29,7 +33,7 @@
               </div>
             </div>
           </CardHeader>
-          <CardContent class="p-4 pt-2">
+          <CardContent class="p-3 pt-1">
             <div class="space-y-1.5">
               <div class="bg-muted h-7 w-28 animate-pulse rounded" />
               <div class="bg-muted h-5 w-24 animate-pulse rounded" />
@@ -48,10 +52,23 @@
     </template>
 
     <template v-else-if="portfolios.length">
-      <Card v-if="activePortfolios.length" class="@container mb-4 p-4">
-        <dl class="grid gap-3 @sm:grid-cols-2">
-          <div v-for="field in summaryFields" :key="field" class="min-w-0">
-            <dt class="text-muted-foreground text-xs">{{ $t(`investments.summary.${field}`) }}</dt>
+      <Card v-if="activePortfolios.length" class="mb-3 gap-2 p-3">
+        <dl class="grid grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-4">
+          <div
+            v-for="field in summaryFields"
+            :key="field"
+            class="min-w-0"
+            :class="field === 'totalPortfolioValue' && 'col-span-2 sm:col-span-1'"
+          >
+            <dt class="text-muted-foreground flex items-center gap-0.5 text-xs">
+              {{ $t(`investments.summary.${field}`) }}
+              <ContextualHelp
+                v-if="field === 'totalPortfolioValue'"
+                :title="$t('investments.summary.totalPortfolioValue')"
+              >
+                <p>{{ $t('investments.summary.help') }}</p>
+              </ContextualHelp>
+            </dt>
             <dd
               class="mt-0.5 font-semibold break-words tabular-nums"
               :class="field === 'totalPortfolioValue' ? 'text-2xl' : 'text-base'"
@@ -73,7 +90,7 @@
         <p v-else-if="unpricedHoldings" class="text-warning-text mt-3 text-xs">
           {{ $t('investments.summary.unpriced', { count: unpricedHoldings }) }}
         </p>
-        <p v-else class="text-muted-foreground mt-3 text-xs">{{ $t('investments.summary.help') }}</p>
+
         <RouterLink
           :to="{ name: ROUTES_NAMES.analyticsInvestmentContributions }"
           class="text-primary-text mt-2 inline-flex min-h-9 items-center text-sm font-medium underline-offset-4 hover:underline"
@@ -81,12 +98,12 @@
           {{ $t('investments.summary.contributions') }}
         </RouterLink>
       </Card>
-      <div class="mb-6 grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3">
+      <div class="mb-4 grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-3">
         <template v-for="portfolio in portfolios" :key="portfolio.id">
           <Card
             :class="
               cn(
-                'group relative overflow-hidden transition-all duration-200 hover:shadow-md',
+                'group relative gap-1 overflow-hidden transition-all duration-200 hover:shadow-md',
                 !portfolio.isEnabled && 'opacity-60',
               )
             "
@@ -99,7 +116,7 @@
                     <MoreVerticalIcon class="size-4" />
                   </UiButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" @close-auto-focus="confirmSelectedPortfolio">
                   <DropdownMenuItem>
                     <RouterLink
                       :to="{
@@ -113,15 +130,14 @@
                     </RouterLink>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DeletePortfolioDialog v-if="!isDemo" :portfolio-id="portfolio.id">
-                    <DropdownMenuItem
-                      class="text-destructive-text focus:bg-destructive-text/10 focus:text-destructive-text"
-                      @select.prevent
-                    >
-                      <Trash2Icon class="mr-2 size-4" />
-                      {{ $t('investments.menu.delete') }}
-                    </DropdownMenuItem>
-                  </DeletePortfolioDialog>
+                  <DropdownMenuItem
+                    v-if="!isDemo"
+                    class="text-destructive-text focus:bg-destructive-text/10 focus:text-destructive-text"
+                    @select="selectedPortfolioId = portfolio.id"
+                  >
+                    <Trash2Icon class="mr-2 size-4" />
+                    {{ $t('investments.menu.delete') }}
+                  </DropdownMenuItem>
                   <DemoRestricted v-else feature="delete_portfolio" :message="$t('demo.featureNotAvailable')">
                     <DropdownMenuItem
                       disabled
@@ -143,7 +159,7 @@
               }"
               class="block h-full"
             >
-              <CardHeader class="p-4 pr-14 pb-2">
+              <CardHeader class="p-3 pr-14 pb-1">
                 <div class="flex items-start gap-3">
                   <PortfolioLogo :portfolio="portfolio" class="size-10" />
                   <div class="min-w-0 flex-1">
@@ -158,7 +174,7 @@
                 </div>
               </CardHeader>
 
-              <CardContent class="p-4 pt-2">
+              <CardContent class="p-3 pt-1">
                 <PortfolioCardBalance
                   :summary="summariesById.get(portfolio.id)"
                   :is-fetching="summariesQuery.isFetching.value"
@@ -202,6 +218,11 @@
     </template>
 
     <PortfoliosTrash v-if="!isDemo" />
+    <DeletePortfolioDialog
+      v-if="deletePortfolioId"
+      v-model:open="isDeletePortfolioOpen"
+      :portfolio-id="deletePortfolioId"
+    />
   </PageWrapper>
 </template>
 
@@ -214,6 +235,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/common/dropdown-menu';
+import ContextualHelp from '@/components/common/contextual-help.vue';
 import PageWrapper from '@/components/common/page-wrapper.vue';
 import PortfolioLogo from '@/components/common/portfolio-logo.vue';
 import { DemoRestricted } from '@/components/demo';
@@ -221,6 +243,7 @@ import CreatePortfolioDialog from '@/components/dialogs/create-portfolio-dialog.
 import DeletePortfolioDialog from '@/components/dialogs/delete-portfolio-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import { useExchangeRates } from '@/composable/data-queries/currencies';
 import { usePortfolioSummaries } from '@/composable/data-queries/portfolio-summary';
 import { useFormatCurrency } from '@/composable/formatters';
@@ -232,7 +255,7 @@ import { ROUTES_NAMES } from '@/routes/constants';
 import { useUserStore } from '@/stores';
 import { BriefcaseIcon, EyeIcon, MoreVerticalIcon, PlusIcon, Trash2Icon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const userStore = useUserStore();
 const { isDemo } = storeToRefs(userStore);
@@ -262,6 +285,17 @@ const unpricedHoldings = computed(() =>
     0,
   ),
 );
+
+let selectedPortfolioId: string | undefined;
+const deletePortfolioId = ref<string>();
+const isDeletePortfolioOpen = ref(false);
+const confirmSelectedPortfolio = (event: Event) => {
+  if (!selectedPortfolioId) return;
+  event.preventDefault();
+  deletePortfolioId.value = selectedPortfolioId;
+  selectedPortfolioId = undefined;
+  isDeletePortfolioOpen.value = true;
+};
 
 const summaryFields = ['totalPortfolioValue', 'totalCostBasis', 'unrealizedGainValue', 'realizedGainValue'] as const;
 const totals = computed(() => {

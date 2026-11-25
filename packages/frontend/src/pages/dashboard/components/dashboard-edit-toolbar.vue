@@ -30,12 +30,20 @@ const emit = defineEmits<{
         key="ready"
         variant="outline"
         :size="isCompact ? 'icon' : 'sm'"
-        :class="isCompact && 'grid size-11 place-items-center rounded-xl p-0'"
+        :class="
+          isCompact &&
+          'relative grid size-11 place-items-center border-transparent bg-transparent p-0 hover:bg-transparent'
+        "
         :aria-label="$t('dashboard.editMode.customize')"
         @click="emit('enter')"
       >
+        <span
+          v-if="isCompact"
+          class="border-border bg-card pointer-events-none absolute inset-1.5 rounded-lg border"
+          aria-hidden="true"
+        />
         <SlidersHorizontalIcon
-          :class="isCompact ? 'size-[0.7rem]' : 'size-3.5'"
+          :class="isCompact ? 'relative size-[0.7rem]' : 'size-3.5'"
           :stroke-width="isCompact ? 1.75 : 2"
           aria-hidden="true"
         />

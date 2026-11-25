@@ -68,7 +68,7 @@ async function openHoldingTransactionDialog({ page }: { page: Page }): Promise<v
     .first();
   await expect(expandedArea).toBeVisible({ timeout: 5_000 });
 
-  await expandedArea.getByRole('button').filter({ hasText: /add/i }).first().click();
+  await expandedArea.getByRole('button', { name: /add/i }).first().click();
   await expect(page.getByRole('dialog')).toBeVisible();
 }
 
