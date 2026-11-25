@@ -27,6 +27,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   'update:open': [value: boolean];
   select: [tx: TransactionModel];
+  closed: [];
 }>();
 
 const { t } = useI18n();
@@ -98,7 +99,12 @@ const isMobileView = useWindowBreakpoints(1024);
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen" dialog-content-class="max-w-[900px] h-[85vh]" no-internal-scroll>
+  <ResponsiveDialog
+    v-model:open="isOpen"
+    dialog-content-class="max-w-[900px] h-[85vh]"
+    no-internal-scroll
+    @closed="emit('closed')"
+  >
     <template #title>
       <span>{{ t('dialogs.pickTransaction.title') }}</span>
     </template>

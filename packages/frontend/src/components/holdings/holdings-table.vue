@@ -2,7 +2,6 @@
 import PrecisionNumber from '@/components/common/precision-number.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
-import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import { isBeiStock } from '@/common/utils/investment-units';
 import InvestmentTransactionForm from '@/components/forms/investment-transaction-form.vue';
@@ -33,7 +32,7 @@ import {
   Trash2Icon,
 } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
-import { computed, nextTick, ref, useId, useTemplateRef } from 'vue';
+import { computed, ref, useId, useTemplateRef } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { revealInScrollViewport } from '@/composable/reveal-in-scroll-viewport';
@@ -230,20 +229,12 @@ const stickyBodyCellStyles =
 const theadLabelStyles = 'block max-w-32 truncate';
 const formId = useId();
 const visitedHoldings = ref(new Set<string>());
-const holdingPanelId = (securityId: string) => `${formId}-holding-${securityId}`;
-const toggleHoldingPanel = async (securityId: string) => {
-  if (isExpanded(securityId)) {
-    toggleExpand(securityId);
-    return;
-  }
+const toggleHoldingPanel = (securityId: string) => {
   visitedHoldings.value.add(securityId);
   toggleExpand(securityId);
-  await nextTick();
-  const panel = document.getElementById(holdingPanelId(securityId));
-  if (!panel) return;
-  const animations = panel.getAnimations();
-  await Promise.allSettled(animations.map((animation) => animation.finished));
-  if (!panel.isConnected || !isExpanded(securityId)) return;
+};
+const holdingPanelId = (securityId: string) => `${formId}-holding-${securityId}`;
+const revealHoldingPanel = (panel: Element) => {
   const viewport = panel.closest<HTMLElement>('.lajur-detail-scroll-viewport');
   if (viewport) revealInScrollViewport({ target: panel, viewport });
 };
@@ -461,7 +452,9 @@ const actionForm = useTemplateRef<InstanceType<typeof InvestmentTransactionForm>
                         class="size-8 shrink-0"
                         :aria-label="row.holding.security?.symbol ?? $t('portfolioDetail.holdings.title')"
                         :aria-expanded="isExpanded(row.holding.securityId)"
-                        :aria-controls="holdingPanelId(row.holding.securityId)"
+                        :aria-controls="
+                          isExpanded(row.holding.securityId) ? holdingPanelId(row.holding.securityId) : undefined
+                        "
                         @click="toggleHoldingPanel(row.holding.securityId)"
                       >
                         <ChevronRightIcon
@@ -587,69 +580,76 @@ const actionForm = useTemplateRef<InstanceType<typeof InvestmentTransactionForm>
                 <!-- Expanded transactions section -->
                 <tr v-if="visitedHoldings.has(row.holding.securityId)" class="bg-muted/20">
                   <td colspan="10" class="p-0">
-                    <LayoutCollapse
-                      :id="holdingPanelId(row.holding.securityId)"
-                      :open="isExpanded(row.holding.securityId)"
-                    >
-                      <dl class="grid grid-cols-2 gap-2 px-3 py-2 text-xs @3xl:hidden">
+                    <Transition name="lajur-flow-row" appear @after-enter="revealHoldingPanel">
+                      <div
+                        v-if="isExpanded(row.holding.securityId)"
+                        :id="holdingPanelId(row.holding.securityId)"
+                        class="lajur-flow-row"
+                      >
                         <div>
-                          <dt class="text-muted-foreground">
-                            {{ $t('portfolioDetail.holdingsTable.headers.shares') }}
-                          </dt>
-                          <dd>
-                            <PrecisionNumber
-                              :value="row.holding.quantity"
-                              :max-decimals="decimalsForAssetClass(row.holding.security?.assetClass)"
-                            />
-                          </dd>
-                        </div>
-                        <div>
-                          <dt class="text-muted-foreground">{{ $t('portfolioDetail.holdingsTable.headers.price') }}</dt>
-                          <dd>
-                            {{
-                              row.holding.priceDate
-                                ? formatCurrency(getPrice(row.holding), row.holding.currencyCode)
-                                : '—'
-                            }}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt class="text-muted-foreground">
-                            {{ $t('portfolioDetail.holdingsTable.headers.totalCost') }}
-                          </dt>
-                          <dd>
-                            {{
-                              formatMoneyCell({
-                                holding: row.holding,
-                                native: getTotalCost(row.holding),
-                                display: row.holding.displayCostBasis,
-                              })
-                            }}
-                          </dd>
-                        </div>
-                        <div>
-                          <dt class="text-muted-foreground">
-                            {{ $t('portfolioDetail.holdingsTable.headers.unrealizedGain') }}
-                          </dt>
-                          <dd>
-                            {{
-                              row.holding.priceDate
-                                ? formatMoneyCell({
+                          <dl class="grid grid-cols-2 gap-2 px-3 py-2 text-xs @3xl:hidden">
+                            <div>
+                              <dt class="text-muted-foreground">
+                                {{ $t('portfolioDetail.holdingsTable.headers.shares') }}
+                              </dt>
+                              <dd>
+                                <PrecisionNumber
+                                  :value="row.holding.quantity"
+                                  :max-decimals="decimalsForAssetClass(row.holding.security?.assetClass)"
+                                />
+                              </dd>
+                            </div>
+                            <div>
+                              <dt class="text-muted-foreground">
+                                {{ $t('portfolioDetail.holdingsTable.headers.price') }}
+                              </dt>
+                              <dd>
+                                {{
+                                  row.holding.priceDate
+                                    ? formatCurrency(getPrice(row.holding), row.holding.currencyCode)
+                                    : '—'
+                                }}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt class="text-muted-foreground">
+                                {{ $t('portfolioDetail.holdingsTable.headers.totalCost') }}
+                              </dt>
+                              <dd>
+                                {{
+                                  formatMoneyCell({
                                     holding: row.holding,
-                                    native: getUnrealizedGain(row.holding).value,
-                                    display: row.holding.displayUnrealizedGainValue,
+                                    native: getTotalCost(row.holding),
+                                    display: row.holding.displayCostBasis,
                                   })
-                                : '—'
-                            }}
-                          </dd>
+                                }}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt class="text-muted-foreground">
+                                {{ $t('portfolioDetail.holdingsTable.headers.unrealizedGain') }}
+                              </dt>
+                              <dd>
+                                {{
+                                  row.holding.priceDate
+                                    ? formatMoneyCell({
+                                        holding: row.holding,
+                                        native: getUnrealizedGain(row.holding).value,
+                                        display: row.holding.displayUnrealizedGainValue,
+                                      })
+                                    : '—'
+                                }}
+                              </dd>
+                            </div>
+                          </dl>
+                          <HoldingTransactionsSection
+                            :portfolio-id="portfolioId"
+                            :security-id="row.holding.securityId"
+                            @add-transaction="openTransactionModal(row.holding)"
+                          />
                         </div>
-                      </dl>
-                      <HoldingTransactionsSection
-                        :portfolio-id="portfolioId"
-                        :security-id="row.holding.securityId"
-                        @add-transaction="openTransactionModal(row.holding)"
-                      />
-                    </LayoutCollapse>
+                      </div>
+                    </Transition>
                   </td>
                 </tr>
               </template>

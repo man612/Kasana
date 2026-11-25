@@ -2,6 +2,7 @@ import { expect, test, type APIRequestContext } from '@playwright/test';
 
 import {
   addUserCurrencies,
+  apiGet,
   apiPatch,
   apiPost,
   completeOnboarding,
@@ -108,8 +109,24 @@ test.describe('Lajur detail pages and investments', () => {
     const dialog = page.getByRole('dialog', { name: 'Transaksi Tunai' });
     await expect(dialog.getByText('Rp', { exact: true })).toBeVisible();
     await expect(dialog.getByText('Mata Uang', { exact: true })).toHaveCount(0);
-    await dialog.getByRole('button', { name: 'Batal', exact: true }).click();
+    const portfolioPath = new URL(page.url()).pathname;
+    await dialog.getByRole('button', { name: 'Transfer', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Tautkan transaksi yang ada' }).click();
+    const picker = page.getByRole('dialog', { name: 'Pilih transaksi' });
+    await picker.getByText('Catatan sintetis 14', { exact: true }).click();
+    await expect(picker).toBeHidden();
+    await expect(dialog.getByText('Catatan sintetis 14', { exact: true })).toBeVisible();
+    await dialog.getByRole('button', { name: 'Kirim', exact: true }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Konfirmasi', exact: true }).click();
     await expect(dialog).toBeHidden();
+    await expect
+      .poll(async () => {
+        const { response } = await apiGet({ request: api, path: `/api/v1/investments${portfolioPath}/balance` });
+        return Number(
+          response.find(({ currencyCode }: { currencyCode: string }) => currencyCode === 'IDR')?.availableCash,
+        );
+      })
+      .toBe(-4_000);
 
     await page.goto('/investments');
     await page.getByRole('link', { name: /Portofolio aset sintetis/ }).click();
@@ -117,6 +134,7 @@ test.describe('Lajur detail pages and investments', () => {
     const security = page.getByRole('button', { name: 'ETEST', exact: true });
     await security.click();
     await expect(security).toHaveAttribute('aria-expanded', 'true');
+    await expect(page.getByRole('button', { name: /tambah transaksi/i }).last()).toBeVisible();
     const holdingTable = page.locator('table').filter({ has: security });
     expect(await holdingTable.evaluate((element) => element.getBoundingClientRect().width)).toBeLessThan(320);
     await page.getByRole('link', { name: /impor/i }).click();
