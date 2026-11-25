@@ -30,15 +30,19 @@
           />
         </div>
         <div class="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
-          <div v-for="segment in compositionSegments" :key="segment.id" class="flex items-center gap-1.5 text-xs">
+          <div
+            v-for="segment in compositionSegments"
+            :key="segment.id"
+            class="flex min-w-0 flex-wrap items-center gap-1.5 text-xs"
+          >
             <span :class="cn('size-2 shrink-0 rounded-xs', segment.barClass)" aria-hidden="true" />
-            <span class="text-muted-foreground max-w-40 truncate">{{ segment.name }}</span>
-            <span class="font-medium tabular-nums">{{ segment.amountDisplay }}</span>
+            <span class="text-muted-foreground min-w-0 wrap-anywhere">{{ segment.name }}</span>
+            <span class="min-w-0 font-medium wrap-anywhere tabular-nums">{{ segment.amountDisplay }}</span>
           </div>
         </div>
       </div>
       <div
-        class="border-border/65 divide-border/55 grid min-w-0 flex-1 grid-cols-2 gap-x-3 border-t @3xl/loans-aggregate:ml-auto @3xl/loans-aggregate:grid-cols-1 @3xl/loans-aggregate:divide-y @3xl/loans-aggregate:border-t-0 @3xl/loans-aggregate:border-l @3xl/loans-aggregate:pl-5"
+        class="border-border/65 divide-border/55 grid min-w-0 flex-1 divide-y border-t @3xl/loans-aggregate:ml-auto @3xl/loans-aggregate:grid-cols-1 @3xl/loans-aggregate:divide-y @3xl/loans-aggregate:border-t-0 @3xl/loans-aggregate:border-l @3xl/loans-aggregate:pl-5"
       >
         <Metric :label="$t('loans.aggregate.monthlyObligation')" :value="monthlyObligationDisplay" />
         <Metric :label="$t('loans.aggregate.avgApr')" :value="avgAprDisplay" />

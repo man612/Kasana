@@ -65,10 +65,10 @@
       "description": "Perbarui nama, jenis, atau deskripsi portofolio Anda."
     },
     "deletePortfolio": {
-      "title": "Hapus Portofolio",
-      "description": "Portofolio ini akan dipindahkan ke tempat sampah dan dapat dipulihkan dalam 30 hari. Setelah itu, portofolio akan dihapus secara permanen beserta semua kepemilikan dan transaksi.",
+      "title": "Hapus portofolio?",
+      "description": "Portofolio dan riwayatnya bisa dipulihkan dari Tempat Sampah dalam {days} hari.",
       "cancelButton": "Batal",
-      "deleteButton": "Pindahkan ke Tempat Sampah",
+      "deleteButton": "Pindahkan ke Sampah",
       "deleteButtonLoading": "Memindahkan...",
       "notifications": {
         "success": "Portofolio dipindahkan ke tempat sampah. Anda dapat memulihkannya dalam 30 hari dari halaman Investasi.",
@@ -574,17 +574,17 @@
       }
     },
     "addSymbols": {
-      "title": "Tambah Simbol",
-      "searchLabel": "Cari simbol atau nama",
-      "searchPlaceholder": "AAPL",
-      "searchError": "Gagal mencari sekuritas.",
+      "title": "Tambah Aset",
+      "searchLabel": "Cari saham atau aset",
+      "searchPlaceholder": "Contoh BBCA atau BUMI",
+      "searchError": "Gagal mencari aset.",
       "addedIndicator": "(Ditambahkan)",
       "noResults": "Tidak ada hasil.",
       "emptyState": {
-        "title": "Cari simbol",
-        "description": "Ketik ticker atau nama untuk menemukan saham atau kripto yang dapat Anda tambahkan ke portofolio ini."
+        "title": "Cari aset",
+        "description": "Ketik kode saham atau nama aset untuk mencari."
       },
-      "noResultsHint": "Coba ticker yang berbeda, nama lengkap, atau ganti filter di atas.",
+      "noResultsHint": "Coba kode, nama aset, atau filter lain.",
       "clearSearch": "Bersihkan pencarian",
       "endOfList": "Itu saja",
       "assetClass": {

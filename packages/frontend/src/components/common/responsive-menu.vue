@@ -50,14 +50,14 @@ defineExpose({ close });
     </Drawer.Drawer>
   </template>
   <template v-else>
-    <Popover.Popover :open="props.open" :modal="Boolean(dimBackdrop)" @update:open="emit('update:open', $event)">
+    <Popover.Popover :open="props.open" @update:open="emit('update:open', $event)">
       <Popover.PopoverTrigger as-child>
         <slot name="trigger" />
       </Popover.PopoverTrigger>
 
       <Popover.PopoverContent
         align="end"
-        :dim-backdrop="dimBackdrop"
+        :dim-backdrop="dimBackdrop ?? true"
         :class="cn('w-max max-w-64 min-w-48 p-1', props.popoverClass)"
       >
         <SlotContent />

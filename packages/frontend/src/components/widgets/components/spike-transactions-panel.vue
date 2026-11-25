@@ -1,106 +1,111 @@
 <template>
-  <Teleport to="body">
-    <Transition name="spike-panel-fade">
-      <div
-        v-if="visible"
-        ref="panelRef"
-        class="bg-card text-card-foreground fixed z-(--z-chart-floating) max-h-[min(25rem,calc(100dvh-1.25rem))] w-[min(21.125rem,calc(100vw-1.25rem))] overflow-y-auto overscroll-contain rounded-lg border shadow-xl motion-safe:transition-[left,top] motion-safe:duration-150"
-        :style="{ left: `${x}px`, top: `${y}px` }"
-      >
-        <!-- Header -->
-        <div class="flex items-start justify-between gap-2 border-b px-3 py-2">
-          <div>
-            <div class="text-sm font-medium">{{ spikeDate }}</div>
-            <div
-              class="text-xs font-semibold"
-              :class="{
-                'text-success-text': isPositive,
-                'text-app-expense-color': !isPositive,
-              }"
-            >
-              {{ isPositive ? '+' : ''
-              }}{{ formatLargeNumber(deltaAbsolute, { isFiat: true, currency: currencyCode }) }} ({{
-                isPositive ? '+' : ''
-              }}{{ deltaPercent.toFixed(1) }}%)
-            </div>
+  <Popover :open="visible" @update:open="!$event && $emit('close')">
+    <PopoverAnchor :reference="anchor" as="span" hidden />
+    <PopoverContent
+      :aria-label="spikeDate"
+      align="start"
+      class="w-[min(21.125rem,calc(100vw-1.5rem))] overflow-y-auto p-0"
+      @close-auto-focus="restoreMarkerFocus"
+    >
+      <!-- Header -->
+      <div class="flex items-start justify-between gap-2 border-b px-3 py-2">
+        <div>
+          <div class="text-sm font-medium">{{ spikeDate }}</div>
+          <div
+            class="text-xs font-semibold"
+            :class="{
+              'text-success-text': isPositive,
+              'text-app-expense-color': !isPositive,
+            }"
+          >
+            {{ formatBalanceDelta({ delta: deltaAbsolute, currency: currencyCode }) }}
+            <template v-if="deltaPercent !== null">
+              ({{ formatBalanceDeltaPercent({ percent: deltaPercent }) }})
+            </template>
           </div>
-          <button
-            class="text-muted-foreground hover:text-foreground -mt-0.5 -mr-1 shrink-0 rounded p-1 transition-colors"
+        </div>
+        <DesktopOnlyTooltip :content="$t('common.ui.close')">
+          <Button
+            type="button"
+            size="icon-sm"
+            variant="ghost"
+            class="-mt-0.5 -mr-1 shrink-0"
+            :aria-label="$t('common.ui.close')"
             @click="$emit('close')"
           >
-            <XIcon class="size-4" />
-          </button>
-        </div>
-
-        <!-- Content -->
-        <div class="px-3 py-2">
-          <!-- Balance breakdown (total mode only) -->
-          <div v-if="showBalanceBreakdown" class="mb-2 space-y-0.5 border-b pb-2 text-xs">
-            <div class="flex justify-between">
-              <span class="text-foreground font-semibold">{{
-                t('dashboard.widgets.balanceTrend.spikePanel.accounts')
-              }}</span>
-              <span
-                :class="{
-                  'text-success-text': accountsDelta > 0,
-                  'text-app-expense-color': accountsDelta < 0,
-                  'text-muted-foreground': accountsDelta === 0,
-                }"
-              >
-                {{ accountsDelta > 0 ? '+' : ''
-                }}{{ formatLargeNumber(accountsDelta, { isFiat: true, currency: currencyCode }) }}
-              </span>
-            </div>
-            <div class="mt-1 flex justify-between">
-              <span class="text-foreground font-semibold">{{
-                t('dashboard.widgets.balanceTrend.spikePanel.portfolios')
-              }}</span>
-              <span
-                :class="{
-                  'text-success-text': portfoliosDelta > 0,
-                  'text-app-expense-color': portfoliosDelta < 0,
-                  'text-muted-foreground': portfoliosDelta === 0,
-                }"
-              >
-                {{ portfoliosDelta > 0 ? '+' : ''
-                }}{{ formatLargeNumber(portfoliosDelta, { isFiat: true, currency: currencyCode }) }}
-              </span>
-            </div>
-          </div>
-
-          <template v-if="isPortfolioMode">
-            <p class="text-muted-foreground text-xs">
-              {{ t('dashboard.widgets.balanceTrend.spikePanel.priceDrivenChange') }}
-            </p>
-          </template>
-          <template v-else-if="isLoading">
-            <div class="space-y-1">
-              <TransactionRecordSkeleton v-for="i in 3" :key="i" />
-            </div>
-          </template>
-          <template v-else-if="significantTransactions.length === 0">
-            <p class="text-muted-foreground text-xs">
-              {{ t('dashboard.widgets.balanceTrend.spikePanel.noSignificantTransactions') }}
-            </p>
-          </template>
-          <template v-else>
-            <div class="space-y-1">
-              <TransactionRecord v-for="tx in significantTransactions" :key="tx.id" :tx="tx" :as-button="false" />
-            </div>
-            <button
-              class="text-primary-text hover:text-primary-text/80 mt-2 w-full text-center text-xs font-medium transition-colors"
-              @click="$emit('see-all')"
-            >
-              {{ t('dashboard.widgets.balanceTrend.spikePanel.seeAllTransactions') }} &rarr;
-            </button>
-          </template>
-        </div>
+            <XIcon aria-hidden="true" />
+          </Button>
+        </DesktopOnlyTooltip>
       </div>
-    </Transition>
-  </Teleport>
+
+      <!-- Content -->
+      <div class="px-3 py-2">
+        <!-- Balance breakdown (total mode only) -->
+        <div v-if="showBalanceBreakdown" class="mb-2 space-y-0.5 border-b pb-2 text-xs">
+          <div class="flex justify-between">
+            <span class="text-foreground font-semibold">{{
+              $t('dashboard.widgets.balanceTrend.spikePanel.accounts')
+            }}</span>
+            <span
+              :class="{
+                'text-success-text': accountsDelta > 0,
+                'text-app-expense-color': accountsDelta < 0,
+                'text-muted-foreground': accountsDelta === 0,
+              }"
+            >
+              {{ accountsDelta > 0 ? '+' : ''
+              }}{{ formatLargeNumber(accountsDelta, { isFiat: true, currency: currencyCode }) }}
+            </span>
+          </div>
+          <div class="mt-1 flex justify-between">
+            <span class="text-foreground font-semibold">{{
+              $t('dashboard.widgets.balanceTrend.spikePanel.portfolios')
+            }}</span>
+            <span
+              :class="{
+                'text-success-text': portfoliosDelta > 0,
+                'text-app-expense-color': portfoliosDelta < 0,
+                'text-muted-foreground': portfoliosDelta === 0,
+              }"
+            >
+              {{ portfoliosDelta > 0 ? '+' : ''
+              }}{{ formatLargeNumber(portfoliosDelta, { isFiat: true, currency: currencyCode }) }}
+            </span>
+          </div>
+        </div>
+
+        <template v-if="isPortfolioMode">
+          <p class="text-muted-foreground text-xs">
+            {{ $t('dashboard.widgets.balanceTrend.spikePanel.priceDrivenChange') }}
+          </p>
+        </template>
+        <template v-else-if="isLoading">
+          <div class="space-y-1">
+            <TransactionRecordSkeleton v-for="i in 3" :key="i" />
+          </div>
+        </template>
+        <template v-else-if="significantTransactions.length === 0">
+          <p class="text-muted-foreground text-xs">
+            {{ $t('dashboard.widgets.balanceTrend.spikePanel.noSignificantTransactions') }}
+          </p>
+        </template>
+        <template v-else>
+          <div class="space-y-1">
+            <TransactionRecord v-for="tx in significantTransactions" :key="tx.id" :tx="tx" :as-button="false" />
+          </div>
+          <Button type="button" size="sm" variant="link" class="mt-2 w-full" @click="$emit('see-all')">
+            {{ $t('dashboard.widgets.balanceTrend.spikePanel.seeAllTransactions') }}
+          </Button>
+        </template>
+      </div>
+    </PopoverContent>
+  </Popover>
 </template>
 
 <script lang="ts" setup>
+import { Button } from '@/components/lib/ui/button';
+import { Popover, PopoverContent } from '@/components/lib/ui/popover';
+import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import TransactionRecord from '@/components/transactions-list/transaction-record.vue';
 import TransactionRecordSkeleton from '@/components/transactions-list/transaction-record-skeleton.vue';
 import { formatLargeNumber } from '@/js/helpers';
@@ -111,18 +116,17 @@ import {
   isTwoLegTransfer,
 } from '@bt/shared/types';
 import { XIcon } from '@lucide/vue';
-import { computed, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { PopoverAnchor } from 'reka-ui';
+import { computed } from 'vue';
 
-const { t } = useI18n();
+import { formatBalanceDelta, formatBalanceDeltaPercent } from '../balance-trend-delta';
 
 const props = defineProps<{
   visible: boolean;
-  x: number;
-  y: number;
+  anchor?: SVGCircleElement;
   spikeDate: string;
   deltaAbsolute: number;
-  deltaPercent: number;
+  deltaPercent: number | null;
   isPositive: boolean;
   transactions: TransactionModel[];
   isLoading: boolean;
@@ -161,28 +165,9 @@ defineEmits<{
   'see-all': [];
 }>();
 
-const panelRef = ref<HTMLDivElement | null>(null);
-
-defineExpose({ panelRef });
+const restoreMarkerFocus = (event: Event) => {
+  if (!props.anchor?.isConnected) return;
+  event.preventDefault();
+  props.anchor.focus({ preventScroll: true });
+};
 </script>
-
-<style scoped>
-.spike-panel-fade-enter-active,
-.spike-panel-fade-leave-active {
-  transition:
-    opacity 160ms ease,
-    scale 160ms ease;
-}
-
-.spike-panel-fade-enter-from,
-.spike-panel-fade-leave-to {
-  opacity: 0;
-  scale: 0.98;
-}
-@media (prefers-reduced-motion: reduce) {
-  .spike-panel-fade-enter-active,
-  .spike-panel-fade-leave-active {
-    transition: none;
-  }
-}
-</style>

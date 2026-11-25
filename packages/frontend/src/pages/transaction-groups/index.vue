@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import * as transactionGroupsApi from '@/api/transaction-groups';
 import type { TransactionGroupResponse } from '@/api/transaction-groups';
 import TransactionGroupActions from '@/components/transactions-list/transaction-group-actions.vue';
@@ -133,9 +134,11 @@ const formatPhoneCaption = ({ group }: { group: TransactionGroupResponse }) =>
 <template>
   <div class="flex max-w-5xl flex-col gap-4 p-4 md:px-6">
     <div class="min-w-0">
-      <h1 class="text-2xl font-bold tracking-tight">
-        {{ $t('transactions.transactionGroups.groupsPage.title') }}
-      </h1>
+      <NavigationSectionTitle
+        section="transactions"
+        :label="$t('transactions.transactionGroups.groupsPage.title')"
+        class="text-2xl font-bold tracking-tight"
+      />
       <p class="text-muted-foreground mt-1 text-sm">
         {{ $t('transactions.transactionGroups.groupsPage.description') }}
       </p>

@@ -64,13 +64,15 @@
       "buysSells": {
         "emptyState": "No buy/sell transactions",
         "shares": "shares"
-      }
+      },
+      "availableCash": "Available cash",
+      "negativeCash": "Negative cash"
     },
     "holdings": {
-      "title": "Holdings",
-      "subtitle": "{count} symbols",
-      "filterPlaceholder": "Filter by symbol or name...",
-      "addButton": "Add symbol",
+      "title": "Assets",
+      "subtitle": "{count} assets",
+      "filterPlaceholder": "Find a stock or asset",
+      "addButton": "Add Asset",
       "importButton": "Import transactions",
       "importButtonShort": "Import"
     },
@@ -81,7 +83,7 @@
       "noFilterResultsDescription": "No holdings match your search. Try a different symbol or name.",
       "clearFilterButton": "Clear search",
       "headers": {
-        "symbol": "Symbol",
+        "symbol": "Ticker",
         "name": "Name",
         "shares": "Shares",
         "price": "Price",

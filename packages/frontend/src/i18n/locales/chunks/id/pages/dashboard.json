@@ -455,11 +455,11 @@
           "description": "Sisa setiap pos anggaran pada periode berjalan"
         },
         "trackers": {
-          "name": "Pelacak",
+          "name": "Pelacak Pengeluaran",
           "description": "Batas terpakai dan nilai bersih setiap pelacak aktif"
         },
         "goals": {
-          "name": "Tujuan",
+          "name": "Tujuan Keuangan",
           "description": "Kemajuan menuju target tabungan",
           "savedOfTarget": "{saved} dari {target}",
           "empty": {

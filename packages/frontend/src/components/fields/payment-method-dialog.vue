@@ -37,6 +37,7 @@ const props = withDefaults(
     disabled?: boolean;
     required?: boolean;
     errorMessage?: string;
+    animateError?: boolean;
     iconOnly?: boolean;
   }>(),
   { disabled: false, required: false },
@@ -216,6 +217,6 @@ const pick = (value: VerbosePaymentType | null) => {
         </Dialog.DialogContent>
       </Dialog.Dialog>
     </div>
-    <FieldError :error-message="errorMessage" />
+    <FieldError :animated="animateError" :error-message="errorMessage" />
   </FieldLabel>
 </template>

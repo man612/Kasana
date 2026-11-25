@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { useVirtualizedInfiniteScroll } from '@/composable/virtualized-infinite-scroll';
 import { useFormatCurrency } from '@/composable/formatters';
+import { getLocalTimeZoneLabel } from '@/common/utils/indonesian-time';
 import { toLocalNumber } from '@/js/helpers';
 import type { InvestmentTransactionModel } from '@bt/shared/types';
 import { ASSET_CLASS, INVESTMENT_TRANSACTION_CATEGORY } from '@bt/shared/types/investments';
@@ -28,7 +29,12 @@ defineEmits<{ (e: 'add-transaction'): void }>();
 
 const { formatAmountByCurrencyCode, formatBaseCurrency } = useFormatCurrency();
 const formatDate = (date: string | Date) => format(new Date(date), 'dd/MM/yyyy');
-const formatTransactionDate = (date: string | Date) => format(new Date(date), 'dd/MM/yyyy HH:mm');
+const formatTransactionDate = (value: string | Date) => {
+  const date = new Date(value);
+  const dateOnly = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+  const day = new Intl.DateTimeFormat(document.documentElement.lang || 'id', { dateStyle: 'full' }).format(date);
+  return dateOnly ? day : `${day} · ${format(date, 'HH:mm')} ${getLocalTimeZoneLabel(date)}`;
+};
 const formatRate = (rate: string) => toLocalNumber(rate, { minimumFractionDigits: 4, maximumFractionDigits: 4 });
 
 const formatQuantity = (quantity: string | null, assetClass: ASSET_CLASS | undefined) => {
@@ -101,9 +107,13 @@ const { virtualRows, totalSize } = useVirtualizedInfiniteScroll<InvestmentTransa
     <div class="mb-3 flex items-center justify-between">
       <h4 class="text-sm font-semibold">{{ $t('portfolioDetail.transactionsList.title') }}</h4>
       <div class="flex items-center gap-1">
-        <UiButton variant="outline" size="sm" @click="$emit('add-transaction')">
-          <PlusIcon class="mr-1.5 size-3.5" />
-          {{ $t('portfolioDetail.transactionsList.addButton') }}
+        <UiButton
+          variant="outline"
+          size="icon-sm"
+          :aria-label="$t('portfolioDetail.transactionsList.addButton')"
+          @click="$emit('add-transaction')"
+        >
+          <PlusIcon class="size-4" />
         </UiButton>
         <ColumnConfigPopover
           :configurable-columns="configurableColumns"
@@ -167,10 +177,13 @@ const { virtualRows, totalSize } = useVirtualizedInfiniteScroll<InvestmentTransa
                 >
                   <template v-for="column in visibleColumns" :key="column.id">
                     <div v-if="column.id === INVESTMENT_TX_COLUMN.date" class="tabular-nums">
-                      <ResponsiveTooltip :content="formatTransactionDate(transactions[virtualRow.index]!.date)">
-                        <span class="cursor-help underline decoration-dotted underline-offset-2">
+                      <ResponsiveTooltip
+                        interaction="click"
+                        :content="formatTransactionDate(transactions[virtualRow.index]!.date)"
+                      >
+                        <button type="button" class="cursor-help underline decoration-dotted underline-offset-2">
                           {{ formatDate(transactions[virtualRow.index]!.date) }}
-                        </span>
+                        </button>
                       </ResponsiveTooltip>
                     </div>
                     <div v-else-if="column.id === INVESTMENT_TX_COLUMN.type">

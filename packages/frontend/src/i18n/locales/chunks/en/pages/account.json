@@ -194,7 +194,8 @@
         "exchangeRate": "Exchange rate:",
         "exchangeRateLiveUpdate": "Exchange rate live update:",
         "enabled": "Enabled",
-        "disabled": "Disabled"
+        "disabled": "Disabled",
+        "initialBalanceGuide": "Opening balance is the money already in the account when you started tracking it. Correct it here if the starting amount was wrong. This changes the balance history from the start."
       },
       "group": {
         "label": "Account group",

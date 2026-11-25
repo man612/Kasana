@@ -119,6 +119,10 @@
       "payment_below_interest": "Pembayaran terencana tidak menutupi bunga bulanan – pinjaman akan bertambah."
     },
     "detail": {
+      "status": {
+        "active": "Aktif",
+        "paymentSoon": "Jadwal pembayaran segera"
+      },
       "backToList": "Kembali ke pinjaman",
       "loadError": "Gagal memuat pinjaman ini.",
       "paidOffBadge": "Lunas",

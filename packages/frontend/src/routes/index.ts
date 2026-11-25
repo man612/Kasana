@@ -1,4 +1,3 @@
-import { i18nChunkGuard } from '@/i18n/route-guard';
 import { RESET_PASSWORD_PATH } from '@/lib/reset-password-token';
 import type { RouteRecordRaw } from 'vue-router';
 import { createRouter, createWebHistory } from 'vue-router';
@@ -39,12 +38,20 @@ const routes: RouteRecordRaw[] = [
         path: '/account/:id',
         name: ROUTES_NAMES.account,
         component: () => import('@/pages/account/account.vue'),
-        meta: { navSection: 'accounts', i18nChunks: ['pages/account', 'pages/transactions'] },
+        props: true,
+        meta: { navSection: 'accounts', i18nChunks: ['pages/account', 'pages/accounts', 'pages/transactions'] },
+      },
+      {
+        path: '/accounts/inventory',
+        name: ROUTES_NAMES.inventory,
+        component: () => import('@/pages/accounts/inventory.vue'),
+        meta: { navSection: 'accounts', i18nChunks: ['pages/accounts'] },
       },
       {
         path: '/accounts/vehicles/:id',
         name: ROUTES_NAMES.accountsVehicleDetails,
         component: () => import('@/pages/accounts/vehicle-details.vue'),
+        props: true,
         meta: {
           navSection: 'accounts',
           i18nChunks: ['pages/accounts', 'pages/account', 'pages/transactions'],
@@ -76,6 +83,7 @@ const routes: RouteRecordRaw[] = [
         path: '/loans/:id',
         name: ROUTES_NAMES.loanDetail,
         component: () => import('@/pages/loans/detail.vue'),
+        props: true,
         meta: { navSection: 'accounts', i18nChunks: ['pages/loans', 'pages/transactions'] },
       },
       {
@@ -313,6 +321,7 @@ const routes: RouteRecordRaw[] = [
         path: '/transactions/automations/:id',
         name: ROUTES_NAMES.automationDetails,
         component: () => import('@/pages/automations/editor.vue'),
+        props: true,
         meta: { focusPage: true, navSection: 'transactions', i18nChunks: ['pages/automations'] },
       },
       {
@@ -655,6 +664,3 @@ export const router = createRouter({
   // adding nested routes for settings
   routes,
 });
-
-// Register global i18n chunk loading guard
-router.beforeResolve(i18nChunkGuard);

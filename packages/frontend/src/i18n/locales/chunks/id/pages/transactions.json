@@ -387,6 +387,7 @@
       "yesterday": "Kemarin",
       "currentWeek": "Minggu ini · {range}",
       "showTime": "Tampilkan jam",
+      "showCheckbox": "Tampilkan checkbox",
       "timeRequired": "Daftar harian selalu menampilkan jam karena tanggal ada di judul kelompok."
     }
   },

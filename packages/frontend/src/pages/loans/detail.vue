@@ -1,12 +1,5 @@
 <template>
-  <PageWrapper>
-    <div class="mb-3 flex flex-wrap items-center justify-end gap-2">
-      <div v-if="loan" class="flex items-center gap-2">
-        <RecordPaymentButton v-if="!loan.projection.isPaidOff" :loan="loan" />
-        <LoanActionsMenu :loan="loan" />
-      </div>
-    </div>
-
+  <PageWrapper class="lajur-detail-outer">
     <template v-if="loanQuery.isLoading.value">
       <div class="@container/loans-detail grid grid-cols-1 gap-4 @3xl/loans-detail:grid-cols-2">
         <Card v-for="i in 4" :key="i">
@@ -30,21 +23,25 @@
     </template>
 
     <template v-else>
-      <div class="@container/loans-detail grid gap-3">
+      <div class="lajur-detail-page lajur-detail-in-wrapper @container/loans-detail flex flex-col gap-3">
         <ArchivedBanner v-if="isArchived" :loan="loan" />
-        <SettledBanner v-if="isPaidOff" :loan="loan" />
-        <Tabs default-value="summary">
-          <TabsList>
-            <TabsTrigger value="summary">{{ $t('loans.detail.tabs.summary') }}</TabsTrigger>
-            <TabsTrigger value="activity">{{ $t('loans.detail.tabs.activity') }}</TabsTrigger>
-          </TabsList>
+        <SummaryCard :loan="loan">
+          <template #actions>
+            <RecordPaymentButton v-if="!isPaidOff" :loan="loan" />
+            <LoanActionsMenu :loan="loan" />
+          </template>
+        </SummaryCard>
+        <DetailTabs v-model="activeTab" :values="['summary', 'activity']">
+          <template #tabs>
+            <TabsList>
+              <TabsTrigger value="summary">{{ $t('loans.detail.tabs.summary') }}</TabsTrigger>
+              <TabsTrigger value="activity">{{ $t('loans.detail.tabs.activity') }}</TabsTrigger>
+            </TabsList>
+          </template>
 
           <TabsContent value="summary" class="grid min-w-0 gap-4">
-            <div class="grid items-start gap-4 @3xl/loans-detail:grid-cols-2">
-              <SummaryCard :loan="loan" />
-              <LoanCostCard v-if="isPaidOff" :loan="loan" />
-              <ProjectionCard v-else :loan="loan" />
-            </div>
+            <LoanCostCard v-if="isPaidOff" :loan="loan" />
+            <ProjectionCard v-else :loan="loan" />
 
             <Card>
               <CardContent class="p-4">
@@ -64,7 +61,7 @@
                   />
                 </UiButton>
                 <LayoutCollapse :id="chartId" :open="isChartOpen">
-                  <div v-if="hasOpenedChart" class="pt-3">
+                  <div v-if="hasOpenedChart" data-no-nav-swipe class="pt-3">
                     <BalanceJourneyChart v-if="isPaidOff" :loan="loan" />
                     <PayoffProjectionChart v-else :loan="loan" />
                   </div>
@@ -77,23 +74,24 @@
             <RecentPayments :loan="loan" />
             <EventsTimeline :events="loan.loanDetails.events" :currency-code="loan.currencyCode" />
           </TabsContent>
-        </Tabs>
+        </DetailTabs>
       </div>
     </template>
   </PageWrapper>
 </template>
 
 <script setup lang="ts">
+import DetailTabs from '@/components/common/detail-tabs.vue';
+
 import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import PageWrapper from '@/components/common/page-wrapper.vue';
 import UiButton from '@/components/lib/ui/button/Button.vue';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/lib/ui/tabs';
+import { TabsContent, TabsList, TabsTrigger } from '@/components/lib/ui/tabs';
 import { useLoanById } from '@/composable/data-queries/loans';
 import { ACCOUNT_STATUSES } from '@bt/shared/types';
 import { ChevronDownIcon } from '@lucide/vue';
 import { computed, defineAsyncComponent, ref, useId } from 'vue';
-import { useRoute } from 'vue-router';
 
 import ArchivedBanner from './components/archived-banner.vue';
 import EventsTimeline from './components/events-timeline.vue';
@@ -102,15 +100,13 @@ import LoanCostCard from './components/loan-cost-card.vue';
 import ProjectionCard from './components/projection-card.vue';
 import RecentPayments from './components/recent-payments.vue';
 import RecordPaymentButton from './components/record-payment-button.vue';
-import SettledBanner from './components/settled-banner.vue';
 import SummaryCard from './components/summary-card.vue';
 
 const BalanceJourneyChart = defineAsyncComponent(() => import('./components/balance-journey-chart.vue'));
 const PayoffProjectionChart = defineAsyncComponent(() => import('./components/payoff-projection-chart.vue'));
 
-const route = useRoute();
-
-const loanId = computed(() => route.params.id as string);
+const props = defineProps<{ id: string }>();
+const loanId = computed(() => props.id);
 const loanQuery = useLoanById({ id: loanId });
 
 const loan = computed(() => loanQuery.data.value ?? null);
@@ -120,8 +116,9 @@ const isPaidOff = computed(() => loan.value?.projection.isPaidOff ?? false);
 const isArchived = computed(() => loan.value?.status === ACCOUNT_STATUSES.archived);
 
 const chartId = useId();
-const isChartOpen = ref(false);
-const hasOpenedChart = ref(false);
+const activeTab = ref('summary');
+const isChartOpen = ref(true);
+const hasOpenedChart = ref(true);
 const showChart = () => {
   hasOpenedChart.value = true;
   isChartOpen.value = !isChartOpen.value;

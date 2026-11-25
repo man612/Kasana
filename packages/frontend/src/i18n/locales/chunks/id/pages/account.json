@@ -194,7 +194,8 @@
         "exchangeRate": "Nilai Tukar:",
         "exchangeRateLiveUpdate": "Pembaruan Langsung Nilai Tukar:",
         "enabled": "Aktif",
-        "disabled": "Nonaktif"
+        "disabled": "Nonaktif",
+        "initialBalanceGuide": "Saldo awal adalah uang yang ada sebelum kamu mulai mencatat. Misalnya, isi Rp240.000 jika itu saldo rekening saat mulai. Jika angka awal salah, koreksi di sini. Perubahan ikut menyesuaikan saldo dan riwayat saldo sejak awal."
       },
       "group": {
         "label": "Grup akun",

@@ -102,6 +102,7 @@ const GRID_CLASSES =
       <DashboardWidgetSlot
         v-for="widget in displayWidgets"
         :key="widget.widgetId"
+        :class="!isEditMode && 'lajur-dashboard-scroll-widget'"
         :widget-config="widget"
         :is-edit-mode="isEditMode"
         :can-remove="isEditMode && draftWidgets.length > 1"

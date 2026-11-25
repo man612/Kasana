@@ -119,6 +119,10 @@
       "payment_below_interest": "Planned payment doesn't cover monthly interest – loan would grow."
     },
     "detail": {
+      "status": {
+        "active": "Active",
+        "paymentSoon": "Payment scheduled soon"
+      },
       "backToList": "Back to loans",
       "loadError": "Failed to load this loan.",
       "paidOffBadge": "Paid off",

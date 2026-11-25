@@ -83,7 +83,7 @@
         "transactionTypeIncomeDesc": "Gaji, retainer, atau setoran terjadwal yang berulang",
         "transactionTypeLockedTooltip": "Jenis transaksi tidak dapat diubah setelah pembayaran berulang dibuat",
         "amountLabel": "Jumlah yang diharapkan",
-        "amountPlaceholder": "0.00",
+        "amountPlaceholder": "0",
         "currencyLabel": "Mata Uang",
         "frequencyLabel": "Frekuensi",
         "startDateLabel": "Tanggal mulai",
@@ -179,7 +179,7 @@
       "linkError": "Gagal menghubungkan transaksi",
       "emptyState": {
         "title": "Belum ada biaya berulang",
-        "description": "Tambah biaya berulang atau tagihan pertama Anda untuk mulai melacak pembayaran berulang"
+        "description": "Tambahkan jadwal listrik PLN, internet, BPJS, atau langganan digital untuk mengetahui kapan perlu mencatat pembayarannya."
       },
       "sort": {
         "label": "Urutkan",

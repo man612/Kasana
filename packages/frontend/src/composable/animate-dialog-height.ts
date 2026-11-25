@@ -1,4 +1,4 @@
-import { nextTick, type Directive } from 'vue';
+import type { Directive } from 'vue';
 
 // Preserve focus trapping, native form controls, and independent scrolling.
 // CSS interpolate-size only handles length-to-auto, not changes between two
@@ -77,37 +77,3 @@ export const vAnimateDialogHeight: Directive<HTMLElement, boolean | undefined> =
     observers.delete(element);
   },
 };
-
-const pendingMutations = new WeakMap<HTMLElement, { animation?: Animation }>();
-
-/** Animate a discrete state change from the currently painted size to the
- * native size after Vue commits it. FlowRow drives continuous child changes. */
-export async function animateDialogMutation(element: HTMLElement | null, update: () => void) {
-  if (
-    !element?.animate ||
-    element.dataset.state !== 'open' ||
-    element.hasAttribute('data-keyboard-resize') ||
-    window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ||
-    element.getAnimations?.().some((effect) => 'animationName' in effect && effect.playState === 'running')
-  ) {
-    update();
-    return;
-  }
-  const start = element.getBoundingClientRect().height;
-  const previous = pendingMutations.get(element);
-  const active: { animation?: Animation } = { animation: previous?.animation };
-  pendingMutations.set(element, active);
-  update();
-  await nextTick();
-  if (pendingMutations.get(element) !== active || !element.isConnected) return;
-  active.animation?.cancel();
-  if (element.dataset.state !== 'open' || element.hasAttribute('data-keyboard-resize')) return;
-  const end = element.getBoundingClientRect().height;
-  if (!start || !end || Math.abs(start - end) < MIN_CHANGE_PX) return;
-  active.animation = element.animate([{ height: `${start}px` }, { height: `${end}px` }], {
-    duration: DURATION_MS,
-    easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-  });
-  await active.animation.finished.catch(() => undefined);
-  if (pendingMutations.get(element) === active) pendingMutations.delete(element);
-}

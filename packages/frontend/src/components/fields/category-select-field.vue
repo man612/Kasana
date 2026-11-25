@@ -251,7 +251,7 @@
       </div>
     </FieldLabel>
 
-    <FieldError :error-message="errorMessage" />
+    <FieldError :animated="animateError" :error-message="errorMessage" />
 
     <!-- Mobile: Drawer -->
     <Drawer.Drawer v-if="isMobile" :open="isOpen" fixed @update:open="handleDrawerOpenChange">
@@ -365,6 +365,7 @@ const props = withDefaults(
     values: FormattedCategory[];
     placeholder?: string;
     errorMessage?: string;
+    animateError?: boolean;
     disabled?: boolean;
     clearable?: boolean;
     /** Forwarded to inner CategoryCircle so icon inheritance walks the right tree. */

@@ -1,5 +1,10 @@
 {
   "accounts": {
+    "inventory": {
+      "description": "Pantau kendaraan dan perkiraan nilainya.",
+      "empty": "Belum ada kendaraan",
+      "hint": "Tambahkan kendaraan untuk melihat riwayat dan perkiraan nilainya."
+    },
     "title": "Akun",
     "createAccount": "Buat akun",
     "createVehicle": "Tambah kendaraan",

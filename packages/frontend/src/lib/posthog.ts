@@ -2,7 +2,6 @@ import { config } from '@/common/config';
 import type { DemoBlockedFeature, DemoEndReason } from '@/common/const/demo';
 import type { FeedbackType } from '@/components/dialogs/feedback-submission';
 import type { AI_PROVIDER, BillingCycle, BillingTier, Feature, Plan } from '@bt/shared/types';
-import posthog from 'posthog-js';
 import type { Router } from 'vue-router';
 
 // ============================================
@@ -101,16 +100,23 @@ function isPostHogEnabled(): boolean {
   return isProduction && hasKey;
 }
 
-/**
- * Initialize PostHog analytics.
- * Should be called early in app initialization.
- */
-export function initPostHog(): void {
-  const posthogKey = config.posthogKey;
-  if (!isPostHogEnabled() || !posthogKey) {
-    return;
-  }
+type PostHog = typeof import('posthog-js').default;
+let posthogReady: Promise<PostHog | undefined> | undefined;
 
+export function initPostHog(): Promise<PostHog | undefined> | undefined {
+  const posthogKey = config.posthogKey;
+  if (!isPostHogEnabled() || !posthogKey) return undefined;
+
+  posthogReady ??= import('posthog-js')
+    .then(({ default: posthog }) => {
+      configurePostHog({ posthog, posthogKey });
+      return posthog;
+    })
+    .catch(() => undefined);
+  return posthogReady;
+}
+
+function configurePostHog({ posthog, posthogKey }: { posthog: PostHog; posthogKey: string }): void {
   posthog.init(posthogKey, {
     // Use reverse proxy to bypass ad blockers (nginx proxies /helper to PostHog)
     api_host: config.posthogHost || '/helper',
@@ -150,30 +156,19 @@ export function initPostHog(): void {
   });
 }
 
-/**
- * Tracks a typed analytics event tagged with source: 'fe'.
- * Returns false when the event has nowhere to go, so callers can skip promising the user it landed.
- * True still overstates it: an ad blocker can drop the request, and on_request_error stays quiet.
- */
-export function trackAnalyticsEvent(eventData: AnalyticsEvent): boolean {
-  if (!isPostHogEnabled()) {
-    return false;
-  }
-
-  // respect_dnt turns capture into a no-op for Do Not Track browsers.
-  if (posthog.has_opted_out_capturing()) {
-    return false;
-  }
-
-  const { event, ...rest } = eventData as AnalyticsEvent & { properties?: Record<string, unknown> };
-  const properties = 'properties' in rest ? rest.properties : undefined;
-
-  posthog.capture(event, {
-    source: 'fe',
-    ...properties,
+function withPostHog(run: (posthog: PostHog) => void): void {
+  void initPostHog()?.then((posthog) => {
+    if (posthog) run(posthog);
   });
+}
 
-  return true;
+/** Tracks a typed analytics event tagged with source: 'fe'. */
+export function trackAnalyticsEvent(eventData: AnalyticsEvent): void {
+  withPostHog((posthog) => {
+    if (posthog.has_opted_out_capturing()) return;
+    const { event, ...rest } = eventData;
+    posthog.capture(event, { source: 'fe', ...('properties' in rest ? rest.properties : undefined) });
+  });
 }
 
 /**
@@ -191,14 +186,8 @@ export function identifyUser({
   username?: string;
   properties?: Record<string, unknown>;
 }): void {
-  if (!isPostHogEnabled()) {
-    return;
-  }
-
-  posthog.identify(String(userId), {
-    email,
-    username,
-    ...properties,
+  withPostHog((posthog) => {
+    posthog.identify(String(userId), { email, username, ...properties });
   });
 }
 
@@ -208,22 +197,14 @@ export function identifyUser({
  * before leaving.
  */
 export function startSessionRecording(): void {
-  if (!isPostHogEnabled()) {
-    return;
-  }
-
-  posthog.startSessionRecording();
+  withPostHog((posthog) => posthog.startSessionRecording());
 }
 
 /**
  * Reset user identification (call on logout).
  */
 export function resetUser(): void {
-  if (!isPostHogEnabled()) {
-    return;
-  }
-
-  posthog.reset();
+  withPostHog((posthog) => posthog.reset());
 }
 
 /**
@@ -237,9 +218,9 @@ export function trackPageviews({ router }: { router: Router }): void {
   }
 
   router.afterEach((to) => {
-    posthog.capture('$pageview', {
-      $current_url: window.location.href,
-      $pathname: to.path,
+    const url = window.location.href;
+    withPostHog((posthog) => {
+      posthog.capture('$pageview', { $current_url: url, $pathname: to.path });
     });
   });
 }

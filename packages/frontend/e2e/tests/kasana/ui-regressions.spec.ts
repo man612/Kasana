@@ -88,17 +88,146 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await expect(page).toHaveURL(/\/dashboard$/);
 
     const trackers = page.locator('[data-widget-id="trackers"]');
-    await expect(trackers.getByRole('heading', { name: 'Pelacak', exact: true })).toBeVisible();
+    await expect(trackers.getByRole('heading', { name: 'Pelacak Pengeluaran', exact: true })).toBeVisible();
     await expect(trackers.getByText('Belum ada pelacak aktif', { exact: true })).toBeVisible();
   });
 
+  test('keeps the period bar stable and saves the latest-transactions clock separately', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 620 });
+    await page.goto('/dashboard');
+    const bar = page.getByTestId('dashboard-period-bar');
+    await expect(bar).toBeVisible();
+    const before = (await bar.boundingBox())!;
+    const viewport = page.locator('[data-reka-scroll-area-viewport]').filter({ has: bar }).first();
+    await viewport.evaluate((element) => {
+      element.scrollTop = 180;
+    });
+    await expect.poll(() => viewport.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expect.poll(async () => Math.abs((await bar.boundingBox())!.y - before.y)).toBeLessThanOrEqual(1);
+    expect((await bar.boundingBox())!.height).toBeCloseTo(before.height, 0);
+    await viewport.evaluate((element) => {
+      element.scrollTop = 0;
+    });
+
+    const widget = page.locator('[data-widget-id="latest-records"]');
+    await widget.getByTestId('latest-transactions-compact-toggle').click();
+    await expect(widget.locator('[data-transaction-row]').first()).toBeVisible();
+    await widget.getByRole('button', { name: 'Pengaturan', exact: true }).click();
+    const clock = page.getByTestId('lr-show-time-switch');
+    const wasEnabled = (await clock.getAttribute('aria-checked')) === 'true';
+    if (!wasEnabled) await clock.click();
+    await expect(clock).toBeChecked();
+    await page.keyboard.press('Escape');
+    await expect(widget.locator('time').first()).toContainText(/\d{2}:\d{2} WIB/);
+    await page.reload();
+    await widget.getByRole('button', { name: 'Pengaturan', exact: true }).click();
+    await expect(clock).toBeChecked();
+  });
+
+  test('routes title shortcuts and reopens only the active sidebar group', async ({ page }) => {
+    await page.goto('/accounts');
+    const title = page.getByTestId('section-navigation-title');
+    await title.click();
+    await page.getByRole('menuitem', { name: 'Pinjaman', exact: true }).click();
+    await expect(page).toHaveURL(/\/loans$/);
+    await expect(page.locator('nav a[href="/accounts"]:visible').last()).toHaveAttribute('aria-current', 'page');
+
+    const sidebar = page.locator('[data-mobile-sidebar]');
+    const openSidebar = page.getByRole('button', { name: 'Buka menu navigasi' });
+    await openSidebar.click();
+    const accounts = sidebar.getByRole('button', { name: 'Akun', exact: true });
+    const transactions = sidebar.getByRole('button', { name: 'Transaksi', exact: true });
+    await expect(accounts).toHaveAttribute('aria-expanded', 'true');
+    await transactions.click();
+    await expect(transactions).toHaveAttribute('aria-expanded', 'true');
+    await page.keyboard.press('Escape');
+    await expect(sidebar).toBeHidden();
+    await openSidebar.click();
+    await expect(accounts).toHaveAttribute('aria-expanded', 'true');
+    await expect(transactions).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  test('snaps both balance trend charts to real points and selects dates from the detail table', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 780 });
+    let balanceRequests = 0;
+    page.on('request', (request) => {
+      if (new URL(request.url()).pathname.endsWith('/stats/combined-balance-history')) balanceRequests++;
+    });
+
+    await page.goto('/dashboard');
+    const trend = page.locator('[data-widget-id="balance-trend"]');
+    const tabs = trend.getByTestId('balance-trend-components');
+    const loans = tabs.getByRole('button', { name: 'Pinjaman', exact: true });
+    await loans.evaluate((button) => (button as HTMLButtonElement).click());
+    await expect(loans).toHaveAttribute('aria-pressed', 'true');
+    await expect
+      .poll(async () => {
+        const track = (await tabs.boundingBox())!;
+        const active = (await loans.boundingBox())!;
+        return Math.max(track.x - active.x, active.x + active.width - track.x - track.width, 0);
+      })
+      .toBeLessThanOrEqual(1);
+    const total = tabs.getByRole('button', { name: 'Total', exact: true });
+    await total.click();
+    await expect(total).toHaveAttribute('aria-pressed', 'true');
+
+    const sparkline = trend.getByTestId('balance-trend-sparkline');
+    await expect(sparkline).toHaveAttribute('aria-busy', 'false');
+    const miniChart = sparkline.locator('svg');
+    await expect(miniChart).toBeVisible();
+    const tooltip = page.getByTestId('balance-trend-tooltip');
+    // Hover in the unpainted upper-right area: the whole chart must be interactive.
+    const bounds = (await miniChart.boundingBox())!;
+    await miniChart.hover({ position: { x: bounds.width - 4, y: 2 } });
+    await expect(tooltip).toBeVisible();
+    const miniGuide = miniChart.locator('g').filter({ has: page.getByTestId('balance-trend-guide') });
+    await expect(miniGuide).toBeVisible();
+
+    await trend.getByTestId('balance-trend-details').click();
+    const details = page.getByRole('dialog').filter({ has: page.getByTestId('balance-trend-summary') });
+    const row = details.getByRole('table').locator('tbody tr').last();
+    await row.getByRole('button').click();
+    await expect(row.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
+    await expect(details.locator('g[visibility=visible] .hover-line')).toHaveCount(1);
+    expect(await details.evaluate((element) => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+    const requestsAfterSelection = balanceRequests;
+
+    const chartOverlay = details.locator('svg rect.overlay');
+    await chartOverlay.scrollIntoViewIfNeeded();
+    const plot = (await chartOverlay.boundingBox())!;
+    await chartOverlay.hover({ position: { x: 2, y: plot.height / 2 } });
+    const activeRow = details
+      .getByRole('table')
+      .locator('tbody tr')
+      .filter({ has: page.locator('button[aria-pressed=true]') });
+    await expect(activeRow).toHaveCount(1);
+    await expect(tooltip).toContainText((await activeRow.locator('td').last().innerText()).trim());
+    await expect(details.locator('g[visibility=visible] .hover-line')).toHaveCount(1);
+
+    const touch = await page.context().newCDPSession(page);
+    const touchY = Math.round(plot.y + plot.height / 2);
+    await touch.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: Math.round(plot.x + 4), y: touchY }],
+    });
+    await touch.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x: Math.round(plot.x + plot.width - 4), y: touchY }],
+    });
+    await expect(tooltip).toBeVisible();
+    await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect(tooltip).toBeHidden();
+    await expect(details).toBeVisible();
+    expect(balanceRequests).toBe(requestsAfterSelection);
+  });
+
   test('navigates months in a separate layer and keeps date and time edits in the draft', async ({ page }) => {
-    await page.clock.setFixedTime(new Date('2026-11-23T05:11:22.000Z'));
+    await page.clock.install({ time: new Date('2026-11-23T05:11:00.000Z') });
     await page.goto('/dashboard');
     await page.locator('.shadow-header').getByRole('button', { name: 'Tambah', exact: true }).first().click();
     const form = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });
     const dateTrigger = form.getByTestId('date-field-calendar-trigger').first();
-    const oldLabel = await dateTrigger.textContent();
+    const initialMinute = (await dateTrigger.innerText()).replace(/:\d{2} WIB$/, '');
     await dateTrigger.click();
     const picker = page.getByTestId('transaction-date-dialog');
     const monthTrigger = picker.getByTestId('calendar-month-trigger');
@@ -122,7 +251,7 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await expect(picker.getByTestId('date-dialog-save')).toBeDisabled();
     await picker.getByTestId('date-dialog-time-input').fill('17:45');
     await picker.getByRole('button', { name: 'Batal', exact: true }).click();
-    await expect(dateTrigger).toHaveText(oldLabel ?? '');
+    await expect(dateTrigger).toContainText(initialMinute);
     await dateTrigger.click();
     await picker.getByTestId('date-dialog-time-input').fill('17:45');
     await picker.getByRole('button', { name: 'Simpan', exact: true }).click();
@@ -160,7 +289,7 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     for (let i = 0; i < 3; i++) {
       await account.click();
       await expect(page).toHaveURL(new RegExp(`/account/${accountId}$`));
-      await expect(page.getByTestId('route-page')).toBeVisible();
+      await expect(page.locator('[data-testid="route-page"]:not([inert])')).toBeVisible();
       await page.goBack();
       await expect(account).toBeVisible();
     }
@@ -242,7 +371,7 @@ test.describe('Lajur. mobile dashboard and interaction regressions', () => {
     await page.locator('[data-transaction-row]').first().click();
     const details = page.getByTestId('transaction-read-view');
     await expect(details.getByText('Dompet regresi Lajur.', { exact: true })).toBeVisible();
-    await expect(details.getByText('Pinjaman regresi Lajur.', { exact: true })).toBeVisible();
+    await expect(details.getByRole('link', { name: 'Pinjaman regresi Lajur.', exact: true })).toBeVisible();
     await details.getByRole('button', { name: 'Sunting', exact: true }).click();
     await expect(details).toBeHidden();
     await page.getByRole('button', { name: 'Tutup', exact: true }).click();

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import { config } from '@/common/config';
 import PageWrapper from '@/components/common/page-wrapper.vue';
 import Button from '@/components/lib/ui/button/Button.vue';
@@ -29,10 +30,14 @@ const openForm = ({ goal }: { goal?: GoalModel } = {}) => {
 
 <template>
   <PageWrapper class="grid max-w-5xl gap-4">
-    <div class="@container/goals-header flex items-center justify-between gap-3">
+    <div class="@container/goals-header flex flex-wrap items-center justify-between gap-3">
       <div class="min-w-0">
         <div class="flex items-center gap-2">
-          <h1 class="text-2xl font-bold tracking-tight">{{ $t('goals.title') }}</h1>
+          <NavigationSectionTitle
+            section="planned"
+            :label="$t('goals.title')"
+            class="text-2xl font-bold tracking-tight"
+          />
           <Button as-child variant="ghost" size="sm" class="text-muted-foreground">
             <a
               :href="`${config.docsUrl}/goals/overview/`"
@@ -47,7 +52,7 @@ const openForm = ({ goal }: { goal?: GoalModel } = {}) => {
         </div>
         <p class="text-muted-foreground mt-1 text-sm">{{ $t('goals.description') }}</p>
       </div>
-      <Button v-if="canWrite" class="shrink-0" @click="openForm()">
+      <Button v-if="canWrite && goals.length" class="shrink-0" @click="openForm()">
         <PlusIcon class="size-4" />
         {{ $t('goals.newGoal') }}
       </Button>

@@ -1,13 +1,17 @@
 <script setup lang="ts">
-defineProps<{ open: boolean; anchor?: HTMLElement | null; dimParent?: boolean }>();
+withDefaults(defineProps<{ open: boolean; dim?: boolean }>(), { dim: true });
 </script>
 
 <template>
-  <Transition name="lajur-menu-scrim">
+  <Transition name="lajur-menu-scrim" appear>
     <div
-      v-if="open && (dimParent || !anchor?.closest('[role=dialog], [role=alertdialog]'))"
-      class="lajur-scrim-menu lajur-scrim-blur pointer-events-none fixed inset-0 z-(--z-dialog)"
+      v-if="open"
+      class="pointer-events-auto fixed inset-0"
+      :class="dim && 'lajur-scrim-menu lajur-scrim-blur'"
+      data-lajur-backdrop
       aria-hidden="true"
+      @pointerdown.left.prevent
+      @click.prevent
     />
   </Transition>
 </template>

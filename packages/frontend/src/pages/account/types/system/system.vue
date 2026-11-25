@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import DetailTabs from '@/components/common/detail-tabs.vue';
+import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import { useAccountAccess } from '@/composable/use-account-access';
 import { Separator } from '@/components/lib/ui/separator';
 import * as Tabs from '@/components/lib/ui/tabs';
@@ -33,12 +35,23 @@ const tabItems = computed(() => {
 </script>
 
 <template>
-  <Tabs.Tabs v-model="activeTab">
-    <Tabs.TabsList class="mt-3 flex w-full justify-start overflow-x-auto">
-      <Tabs.TabsTrigger v-for="tab in tabItems" :key="tab.value" :value="tab.value" class="min-h-9 shrink-0">
-        {{ tab.label }}
-      </Tabs.TabsTrigger>
-    </Tabs.TabsList>
+  <DetailTabs
+    v-model="activeTab"
+    :values="tabItems.map(({ value }) => value)"
+    :scroll-area-id="SCROLL_AREA_IDS.accountTransactions"
+  >
+    <template #tabs>
+      <Tabs.TabsList class="no-scrollbar flex w-full shrink-0 justify-start overflow-x-auto">
+        <Tabs.TabsTrigger
+          v-for="tab in tabItems"
+          :key="tab.value"
+          :value="tab.value"
+          class="min-h-9 shrink-0 px-2 text-xs sm:px-3 sm:text-sm"
+        >
+          {{ tab.label }}
+        </Tabs.TabsTrigger>
+      </Tabs.TabsList>
+    </template>
 
     <AccountDetailsTab tab-name="details" :account="account" />
     <Tabs.TabsContent v-if="$slots.history" value="records">
@@ -46,7 +59,7 @@ const tabItems = computed(() => {
     </Tabs.TabsContent>
 
     <Tabs.TabsContent value="settings">
-      <div class="grid gap-4 py-6">
+      <div class="border-border bg-card grid gap-4 rounded-xl border p-4">
         <SettingToggleVisibility :account="account" />
 
         <Separator />
@@ -64,9 +77,9 @@ const tabItems = computed(() => {
     </Tabs.TabsContent>
 
     <Tabs.TabsContent v-if="canSeeSharingTab" value="sharing">
-      <div class="grid gap-4 py-6">
+      <div class="border-border bg-card grid gap-4 rounded-xl border p-4">
         <SharingPanel :account="account" />
       </div>
     </Tabs.TabsContent>
-  </Tabs.Tabs>
+  </DetailTabs>
 </template>

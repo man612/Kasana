@@ -37,7 +37,7 @@ import {
 } from '@lucide/vue';
 import { computed, reactive, ref, useId, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router';
+import { type RouteLocationNormalized, onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
 
 import ActionsBuilder from './components/actions-builder.vue';
 import ApplyToHistoryDialog from './components/apply-to-history-dialog.vue';
@@ -60,6 +60,7 @@ import RailSection from './components/rail-section.vue';
 const SKELETON_ROW_COUNT = 4;
 
 const { t } = useI18n();
+const props = defineProps<{ id?: RecordId }>();
 const route = useRoute();
 const router = useRouter();
 const { addSuccessNotification, addErrorNotification } = useNotificationCenter();
@@ -79,7 +80,7 @@ const visibleEditorHeight = computed(() =>
     : undefined,
 );
 
-const ruleId = computed(() => (route.params.id as RecordId | undefined) || undefined);
+const ruleId = computed(() => props.id);
 const isCreate = computed(() => !ruleId.value);
 const { automation, isFetched, isError } = useTransactionAutomation({ id: ruleId });
 
@@ -195,7 +196,16 @@ const createMutation = useCreateAutomation();
 const updateMutation = useUpdateAutomation();
 const isSaving = computed(() => createMutation.isPending.value || updateMutation.isPending.value);
 
-const goToList = () => router.push({ name: ROUTES_NAMES.automations });
+const backToOptimizations = computed(() => isCreate.value && route.query.from === 'optimizations');
+const backLabel = computed(() =>
+  t(backToOptimizations.value ? 'automations.editor.backToOptimizations' : 'automations.editor.back'),
+);
+const returnRoute = computed(() =>
+  backToOptimizations.value
+    ? { name: ROUTES_NAMES.optimizations, query: { applyRules: '1' } }
+    : { name: ROUTES_NAMES.automations },
+);
+const goToList = () => (backToOptimizations.value ? router.replace(returnRoute.value) : router.push(returnRoute.value));
 
 const handleSave = () => {
   showErrors.value = true;
@@ -226,14 +236,21 @@ const isDirty = computed(() => isLoaded.value && serializeDraft() !== snapshot.v
 const pendingPath = ref<string | null>(null);
 const isLeaveDialogOpen = ref(false);
 
-onBeforeRouteLeave((to) => {
+const guardUnsavedChanges = ({ to }: { to: RouteLocationNormalized }) => {
   if (!isDirty.value) return true;
   pendingPath.value = to.fullPath;
   isLeaveDialogOpen.value = true;
   return false;
-});
+};
+onBeforeRouteLeave((to) => guardUnsavedChanges({ to }));
+onBeforeRouteUpdate((to) => to.params.id === route.params.id || guardUnsavedChanges({ to }));
 
 const isApplyOpen = ref(false);
+const isApplyMounted = ref(false);
+const openApply = () => {
+  isApplyMounted.value = true;
+  isApplyOpen.value = true;
+};
 
 const confirmLeave = () => {
   const path = pendingPath.value;
@@ -245,9 +262,11 @@ const confirmLeave = () => {
 
 <template>
   <div class="mx-auto flex h-dvh min-h-0 w-full max-w-5xl flex-col overflow-hidden" :style="visibleEditorHeight">
-    <div class="border-border @container/editor-head flex shrink-0 items-center gap-2 border-b px-3 py-2 md:px-6">
-      <DesktopOnlyTooltip :content="$t('automations.editor.back')">
-        <router-link :to="{ name: ROUTES_NAMES.automations }" :aria-label="$t('automations.editor.back')">
+    <header
+      class="border-border @container/editor-head grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 border-b px-3 py-2 md:px-6"
+    >
+      <DesktopOnlyTooltip :content="backLabel">
+        <router-link :to="returnRoute" :replace="backToOptimizations" :aria-label="backLabel">
           <Button as="span" variant="ghost" size="icon" class="size-11">
             <ArrowLeftIcon class="size-4" aria-hidden="true" />
           </Button>
@@ -257,7 +276,6 @@ const confirmLeave = () => {
         <h1 class="text-lg leading-tight font-bold tracking-tight md:text-2xl">
           {{ isCreate ? $t('automations.editor.titleNew') : $t('automations.editor.titleEdit') }}
         </h1>
-        <p v-if="isDirty" class="text-warning-text text-xs" role="status">{{ $t('automations.editor.dirtyStatus') }}</p>
       </div>
 
       <div class="ml-auto flex shrink-0 items-center gap-1">
@@ -272,7 +290,7 @@ const confirmLeave = () => {
               size="sm"
               :disabled="isDirty"
               :aria-label="$t('automations.applyToHistory.trigger')"
-              @click="isApplyOpen = true"
+              @click="openApply"
             >
               <HistoryIcon class="size-4" />
               <span class="hidden @md/editor-head:inline">{{ $t('automations.applyToHistory.trigger') }}</span>
@@ -281,7 +299,15 @@ const confirmLeave = () => {
         </DesktopOnlyTooltip>
         <AutomationGuide compact-trigger />
       </div>
-    </div>
+      <div class="col-start-2 col-end-4">
+        <p class="sr-only" role="status" aria-atomic="true">
+          {{ isDirty ? $t('automations.editor.dirtyStatus') : '' }}
+        </p>
+        <LayoutCollapse :open="isDirty" aria-hidden="true">
+          <p class="text-warning-text pb-1 text-xs wrap-anywhere">{{ $t('automations.editor.dirtyStatus') }}</p>
+        </LayoutCollapse>
+      </div>
+    </header>
 
     <Card v-if="!isCreate && !isFetched" class="flex flex-col gap-3 p-4">
       <div v-for="index in SKELETON_ROW_COUNT" :key="index" class="bg-muted h-14 animate-pulse rounded-md" />
@@ -303,6 +329,7 @@ const confirmLeave = () => {
       <form
         :id="formId"
         data-no-nav-swipe
+        data-focus-page-body
         class="lajur-dialog-scroll @container/editor min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-4 md:p-6"
         @submit.prevent="handleSave"
         @focusout="showErrors = true"
@@ -415,11 +442,11 @@ const confirmLeave = () => {
         </LayoutCollapse>
       </form>
       <footer
-        class="bg-background/95 border-border grid shrink-0 grid-cols-1 items-center gap-2 border-t px-4 pt-3 pb-[max(.75rem,env(safe-area-inset-bottom))] md:flex md:justify-end md:px-6"
+        class="bg-background/95 border-border grid shrink-0 grid-cols-1 items-center border-t px-4 pt-3 pb-[max(.75rem,env(safe-area-inset-bottom))] md:flex md:justify-end md:gap-2 md:px-6"
       >
-        <p v-if="!isValid" class="text-muted-foreground text-xs md:mr-auto">
-          {{ $t('automations.guide.incomplete') }}
-        </p>
+        <LayoutCollapse :open="!isValid" class="md:mr-auto">
+          <p class="text-muted-foreground pb-2 text-xs md:pb-0">{{ $t('automations.guide.incomplete') }}</p>
+        </LayoutCollapse>
         <Button
           type="submit"
           :form="formId"
@@ -432,7 +459,12 @@ const confirmLeave = () => {
       </footer>
     </template>
 
-    <ApplyToHistoryDialog v-if="isApplyOpen" v-model:open="isApplyOpen" :rule="automation" />
+    <ApplyToHistoryDialog
+      v-if="isApplyMounted"
+      v-model:open="isApplyOpen"
+      @closed="isApplyMounted = false"
+      :rule="automation"
+    />
 
     <ResponsiveAlertDialog
       v-model:open="isLeaveDialogOpen"
@@ -445,3 +477,18 @@ const confirmLeave = () => {
     </ResponsiveAlertDialog>
   </div>
 </template>
+
+<style scoped>
+@media (prefers-reduced-motion: no-preference) {
+  [data-focus-page-body] {
+    animation: focus-page-body-enter var(--kasana-motion-normal) var(--kasana-motion-ease) both;
+  }
+}
+
+@keyframes focus-page-body-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.375rem);
+  }
+}
+</style>

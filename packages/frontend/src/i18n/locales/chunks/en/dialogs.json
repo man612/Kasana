@@ -65,10 +65,10 @@
       "description": "Update name, type or description of your portfolio."
     },
     "deletePortfolio": {
-      "title": "Delete portfolio",
-      "description": "This portfolio will be moved to trash and can be restored within 30 days. After that, it will be permanently deleted along with all holdings and transactions.",
+      "title": "Delete portfolio?",
+      "description": "You can restore the portfolio and its history from Trash within {days} days.",
       "cancelButton": "Cancel",
-      "deleteButton": "Move to trash",
+      "deleteButton": "Move to Trash",
       "deleteButtonLoading": "Moving...",
       "notifications": {
         "success": "Portfolio moved to trash. You can restore it within 30 days from the Investments page.",
@@ -574,14 +574,14 @@
       }
     },
     "addSymbols": {
-      "title": "Add symbols",
-      "searchLabel": "Search symbol or name",
+      "title": "Add Asset",
+      "searchLabel": "Find a stock or asset",
       "searchPlaceholder": "AAPL",
       "searchError": "Failed to search securities.",
       "addedIndicator": "(Added)",
       "noResults": "No results.",
       "emptyState": {
-        "title": "Search for a symbol",
+        "title": "Find an asset",
         "description": "Type a ticker or name to find stocks or crypto you can add to this portfolio."
       },
       "noResultsHint": "Try a different ticker, full name, or switch the filter above.",

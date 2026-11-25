@@ -1,49 +1,70 @@
 <template>
-  <Card class="@container/loan-summary">
-    <CardHeader class="px-4 pt-3 pb-2">
-      <div class="flex items-start justify-between gap-3">
-        <AccountLogoPicker :account-id="loan.id" class="size-10" />
+  <Card class="@container/loan-summary shrink-0 gap-0">
+    <CardHeader class="gap-2 px-3 py-3">
+      <div class="flex min-w-0 items-start gap-3">
+        <AccountLogoPicker :account-id="loan.id" class="size-10 shrink-0" />
         <div class="min-w-0 flex-1">
-          <h1 class="text-xl leading-tight font-semibold wrap-anywhere">{{ loan.name }}</h1>
+          <h1 class="text-xl leading-tight font-semibold tracking-tight wrap-anywhere">{{ loan.name }}</h1>
           <p class="text-muted-foreground mt-1 text-sm wrap-anywhere">
             {{ $t(`loans.types.${loan.loanDetails.loanType}`)
             }}<template v-if="loan.loanDetails.lenderName"> · {{ loan.loanDetails.lenderName }}</template>
           </p>
         </div>
       </div>
-    </CardHeader>
-    <CardContent class="px-4 pb-3">
-      <!-- Active loans lead with the outstanding balance; paid-off loans surface that in the settled
-           banner instead, so the card opens straight into the details grid. -->
+
       <template v-if="!isPaidOff">
         <div
-          class="text-app-expense-color text-2xl font-semibold tracking-tight wrap-anywhere tabular-nums @sm/loan-summary:text-3xl"
+          class="border-border/65 grid min-w-0 items-start gap-3 border-t pt-3 @md/loan-summary:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]"
         >
-          {{ outstandingBalanceDisplay }}
-        </div>
-        <div class="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
-          <span>{{ $t('loans.detail.summary.outstanding') }}</span>
-          <HintIcon :content="$t('loans.detail.summary.principalOnlyTooltip')" />
-        </div>
-        <div
-          v-if="nextDueDate || loan.loanDetails.plannedPayment != null"
-          class="border-border/65 mt-2 grid grid-cols-2 gap-2 border-t pt-2 text-sm wrap-anywhere"
-        >
-          <div v-if="nextDueDate">
-            <div class="text-muted-foreground text-xs">{{ $t('loans.list.scheduledPayment') }}</div>
-            <div class="font-medium">{{ nextDueDate }}</div>
+          <div class="min-w-0">
+            <span v-if="!isArchived" class="text-muted-foreground text-xs font-semibold">
+              {{ $t('loans.detail.status.active') }}
+            </span>
+            <div class="text-muted-foreground mt-1 flex items-center gap-1 text-sm">
+              <span>{{ $t('loans.detail.summary.outstanding') }}</span>
+              <HintIcon :content="$t('loans.detail.summary.principalOnlyTooltip')" />
+            </div>
+            <Transition name="kasana-page">
+              <div
+                :key="outstandingBalanceDisplay"
+                class="text-2xl font-semibold tracking-tight wrap-anywhere tabular-nums @sm/loan-summary:text-4xl"
+              >
+                {{ outstandingBalanceDisplay }}
+              </div>
+            </Transition>
           </div>
-          <div v-if="loan.loanDetails.plannedPayment != null">
-            <div class="text-muted-foreground text-xs">{{ $t('loans.detail.projection.plannedPayment') }}</div>
-            <div class="font-medium tabular-nums">{{ nextPayment }}</div>
+
+          <div v-if="scheduledDate || nextPayment" class="grid min-w-0 gap-1">
+            <div
+              v-if="nextPaymentSoon && !isArchived"
+              class="text-warning-text flex items-center gap-1.5 text-xs font-medium"
+            >
+              <CalendarClockIcon class="size-3.5 shrink-0" aria-hidden="true" />
+              {{ $t('loans.detail.status.paymentSoon') }}
+            </div>
+            <dl class="divide-border/60 min-w-0 divide-y text-sm">
+              <div v-if="scheduledDate" class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 py-1.5">
+                <dt class="text-muted-foreground">{{ $t('loans.list.scheduledPayment') }}</dt>
+                <dd class="font-medium wrap-anywhere">{{ scheduledDate }}</dd>
+              </div>
+              <div v-if="nextPayment" class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 py-1.5">
+                <dt class="text-muted-foreground">{{ $t('loans.detail.projection.plannedPayment') }}</dt>
+                <dd class="font-medium wrap-anywhere tabular-nums">{{ nextPayment }}</dd>
+              </div>
+            </dl>
           </div>
         </div>
       </template>
-
+      <SettledBanner v-else :loan="loan" />
+      <div class="flex flex-wrap items-center gap-2">
+        <slot name="actions" />
+      </div>
+    </CardHeader>
+    <CardContent class="px-4 pb-0">
       <Button
         type="button"
         variant="ghost"
-        class="border-border/65 mt-3 min-h-11 w-full justify-between rounded-none border-t px-0"
+        class="border-border/65 min-h-11 w-full justify-between rounded-none border-t px-0"
         :aria-expanded="showDetails"
         :aria-controls="detailsId"
         @click="showDetails = !showDetails"
@@ -56,7 +77,7 @@
         />
       </Button>
       <LayoutCollapse :id="detailsId" :open="showDetails">
-        <div class="grid grid-cols-2 gap-4 pb-2 text-sm wrap-anywhere @sm/loan-summary:grid-cols-3">
+        <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,9rem),1fr))] gap-3 pb-4 text-sm wrap-anywhere">
           <div>
             <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.apr') }}</div>
             <div class="mt-0.5 font-medium">{{ aprDisplay }}</div>
@@ -88,20 +109,6 @@
             <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.accountNumber') }}</div>
             <div class="mt-0.5 font-medium">{{ loan.loanDetails.accountNumber }}</div>
           </div>
-          <template v-if="isPaidOff">
-            <div>
-              <div class="text-muted-foreground text-xs">{{ $t('loans.paidOff.opened') }}</div>
-              <div class="mt-0.5 font-medium">{{ openedFullDisplay }}</div>
-            </div>
-            <div>
-              <div class="text-muted-foreground text-xs">{{ $t('loans.paidOff.closed') }}</div>
-              <div class="mt-0.5 font-medium">{{ closedFullDisplay }}</div>
-            </div>
-            <div>
-              <div class="text-muted-foreground text-xs">{{ $t('loans.detail.summary.actualDuration') }}</div>
-              <div class="mt-0.5 font-medium">{{ actualDurationDisplay }}</div>
-            </div>
-          </template>
         </div>
       </LayoutCollapse>
     </CardContent>
@@ -114,7 +121,8 @@ import type { LoanApi } from '@/api/loans';
 import { Card, CardContent, CardHeader } from '@/components/lib/ui/card';
 import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import { Button } from '@/components/lib/ui/button';
-import { ChevronDownIcon } from '@lucide/vue';
+import { ACCOUNT_STATUSES } from '@bt/shared/types';
+import { CalendarClockIcon, ChevronDownIcon } from '@lucide/vue';
 import { useFormatCurrency } from '@/composable/formatters';
 import { useDateLocale } from '@/composable/use-date-locale';
 import AccountLogoPicker from '@/pages/account/components/account-logo-picker.vue';
@@ -123,9 +131,9 @@ import { parseISO } from 'date-fns';
 import { computed, ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 
-import { getLoanDurationParts, getMonthsEarly } from '../utils/paid-off-stats';
 import { outstandingAmount } from '../utils/outstanding-amount';
-import { nextScheduledPayment } from '../utils/next-scheduled-payment';
+import { isScheduledPaymentSoon, nextScheduledPayment } from '../utils/next-scheduled-payment';
+import SettledBanner from './settled-banner.vue';
 
 const props = defineProps<{ loan: LoanApi }>();
 
@@ -139,14 +147,20 @@ const outstandingBalanceDisplay = computed(() =>
   formatAmountByCurrencyCode(outstandingAmount({ balance: props.loan.currentBalance }), props.loan.currencyCode),
 );
 
-const nextDueDate = computed(() => {
+const paymentSchedule = computed(() => {
+  const today = new Date();
   const date = nextScheduledPayment({
     day: props.loan.loanDetails.paymentDayOfMonth,
     starts: parseISO(props.loan.loanDetails.startDate),
-    today: new Date(),
+    today,
   });
-  return date ? formatDate(date, 'PPP') : null;
+  return { date, isSoon: isScheduledPaymentSoon({ date, today }) };
 });
+const scheduledDate = computed(() =>
+  paymentSchedule.value.date ? formatDate(paymentSchedule.value.date, 'PPP') : null,
+);
+const nextPaymentSoon = computed(() => paymentSchedule.value.isSoon);
+const isArchived = computed(() => props.loan.status === ACCOUNT_STATUSES.archived);
 const nextPayment = computed(() =>
   props.loan.loanDetails.plannedPayment == null
     ? null
@@ -179,30 +193,4 @@ const showDetails = ref(false);
 const detailsId = useId();
 
 const isPaidOff = computed(() => props.loan.projection.isPaidOff);
-
-// Last `paid_off` event is the definitive close date (a reopen appends a newer one).
-const closedDate = computed(() => {
-  const paidOffEvents = props.loan.loanDetails.events.filter((event) => event.type === 'paid_off');
-  const last = paidOffEvents.at(-1)?.at;
-  return last ? parseISO(last) : null;
-});
-
-const openedFullDisplay = computed(() => formatDate(parseISO(props.loan.loanDetails.startDate), 'MMM d, yyyy'));
-const closedFullDisplay = computed(() => (closedDate.value ? formatDate(closedDate.value, 'MMM d, yyyy') : '—'));
-
-const actualDurationDisplay = computed(() => {
-  if (!closedDate.value) return '—';
-  const { totalMonths } = getLoanDurationParts({
-    start: parseISO(props.loan.loanDetails.startDate),
-    end: closedDate.value,
-  });
-  const base = t('loans.detail.summary.termMonths', { count: totalMonths }, totalMonths);
-  const early = getMonthsEarly({
-    startDate: parseISO(props.loan.loanDetails.startDate),
-    termMonths: props.loan.loanDetails.termMonths,
-    closedDate: closedDate.value,
-  });
-  if (early && early > 0) return `${base} · ${t('loans.detail.paidOff.monthsEarly', { count: early })}`;
-  return base;
-});
 </script>

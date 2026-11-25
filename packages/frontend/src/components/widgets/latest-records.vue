@@ -14,6 +14,7 @@ import UiButton from '@/components/lib/ui/button/Button.vue';
 import BrandLogo from '@/components/common/brand-logo.vue';
 import { toEntityLogoDisplayProps } from '@/components/common/logo-selection';
 import { ScrollArea } from '@/components/lib/ui/scroll-area';
+import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import TransactionsList from '@/components/transactions-list/transactions-list.vue';
 import SubscriptionMarkPaidDialog from '@/pages/planned/subscriptions/components/subscription-mark-paid-dialog.vue';
@@ -55,6 +56,11 @@ const transferNatures = computed(() => buildLatestRecordsTransferNatures(exclusi
 const excludeBalanceAdjustments = computed(() => exclusions.value.excludeBalanceAdjustments);
 const { includePlanned } = useIncludePlannedConfig();
 const tagsVariant = computed(() => readLatestRecordsTagsVariant({ widgetConfig: widgetConfigRef?.value }));
+const { isOn: showTime } = useWidgetConfigFlag({
+  key: 'showTime',
+  defaultValue: false,
+  saveErrorKey: 'errors.api.unexpectedError',
+});
 const { isOn: showAccount } = useWidgetConfigFlag({
   key: 'showAccount',
   saveErrorKey: 'widgets.latestRecords.settings.showAccountSaveError',
@@ -400,6 +406,7 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
         <div class="relative h-full max-h-[min(55dvh,22rem)] min-h-0">
           <ScrollArea
             ref="listRef"
+            :scroll-area-id="SCROLL_AREA_IDS.latestRecords"
             class="max-h-[min(55dvh,22rem)] min-h-0"
             viewport-class="max-h-[min(55dvh,22rem)] px-1 md:overscroll-contain-if-scrollable"
             :scroll-y="onListScroll"
@@ -417,11 +424,13 @@ watch(isDataEmpty, (isEmpty) => reportDashboardEmpty?.(isEmpty), { immediate: tr
                 expand-groups
                 :group-preview-limit="3"
                 :paginate="false"
+                :scroll-area-id="SCROLL_AREA_IDS.latestRecords"
                 class="gap-0.5!"
                 :transactions="pastTransactions"
                 :max-display="txMaxDisplay"
                 :tags-variant="tagsVariant"
                 :show-account="showAccount"
+                :show-time="showTime"
               />
             </div>
           </ScrollArea>

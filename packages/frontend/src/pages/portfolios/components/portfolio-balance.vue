@@ -1,7 +1,7 @@
 <template>
-  <Card class="@container/balance overflow-hidden">
+  <component :is="compact ? 'section' : Card" class="@container/balance overflow-hidden">
     <!-- Loading State (skeleton matches loaded layout to prevent jumps) -->
-    <div v-if="isLoading" class="p-6">
+    <div v-if="isLoading" :class="compact ? 'p-2' : 'p-6'">
       <!-- Total Value skeleton -->
       <div class="space-y-2">
         <div class="bg-muted h-9 w-48 animate-pulse rounded" />
@@ -27,7 +27,7 @@
     </div>
 
     <!-- Content -->
-    <div v-else-if="summary" class="p-6">
+    <div v-else-if="summary" :class="compact ? 'border-t pt-2' : 'p-6'">
       <!--
         Container query breakpoints (based on card width):
         - < 28rem (448px): value on top, metrics 2x2 grid below
@@ -39,7 +39,7 @@
         <!-- Total Value + Gain -->
         <div class="shrink-0">
           <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h2 class="text-3xl font-semibold tracking-tight break-words tabular-nums">
+            <h2 class="font-semibold tracking-tight break-words tabular-nums" :class="compact ? 'text-xl' : 'text-3xl'">
               {{ formatCurrency(Number(summary.totalPortfolioValue), summary.currencyCode) }}
             </h2>
             <div
@@ -73,7 +73,8 @@
 
         <!-- Metrics Grid -->
         <div
-          class="mt-5 grid grid-cols-2 gap-4 border-t pt-5 @md/balance:grid-cols-4 @3xl/balance:mt-0 @3xl/balance:flex-1 @3xl/balance:border-t-0 @3xl/balance:border-l @3xl/balance:pt-0 @3xl/balance:pl-8"
+          class="grid grid-cols-2 border-t @md/balance:grid-cols-4 @3xl/balance:mt-0 @3xl/balance:flex-1 @3xl/balance:border-t-0 @3xl/balance:border-l @3xl/balance:pt-0 @3xl/balance:pl-8"
+          :class="compact ? 'mt-2 gap-x-3 gap-y-1.5 pt-2' : 'mt-5 gap-4 pt-5'"
         >
           <!-- Cost Basis -->
           <div class="space-y-0.5">
@@ -136,7 +137,7 @@
         {{ $t(isFetching ? 'investments.summary.refreshing' : 'investments.summary.incomplete') }}
       </p>
     </div>
-  </Card>
+  </component>
 </template>
 
 <script setup lang="ts">
@@ -147,7 +148,7 @@ import { getGainColorClass } from '@/composable/gain-color';
 import { TrendingDownIcon, TrendingUpIcon } from '@lucide/vue';
 import { toRef } from 'vue';
 
-const props = defineProps<{ portfolioId: string }>();
+const props = defineProps<{ portfolioId: string; compact?: boolean }>();
 const portfolioId = toRef(props, 'portfolioId');
 
 const { data: summary, isLoading, isFetching, error } = usePortfolioSummary(portfolioId);

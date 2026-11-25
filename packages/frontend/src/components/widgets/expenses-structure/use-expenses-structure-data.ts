@@ -3,10 +3,20 @@ import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import { type MetricType, metricTransactionType } from '@/common/utils/analytics-metric';
 import { getLevelCategoryIds } from '@/common/utils/category-tree';
 import { useAnimatedNumber } from '@/composable/use-animated-number';
+import { useDateLocale } from '@/composable/use-date-locale';
 import { calculatePercentageDifference } from '@/js/helpers';
 import { useCategoriesStore } from '@/stores';
 import { keepPreviousData, useQuery } from '@tanstack/vue-query';
-import { differenceInDays, endOfMonth, format, isSameMonth, startOfMonth, subDays, subMonths } from 'date-fns';
+import {
+  differenceInDays,
+  endOfMonth,
+  format,
+  isSameDay,
+  isSameMonth,
+  startOfMonth,
+  subDays,
+  subMonths,
+} from 'date-fns';
 import { storeToRefs } from 'pinia';
 import { type Ref, computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -27,9 +37,12 @@ export function useExpensesStructureData({
   drilledCategoryId: Ref<string | null>;
 }) {
   const { t } = useI18n();
+  const { format: formatDate } = useDateLocale();
   const { categories, categoriesMap } = storeToRefs(useCategoriesStore());
 
-  const periodQueryKey = ref(`${new Date().getTime()}-${new Date().getTime()}`);
+  const periodQueryKey = computed(
+    () => `${format(selectedPeriod().from, 'yyyy-MM-dd')}:${format(selectedPeriod().to, 'yyyy-MM-dd')}`,
+  );
 
   const hasExcludedStats = computed(() => excludedCategoryIds.value.length > 0);
 
@@ -38,32 +51,21 @@ export function useExpensesStructureData({
     const to = selectedPeriod().to;
     const now = new Date();
 
-    if (isSameMonth(now, to) && isSameMonth(from, to)) {
+    if (isSameDay(now, to) && isSameDay(from, to)) {
       return t('dashboard.widgets.expensesStructure.today');
     }
 
-    if (isSameMonth(from, to)) {
-      return format(to, 'MMMM yyyy');
-    }
-
-    const isFromMonthStart = from.getDate() === 1;
-    const endOfToMonth = new Date(to.getFullYear(), to.getMonth() + 1, 0);
-    const isToMonthEnd = to.getDate() === endOfToMonth.getDate();
+    const isFromMonthStart = isSameDay(from, startOfMonth(from));
+    const isToMonthEnd = isSameDay(to, endOfMonth(to));
+    if (isFromMonthStart && isToMonthEnd && isSameMonth(from, to)) return formatDate(to, 'MMMM yyyy');
+    if (isSameDay(from, to)) return formatDate(to, 'PP');
 
     if (isFromMonthStart && isToMonthEnd) {
-      return `${format(from, 'MMM yyyy')} - ${format(to, 'MMM yyyy')}`;
+      return `${formatDate(from, 'MMM yyyy')} - ${formatDate(to, 'MMM yyyy')}`;
     }
 
-    return `${format(from, 'MMM d, yyyy')} - ${format(to, 'MMM d, yyyy')}`;
+    return `${formatDate(from, 'PP')} – ${formatDate(to, 'PP')}`;
   });
-
-  watch(
-    selectedPeriod,
-    () => {
-      periodQueryKey.value = `${selectedPeriod().from.getTime()}-${selectedPeriod().to.getTime()}`;
-    },
-    { deep: true },
-  );
 
   const excludedKey = computed(() => `${excludedCategoryIds.value.join(',')}:planned-${includePlanned.value}`);
   const excludePlannedParam = computed(() => !includePlanned.value || undefined);
@@ -126,6 +128,7 @@ export function useExpensesStructureData({
     data: prevSpendingsByCategories,
     isFetching: isPrevSpendingsFetching,
     isError: isPrevError,
+    isPlaceholderData: isPrevPlaceholder,
     refetch: refetchPrev,
   } = useQuery({
     queryKey: [...VUE_QUERY_CACHE_KEYS.widgetExpensesStructurePrevTotal, periodQueryKey, excludedKey, levelKey],
@@ -160,7 +163,8 @@ export function useExpensesStructureData({
   });
 
   const periodDiff = computed<number | null>(() => {
-    if (isPrevError.value || !prevSpendingsByCategories.value) return null;
+    if (isPlaceholderData.value || isPrevPlaceholder.value || isPrevError.value || !prevSpendingsByCategories.value)
+      return null;
     const prevTotal = getLevelTotal({
       spendings: prevSpendingsByCategories.value,
       excludedCategoryIds: excludedCategoryIds.value,

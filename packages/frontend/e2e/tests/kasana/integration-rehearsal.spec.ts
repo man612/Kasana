@@ -123,10 +123,11 @@ test('combined category dialog, vehicle picker/disclaimer and fractional IDR cas
     await page.getByRole('button', { name: /Tambah transaksi|Add transaction/i }).click();
     const cash = page.getByRole('dialog').first();
     const amount = cash.locator('input[inputmode="decimal"]').first();
-    await expect(amount).toBeDisabled();
-    await cash.getByRole('combobox').first().click();
-    await page.getByRole('option', { name: /IDR/ }).first().click();
+    // IDR-only portfolios now preselect Rupiah and omit the redundant picker.
+    await expect(cash.getByText('Rp', { exact: true })).toBeVisible();
+    await expect(cash.getByRole('combobox')).toHaveCount(0);
     await expect(amount).toBeEnabled();
+    await expect(cash.locator('button[type="submit"]')).toBeDisabled();
     await amount.fill('20.000,50');
     await expect(amount).toHaveValue('20.000,50');
     await page.screenshot({ path: test.info().outputPath('fractional-idr-cash-entry.png'), fullPage: true });
@@ -140,6 +141,7 @@ test('combined category dialog, vehicle picker/disclaimer and fractional IDR cas
     const response = await submitted;
     expect(response.status(), await response.text()).toBe(200);
     expect(response.request().postDataJSON().amount).toBe('20000.5');
+    expect(response.request().postDataJSON().currencyCode).toBe('IDR');
     expect(extractId(await response.json())).toMatch(/^[0-9a-f-]{36}$/i);
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByText(/20\.000,5(?:0)?/).first()).toBeVisible();

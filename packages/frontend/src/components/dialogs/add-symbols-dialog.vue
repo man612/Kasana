@@ -15,7 +15,7 @@ import { EXTERNAL_URLS } from '@bt/shared/const/external-urls';
 import { API_ERROR_CODES } from '@bt/shared/types';
 import { ASSET_CLASS, type SecuritySearchResult } from '@bt/shared/types/investments';
 import { useQuery } from '@tanstack/vue-query';
-import { AlertTriangleIcon, CheckCheckIcon, SearchIcon, SearchXIcon } from '@lucide/vue';
+import { AlertTriangleIcon, CheckCheckIcon, SearchIcon, SearchXIcon, XIcon } from '@lucide/vue';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -76,7 +76,11 @@ const hasQuery = computed(() => trimmedTerm.value.length > 0);
 const isSearchPending = computed(
   () => hasQuery.value && (trimmedTerm.value !== debounced.value || query.isFetching.value),
 );
-const results = computed(() => query.data.value ?? []);
+const results = computed(() => {
+  const matches = query.data.value ?? [];
+  const local = (security: SecuritySearchResult) => security.currencyCode.toUpperCase() === 'IDR';
+  return [...matches.filter(local), ...matches.filter((security) => !local(security))];
+});
 const hasResults = computed(() => results.value.length > 0);
 const showEndIndicator = computed(() => hasResults.value && results.value.length <= 3);
 
@@ -112,7 +116,7 @@ async function addSymbol(sec: SecuritySearchResult) {
 </script>
 
 <template>
-  <ResponsiveDialog v-model:open="isOpen">
+  <ResponsiveDialog v-model:open="isOpen" centered-title fit-keyboard @open-auto-focus.prevent>
     <template #trigger>
       <slot />
     </template>
@@ -157,8 +161,23 @@ async function addSymbol(sec: SecuritySearchResult) {
           v-model="searchTerm"
           :label="$t('dialogs.addSymbols.searchLabel')"
           :placeholder="$t('dialogs.addSymbols.searchPlaceholder')"
-          class="max-w-[calc(100%-50px)]"
-        />
+          type="search"
+          :leading-icon-css-class="'pointer-events-none px-3'"
+          :trailing-icon-css-class="'px-2'"
+        >
+          <template #iconLeading><SearchIcon class="text-muted-foreground size-4" aria-hidden="true" /></template>
+          <template v-if="searchTerm" #iconTrailing>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              :aria-label="$t('dialogs.addSymbols.clearSearch')"
+              @click="clearSearch"
+            >
+              <XIcon class="size-4" aria-hidden="true" />
+            </Button>
+          </template>
+        </InputField>
 
         <PillTabs v-model="assetClassFilter" :items="assetClassItems" size="sm" />
 

@@ -4,6 +4,9 @@ import { Button } from '@/components/lib/ui/button';
 import { Card } from '@/components/lib/ui/card';
 import { useFormatCurrency } from '@/composable';
 import { cn } from '@/lib/utils';
+import { useCurrenciesStore } from '@/stores';
+import { storeToRefs } from 'pinia';
+import { computed } from 'vue';
 import {
   CalculatorIcon,
   CalendarClockIcon,
@@ -21,6 +24,9 @@ import BudgetLineSpentText from './budget-line-spent-text.vue';
 defineEmits<{ start: [] }>();
 
 const { formatBaseCurrency } = useFormatCurrency();
+const { baseCurrency } = storeToRefs(useCurrenciesStore());
+const exampleScale = computed(() => (baseCurrency.value?.currencyCode === 'IDR' ? 1000 : 1));
+const formatExample = (amount: number) => formatBaseCurrency(amount * exampleScale.value);
 
 const STEPS = ['accounts', 'suggested', 'available'] as const;
 
@@ -111,7 +117,7 @@ const CHECKBOX_CLASS = 'border-muted-foreground/50 size-[18px] rounded-[4px] bor
                 >
               </dt>
               <dd :class="cn('text-lg font-bold tabular-nums', TONED_TOTALS.has(key) && amountToneClass({ amount }))">
-                {{ formatBaseCurrency(amount) }}
+                {{ formatExample(amount) }}
               </dd>
             </div>
           </dl>
@@ -139,10 +145,10 @@ const CHECKBOX_CLASS = 'border-muted-foreground/50 size-[18px] rounded-[4px] bor
                 {{ $t(`budgetPlans.empty.example.groups.${group.key}`) }}
                 <PlusIcon class="size-3.5" />
               </span>
-              <span class="text-right tabular-nums">{{ formatBaseCurrency(group.assigned) }}</span>
-              <span class="text-muted-foreground text-right tabular-nums">{{ formatBaseCurrency(-group.spent) }}</span>
+              <span class="text-right tabular-nums">{{ formatExample(group.assigned) }}</span>
+              <span class="text-muted-foreground text-right tabular-nums">{{ formatExample(-group.spent) }}</span>
               <span :class="cn('text-right tabular-nums', amountToneClass({ amount: group.available }))">
-                {{ formatBaseCurrency(group.available) }}
+                {{ formatExample(group.available) }}
               </span>
               <EllipsisIcon class="text-muted-foreground mx-auto size-4" />
             </div>
@@ -161,15 +167,13 @@ const CHECKBOX_CLASS = 'border-muted-foreground/50 size-[18px] rounded-[4px] bor
               <span
                 class="border-input bg-input-background h-9 rounded-md border px-2.5 text-right text-sm leading-8 tabular-nums"
               >
-                {{ formatBaseCurrency(line.assigned) }}
+                {{ formatExample(line.assigned) }}
               </span>
               <span class="text-muted-foreground text-right text-sm tabular-nums">
-                {{ formatBaseCurrency(-line.spent) }}
+                {{ formatExample(-line.spent) }}
               </span>
               <span class="text-right">
-                <span :class="availablePillClass({ amount: line.available })">{{
-                  formatBaseCurrency(line.available)
-                }}</span>
+                <span :class="availablePillClass({ amount: line.available })">{{ formatExample(line.available) }}</span>
               </span>
               <EllipsisIcon class="text-muted-foreground mx-auto size-4" />
             </div>
@@ -180,10 +184,10 @@ const CHECKBOX_CLASS = 'border-muted-foreground/50 size-[18px] rounded-[4px] bor
             <span class="text-muted-foreground">{{
               $t('budgetPlans.grid.totalWithLines', { count: exampleLines.length })
             }}</span>
-            <span class="text-right tabular-nums">{{ formatBaseCurrency(totals.assigned) }}</span>
-            <span class="text-muted-foreground text-right tabular-nums">{{ formatBaseCurrency(-totals.spent) }}</span>
+            <span class="text-right tabular-nums">{{ formatExample(totals.assigned) }}</span>
+            <span class="text-muted-foreground text-right tabular-nums">{{ formatExample(-totals.spent) }}</span>
             <span :class="cn('text-right tabular-nums', amountToneClass({ amount: totals.available }))">
-              {{ formatBaseCurrency(totals.available) }}
+              {{ formatExample(totals.available) }}
             </span>
             <span />
           </div>

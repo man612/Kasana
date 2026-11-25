@@ -1,58 +1,29 @@
 <template>
-  <div class="border-success/30 bg-success/10 @container/settled-banner rounded-xl border p-3 sm:p-4">
-    <div
-      class="flex flex-col gap-2 @lg/settled-banner:flex-row @lg/settled-banner:items-center @lg/settled-banner:justify-between"
-    >
-      <!-- Identity: check icon + name + type/opened/closed line. -->
-      <div class="flex min-w-0 items-start gap-3">
-        <CircleCheckIcon class="text-success-text mt-0.5 size-5 shrink-0" stroke-width="2" aria-hidden="true" />
-        <div class="min-w-0">
-          <div class="text-base leading-tight font-semibold wrap-anywhere">
-            {{ $t('loans.detail.paidOff.bannerTitle', { name: loan.name }) }}
-          </div>
-          <div class="text-muted-foreground mt-0.5 text-sm">
-            {{
-              $t('loans.detail.paidOff.bannerSubline', {
-                type: typeLabel,
-                opened: openedDisplay,
-                closed: closedDisplay,
-              })
-            }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Stats: repaid / estimated interest / duration, plus an "N mo early" pill when applicable. -->
-      <div
-        class="border-success/20 grid grid-cols-[repeat(auto-fit,minmax(min(100%,7rem),1fr))] items-start gap-2 border-t pt-2 wrap-anywhere @lg/settled-banner:flex @lg/settled-banner:flex-wrap @lg/settled-banner:justify-end @lg/settled-banner:border-0 @lg/settled-banner:pt-0"
-      >
-        <div>
-          <div class="text-muted-foreground text-xs font-medium">
-            {{ $t('loans.paidOff.repaid') }}
-          </div>
-          <div class="mt-0.5 text-sm font-medium tabular-nums">{{ repaidDisplay }}</div>
-        </div>
-        <div>
-          <div class="text-muted-foreground text-xs font-medium">
-            {{ $t('loans.paidOff.interestPaid') }}
-          </div>
-          <div class="mt-0.5 text-sm font-medium tabular-nums">{{ interestDisplay }}</div>
-        </div>
-        <div>
-          <div class="text-muted-foreground text-xs font-medium">
-            {{ $t('loans.detail.paidOff.took') }}
-          </div>
-          <div class="mt-0.5 text-sm font-medium tabular-nums">{{ durationDisplay }}</div>
-        </div>
-        <span
-          v-if="monthsEarly"
-          class="bg-app-income-color/15 text-app-income-color inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
-        >
+  <section class="border-success/30 bg-success/10 grid min-w-0 gap-3 rounded-lg border p-3">
+    <div class="flex min-w-0 items-start gap-2">
+      <CircleCheckIcon class="text-success-text mt-0.5 size-5 shrink-0" aria-hidden="true" />
+      <div class="min-w-0">
+        <h2 class="font-semibold">{{ $t('loans.detail.paidOffBadge') }}</h2>
+        <p v-if="monthsEarly" class="text-success-text text-sm">
           {{ $t('loans.detail.paidOff.monthsEarly', { count: monthsEarly }) }}
-        </span>
+        </p>
       </div>
     </div>
-  </div>
+    <dl class="divide-success/20 min-w-0 divide-y">
+      <div v-if="closedDate" class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 py-2 text-sm">
+        <dt class="text-muted-foreground">{{ $t('loans.paidOff.closed') }}</dt>
+        <dd class="font-medium wrap-anywhere">{{ closedDisplay }}</dd>
+      </div>
+      <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 py-2 text-sm">
+        <dt class="text-muted-foreground">{{ $t('loans.paidOff.repaid') }}</dt>
+        <dd class="font-semibold wrap-anywhere tabular-nums">{{ repaidDisplay }}</dd>
+      </div>
+      <div v-if="closedDate" class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 pt-2 text-sm">
+        <dt class="text-muted-foreground">{{ $t('loans.detail.paidOff.took') }}</dt>
+        <dd class="font-medium wrap-anywhere">{{ durationDisplay }}</dd>
+      </div>
+    </dl>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -81,20 +52,11 @@ const closedDate = computed(() => {
   return last ? parseISO(last) : null;
 });
 
-const typeLabel = computed(() => t(`loans.types.${props.loan.loanDetails.loanType}`));
-
-const openedDisplay = computed(() => formatDate(startDate.value, 'MMM yyyy'));
 const closedDisplay = computed(() => (closedDate.value ? formatDate(closedDate.value, 'PPP') : '—'));
 
 const repaidDisplay = computed(() =>
   formatAmountByCurrencyCode(props.loan.loanDetails.originalPrincipal, props.loan.currencyCode),
 );
-
-const interestDisplay = computed(() => {
-  const interest = props.loan.projection.estimatedInterestPaid;
-  if (interest === null) return '—';
-  return formatAmountByCurrencyCode(interest, props.loan.currencyCode);
-});
 
 const durationParts = computed(() =>
   getLoanDurationParts({ start: startDate.value, end: closedDate.value ?? new Date() }),

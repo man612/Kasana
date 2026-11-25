@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
+import { ROUTES_NAMES } from '@/routes/constants';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import AiUsageBadge from '@/components/common/ai-usage/ai-usage-badge.vue';
@@ -6,11 +8,12 @@ import { Button } from '@/components/lib/ui/button';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { AI_CATEGORIZATION_MAX_TRANSACTIONS_PER_RUN, AI_FEATURE } from '@bt/shared/types';
 import { Loader2Icon, SparklesIcon, XIcon } from '@lucide/vue';
-import { computed, ref } from 'vue';
+import { computed, onScopeDispose, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import type { CategorizationRun } from '../use-categorization-run';
 import RunSetupPopover from './run-setup-popover.vue';
+import { useOptimizationAiBlocker } from '../../use-optimization-ai-blocker';
 
 const props = defineProps<{
   run: CategorizationRun;
@@ -45,6 +48,21 @@ const runLabel = computed(() => {
 });
 
 const isConfirmOpen = ref(false);
+const aiBlocker = useOptimizationAiBlocker({ feature: AI_FEATURE.categorization });
+const showAiReason = ref(false);
+const AI_REASON_TIMEOUT_MS = 6000;
+let reasonTimeout: ReturnType<typeof setTimeout> | undefined;
+const closeReason = () => {
+  clearTimeout(reasonTimeout);
+  showAiReason.value = false;
+};
+watch(aiBlocker, closeReason);
+onScopeDispose(closeReason);
+const revealAiReason = () => {
+  clearTimeout(reasonTimeout);
+  showAiReason.value = true;
+  reasonTimeout = setTimeout(closeReason, AI_REASON_TIMEOUT_MS);
+};
 
 // One run is capped backend-side, so the confirmation states what this run will
 // actually touch rather than the whole backlog.
@@ -52,11 +70,16 @@ const confirmCount = computed(() => Math.min(totalCount.value ?? 0, AI_CATEGORIZ
 const confirmCountLabel = computed(() => confirmCount.value.toLocaleString());
 
 const runCategorization = ({ transactionIds }: { transactionIds?: string[] } = {}) => {
+  if (aiBlocker.value) return;
   trigger({ transactionIds }, { onSuccess: () => emit('clear-selection') });
 };
 
 // An explicit selection already names its scope; only the everything-run asks.
 const handleRun = () => {
+  if (aiBlocker.value) {
+    revealAiReason();
+    return;
+  }
   const ids = props.selectedCount > 0 ? (props.getSelectedTransactionIds?.() ?? []) : [];
   if (ids.length > 0) {
     runCategorization({ transactionIds: ids });
@@ -134,7 +157,13 @@ const handleConfirmRun = () => {
       <AiUsageBadge :feature="AI_FEATURE.categorization" />
       <RunSetupPopover />
 
-      <Button size="sm" :disabled="isRunDisabled" @click="handleRun">
+      <Button
+        size="sm"
+        :disabled="isBusy || (!aiBlocker && isRunDisabled)"
+        :aria-disabled="Boolean(aiBlocker) || undefined"
+        :class="aiBlocker && 'opacity-60'"
+        @click="handleRun"
+      >
         <Loader2Icon v-if="isBusy" class="size-4 animate-spin" />
         <SparklesIcon v-else class="size-4" />
         {{ runLabel }}
@@ -151,6 +180,23 @@ const handleConfirmRun = () => {
         </Button>
       </DesktopOnlyTooltip>
     </div>
+
+    <LayoutCollapse :open="Boolean(aiBlocker) && showAiReason" class="basis-full">
+      <div
+        v-if="aiBlocker"
+        class="text-muted-foreground flex flex-wrap items-center gap-x-2 py-1 text-sm"
+        role="status"
+      >
+        {{ $t(`optimizations.aiAvailability.${aiBlocker}.description`) }}
+        <RouterLink
+          v-if="aiBlocker !== 'loading'"
+          :to="{ name: ROUTES_NAMES.settingsAiFeatures }"
+          class="text-primary-text underline underline-offset-2"
+        >
+          {{ $t('optimizations.aiAvailability.settings') }}
+        </RouterLink>
+      </div>
+    </LayoutCollapse>
 
     <div
       v-if="isCategorizing"

@@ -45,6 +45,9 @@ const cancelByBackdrop = () => {
 
 <template>
   <AlertDialog.AlertDialog v-model:open="isOpen">
+    <AlertDialog.AlertDialogTrigger v-if="$slots.trigger" as-child
+      ><slot name="trigger"
+    /></AlertDialog.AlertDialogTrigger>
     <AlertDialog.AlertDialogContent
       :on-backdrop-click="cancelByBackdrop"
       class="max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-[27rem] gap-4 overflow-y-auto rounded-2xl p-5 sm:p-6"

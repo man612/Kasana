@@ -2,6 +2,7 @@ import type { SidebarNavConfig } from '@/api/user-settings';
 import { useUserSettings } from '@/composable/data-queries/user-settings';
 import { ROUTES_NAMES } from '@/routes/constants';
 import {
+  BoxesIcon,
   CalculatorIcon,
   CreditCardIcon,
   FlagIcon,
@@ -36,11 +37,7 @@ export const SIDEBAR_NAV_CHILDREN = {
       routeName: ROUTES_NAMES.accounts,
       labelKey: 'navigation.accountsList',
       icon: WalletIcon,
-      activeRouteNames: [
-        ROUTES_NAMES.account,
-        ROUTES_NAMES.accountsVehicleDetails,
-        ROUTES_NAMES.accountIntegrationDetails,
-      ],
+      activeRouteNames: [ROUTES_NAMES.account, ROUTES_NAMES.accountIntegrationDetails],
     },
     {
       routeName: ROUTES_NAMES.loans,
@@ -48,6 +45,12 @@ export const SIDEBAR_NAV_CHILDREN = {
       icon: HandCoinsIcon,
       settingKey: 'loans',
       activeRouteNames: [ROUTES_NAMES.loanDetail],
+    },
+    {
+      routeName: ROUTES_NAMES.inventory,
+      labelKey: 'navigation.inventory',
+      icon: BoxesIcon,
+      activeRouteNames: [ROUTES_NAMES.accountsVehicleDetails],
     },
     {
       routeName: ROUTES_NAMES.investments,
@@ -127,12 +130,10 @@ export const useAccountsNavChildren = () => {
   const { data: userSettings } = useUserSettings();
 
   return computed(() =>
-    ACCOUNTS_NAV_CHILDREN.filter(
-      (child) => {
-        // Venture capital is specialized: opt-in from Settings > Appearance > Sidebar Navigation.
-        if (child.settingKey === 'venture') return userSettings.value?.sidebarNav?.venture === true;
-        return !child.settingKey || userSettings.value?.sidebarNav?.[child.settingKey] !== false;
-      },
-    ),
+    ACCOUNTS_NAV_CHILDREN.filter((child) => {
+      // Venture capital is specialized: opt-in from Settings > Appearance > Sidebar Navigation.
+      if (child.settingKey === 'venture') return userSettings.value?.sidebarNav?.venture === true;
+      return !child.settingKey || userSettings.value?.sidebarNav?.[child.settingKey] !== false;
+    }),
   );
 };

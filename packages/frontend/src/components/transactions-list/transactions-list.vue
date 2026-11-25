@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import LayoutCollapse from '@/components/common/layout-collapse.vue';
 import type { TagsIndicatorVariant } from '@/components/common/tags-indicator.vue';
 import { useScrollAreaContainer } from '@/composable/scroll-area-container';
 import { type MatchingTransactions, useBulkTransactionActions } from '@/composable/use-bulk-transaction-actions';
@@ -11,6 +12,7 @@ import {
   computed,
   defineAsyncComponent,
   nextTick,
+  onScopeDispose,
   reactive,
   ref,
   TransitionGroup,
@@ -24,6 +26,7 @@ import { ScrollArea } from '@/components/lib/ui/scroll-area';
 import { SCROLL_AREA_IDS } from '../lib/ui/scroll-area/types';
 import BulkActionDialogs from './bulk-action-dialogs.vue';
 import BulkEditToolbar from './bulk-edit-toolbar.vue';
+import { groupRevealOffset } from './group-reveal-offset';
 import PlannedRowsToggle from './planned-rows-toggle.vue';
 import TransactionDetailsModal from './transaction-details-modal.vue';
 import TransactionGroupRecord, { type GroupRowData } from './transaction-group-record.vue';
@@ -61,6 +64,7 @@ const props = withDefaults(
     rawList?: boolean; // whenever we don't need to show anything except actual records
     maxDisplay?: number; // maximum number of items to display after deduplication
     enableBulkEdit?: boolean;
+    showCheckboxes?: boolean;
     pinBulkToolbar?: boolean;
     expandGroups?: boolean;
     groupPreviewLimit?: number;
@@ -89,6 +93,7 @@ const props = withDefaults(
     paginate: true,
     scrollAreaId: SCROLL_AREA_IDS.dashboard,
     enableBulkEdit: false,
+    showCheckboxes: true,
     contentFiltersActive: false,
     disableGrouping: false,
     timeGrouping: 'none',
@@ -217,6 +222,19 @@ const {
   isBulkDeleteDialogOpen,
   isBulkLoading,
 } = bulkActions;
+const checkboxesVisible = computed(() => props.enableBulkEdit && props.showCheckboxes);
+watch(
+  checkboxesVisible,
+  (visible) => {
+    if (visible) return;
+    clearSelection();
+    isBulkEditDialogOpen.value = false;
+    isCreateGroupDialogOpen.value = false;
+    isAddToGroupDialogOpen.value = false;
+    isBulkDeleteDialogOpen.value = false;
+  },
+  { flush: 'sync' },
+);
 
 // Group detail dialog
 const isGroupDialogOpen = ref(false);
@@ -230,13 +248,57 @@ const handleGroupRowClick = (groupId: string) => {
   isGroupDialogOpen.value = true;
 };
 
-const toggleGroup = (id: string) => {
-  if (expandedGroups.has(id)) expandedGroups.delete(id);
-  else expandedGroups.add(id);
+let revealController: AbortController | undefined;
+const cancelReveal = () => revealController?.abort();
+onScopeDispose(cancelReveal);
+
+const toggleGroup = async ({ id, groupElement }: { id: string; groupElement: HTMLElement }) => {
+  cancelReveal();
+  if (expandedGroups.delete(id)) return;
+  expandedGroups.add(id);
+
+  const scroll = scrollElement.value;
+  if (!scroll) return;
+  const controller = new AbortController();
+  revealController = controller;
+  const { signal } = controller;
+  const events = { signal, passive: true };
+  scroll.addEventListener('pointerdown', cancelReveal, events);
+  scroll.addEventListener('wheel', cancelReveal, events);
+  scroll.addEventListener('keydown', cancelReveal, events);
+  await nextTick();
+  const collapse = groupElement.querySelector('[data-group-disclosure]');
+  if (!collapse) return controller.abort();
+
+  // Follow the expanding row once per paint, using only the displacement needed
+  // at its current height. This also works at the list's moving lower scroll limit.
+  const reveal = ({ final = false }: { final?: boolean } = {}) => {
+    if (signal.aborted || !groupElement.isConnected || !scroll.clientHeight) return controller.abort();
+    const viewport = scroll.getBoundingClientRect();
+    const zoom = viewport.height / scroll.offsetHeight || 1;
+    const top = viewport.top + scroll.clientTop * zoom;
+    const group = groupElement.getBoundingClientRect();
+    const sticky = listContainerRef.value?.querySelector('[data-testid="transaction-time-sticky"] > *');
+    const offset = groupRevealOffset({
+      viewport: { top, bottom: top + (scroll.clientHeight - 4) * zoom },
+      group,
+      stickyHeight: sticky ? Math.max(0, sticky.getBoundingClientRect().bottom - top) : 0,
+    });
+    const isExpanding = collapse.getAnimations().some((animation) => animation.playState === 'running');
+    if (offset > 0.5) scroll.scrollTop += offset / zoom;
+    if (isExpanding) requestAnimationFrame(() => reveal());
+    // The virtualizer updates the list height after the row settles.
+    else if (!final && offset > 0.5) requestAnimationFrame(() => reveal({ final: true }));
+    else controller.abort();
+  };
+  requestAnimationFrame(() => reveal());
 };
 watch(
   () => props.selectionScopeKey,
-  () => expandedGroups.clear(),
+  () => {
+    cancelReveal();
+    expandedGroups.clear();
+  },
 );
 
 const virtualizer = useVirtualizer(
@@ -376,26 +438,31 @@ watchEffect(() => {
 <template>
   <div :class="pinBulkToolbar && 'flex h-full min-h-0 flex-col overflow-hidden'">
     <!-- Bulk edit toolbar -->
-    <BulkEditToolbar
+    <LayoutCollapse
       v-if="enableBulkEdit && displayTransactions.length > 0"
-      :class="pinBulkToolbar && 'static shrink-0'"
-      :selected-count="selectedCount"
-      :is-all-selected="isAllSelected"
-      :is-loading="isBulkLoading"
-      :has-external-selected="hasExternalSelected"
-      :selected-totals="selectedTotals"
-      :matching-summary="matching?.summary"
-      :is-grouping-blocked="isGroupingBlocked"
-      @cancel="clearSelection"
-      @edit="isBulkEditDialogOpen = true"
-      @delete="isBulkDeleteDialogOpen = true"
-      @create-group="isCreateGroupDialogOpen = true"
-      @add-to-group="isAddToGroupDialogOpen = true"
-      @select-all="handleSelectAllToggle"
-    />
+      :open="checkboxesVisible"
+      :class="pinBulkToolbar ? 'shrink-0' : 'sticky top-0 z-10'"
+    >
+      <BulkEditToolbar
+        :class="pinBulkToolbar && 'static shrink-0'"
+        :selected-count="selectedCount"
+        :is-all-selected="isAllSelected"
+        :is-loading="isBulkLoading"
+        :has-external-selected="hasExternalSelected"
+        :selected-totals="selectedTotals"
+        :matching-summary="matching?.summary"
+        :is-grouping-blocked="isGroupingBlocked"
+        @cancel="clearSelection"
+        @edit="isBulkEditDialogOpen = true"
+        @delete="isBulkDeleteDialogOpen = true"
+        @create-group="isCreateGroupDialogOpen = true"
+        @add-to-group="isAddToGroupDialogOpen = true"
+        @select-all="handleSelectAllToggle"
+      />
+    </LayoutCollapse>
 
     <!-- Bulk edit / group / delete dialogs -->
-    <BulkActionDialogs v-if="enableBulkEdit" :actions="bulkActions" />
+    <BulkActionDialogs v-if="checkboxesVisible" :actions="bulkActions" />
 
     <!-- Reusable row template: renders a group row or a transaction row with leading/trailing slots -->
     <DefineRowTemplate v-slot="{ item, index }">
@@ -426,7 +493,7 @@ watchEffect(() => {
           <TransactionRecord
             :tx="item as TransactionModel"
             :show-divider="hasRowDivider(index)"
-            :show-checkbox="enableBulkEdit"
+            :show-checkbox="checkboxesVisible"
             :compact="compact"
             :hide-date="hideDate"
             :show-time="timeGrouping === 'day' || showTime"
@@ -439,7 +506,7 @@ watchEffect(() => {
             :unselectable-reason="getUnselectableReason(item as TransactionModel)"
             :index="index"
             @record-click="handleRecordClick"
-            @selection-change="toggleTransaction"
+            @selection-change="checkboxesVisible && toggleTransaction($event)"
           />
         </div>
         <slot name="row-trailing" :tx="item as TransactionModel" />

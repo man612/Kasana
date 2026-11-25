@@ -14,22 +14,15 @@ import FieldError from '@/components/fields/components/field-error.vue';
 import DateField from '@/components/fields/date-field.vue';
 import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import InputField from '@/components/fields/input-field.vue';
-import SelectField from '@/components/fields/select-field.vue';
 import { Button } from '@/components/lib/ui/button';
 import { Label } from '@/components/lib/ui/label';
 import { Switch } from '@/components/lib/ui/switch';
-import { useCurrencyName, useFormatCurrency } from '@/composable';
+import { useFormatCurrency } from '@/composable';
 import { useCreateGoal, useGoals, useUpdateGoal } from '@/composable/data-queries/goals';
 import { useDateLocale } from '@/composable/use-date-locale';
 import { cn } from '@/lib/utils';
 import { useAccountsStore, useCurrenciesStore } from '@/stores';
-import {
-  API_ERROR_CODES,
-  type CurrencyModel,
-  GOAL_NAME_MAX_LENGTH,
-  GOAL_REACHED_HOLD_DAYS_MAX,
-  type GoalModel,
-} from '@bt/shared/types';
+import { API_ERROR_CODES, GOAL_NAME_MAX_LENGTH, GOAL_REACHED_HOLD_DAYS_MAX, type GoalModel } from '@bt/shared/types';
 import { PencilIcon, PlusIcon } from '@lucide/vue';
 import { startOfTomorrow } from 'date-fns';
 import { storeToRefs } from 'pinia';
@@ -66,9 +59,8 @@ const open = defineModel<boolean>('open', { required: true });
 const { t } = useI18n();
 const { format } = useDateLocale();
 const { formatAmountByCurrencyCode, formatBaseCurrency } = useFormatCurrency();
-const { formatCurrencyLabel } = useCurrencyName();
 const { accountsRecord } = storeToRefs(useAccountsStore());
-const { baseCurrency, systemCurrenciesVerbose } = storeToRefs(useCurrenciesStore());
+const { baseCurrency } = storeToRefs(useCurrenciesStore());
 const { data: goals, refetch: refetchGoals } = useGoals();
 const createMutation = useCreateGoal({ silentErrorCodes: SILENT_ERROR_CODES });
 const updateMutation = useUpdateGoal({ silentErrorCodes: SILENT_ERROR_CODES });
@@ -78,7 +70,7 @@ const plannedMonthlyId = useId();
 const holdDaysId = useId();
 const baseCurrencyCode = computed(() => baseCurrency.value?.currencyCode ?? '');
 
-const state = ref<GoalFormState>(goalFormStateFrom({ baseCurrencyCode: baseCurrencyCode.value }));
+const state = ref<GoalFormState>(goalFormStateFrom({ baseCurrencyCode: baseCurrencyCode.value || 'IDR' }));
 const storedLogo = ref<LogoSelection | null>(null);
 const logo = ref<LogoSelection | null>(null);
 const showErrors = ref(false);
@@ -92,7 +84,7 @@ watch(
     state.value = goalFormStateFrom({
       goal: props.goal,
       initialValues: props.initialValues,
-      baseCurrencyCode: baseCurrencyCode.value,
+      baseCurrencyCode: baseCurrencyCode.value || 'IDR',
     });
     storedLogo.value = props.goal ? toLogoSelection(props.goal) : null;
     logo.value = storedLogo.value;
@@ -112,6 +104,18 @@ const errors = computed(() =>
   }),
 );
 const hasErrors = computed(() => Object.values(errors.value).some(Boolean));
+const isDirty = computed(
+  () =>
+    !props.goal ||
+    JSON.stringify(state.value) !==
+      JSON.stringify(
+        goalFormStateFrom({
+          goal: props.goal,
+          baseCurrencyCode: baseCurrencyCode.value || 'IDR',
+        }),
+      ) ||
+    Object.keys(toLogoPatch({ selection: logo.value, stored: storedLogo.value })).length > 0,
+);
 const errorFor = (key: keyof GoalFormErrors) =>
   showErrors.value && errors.value[key] ? t(errors.value[key]!) : undefined;
 
@@ -130,11 +134,6 @@ const accountsError = computed(() => {
   if (!details) return t('goals.form.errors.shareCapacityGeneric');
   return t('goals.form.errors.shareCapacity', { account: details.accountName, free: details.free });
 });
-
-const selectedCurrency = computed(
-  () => systemCurrenciesVerbose.value.linked.find((item) => item.code === state.value.currencyCode) ?? null,
-);
-const currencyLabel = (item: CurrencyModel) => formatCurrencyLabel({ code: item.code, fallbackName: item.currency });
 
 const selectedShares = computed(() =>
   state.value.accounts.map((share) => ({
@@ -209,7 +208,7 @@ watch(
 
 const submit = async () => {
   showErrors.value = true;
-  if (hasErrors.value || isPending.value) return;
+  if (hasErrors.value || isPending.value || !isDirty.value) return;
 
   serverError.value = null;
   const fields = buildGoalPayload({ state: state.value });
@@ -265,25 +264,16 @@ const submit = async () => {
         </div>
       </div>
 
-      <div class="grid grid-cols-1 items-start gap-3 @sm/goal-form:grid-cols-2">
+      <div class="grid gap-1.5">
         <FormattedAmountField
           v-model="state.targetAmount"
+          :currency-code="state.currencyCode"
           :label="$t('goals.form.targetAmountLabel')"
           :placeholder="$t('goals.form.targetAmountPlaceholder')"
-          :error-message="errorFor('targetAmount')"
+          :error-message="errorFor('targetAmount') || currencyError"
           :disabled="isPending"
         />
-        <SelectField
-          :model-value="selectedCurrency"
-          :values="systemCurrenciesVerbose.linked"
-          :label-key="currencyLabel"
-          value-key="code"
-          :label="$t('goals.form.currencyLabel')"
-          :placeholder="$t('goals.form.currencyPlaceholder')"
-          :error-message="currencyError"
-          :disabled="isPending"
-          @update:model-value="(item) => item && (state.currencyCode = item.code)"
-        />
+        <p v-if="state.currencyCode !== 'IDR'" class="text-muted-foreground text-xs">{{ state.currencyCode }}</p>
       </div>
 
       <div class="grid gap-1.5">
@@ -376,6 +366,7 @@ const submit = async () => {
         <FormattedAmountField
           v-if="state.hasPlannedMonthly"
           v-model="state.plannedMonthly"
+          :currency-code="state.currencyCode"
           :placeholder="$t('goals.form.plannedMonthlyPlaceholder')"
           :aria-label="$t('goals.form.plannedMonthlyLabel')"
           :error-message="errorFor('plannedMonthly')"
@@ -424,7 +415,7 @@ const submit = async () => {
         <Button variant="outline" :disabled="isPending" @click="open = false">
           {{ $t('common.actions.cancel') }}
         </Button>
-        <Button type="submit" :form="formId" :disabled="isPending">
+        <Button type="submit" :form="formId" :disabled="isPending || hasErrors || !isDirty">
           <template v-if="isPending">{{ $t('common.actions.saving') }}</template>
           <template v-else>{{ goal ? $t('common.actions.saveChanges') : $t('goals.form.createSubmit') }}</template>
         </Button>

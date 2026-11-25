@@ -41,6 +41,7 @@ interface Emit {
 }
 
 const props = defineProps<{
+  formId?: string;
   portfolioId: string;
   portfolio: PortfolioModel;
   disabled?: boolean;
@@ -54,9 +55,11 @@ const accountsStore = useAccountsStore();
 // Loan accounts excluded – money only flows INTO a loan (transfer_to_loan), so they can't be a transfer source.
 const { txTargetableSourceAccountsActiveFirst: txTargetableAccountsActiveFirst, accountsRecord } =
   storeToRefs(accountsStore);
-const { currencies } = storeToRefs(useCurrenciesStore());
+const { baseCurrency, currencies } = storeToRefs(useCurrenciesStore());
 const { formatAmountByCurrencyCode } = useFormatCurrency();
-const { sortedCurrencies, currencyLabel } = usePortfolioCurrencySorting(computed(() => props.portfolioId));
+const { balancesByCurrency, sortedCurrencies, currencyLabel } = usePortfolioCurrencySorting(
+  computed(() => props.portfolioId),
+);
 const { resolveDefaultAccount } = useAccountDropdownPrefs();
 
 const defaultTransferAccount = () =>
@@ -111,6 +114,20 @@ const directForm = reactive<{
   isAdjustment: false,
 });
 
+const hasForeignCash = computed(() => [...balancesByCurrency.value.keys()].some((code) => code !== 'IDR'));
+const rupiah = computed(() => currencies.value?.find(({ currencyCode }) => currencyCode === 'IDR') ?? null);
+const showCurrencySelection = computed(
+  () => hasForeignCash.value || baseCurrency.value?.currencyCode !== 'IDR' || !rupiah.value,
+);
+
+watch(
+  rupiah,
+  (currency) => {
+    directForm.selectedCurrency ??= currency;
+  },
+  { immediate: true },
+);
+
 const directAmountValue = computed({
   get: () => (directForm.amount === '' ? null : Number(directForm.amount)),
   set: (value: number | null) => {
@@ -142,9 +159,22 @@ const transferAmountValue = computed({
 
 // Link existing transaction state
 const linkedTransaction = ref<TransactionModel | null>(null);
+let pendingLinkedTransaction: TransactionModel | undefined;
 const linkedCashAlreadyReflected = ref(false);
 const isPickerOpen = ref(false);
 const isLinkMode = computed(() => !!linkedTransaction.value);
+
+const clearLinkedTransaction = () => {
+  pendingLinkedTransaction = undefined;
+  linkedTransaction.value = null;
+  linkedCashAlreadyReflected.value = false;
+};
+const acceptPickedTransaction = () => {
+  if (!pendingLinkedTransaction) return;
+  linkedTransaction.value = pendingLinkedTransaction;
+  pendingLinkedTransaction = undefined;
+  linkedCashAlreadyReflected.value = false;
+};
 
 // Confirmation dialog state
 const showConfirmDialog = ref(false);
@@ -169,15 +199,13 @@ const showTransferCurrency = computed(() => operationType.value === 'withdrawal'
 // Watchers for resetting state on tab changes
 watch(operationType, () => {
   methodType.value = 'direct';
-  linkedTransaction.value = null;
-  linkedCashAlreadyReflected.value = false;
+  clearLinkedTransaction();
   resetDirectForm();
   resetTransferForm();
 });
 
 watch(methodType, () => {
-  linkedTransaction.value = null;
-  linkedCashAlreadyReflected.value = false;
+  clearLinkedTransaction();
   if (methodType.value === 'direct') {
     resetDirectForm();
   } else {
@@ -245,7 +273,7 @@ const {
 
 const resetDirectForm = () => {
   directForm.amount = '';
-  directForm.selectedCurrency = null;
+  directForm.selectedCurrency = rupiah.value;
   directForm.date = new Date();
   directForm.description = '';
   directForm.isAdjustment = false;
@@ -255,7 +283,7 @@ const resetDirectForm = () => {
 const resetTransferForm = () => {
   transferForm.selectedAccount = defaultTransferAccount();
   transferForm.amount = '';
-  transferForm.selectedCurrency = null;
+  transferForm.selectedCurrency = rupiah.value;
   transferForm.date = new Date();
   transferForm.description = '';
   resetTransferValidation();
@@ -435,20 +463,28 @@ const accountLabel = computed(() =>
     ? t('forms.directCashTransaction.fromAccountLabel')
     : t('forms.directCashTransaction.toAccountLabel'),
 );
+defineExpose({ isSubmitDisabled: isSubmitDisabled, isSubmitting: isAnyMutationPending });
 </script>
 
 <template>
   <div class="grid w-full max-w-150 gap-6">
     <!-- Outer tabs: Deposit / Withdrawal -->
-    <PillTabs v-model="operationType" :items="outerItems" :disabled="isAnyMutationPending || disabled" size="lg" />
+    <PillTabs
+      full-width
+      v-model="operationType"
+      :items="outerItems"
+      :disabled="isAnyMutationPending || disabled"
+      size="lg"
+    />
 
     <!-- Inner tabs: Direct / Transfer -->
-    <PillTabs v-model="methodType" :items="innerItems" :disabled="isAnyMutationPending || disabled" />
+    <PillTabs full-width v-model="methodType" :items="innerItems" :disabled="isAnyMutationPending || disabled" />
 
-    <form class="grid gap-6" @submit.prevent="onSubmit">
+    <form :id="formId" class="grid gap-6" @submit.prevent="onSubmit">
       <!-- ─── Direct mode ─── -->
       <template v-if="methodType === 'direct'">
         <SelectField
+          v-if="showCurrencySelection"
           v-model="directForm.selectedCurrency"
           :label="$t('forms.directCashTransaction.currencyLabel')"
           :values="sortedCurrencies"
@@ -478,6 +514,8 @@ const accountLabel = computed(() =>
         />
 
         <TextareaField
+          :rows="1"
+          :max-rows="3"
           v-model="directForm.description"
           :label="$t('forms.directCashTransaction.descriptionLabel')"
           :placeholder="$t('forms.directCashTransaction.descriptionPlaceholder')"
@@ -504,132 +542,121 @@ const accountLabel = computed(() =>
       <!-- ─── Transfer mode ─── -->
       <template v-else>
         <!-- Linked transaction display -->
-        <template v-if="isLinkMode">
-          <div class="flex items-center gap-2">
-            <div class="min-w-0 flex-1">
-              <TransactionRecord :tx="linkedTransaction!" :as-button="false" />
+        <Transition name="lajur-flow-row" mode="out-in">
+          <div v-if="isLinkMode" class="lajur-flow-row">
+            <div class="grid gap-4">
+              <div class="flex items-center gap-2">
+                <div class="min-w-0 flex-1">
+                  <TransactionRecord :tx="linkedTransaction!" :as-button="false" />
+                </div>
+                <UiButton
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  class="size-8 shrink-0"
+                  @click="clearLinkedTransaction"
+                >
+                  <X :size="16" />
+                </UiButton>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <label class="flex cursor-pointer items-center gap-3">
+                  <Checkbox v-model="linkedCashAlreadyReflected" :disabled="isAnyMutationPending || disabled" />
+                  <span class="text-sm leading-none font-medium">
+                    {{ $t('dialogs.manageTransaction.form.portfolioCashAlreadyReflectedLabel') }}
+                  </span>
+                </label>
+                <HintIcon :content="$t('dialogs.manageTransaction.form.portfolioCashAlreadyReflectedHint')" />
+              </div>
             </div>
-            <UiButton
-              type="button"
-              variant="ghost"
-              size="icon"
-              class="size-8 shrink-0"
-              @click="linkedTransaction = null"
-            >
-              <X :size="16" />
-            </UiButton>
           </div>
+          <div v-else class="lajur-flow-row">
+            <div class="grid gap-4">
+              <AccountSelectField
+                v-model="transferForm.selectedAccount"
+                :label="accountLabel"
+                :accounts="txTargetableAccountsActiveFirst"
+                :placeholder="$t('forms.directCashTransaction.accountPlaceholder')"
+                :disabled="isAnyMutationPending || disabled"
+                :error-message="getTransferFieldError('transferForm.selectedAccount')"
+              />
 
-          <div class="flex items-center gap-2">
-            <label class="flex cursor-pointer items-center gap-3">
-              <Checkbox v-model="linkedCashAlreadyReflected" :disabled="isAnyMutationPending || disabled" />
-              <span class="text-sm leading-none font-medium">
-                {{ $t('dialogs.manageTransaction.form.portfolioCashAlreadyReflectedLabel') }}
-              </span>
-            </label>
-            <HintIcon :content="$t('dialogs.manageTransaction.form.portfolioCashAlreadyReflectedHint')" />
+              <SelectField
+                v-if="showTransferCurrency && showCurrencySelection"
+                v-model="transferForm.selectedCurrency"
+                :label="$t('forms.directCashTransaction.currencyLabel')"
+                :values="sortedCurrencies"
+                value-key="currencyCode"
+                :label-key="currencyLabel"
+                :placeholder="$t('forms.directCashTransaction.currencyPlaceholder')"
+                :disabled="isAnyMutationPending || disabled"
+                :error-message="getTransferFieldError('transferForm.selectedCurrency')"
+              />
+
+              <FormattedAmountField
+                v-model="transferAmountValue"
+                :currency-code="
+                  transferForm.selectedCurrency?.currencyCode ?? transferForm.selectedAccount?.currencyCode
+                "
+                :label="$t('forms.directCashTransaction.amountLabel')"
+                placeholder="0"
+                :disabled="
+                  isAnyMutationPending ||
+                  disabled ||
+                  !transferForm.selectedAccount ||
+                  (showTransferCurrency && !transferForm.selectedCurrency)
+                "
+                :error-message="getTransferFieldError('transferForm.amount')"
+                @blur="touchTransferField('transferForm.amount')"
+              />
+
+              <DateField
+                v-model="transferForm.date"
+                :label="$t('forms.directCashTransaction.dateLabel')"
+                :disabled="isAnyMutationPending || disabled"
+                @blur="touchTransferField('transferForm.date')"
+              />
+
+              <TextareaField
+                :rows="1"
+                :max-rows="3"
+                v-model="transferForm.description"
+                :label="$t('forms.directCashTransaction.descriptionLabel')"
+                :placeholder="$t('forms.directCashTransaction.descriptionPlaceholder')"
+                :disabled="isAnyMutationPending || disabled"
+              />
+
+              <!-- "or" separator -->
+              <div class="relative flex items-center py-2">
+                <Separator class="flex-1" />
+                <span class="text-muted-foreground bg-dialog px-4 text-sm">
+                  {{ $t('forms.directCashTransaction.orSeparator') }}
+                </span>
+                <Separator class="flex-1" />
+              </div>
+
+              <!-- Link existing transaction button -->
+              <UiButton
+                type="button"
+                variant="default"
+                class="w-full"
+                :disabled="isAnyMutationPending || disabled"
+                @click="isPickerOpen = true"
+              >
+                {{ $t('forms.directCashTransaction.linkExistingTransaction') }}
+              </UiButton>
+            </div>
           </div>
-        </template>
-
-        <!-- Manual transfer fields -->
-        <template v-else>
-          <AccountSelectField
-            v-model="transferForm.selectedAccount"
-            :label="accountLabel"
-            :accounts="txTargetableAccountsActiveFirst"
-            :placeholder="$t('forms.directCashTransaction.accountPlaceholder')"
-            :disabled="isAnyMutationPending || disabled"
-            :error-message="getTransferFieldError('transferForm.selectedAccount')"
-          />
-
-          <SelectField
-            v-if="showTransferCurrency"
-            v-model="transferForm.selectedCurrency"
-            :label="$t('forms.directCashTransaction.currencyLabel')"
-            :values="sortedCurrencies"
-            value-key="currencyCode"
-            :label-key="currencyLabel"
-            :placeholder="$t('forms.directCashTransaction.currencyPlaceholder')"
-            :disabled="isAnyMutationPending || disabled"
-            :error-message="getTransferFieldError('transferForm.selectedCurrency')"
-          />
-
-          <FormattedAmountField
-            v-model="transferAmountValue"
-            :currency-code="transferForm.selectedCurrency?.currencyCode ?? transferForm.selectedAccount?.currencyCode"
-            :label="$t('forms.directCashTransaction.amountLabel')"
-            placeholder="0"
-            :disabled="
-              isAnyMutationPending ||
-              disabled ||
-              !transferForm.selectedAccount ||
-              (showTransferCurrency && !transferForm.selectedCurrency)
-            "
-            :error-message="getTransferFieldError('transferForm.amount')"
-            @blur="touchTransferField('transferForm.amount')"
-          />
-
-          <DateField
-            v-model="transferForm.date"
-            :label="$t('forms.directCashTransaction.dateLabel')"
-            :disabled="isAnyMutationPending || disabled"
-            @blur="touchTransferField('transferForm.date')"
-          />
-
-          <TextareaField
-            v-model="transferForm.description"
-            :label="$t('forms.directCashTransaction.descriptionLabel')"
-            :placeholder="$t('forms.directCashTransaction.descriptionPlaceholder')"
-            :disabled="isAnyMutationPending || disabled"
-          />
-
-          <!-- "or" separator -->
-          <div class="relative flex items-center py-2">
-            <Separator class="flex-1" />
-            <span class="text-muted-foreground bg-dialog px-4 text-sm">
-              {{ $t('forms.directCashTransaction.orSeparator') }}
-            </span>
-            <Separator class="flex-1" />
-          </div>
-        </template>
-
-        <!-- Link existing transaction button -->
-        <UiButton
-          v-if="!isLinkMode"
-          type="button"
-          variant="default"
-          class="w-full"
-          :disabled="isAnyMutationPending || disabled"
-          @click="isPickerOpen = true"
-        >
-          {{ $t('forms.directCashTransaction.linkExistingTransaction') }}
-        </UiButton>
+        </Transition>
 
         <PickTransactionDialog
           v-model:open="isPickerOpen"
           :transaction-type="pickerTransactionType"
-          @select="(tx: TransactionModel) => (linkedTransaction = tx)"
+          @select="(tx: TransactionModel) => (pendingLinkedTransaction = tx)"
+          @closed="acceptPickedTransaction"
         />
       </template>
-
-      <!-- Submit / Cancel buttons -->
-      <div class="flex justify-end gap-4">
-        <UiButton
-          type="button"
-          variant="secondary"
-          :disabled="isAnyMutationPending || disabled"
-          @click="emit('cancel')"
-        >
-          {{ $t('forms.directCashTransaction.cancelButton') }}
-        </UiButton>
-        <UiButton type="submit" class="min-w-30" :disabled="isSubmitDisabled">
-          {{
-            isAnyMutationPending
-              ? $t('forms.directCashTransaction.submitButtonLoading')
-              : $t('forms.directCashTransaction.submitButton')
-          }}
-        </UiButton>
-      </div>
     </form>
 
     <!-- Confirmation dialog for transfer mode -->

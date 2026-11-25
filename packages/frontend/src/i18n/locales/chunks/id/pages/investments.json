@@ -46,7 +46,7 @@
       "help": "Total mencakup nilai aset dan kas di portofolio aktif. Untung atau rugi belum direalisasikan berasal dari perubahan nilai aset yang masih kamu pegang.",
       "refreshing": "Memperbarui ringkasan…",
       "incomplete": "Ringkasan Rupiah belum tersedia. Buka portofolio untuk melihat nilai dalam mata uangnya.",
-      "contributions": "Lihat setoran dan penarikan",
+      "contributions": "Setoran & penarikan",
       "unpriced": "Nilai dan untung/rugi sementara. {count} kepemilikan belum memiliki harga pasar."
     }
   }

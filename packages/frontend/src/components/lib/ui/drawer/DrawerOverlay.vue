@@ -17,6 +17,10 @@ const delegatedProps = computed(() => {
 <template>
   <DrawerOverlay
     v-bind="delegatedProps"
-    :class="cn('lajur-scrim-dialog lajur-scrim-blur fixed inset-0 z-(--z-dialog)', props.class)"
+    data-lajur-backdrop
+    @click.prevent
+    :class="
+      cn('lajur-scrim-dialog lajur-scrim-blur fixed inset-0 z-(--z-dialog) motion-reduce:animate-none!', props.class)
+    "
   />
 </template>

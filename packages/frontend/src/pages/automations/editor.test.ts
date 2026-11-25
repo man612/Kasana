@@ -113,7 +113,7 @@ const mountEditor = async ({ path }: { path: string }) => {
     routes: [
       { path: '/transactions/automations', name: ROUTES_NAMES.automations, component: Stub },
       { path: '/transactions/automations/new', name: ROUTES_NAMES.automationCreate, component: Editor },
-      { path: '/transactions/automations/:id', name: ROUTES_NAMES.automationDetails, component: Editor },
+      { path: '/transactions/automations/:id', name: ROUTES_NAMES.automationDetails, component: Editor, props: true },
     ],
   });
   await router.push(path);
@@ -125,7 +125,7 @@ const mountEditor = async ({ path }: { path: string }) => {
       currencies: {
         currencies: dataMocks.USER_CURRENCIES,
         systemCurrencies: dataMocks.SYSTEM_CURRENCIES,
-        baseCurrency: dataMocks.USER_BASE_CURRENCY,
+        baseCurrency: { ...dataMocks.USER_BASE_CURRENCY, currencyCode: 'IDR' },
       },
       categories: { categories: dataMocks.USER_CATEGORIES },
     },
@@ -183,7 +183,7 @@ describe('automation editor', () => {
     await clickButton({ wrapper, text: 'automations.editor.matchAny' });
     wrapper.findAllComponents(ConditionRow)[1]!.vm.$emit('update:field', 'amount');
     await flushPromises();
-    await wrapper.find('input[type="number"]').setValue('50');
+    await wrapper.get('input[inputmode="decimal"]').setValue('50');
 
     wrapper.findComponent(CategorySelectField).vm.$emit('update:modelValue', CATEGORY);
     await flushPromises();
@@ -201,7 +201,7 @@ describe('automation editor', () => {
           match: 'any',
           items: [
             { field: 'note', operator: 'contains_any', value: ['biedronka'] },
-            { field: 'amount', operator: 'gte', value: { min: 50 }, currency: { mode: 'transaction' } },
+            { field: 'amount', operator: 'gte', value: { min: 50 }, currency: { mode: 'base' } },
           ],
         },
         actions: [{ type: 'set_category', categoryId: CATEGORY.id }],
@@ -222,10 +222,9 @@ describe('automation editor', () => {
     expect(rows).toHaveLength(2);
     expect(rows[0]!.props('modelValue')).toEqual(RULE.conditions.items[0]);
     expect(rows[1]!.props('modelValue')).toEqual(RULE.conditions.items[1]);
-    expect(wrapper.findAll<HTMLInputElement>('input[type="number"]').map((input) => input.element.value)).toEqual([
-      '4500',
-      '5500',
-    ]);
+    expect(wrapper.findAll<HTMLInputElement>('input[inputmode="decimal"]').map((input) => input.element.value)).toEqual(
+      ['4.500', '5.500'],
+    );
     expect(isActivePill({ wrapper, value: TRANSACTION_TYPES.expense })).toBe(true);
 
     expect(wrapper.findComponent(CategorySelectField).props('modelValue')).toMatchObject({ id: CATEGORY.id });

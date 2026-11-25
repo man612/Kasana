@@ -2,16 +2,18 @@
 import { Button } from '@/components/lib/ui/button';
 import { TRANSACTION_TIME_GROUPINGS, type TransactionTimeGrouping } from '@bt/shared/types';
 import { Switch } from '@/components/lib/ui/switch';
-import { CheckIcon, Clock3Icon } from '@lucide/vue';
+import { CheckIcon, Clock3Icon, SquareCheckIcon } from '@lucide/vue';
 import { computed, useId } from 'vue';
 
 const props = defineProps<{ unavailable?: boolean; hideGrouping?: boolean }>();
 const emit = defineEmits<{ selected: [] }>();
 const mode = defineModel<TransactionTimeGrouping>({ required: true });
 const showTime = defineModel<boolean>('showTime', { required: true });
+const showCheckboxes = defineModel<boolean>('showCheckboxes', { required: true });
 const isTimeRequired = computed(() => mode.value === 'day' && !props.unavailable && !props.hideGrouping);
 const labelId = useId();
 const timeReasonId = useId();
+const checkboxId = useId();
 const choose = (option: TransactionTimeGrouping) => {
   mode.value = option;
   emit('selected');
@@ -59,5 +61,10 @@ const choose = (option: TransactionTimeGrouping) => {
     <p v-if="isTimeRequired" :id="timeReasonId" class="sr-only">
       {{ $t('transactions.timeGrouping.timeRequired') }}
     </p>
+    <label class="flex min-h-11 items-center gap-2 px-2 text-sm" :for="checkboxId">
+      <SquareCheckIcon class="text-muted-foreground size-4" aria-hidden="true" />
+      <span class="flex-1">{{ $t('transactions.timeGrouping.showCheckbox') }}</span>
+      <Switch :id="checkboxId" v-model="showCheckboxes" />
+    </label>
   </div>
 </template>

@@ -18,7 +18,7 @@ test('saves an edited transaction without a discard prompt and retains a failed 
   const credentials = buildTestCredentials({ prefix: 'lajur-edit-dismissal' });
   await signUpAndVerify({ creds: credentials });
   const api = await signInViaApi({ playwright, email: credentials.email, password: credentials.password });
-  const original = 'Original note for edit check';
+  const original = 'Original note for edit check\n' + ('x'.repeat(80) + '\n').repeat(11).trimEnd();
   const updated = 'Saved note for edit check';
   try {
     await completeOnboarding({ request: api, currencyCode: 'IDR' });
@@ -35,9 +35,24 @@ test('saves an edited transaction without a discard prompt and retains a failed 
     );
     await page.context().addCookies((await api.storageState()).cookies);
     await page.goto('/transactions', { waitUntil: 'domcontentloaded' });
-    await page.getByText(original, { exact: true }).tap({ noWaitAfter: true });
+    await page
+      .locator('[data-transaction-row]')
+      .filter({ hasText: 'Original note for edit check' })
+      .tap({ noWaitAfter: true });
     const details = page.getByTestId('transaction-read-view');
     await expect(details.getByText(original, { exact: true })).toBeVisible();
+    await expect
+      .poll(() =>
+        details.evaluate((element) => {
+          const note = element.querySelector('.lajur-dialog-scroll')!;
+          const footer = Array.from(element.querySelectorAll('button')).at(-1)!.getBoundingClientRect();
+          return {
+            noteFits: note.scrollWidth - note.clientWidth <= 1,
+            footerFits: footer.right <= window.innerWidth + 1 && footer.bottom <= window.innerHeight + 1,
+          };
+        }),
+      )
+      .toEqual({ noteFits: true, footerFits: true });
     await details.getByRole('button', { name: /^(Sunting|Edit)$/i }).tap({ noWaitAfter: true });
 
     const form = page.getByRole('dialog').filter({ has: page.getByTestId('transaction-type-switcher') });

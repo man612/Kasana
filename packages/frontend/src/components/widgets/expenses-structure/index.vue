@@ -23,7 +23,7 @@
 
     <template v-if="widgetConfigRef" #action>
       <DesktopOnlyTooltip
-        v-if="!isDataEmpty && transactionsLink"
+        v-if="!isPlaceholderData && !isDataEmpty && transactionsLink"
         :content="$t('dashboard.widgets.expensesStructure.seeTransactions')"
       >
         <span class="inline-flex">
@@ -38,7 +38,10 @@
         </span>
       </DesktopOnlyTooltip>
 
-      <DesktopOnlyTooltip v-if="!isDataEmpty" :content="$t('dashboard.widgets.expensesStructure.openInAnalytics')">
+      <DesktopOnlyTooltip
+        v-if="!isPlaceholderData && !isDataEmpty"
+        :content="$t('dashboard.widgets.expensesStructure.openInAnalytics')"
+      >
         <span class="inline-flex">
           <router-link
             :class="buttonVariants({ variant: 'ghost', size: 'icon-sm', class: 'text-muted-foreground' })"
@@ -74,7 +77,7 @@
       <!-- Left: Primary value -->
       <div>
         <div class="text-xl font-bold tracking-tight tabular-nums sm:text-2xl">
-          <template v-if="isWidgetDataFetching && !hasData">
+          <template v-if="isPlaceholderData || (isWidgetDataFetching && !hasData)">
             <div class="bg-muted h-8 w-32 animate-pulse rounded" />
           </template>
           <template v-else>
@@ -88,7 +91,7 @@
 
       <!-- Right: Comparison -->
       <div class="flex flex-col items-end gap-1">
-        <template v-if="isWidgetDataFetching && !hasData">
+        <template v-if="isPlaceholderData || (isWidgetDataFetching && !hasData)">
           <div class="bg-muted h-6 w-16 animate-pulse rounded-full" />
         </template>
         <template v-else>
@@ -110,12 +113,8 @@
       </div>
     </div>
 
-    <template v-if="isWidgetDataFetching && !hasData">
-      <LoadingState />
-    </template>
-    <template v-else-if="showError">
-      <ErrorState :message="$t('errors.api.unexpectedError')" @retry="refetch()" />
-    </template>
+    <ErrorState v-if="showError" :message="$t('errors.api.unexpectedError')" @retry="refetch()" />
+    <LoadingState v-else-if="isPlaceholderData || (isWidgetDataFetching && !hasData)" />
     <template v-else-if="isDataEmpty">
       <EmptyState>
         <ChartPieIcon class="size-14" />

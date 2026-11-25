@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import ResponsiveAlertDialog from '@/components/common/responsive-alert-dialog.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import { Button } from '@/components/lib/ui/button';
@@ -54,10 +55,12 @@ const filteredList = computed(() =>
 );
 
 const isApplyOpen = ref(false);
+const isApplyMounted = ref(false);
 const ruleToApply = ref<TransactionAutomationModel | null>(null);
 
 const openApply = ({ rule }: { rule: TransactionAutomationModel }) => {
   ruleToApply.value = rule;
+  isApplyMounted.value = true;
   isApplyOpen.value = true;
 };
 
@@ -88,18 +91,22 @@ const handleDelete = () => {
   <div class="@container/automations flex max-w-5xl flex-col gap-6 p-4 md:p-6">
     <div class="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-1">
       <div class="flex items-center gap-2">
-        <h1 class="text-2xl font-bold tracking-tight">
-          {{ $t('automations.title') }}
-        </h1>
-        <AutomationGuide />
+        <NavigationSectionTitle
+          section="transactions"
+          :label="$t('automations.title')"
+          class="text-2xl font-bold tracking-tight"
+        />
       </div>
-      <router-link v-if="!isLoading && list.length" :to="{ name: ROUTES_NAMES.automationCreate }">
-        <Button as="span">
-          <PlusIcon class="size-4" />
-          <span class="hidden @md/automations:inline">{{ $t('automations.newAutomation') }}</span>
-          <span class="@md/automations:hidden">{{ $t('automations.new') }}</span>
-        </Button>
-      </router-link>
+      <div class="flex flex-wrap justify-end gap-2">
+        <AutomationGuide />
+        <router-link v-if="!isLoading && list.length" :to="{ name: ROUTES_NAMES.automationCreate }">
+          <Button as="span">
+            <PlusIcon class="size-4" />
+            <span class="hidden @md/automations:inline">{{ $t('automations.newAutomation') }}</span>
+            <span class="@md/automations:hidden">{{ $t('automations.new') }}</span>
+          </Button>
+        </router-link>
+      </div>
       <p class="text-muted-foreground col-span-2 text-sm">
         {{ $t('automations.subtitle') }}
       </p>
@@ -161,7 +168,12 @@ const handleDelete = () => {
       </Card>
     </Transition>
 
-    <ApplyToHistoryDialog v-if="isApplyOpen" v-model:open="isApplyOpen" :rule="ruleToApply" />
+    <ApplyToHistoryDialog
+      v-if="isApplyMounted"
+      v-model:open="isApplyOpen"
+      @closed="isApplyMounted = false"
+      :rule="ruleToApply"
+    />
 
     <ResponsiveAlertDialog
       v-model:open="isDeleteOpen"

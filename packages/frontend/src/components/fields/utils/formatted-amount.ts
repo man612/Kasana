@@ -34,10 +34,12 @@ export const parseAmountInput = ({
   raw,
   decimalSeparator,
   groupSeparator = '',
+  maximumFractionDigits = 2,
 }: {
   raw: string;
   decimalSeparator: string;
   groupSeparator?: string;
+  maximumFractionDigits?: number;
 }): { fragment: string; numeric: number | null } => {
   const withoutGroups = groupSeparator ? raw.split(groupSeparator).join('') : raw;
   const canonical = decimalSeparator === '.' ? withoutGroups : withoutGroups.split(decimalSeparator).join('.');
@@ -48,11 +50,12 @@ export const parseAmountInput = ({
   const collapsed =
     firstDot === -1 ? stripped : stripped.slice(0, firstDot + 1) + stripped.slice(firstDot + 1).replace(/\./g, '');
 
-  if (collapsed === '' || collapsed === '.') return { fragment: collapsed === '' && negative ? '-' : '', numeric: null };
+  if (collapsed === '' || collapsed === '.')
+    return { fragment: collapsed === '' && negative ? '-' : '', numeric: null };
 
   const hasDot = collapsed.includes('.');
   const [intPart = '', decRaw = ''] = collapsed.split('.');
-  const decimals = decRaw.slice(0, 2);
+  const decimals = decRaw.slice(0, maximumFractionDigits);
   const normalized = hasDot ? `${intPart}.${decimals}` : intPart;
 
   let fragment = '';

@@ -2,7 +2,7 @@
   "pages": {
     "budgets": {
       "transactionsList": {
-        "loadError": "Couldn't load transactions.",
+        "loadError": "Transaksi gagal dimuat.",
         "selectionModeWarning": "Mode pemilihan — pilih transaksi untuk dilepaskan",
         "selectAll": "Pilih semua",
         "selected": "{count} dipilih",
@@ -12,13 +12,13 @@
         "noMatchingTransactions": "Tidak ada transaksi yang cocok",
         "noTransactionsLinked": "Tidak ada transaksi yang terhubung",
         "filterAdjustmentHint": "Coba sesuaikan filter Anda untuk melihat lebih banyak transaksi.",
-        "addTransactionsHint": "Tambahkan transaksi ke anggaran ini untuk mulai melacak pengeluaran Anda.",
+        "addTransactionsHint": "Tambahkan transaksi ke pelacak ini untuk mulai melacak pengeluaran Anda.",
         "resetFilters": "Atur Ulang Filter",
         "addTransactions": "Tambah Transaksi",
         "add": "Tambah",
         "loadingMore": "Memuat lebih banyak...",
-        "unlinkError": "Failed to unlink transactions",
-        "addError": "Failed to add transactions"
+        "unlinkError": "Gagal melepas transaksi",
+        "addError": "Gagal menambahkan transaksi"
       }
     },
     "budgetDetails": {
@@ -33,13 +33,13 @@
         "netBalance": "Saldo Bersih"
       },
       "utilization": {
-        "title": "Penggunaan Anggaran",
+        "title": "Penggunaan Pelacak",
         "summary": "{spent} dari batas {limit}",
-        "na": "N/A"
+        "na": "Tidak tersedia"
       },
       "noTransactionsYet": "Belum ada transaksi",
       "transactions": "Transaksi",
-      "transactionsLinked": "{count} transaksi terhubung ke anggaran ini | {count} transaksi terhubung ke anggaran ini",
+      "transactionsLinked": "{count} transaksi terhubung ke pelacak ini | {count} transaksi terhubung ke pelacak ini",
       "tabs": {
         "statistics": "Statistik",
         "transactions": "Transaksi",
@@ -53,7 +53,7 @@
         "errorTitle": "Gagal memuat statistik",
         "errorDescription": "Terjadi kesalahan saat memuat data. Silakan coba lagi nanti.",
         "noDataTitle": "Tidak ada data pengeluaran",
-        "noDataDescription": "Belum ada data pengeluaran untuk anggaran ini.",
+        "noDataDescription": "Belum ada data pengeluaran untuk pelacak ini.",
         "noCategoryData": "Tidak ada data pengeluaran per kategori.",
         "noTimelineData": "Tidak ada data garis waktu.",
         "total": "Total",
@@ -62,43 +62,43 @@
         "incomeLabel": "Pemasukan:",
         "expensesLabel": "Pengeluaran:",
         "kpi": {
-          "dailyPace": "Daily pace",
-          "perDay": "/ day",
-          "allowedPerDay": "allowed {amount} / day · {elapsed} of {total} days",
-          "neededPerDay": "needed {amount} / day · {elapsed} of {total} days",
-          "daysElapsed": "{elapsed} of {total} days",
-          "projectedTotal": "Projected total",
-          "projectedLimit": "at this pace · limit {amount}",
-          "averagePerDay": "Average per day",
-          "firstTransaction": "First transaction",
-          "lastTransaction": "Last transaction",
+          "dailyPace": "Laju harian",
+          "perDay": "per hari",
+          "allowedPerDay": "Batas {amount} per hari · {elapsed} dari {total} hari",
+          "neededPerDay": "Perlu {amount} per hari · {elapsed} dari {total} hari",
+          "daysElapsed": "{elapsed} dari {total} hari",
+          "projectedTotal": "Perkiraan total",
+          "projectedLimit": "Pada laju ini · batas {amount}",
+          "averagePerDay": "Rata-rata per hari",
+          "firstTransaction": "Transaksi pertama",
+          "lastTransaction": "Transaksi terakhir",
           "transactions": "Transaksi",
-          "avgAmount": "avg {amount}",
-          "biggestDay": "Biggest day",
-          "shareOfTotal": "{percent}% of total"
+          "avgAmount": "Rata-rata {amount}",
+          "biggestDay": "Hari dengan nominal terbesar",
+          "shareOfTotal": "{percent}% dari total"
         },
-        "byCategory": "By category",
-        "categoriesCount": "{count} category | {count} categories",
-        "byCurrency": "By currency",
-        "asPaid": "as paid",
+        "byCategory": "Per kategori",
+        "categoriesCount": "{count} kategori",
+        "byCurrency": "Per mata uang",
+        "asPaid": "sesuai mata uang pembayaran",
         "timeline": "Garis Waktu",
-        "todayMarker": "today {date}",
-        "timelineAria": "Cumulative spending over time with per-period bars",
-        "limitLabel": "{amount} limit",
-        "cumulativeLabel": "Cumulative",
+        "todayMarker": "hari ini {date}",
+        "timelineAria": "Akumulasi pengeluaran dan kolom per periode",
+        "limitLabel": "Batas {amount}",
+        "cumulativeLabel": "Akumulasi",
         "legend": {
-          "cumulative": "Spent, cumulative",
-          "earnedCumulative": "Earned, cumulative",
-          "evenPace": "Even pace to the limit",
+          "cumulative": "Akumulasi pengeluaran",
+          "earnedCumulative": "Akumulasi pemasukan",
+          "evenPace": "Laju merata menuju batas",
           "projection": "Proyeksi",
-          "daily": "Per day",
-          "weekly": "Per week",
-          "monthly": "Per month"
+          "daily": "Per hari",
+          "weekly": "Per minggu",
+          "monthly": "Per bulan"
         },
-        "topPayees": "Top payees",
-        "bySpend": "by spend",
-        "noPayee": "No payee",
-        "txCount": "{count} tx"
+        "topPayees": "Penerima terbanyak",
+        "bySpend": "menurut pengeluaran",
+        "noPayee": "Tanpa penerima",
+        "txCount": "{count} transaksi"
       },
       "sharing": {
         "inviteAnother": "Undang seseorang",
@@ -114,7 +114,7 @@
           "you": "Anda",
           "roleOwner": "Pemilik",
           "roleRecipient": "Anggota",
-          "ownerHint": "Kontrol penuh atas anggaran ini",
+          "ownerHint": "Kontrol penuh atas pelacak ini",
           "updateSuccess": "Izin diperbarui.",
           "updateError": "Tidak dapat memperbarui izin.",
           "revoke": "Cabut akses",

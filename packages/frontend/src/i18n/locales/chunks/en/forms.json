@@ -51,12 +51,15 @@
         "previewFee": "≈ fee of {fee} {currency} will be recorded (rate {rate})",
         "previewUnavailable": "No market rate found for this date – enter the fee or the exchange rate manually.",
         "previewFetchFailed": "Couldn't load market rates. Check your connection or enter the rate manually.",
-        "previewPlaceholder": "Preview appears here as you fill the form."
+        "previewPlaceholder": "Preview appears here as you fill the form.",
+        "advanced": "Advanced cash options"
       },
       "invalidLots": "Enter a positive whole number of lots.",
       "quantityShares": "Shares",
       "quantityLots": "Lots",
-      "beiLotHelp": "One regular-market IDX lot is 100 shares. Enter the per-share price from your broker statement."
+      "beiLotHelp": "One regular-market IDX lot is 100 shares. Enter the per-share price from your broker statement.",
+      "pricePerShare": "Price per share",
+      "estimatedCash": "Estimated cash movement"
     },
     "portfolioSettings": {
       "nameLabel": "Portfolio name",

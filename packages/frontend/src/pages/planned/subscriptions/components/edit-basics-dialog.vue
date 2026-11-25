@@ -10,18 +10,18 @@ import LogoSquareField from '@/components/common/logo-square-field.vue';
 import ResponsiveDialog from '@/components/common/responsive-dialog.vue';
 import ResponsiveTooltip from '@/components/common/responsive-tooltip.vue';
 import DateField from '@/components/fields/date-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import InputField from '@/components/fields/input-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import Button from '@/components/lib/ui/button/Button.vue';
 import { Callout } from '@/components/lib/ui/callout';
 import { useNotificationCenter } from '@/components/notification-center';
-import { usePrioritizedCurrencies } from '@/composable/data-queries/prioritized-currencies';
 import { useInvalidateSubscriptionQueries, useResetSubscriptionLogo } from '@/composable/data-queries/subscriptions';
 import { useFormValidation } from '@/composable/form-validator';
-import { useCurrencyName, useFormatCurrency } from '@/composable/formatters';
+import { useFormatCurrency } from '@/composable/formatters';
 import { ApiErrorResponseError } from '@/js/errors';
 import { helpers, required } from '@/js/helpers/validators';
-import { type CurrencyModel, SUBSCRIPTION_TYPES, TRANSACTION_TYPES } from '@bt/shared/types';
+import { SUBSCRIPTION_TYPES, TRANSACTION_TYPES } from '@bt/shared/types';
 import { useMutation } from '@tanstack/vue-query';
 import { format, parseISO } from 'date-fns';
 import { ArrowDownIcon, ArrowUpIcon, CreditCardIcon, ReceiptIcon, RepeatIcon } from '@lucide/vue';
@@ -33,8 +33,6 @@ const open = defineModel<boolean>('open', { default: false });
 
 const { t } = useI18n();
 const { addSuccessNotification } = useNotificationCenter();
-const { currencies } = usePrioritizedCurrencies();
-const { formatCurrencyLabel } = useCurrencyName();
 const { formatAmountByCurrencyCode } = useFormatCurrency();
 const invalidateSubscriptionQueries = useInvalidateSubscriptionQueries();
 const resetLogoMutation = useResetSubscriptionLogo();
@@ -67,7 +65,7 @@ const buildFormState = (): BasicsForm => ({
   name: props.subscription.name,
   type: props.subscription.type,
   expectedAmount: props.subscription.expectedAmount ?? null,
-  expectedCurrencyCode: props.subscription.expectedCurrencyCode ?? '',
+  expectedCurrencyCode: props.subscription.expectedCurrencyCode ?? 'IDR',
   // parseISO keeps a date-only string on the same calendar day in every timezone;
   // new Date() would parse it as UTC and shift a day west of UTC, and the backend
   // treats a shifted dueDate as a real reschedule.
@@ -116,11 +114,6 @@ const typeOptions = computed(() => [
 ]);
 
 const selectedTypeOption = computed(() => typeOptions.value.find((opt) => opt.value === form.value.type) ?? null);
-
-const selectedCurrency = computed(() => {
-  if (!form.value.expectedCurrencyCode) return null;
-  return currencies.value.find((c) => c.code === form.value.expectedCurrencyCode) ?? null;
-});
 
 const isIncome = computed(() => props.subscription.transactionType === TRANSACTION_TYPES.income);
 
@@ -171,7 +164,7 @@ const validationRules = computed(() => ({
   },
 }));
 
-const { isFormValid, getFieldErrorMessage, touchField } = useFormValidation(
+const { isFormValid, isFormValidQuiet, getFieldErrorMessage, touchField } = useFormValidation(
   { form },
   computed(() => ({ form: validationRules.value })),
 );
@@ -192,10 +185,19 @@ const { mutate, isPending } = useMutation({
   },
 });
 
+const canSave = computed(() => {
+  return (
+    isFormValidQuiet() &&
+    !isPending.value &&
+    !resetLogoMutation.isPending.value &&
+    JSON.stringify(form.value) !== JSON.stringify(buildFormState())
+  );
+});
+
 const toIsoDate = ({ date }: { date: Date }) => format(date, 'yyyy-MM-dd');
 
 const handleSubmit = async () => {
-  if (!isFormValid()) return;
+  if (!canSave.value || !isFormValid()) return;
   formError.value = null;
 
   const logoChanged =
@@ -311,28 +313,19 @@ const handleSubmit = async () => {
         <p v-if="selectedTypeOption" class="text-muted-foreground mt-1.5 text-xs">{{ selectedTypeOption.desc }}</p>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
-        <InputField
-          v-model.number="form.expectedAmount"
-          type="number"
+      <div class="grid gap-1.5">
+        <FormattedAmountField
+          v-model="form.expectedAmount"
+          :currency-code="form.expectedCurrencyCode"
           :label="$t('planned.subscriptions.form.amountLabel')"
-          :placeholder="$t('planned.subscriptions.form.amountPlaceholder')"
-          :error-message="getFieldErrorMessage('form.expectedAmount')"
-          only-positive
+          :error-message="
+            getFieldErrorMessage('form.expectedAmount') || getFieldErrorMessage('form.expectedCurrencyCode')
+          "
           @blur="touchField('form.expectedAmount')"
         />
-        <SelectField
-          :model-value="selectedCurrency"
-          :values="currencies"
-          value-key="code"
-          :label="$t('planned.subscriptions.form.currencyLabel')"
-          :placeholder="$t('planned.subscriptions.editors.basics.currencyPlaceholder')"
-          :error-message="getFieldErrorMessage('form.expectedCurrencyCode')"
-          with-search
-          :label-key="(item: CurrencyModel) => formatCurrencyLabel({ code: item.code, fallbackName: item.currency })"
-          @update:model-value="(v: any) => (form.expectedCurrencyCode = v?.code ?? '')"
-          @blur="touchField('form.expectedCurrencyCode')"
-        />
+        <p v-if="form.expectedCurrencyCode !== 'IDR'" class="text-muted-foreground text-xs">
+          {{ form.expectedCurrencyCode }}
+        </p>
       </div>
 
       <div v-if="needsInstallmentSchedule" class="border-border bg-muted/20 grid gap-3 rounded-lg border p-3">
@@ -370,7 +363,7 @@ const handleSubmit = async () => {
         <Button type="button" variant="outline" :disabled="isPending" @click="open = false">
           {{ $t('planned.subscriptions.cancel') }}
         </Button>
-        <Button type="submit" form="edit-subscription-basics" :disabled="isPending">
+        <Button type="submit" form="edit-subscription-basics" :disabled="!canSave">
           {{ $t('planned.subscriptions.form.update') }}
         </Button>
       </div>

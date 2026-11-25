@@ -57,7 +57,7 @@ const ACCEPT_ATTRIBUTE = ATTACHMENT_MIME_TYPES.join(',');
 const MAX_FILE_SIZE_LABEL = formatBytes({ bytes: ATTACHMENT_MAX_FILE_BYTES, fractionDigits: 0 });
 
 const isDialogOpen = ref(false);
-const uploadingNames = ref<string[]>([]);
+const uploadingFiles = ref<{ key: number; name: string }[]>([]);
 const viewedAttachment = ref<TransactionAttachmentModel | null>(null);
 const isViewerOpen = ref(false);
 const pendingDeletion = ref<TransactionAttachmentModel[]>([]);
@@ -83,11 +83,20 @@ type Item = {
   stored?: TransactionAttachmentModel;
   file?: File;
 };
+const fileKeys = new WeakMap<File, number>();
+let nextFileKey = 1;
+const keyForFile = ({ file }: { file: File }) => {
+  const existing = fileKeys.get(file);
+  if (existing !== undefined) return existing;
+  const key = nextFileKey++;
+  fileKeys.set(file, key);
+  return key;
+};
 const items = computed<Item[]>(() =>
   isPersisted.value
     ? attachments.value.map((stored) => ({ key: stored.id, ...stored, stored }))
-    : pending.value.map((file, index) => ({
-        key: `${index}-${file.name}`,
+    : pending.value.map((file) => ({
+        key: `pending-${keyForFile({ file })}`,
         filename: file.name,
         size: file.size,
         mimeType: file.type,
@@ -105,7 +114,7 @@ const uploadAndShow = async (variables: { transactionId: string; file: File }) =
   if (props.mirrorTransactionId) {
     await uploadTransactionAttachment({ transactionId: props.mirrorTransactionId, file: variables.file });
   }
-  uploadingNames.value = uploadingNames.value.slice(1);
+  uploadingFiles.value = uploadingFiles.value.slice(1);
   return created;
 };
 
@@ -125,7 +134,7 @@ const isAddDisabled = computed(
   () =>
     props.disabled ||
     isError.value ||
-    uploadingNames.value.length > 0 ||
+    uploadingFiles.value.length > 0 ||
     items.value.length >= ATTACHMENTS_MAX_PER_TRANSACTION,
 );
 
@@ -134,7 +143,7 @@ const showDeleteAll = computed(() => canManage.value && items.value.length > 1);
 const totalSize = computed(() => items.value.reduce((sum, item) => sum + item.size, 0));
 
 const triggerLabel = computed(() => {
-  if (uploadingNames.value.length) return t('dialogs.manageTransaction.form.attachments.trigger.uploading');
+  if (uploadingFiles.value.length) return t('dialogs.manageTransaction.form.attachments.trigger.uploading');
   if (isLoading.value) return t('dialogs.manageTransaction.form.attachments.loading');
   if (items.value.length === 1) return items.value[0]!.filename;
   if (items.value.length) {
@@ -168,7 +177,7 @@ const uploadFiles = async (selected: File[]) => {
     return;
   }
 
-  uploadingNames.value = accepted.map((file) => file.name);
+  uploadingFiles.value = accepted.map((file) => ({ key: keyForFile({ file }), name: file.name }));
 
   try {
     // A failed compression still uploads the originals.
@@ -182,21 +191,21 @@ const uploadFiles = async (selected: File[]) => {
             max: MAX_FILE_SIZE_LABEL,
           }),
         );
-        uploadingNames.value = uploadingNames.value.slice(1);
+        uploadingFiles.value = uploadingFiles.value.slice(1);
       } else if (!props.transactionId) {
         pending.value = [...pending.value, file];
-        uploadingNames.value = uploadingNames.value.slice(1);
+        uploadingFiles.value = uploadingFiles.value.slice(1);
       } else {
         try {
           await uploadMutation.mutateAsync({ transactionId: props.transactionId, file });
         } catch {
           // The mutation already surfaced the server message.
-          uploadingNames.value = uploadingNames.value.slice(1);
+          uploadingFiles.value = uploadingFiles.value.slice(1);
         }
       }
     }
   } finally {
-    uploadingNames.value = [];
+    uploadingFiles.value = [];
   }
 };
 
@@ -236,7 +245,7 @@ const confirmDeletion = async () => {
           :disabled="userStore.isDemo"
           @click="isDialogOpen = true"
         >
-          <LoaderCircleIcon v-if="uploadingNames.length" class="text-primary-text size-4 shrink-0 animate-spin" />
+          <LoaderCircleIcon v-if="uploadingFiles.length" class="text-primary-text size-4 shrink-0 animate-spin" />
           <PaperclipIcon
             v-else
             :class="cn('size-4 shrink-0', items.length ? 'text-primary-text' : 'text-muted-foreground')"
@@ -256,7 +265,7 @@ const confirmDeletion = async () => {
     </FieldLabel>
   </FormRow>
 
-  <ResponsiveDialog v-model:open="isDialogOpen" dialog-content-class="sm:max-w-lg" :hide-drawer-footer="!showDeleteAll">
+  <ResponsiveDialog v-model:open="isDialogOpen" dialog-content-class="sm:max-w-lg" intrinsic-height-motion>
     <template #title>
       {{ $t('dialogs.manageTransaction.form.attachments.label') }}
       <span class="text-muted-foreground ml-1 text-sm font-normal">
@@ -264,7 +273,7 @@ const confirmDeletion = async () => {
       </span>
     </template>
 
-    <div class="grid gap-4">
+    <div class="grid">
       <PlanRestricted :feature="FEATURES.attachments">
         <MultiFileDropzone
           :model-value="[]"
@@ -287,51 +296,65 @@ const confirmDeletion = async () => {
         </MultiFileDropzone>
       </PlanRestricted>
 
-      <p v-if="isError" class="text-destructive-text text-sm">
+      <p v-if="isError" class="text-destructive-text mt-4 text-sm">
         {{ $t('dialogs.manageTransaction.form.attachments.listLoadFailed') }}
       </p>
 
-      <div v-if="items.length || uploadingNames.length" class="grid gap-1">
-        <div v-for="item in items" :key="item.key" class="flex items-center gap-3 py-1">
-          <div class="bg-muted text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-md">
-            <component :is="item.mimeType === 'application/pdf' ? FileTextIcon : ImageIcon" class="size-4" />
-          </div>
+      <TransitionGroup
+        tag="div"
+        name="lajur-flow-row"
+        class="grid [&>.lajur-flow-row:first-child_.attachment-row]:pt-4"
+      >
+        <div v-for="item in items" :key="item.key" class="lajur-flow-row">
+          <div>
+            <div class="attachment-row flex items-center gap-3 py-1.5">
+              <div class="bg-muted text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-md">
+                <component :is="item.mimeType === 'application/pdf' ? FileTextIcon : ImageIcon" class="size-4" />
+              </div>
 
-          <div class="grid min-w-0 flex-1">
-            <Button
-              v-if="item.stored"
-              type="button"
-              variant="link"
-              class="h-auto justify-start p-0 text-sm font-medium"
-              @click="openViewer(item.stored)"
-            >
-              <span class="truncate">{{ item.filename }}</span>
-            </Button>
-            <span v-else class="truncate text-sm font-medium">{{ item.filename }}</span>
-            <span class="text-muted-foreground text-xs">{{ formatBytes({ bytes: item.size }) }}</span>
-          </div>
+              <div class="grid min-w-0 flex-1">
+                <Button
+                  v-if="item.stored"
+                  type="button"
+                  variant="link"
+                  class="h-auto justify-start p-0 text-sm font-medium"
+                  @click="openViewer(item.stored)"
+                >
+                  <span class="truncate">{{ item.filename }}</span>
+                </Button>
+                <span v-else class="truncate text-sm font-medium">{{ item.filename }}</span>
+                <span class="text-muted-foreground text-xs">{{ formatBytes({ bytes: item.size }) }}</span>
+              </div>
 
-          <DesktopOnlyTooltip v-if="canManage" :content="$t('common.actions.delete')">
-            <Button
-              type="button"
-              variant="ghost-destructive"
-              size="icon"
-              :disabled="disabled"
-              :aria-label="$t('common.actions.delete')"
-              @click="removeItem({ item })"
-            >
-              <Trash2Icon class="size-4" />
-            </Button>
-          </DesktopOnlyTooltip>
+              <DesktopOnlyTooltip v-if="canManage" :content="$t('common.actions.delete')">
+                <Button
+                  type="button"
+                  variant="ghost-destructive"
+                  size="icon"
+                  :disabled="disabled"
+                  :aria-label="$t('common.actions.delete')"
+                  @click="removeItem({ item })"
+                >
+                  <Trash2Icon class="size-4" />
+                </Button>
+              </DesktopOnlyTooltip>
+            </div>
+          </div>
         </div>
 
-        <div v-for="name in uploadingNames" :key="name" class="text-muted-foreground flex items-center gap-3 py-1">
-          <div class="border-input flex size-10 shrink-0 items-center justify-center rounded-md border border-dashed">
-            <LoaderCircleIcon class="text-primary-text size-4 animate-spin" />
+        <div v-for="file in uploadingFiles" :key="`upload-${file.key}`" class="lajur-flow-row">
+          <div>
+            <div class="attachment-row text-muted-foreground flex items-center gap-3 py-1.5">
+              <div
+                class="border-input flex size-10 shrink-0 items-center justify-center rounded-md border border-dashed"
+              >
+                <LoaderCircleIcon class="text-primary-text size-4 animate-spin" />
+              </div>
+              <span class="min-w-0 flex-1 truncate text-sm">{{ file.name }}</span>
+            </div>
           </div>
-          <span class="min-w-0 flex-1 truncate text-sm">{{ name }}</span>
         </div>
-      </div>
+      </TransitionGroup>
     </div>
 
     <!-- Nested inside the dialog so it stacks above it. -->

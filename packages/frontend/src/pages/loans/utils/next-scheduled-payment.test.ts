@@ -1,7 +1,7 @@
 import { format, parseISO } from 'date-fns';
 import { describe, expect, it } from 'vitest';
 
-import { nextScheduledPayment } from './next-scheduled-payment';
+import { isScheduledPaymentSoon, nextScheduledPayment } from './next-scheduled-payment';
 
 describe('nextScheduledPayment', () => {
   it.each([
@@ -13,5 +13,19 @@ describe('nextScheduledPayment', () => {
   ])('projects day %s after the account starts', (day, starts, today, expected) => {
     const next = nextScheduledPayment({ day, starts: parseISO(starts), today: parseISO(today) });
     expect(next && format(next, 'yyyy-MM-dd')).toBe(expected);
+  });
+});
+
+describe('isScheduledPaymentSoon', () => {
+  it.each([
+    ['2026-12-31', true],
+    ['2027-01-07', true],
+    ['2027-01-08', false],
+    ['2026-12-30', false],
+    [null, false],
+  ])('checks %s against the next seven calendar days', (date, expected) => {
+    expect(isScheduledPaymentSoon({ date: date ? parseISO(date) : null, today: parseISO('2026-12-31T23:59:00') })).toBe(
+      expected,
+    );
   });
 });

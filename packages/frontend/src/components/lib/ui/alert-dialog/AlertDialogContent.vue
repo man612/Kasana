@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import OverlayLayer from '@/components/common/overlay-layer.vue';
 import { cn } from '@/lib/utils';
 import { computed } from 'vue';
 import {
@@ -7,6 +8,7 @@ import {
   type AlertDialogContentProps,
   AlertDialogOverlay,
   AlertDialogPortal,
+  injectDialogRootContext,
   useEmitAsProps,
 } from 'reka-ui';
 
@@ -18,6 +20,7 @@ const props = defineProps<
 >();
 const emits = defineEmits<AlertDialogContentEmits>();
 
+const { open } = injectDialogRootContext();
 const emitsAsProps = useEmitAsProps(emits);
 const delegatedProps = computed(() => {
   const { class: _class, onBackdropClick: _backdropClick, ...delegated } = props;
@@ -27,21 +30,26 @@ const delegatedProps = computed(() => {
 
 <template>
   <AlertDialogPortal>
-    <AlertDialogOverlay
-      @click.stop.prevent="props.onBackdropClick?.()"
-      class="lajur-confirmation-backdrop lajur-scrim-dialog lajur-scrim-blur fixed inset-0 z-(--z-over-dialog)"
-    />
-    <AlertDialogContent
-      v-bind="{ ...delegatedProps, ...emitsAsProps }"
-      :class="
-        cn(
-          'lajur-confirmation-surface border-border bg-dialog fixed top-1/2 left-1/2 z-(--z-over-dialog) grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 grid-cols-1 gap-4 rounded-2xl border p-6 shadow-xl md:w-full',
-          props.class,
-        )
-      "
-    >
-      <slot />
-    </AlertDialogContent>
+    <OverlayLayer :open="open">
+      <AlertDialogOverlay
+        data-lajur-backdrop
+        @click.stop.prevent="open && props.onBackdropClick?.()"
+        class="lajur-confirmation-backdrop lajur-scrim-dialog lajur-scrim-blur fixed inset-0 z-(--z-over-dialog)"
+      />
+      <AlertDialogContent
+        :inert="!open"
+        aria-modal="true"
+        v-bind="{ ...delegatedProps, ...emitsAsProps }"
+        :class="
+          cn(
+            'lajur-confirmation-surface border-border bg-dialog fixed top-1/2 left-1/2 z-(--z-over-dialog) grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 grid-cols-1 gap-4 rounded-2xl border p-6 shadow-xl md:w-full',
+            props.class,
+          )
+        "
+      >
+        <slot />
+      </AlertDialogContent>
+    </OverlayLayer>
   </AlertDialogPortal>
 </template>
 

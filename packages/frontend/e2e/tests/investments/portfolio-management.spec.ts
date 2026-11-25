@@ -74,7 +74,7 @@ async function openHoldingTransactionDialog({ page }: { page: import('@playwrigh
     .first();
   await expect(expandedArea).toBeVisible({ timeout: 5_000 });
 
-  const addTxBtn = expandedArea.getByRole('button').filter({ hasText: /add/i }).first();
+  const addTxBtn = expandedArea.getByRole('button', { name: /add/i }).first();
   await addTxBtn.click();
 
   await expect(page.getByRole('dialog')).toBeVisible();

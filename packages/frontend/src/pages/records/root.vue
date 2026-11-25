@@ -52,11 +52,16 @@
       <!-- Mobile compact layout: filters behind a dialog button, user toggles
            between the compact list and the full table. -->
       <template v-if="showMobileLayout">
-        <div class="flex shrink-0 items-center justify-between gap-2">
-          <div class="flex min-w-0 items-center gap-2">
+        <div class="flex shrink-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          <NavigationSectionTitle
+            section="transactions"
+            :label="$t('navigation.transactions')"
+            class="text-base font-semibold tracking-tight"
+          />
+          <div class="ml-auto flex min-w-0 items-center gap-1">
             <!-- Scrolling is handled by ResponsiveDialog's internal scroll wrapper –
                  an extra scroll container here would clip the panel instead -->
-            <FiltersDialog v-model:open="isFiltersDialogOpen" :is-any-filters-applied="isAnyFiltersApplied">
+            <FiltersDialog v-model:open="isFiltersDialogOpen" icon-only :is-any-filters-applied="isAnyFiltersApplied">
               <!-- Filters auto-apply (debounced), so the panel's Apply button is
                    permanently suppressed via is-filters-out-of-sync=false -->
               <FiltersPanel
@@ -77,6 +82,7 @@
                 <TransactionTimeGroupingOptions
                   :model-value="timeGrouping"
                   v-model:show-time="showTime"
+                  v-model:show-checkboxes="showCheckboxes"
                   :hide-grouping="activeView === 'table'"
                   :unavailable="!isChronological"
                   @update:model-value="setTimeGrouping"
@@ -84,54 +90,54 @@
                 />
               </template>
             </SavedViewsMenu>
-          </div>
 
-          <span ref="moreMenuAnchor" class="inline-flex shrink-0">
-            <DropdownMenu>
-              <DropdownMenuTrigger as-child>
-                <span class="inline-flex">
-                  <DesktopOnlyTooltip :content="$t('common.actions.more')">
-                    <Button variant="secondary" size="icon" :aria-label="$t('common.actions.more')">
-                      <EllipsisIcon class="size-4" />
-                    </Button>
-                  </DesktopOnlyTooltip>
-                </span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" @close-auto-focus="onMoreMenuCloseAutoFocus">
-                <DropdownMenuRadioGroup
-                  :model-value="activeView"
-                  @update:model-value="(view) => setActiveView(view as TransactionsView)"
-                >
-                  <DropdownMenuRadioItem value="list">
-                    <ListIcon class="size-4" />
-                    {{ $t('transactions.table.viewToggle.list') }}
-                  </DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="table">
-                    <Table2Icon class="size-4" />
-                    {{ $t('transactions.table.viewToggle.table') }}
-                  </DropdownMenuRadioItem>
-                </DropdownMenuRadioGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem v-if="activeView === 'table'" @select="isTableSettingsRequested = true">
-                  <SettingsIcon class="size-4" />
-                  {{ $t('transactions.table.columnConfig.title') }}
-                </DropdownMenuItem>
-                <DropdownMenuItem @select="enterFullscreen">
-                  <Maximize2Icon class="size-4" />
-                  {{ $t('transactions.table.fullscreen.enter') }}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  :data-trash-empty="isTrashEmpty ? 'true' : undefined"
-                  :class="isTrashEmpty && 'opacity-55'"
-                  @select="openTrash"
-                >
-                  <Trash2Icon class="size-4" />
-                  {{ $t('navigation.trash') }}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <TableSettings v-if="activeView === 'table' && moreMenuAnchor" :anchor="moreMenuAnchor" />
-          </span>
+            <span ref="moreMenuAnchor" class="inline-flex shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <span class="inline-flex">
+                    <DesktopOnlyTooltip :content="$t('common.actions.more')">
+                      <Button variant="secondary" size="icon" :aria-label="$t('common.actions.more')">
+                        <EllipsisIcon class="size-4" />
+                      </Button>
+                    </DesktopOnlyTooltip>
+                  </span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" @close-auto-focus="onMoreMenuCloseAutoFocus">
+                  <DropdownMenuRadioGroup
+                    :model-value="activeView"
+                    @update:model-value="(view) => setActiveView(view as TransactionsView)"
+                  >
+                    <DropdownMenuRadioItem value="list">
+                      <ListIcon class="size-4" />
+                      {{ $t('transactions.table.viewToggle.list') }}
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="table">
+                      <Table2Icon class="size-4" />
+                      {{ $t('transactions.table.viewToggle.table') }}
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem v-if="activeView === 'table'" @select="isTableSettingsRequested = true">
+                    <SettingsIcon class="size-4" />
+                    {{ $t('transactions.table.columnConfig.title') }}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem @select="enterFullscreen">
+                    <Maximize2Icon class="size-4" />
+                    {{ $t('transactions.table.fullscreen.enter') }}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    :data-trash-empty="isTrashEmpty ? 'true' : undefined"
+                    :class="isTrashEmpty && 'opacity-55'"
+                    @select="openTrash"
+                  >
+                    <Trash2Icon class="size-4" />
+                    {{ $t('navigation.trash') }}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <TableSettings v-if="activeView === 'table' && moreMenuAnchor" :anchor="moreMenuAnchor" />
+            </span>
+          </div>
         </div>
 
         <template v-if="activeView === 'list'">
@@ -148,6 +154,7 @@
               animate-changes
               :time-grouping="isChronological ? timeGrouping : 'none'"
               :show-time="showTime"
+              :show-checkboxes="showCheckboxes"
               :time-ascending="sorting.order === SORT_DIRECTIONS.asc"
               :time-group-range="timeGroupRange"
               :content-filters-active="contentFiltersActive"
@@ -197,6 +204,7 @@
                 <TransactionTimeGroupingOptions
                   :model-value="timeGrouping"
                   v-model:show-time="showTime"
+                  v-model:show-checkboxes="showCheckboxes"
                   :unavailable="!isChronological"
                   @update:model-value="setTimeGrouping"
                   @selected="close"
@@ -235,6 +243,7 @@
               animate-changes
               :time-grouping="isChronological ? timeGrouping : 'none'"
               :show-time="showTime"
+              :show-checkboxes="showCheckboxes"
               :time-ascending="sorting.order === SORT_DIRECTIONS.asc"
               :time-group-range="timeGroupRange"
               :content-filters-active="contentFiltersActive"
@@ -287,6 +296,7 @@
                   <TransactionTimeGroupingOptions
                     :model-value="timeGrouping"
                     v-model:show-time="showTime"
+                    v-model:show-checkboxes="showCheckboxes"
                     hide-grouping
                   />
                 </template>
@@ -402,6 +412,7 @@
               :transactions="transactionsPages?.pages.flat() ?? []"
               :visible-columns="visibleColumns"
               :show-time="showTime"
+              :show-checkboxes="showCheckboxes"
               @resize-column="setColumnWidth"
               :sorting="sorting"
               :has-next-page="hasNextPage"
@@ -432,6 +443,7 @@ import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
 import { ROUTES_NAMES } from '@/routes/constants';
 import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { isAnyGroupDissolvingFilterActive } from '@/components/records-filters/filter-registry';
+import NavigationSectionTitle from '@/components/sidebar/navigation-section-title.vue';
 import FiltersDialog from '@/components/records-filters/filters-dialog.vue';
 import FiltersPanel from '@/components/records-filters/index.vue';
 import { useActiveView } from '@/components/records-filters/saved-views';
@@ -480,7 +492,14 @@ import { useNotificationCenter } from '@/components/notification-center';
 import { useI18n } from 'vue-i18n';
 
 const sorting = ref<TableSorting>({ ...DEFAULT_SORTING });
-const { mode: timeGrouping, setMode: setTimeGrouping, showTime } = useTransactionTimeGrouping();
+const {
+  mode: timeGrouping,
+  setMode: setTimeGrouping,
+  showTime,
+  showCheckboxes,
+} = useTransactionTimeGrouping({
+  defaultMode: 'day',
+});
 const isChronological = computed(() => sorting.value.sortBy === TRANSACTION_SORT_FIELD.time);
 
 const {

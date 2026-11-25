@@ -649,8 +649,10 @@ const closeTransactionModal = () => {
   </ResponsiveAlertDialog>
 
   <TransactionDetailsModal
-    v-slot="{ requestClose }"
+    v-slot="{ requestClose, transaction, committed, finish, deleted }"
     :session="editSession"
+    :transaction="reviewedTransaction ?? undefined"
+    :creation="Boolean(createPrefill)"
     :open="!!reviewedTransaction || !!createPrefill"
     :mobile="isMobile"
     @update:open="(value: boolean) => !value && closeTransactionModal()"
@@ -659,8 +661,10 @@ const closeTransactionModal = () => {
       v-if="reviewedTransaction"
       ref="editSession"
       @request-close="requestClose"
-      :transaction="reviewedTransaction"
-      @close-modal="closeTransactionModal"
+      :transaction="transaction"
+      @committed="committed"
+      @deleted="deleted"
+      @close-modal="finish"
     />
     <ManageTransactionDialogContent
       v-else-if="createPrefill"

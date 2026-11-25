@@ -2,12 +2,11 @@
   <div
     data-transaction-row
     :data-divider="showDivider || undefined"
+    :data-checkbox="showCheckbox"
     :class="[
-      'group/row hover:bg-muted/50 relative grid w-full items-start gap-2 rounded-md px-2 transition-colors',
+      'group/row hover:bg-muted/50 relative grid w-full items-start gap-y-2 rounded-md px-2',
       compact ? 'py-1.5 [--row-icon:2rem]' : 'py-2 [--row-icon:2.25rem]',
       asButton && 'focus-visible:ring-ring cursor-pointer focus-visible:ring-2 focus-visible:outline-none',
-      showCheckbox ? 'grid-cols-[auto_minmax(0,1fr)_fit-content(46%)]' : 'grid-cols-[minmax(0,1fr)_fit-content(46%)]',
-      showCheckbox && 'has-checkbox',
     ]"
     :tabindex="asButton ? 0 : undefined"
     :aria-haspopup="asButton ? 'dialog' : undefined"
@@ -15,21 +14,27 @@
     @keydown.space.self.prevent="asButton && transactionEmit()"
     @click="asButton && transactionEmit()"
   >
-    <!-- Selection checkbox -->
-    <label v-if="showCheckbox" class="-my-1 -ml-2 flex items-center justify-center self-stretch px-3" @click.stop>
-      <Checkbox v-if="isSelectable" v-model="checkedModel" :aria-label="$t('common.transactions.record.selectRow')" />
-      <ResponsiveTooltip
-        v-else-if="unselectableHint || unselectableReason"
-        :delay-duration="100"
-        :content="unselectableHint || $t(`common.transactions.record.unselectableReasons.${unselectableReason}`)"
-        content-class-name="max-w-56"
+    <!-- Selection owns a fixed-width track so its disappearance releases width gradually. -->
+    <Transition name="row-checkbox" @before-leave="disableLeavingCheckbox">
+      <label
+        v-if="showCheckbox"
+        class="col-start-1 row-start-1 -my-1 flex w-10 items-center justify-center self-stretch"
+        @click.stop
       >
-        <InfoIcon class="text-muted-foreground size-3.5 cursor-help" />
-      </ResponsiveTooltip>
-      <div v-else class="size-4" />
-    </label>
+        <Checkbox v-if="isSelectable" v-model="checkedModel" :aria-label="$t('common.transactions.record.selectRow')" />
+        <ResponsiveTooltip
+          v-else-if="unselectableHint || unselectableReason"
+          :delay-duration="100"
+          :content="unselectableHint || $t(`common.transactions.record.unselectableReasons.${unselectableReason}`)"
+          content-class-name="max-w-56"
+        >
+          <InfoIcon class="text-muted-foreground size-3.5 cursor-help" />
+        </ResponsiveTooltip>
+        <div v-else class="size-4" />
+      </label>
+    </Transition>
 
-    <div class="grid min-w-0 grid-cols-[var(--row-icon)_minmax(0,1fr)] items-start gap-2">
+    <div class="col-start-2 row-start-1 mr-2 grid min-w-0 grid-cols-[var(--row-icon)_minmax(0,1fr)] items-start gap-2">
       <div class="bg-muted relative grid size-(--row-icon) place-items-center rounded-lg">
         <template v-if="!isTransferTransaction && !linkTarget && !isBalanceCorrection && category">
           <CategoryCircle :category="category" row-icon />
@@ -214,7 +219,7 @@
         </div>
       </div>
     </div>
-    <div class="min-w-0 self-center">
+    <div class="col-start-3 row-start-1 min-w-0 self-center">
       <div
         :class="[
           'text-amount truncate text-right tabular-nums',
@@ -229,9 +234,13 @@
         v-if="rowTimeLabel || rowDateLabel"
         :datetime="rowTimeLabel ? new Date(transaction.time).toISOString() : undefined"
         class="text-muted-foreground block text-right text-xs tabular-nums"
+        :class="compact && 'flex flex-wrap items-baseline justify-end gap-x-1'"
       >
         <span v-if="rowDateLabel" class="block">{{ rowDateLabel }}</span>
-        <Transition name="lajur-flow-row">
+        <Transition v-if="compact" name="lajur-info-reveal">
+          <span v-if="rowTimeLabel" class="whitespace-nowrap">{{ rowTimeLabel }}</span>
+        </Transition>
+        <Transition v-else name="lajur-flow-row">
           <span v-if="rowTimeLabel" class="lajur-flow-row">
             <span>{{ rowTimeLabel }}</span>
           </span>
@@ -509,6 +518,10 @@ const transactionEmit = () => {
 };
 
 // Computed with get/set for v-model binding
+const disableLeavingCheckbox = (element: Element) => {
+  if (element instanceof HTMLElement) element.inert = true;
+};
+
 const checkedModel = computed({
   get: () => props.isSelected,
   set: (value: boolean | 'indeterminate') => {
@@ -576,16 +589,47 @@ const rowCaption = computed(() => {
 </script>
 
 <style scoped>
+[data-transaction-row] {
+  --checkbox-track: 0rem;
+  grid-template-columns: var(--checkbox-track) minmax(0, 1fr) fit-content(46%);
+  transition:
+    grid-template-columns var(--kasana-motion-normal) var(--kasana-motion-ease),
+    background-color var(--kasana-motion-fast);
+}
+[data-transaction-row][data-checkbox='true'] {
+  --checkbox-track: 2.5rem;
+}
+.row-checkbox-enter-active,
+.row-checkbox-leave-active {
+  transition: opacity var(--kasana-motion-normal) var(--kasana-motion-ease);
+}
+.row-checkbox-enter-from,
+.row-checkbox-leave-to {
+  opacity: 0;
+}
+.row-checkbox-leave-active {
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-transaction-row],
+  .row-checkbox-enter-active,
+  .row-checkbox-leave-active {
+    transition: none;
+  }
+}
 [data-transaction-row]:is([data-divider], :has(+ [data-transaction-row]))::after {
   position: absolute;
-  inset-inline: calc(var(--row-icon) + 1rem) 0.5rem;
+  inset-inline: calc(var(--row-icon) + 1rem + var(--checkbox-track)) 0.5rem;
+  transition: inset-inline-start var(--kasana-motion-normal) var(--kasana-motion-ease);
   inset-block-end: 0;
   height: 1px;
   pointer-events: none;
   background-color: color-mix(in srgb, var(--border) 90%, transparent);
   content: '';
 }
-[data-transaction-row].has-checkbox::after {
-  inset-inline-start: calc(var(--row-icon) + 3.5rem);
+@media (prefers-reduced-motion: reduce) {
+  [data-transaction-row]::after {
+    transition: none !important;
+  }
 }
 </style>

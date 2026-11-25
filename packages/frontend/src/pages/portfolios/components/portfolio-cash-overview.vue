@@ -1,6 +1,6 @@
 <template>
   <!-- Loading -->
-  <div v-if="isLoading" class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
+  <div v-if="isLoading" class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-3">
     <div v-for="i in 2" :key="i" class="bg-muted/30 flex items-center gap-3 rounded-lg p-3">
       <div class="bg-muted size-8 animate-pulse rounded-full" />
       <div class="flex-1 space-y-1.5">
@@ -19,20 +19,30 @@
   </p>
 
   <!-- Balances grid -->
-  <div v-else class="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
+  <div v-else class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-3">
     <div
       v-for="balance in nonZeroBalances"
       :key="balance.currencyCode"
       class="bg-muted/30 flex items-center gap-3 rounded-lg p-3"
     >
+      <WalletIcon v-if="balance.currencyCode === 'IDR'" class="text-primary-text size-5 shrink-0" aria-hidden="true" />
       <img
+        v-else
         :src="getCurrencyIcon(balance.currencyCode)"
         :alt="balance.currencyCode"
         class="size-8 rounded-full object-cover"
       />
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-semibold">{{ balance.currencyCode }}</p>
-        <p v-if="balance.currency?.currency" class="text-muted-foreground truncate text-xs">
+        <p class="text-sm font-semibold">
+          {{ balance.currencyCode === 'IDR' ? $t('portfolioDetail.cashBalances.availableCash') : balance.currencyCode }}
+        </p>
+        <p v-if="Number(balance.availableCash) < 0" class="text-destructive-text text-xs">
+          {{ $t('portfolioDetail.cashBalances.negativeCash') }}
+        </p>
+        <p
+          v-if="balance.currencyCode !== 'IDR' && balance.currency?.currency"
+          class="text-muted-foreground truncate text-xs"
+        >
           {{ balance.currency.currency }}
         </p>
       </div>
@@ -54,6 +64,7 @@ import { usePortfolioBalances } from '@/composable/data-queries/portfolio-balanc
 import { useFormatCurrency } from '@/composable/formatters';
 import { getCurrencyIcon } from '@/js/helpers/currencyImage';
 import { useCurrenciesStore } from '@/stores/currencies';
+import { WalletIcon } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed, toRef } from 'vue';
 

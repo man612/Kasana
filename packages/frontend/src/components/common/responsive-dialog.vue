@@ -109,6 +109,7 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
       <Drawer.DrawerContent
         :custom-indicator="props.drawerCustomIndicator"
         :dim-backdrop="props.raised"
+        :app-blocking="!props.dismissible"
         :style="drawerKeyboardStyle"
         :class="[
           !props.noInternalScroll && 'grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden',
@@ -183,9 +184,9 @@ useCloseDialogWhen({ when: () => !!props.closeWhen, close });
           dialogContentClass,
           isMobile && 'max-h-[88dvh] w-[calc(100vw-2rem)] max-w-md rounded-2xl',
         ]"
-        :blur-overlay="isMobile || props.raised"
         :custom-close="!hasDialogClose || Boolean($slots['header-actions'])"
         :raised="props.raised"
+        :app-blocking="!props.dismissible"
         @close-auto-focus="onCloseAutoFocus"
         @open-auto-focus="(event: Event) => emit('open-auto-focus', event)"
       >

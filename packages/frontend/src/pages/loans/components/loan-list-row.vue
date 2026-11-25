@@ -14,17 +14,15 @@
       <div class="min-w-0">
         <div class="flex min-w-0 items-center gap-2">
           <span class="min-w-0 text-sm leading-tight font-semibold wrap-anywhere">{{ loan.name }}</span>
-          <span
-            v-if="loan.projection.isPaidOff"
-            class="bg-app-income-color/15 text-app-income-color shrink-0 rounded-full px-2 py-0.5 text-[9px] font-medium tracking-wider uppercase"
-          >
-            {{ $t('loans.detail.paidOffBadge') }}
-          </span>
           <DesktopOnlyTooltip v-if="loan.projection.warning" :content="$t(`loans.warnings.${loan.projection.warning}`)">
             <TriangleAlertIcon class="text-app-expense-color size-3.5 shrink-0" />
           </DesktopOnlyTooltip>
         </div>
-        <div class="text-muted-foreground mt-0.5 truncate text-xs">{{ subLine }}</div>
+        <div class="text-muted-foreground mt-0.5 text-xs wrap-anywhere">{{ subLine }}</div>
+        <div v-if="paymentSoon" class="text-warning-text mt-1 flex items-center gap-1 text-xs font-medium">
+          <CalendarClockIcon class="size-3.5 shrink-0" aria-hidden="true" />
+          <span>{{ $t('loans.detail.status.paymentSoon') }}</span>
+        </div>
       </div>
     </div>
 
@@ -87,7 +85,7 @@ import { useFormatCurrency } from '@/composable/formatters';
 import { useDateLocale } from '@/composable/use-date-locale';
 import { cn } from '@/lib/utils';
 import { ROUTES_NAMES } from '@/routes';
-import { ChevronRightIcon, TriangleAlertIcon } from '@lucide/vue';
+import { CalendarClockIcon, ChevronRightIcon, TriangleAlertIcon } from '@lucide/vue';
 import { parseISO } from 'date-fns';
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -95,7 +93,7 @@ import { RouterLink } from 'vue-router';
 
 import { useLoanProjectionDisplay } from '../composables/use-loan-projection-display';
 import { outstandingAmount } from '../utils/outstanding-amount';
-import { nextScheduledPayment } from '../utils/next-scheduled-payment';
+import { isScheduledPaymentSoon, nextScheduledPayment } from '../utils/next-scheduled-payment';
 import { LOAN_LIST_GRID_COLS } from './loan-list-grid';
 
 const props = defineProps<{ loan: LoanApi }>();
@@ -120,16 +118,18 @@ const monthlyDisplay = computed(() => {
   return formatAmountByCurrencyCode(planned, props.loan.currencyCode);
 });
 
-const scheduledDate = computed(() => {
-  if (props.loan.projection.isPaidOff) return null;
+const paymentSchedule = computed(() => {
+  if (props.loan.projection.isPaidOff) return { date: null, isSoon: false };
+  const today = new Date();
   const date = nextScheduledPayment({
     day: props.loan.loanDetails.paymentDayOfMonth,
     starts: parseISO(props.loan.loanDetails.startDate),
-    today: new Date(),
+    today,
   });
-  return date ? format(date, 'PPP') : null;
+  return { date, isSoon: isScheduledPaymentSoon({ date, today }) };
 });
-
+const scheduledDate = computed(() => (paymentSchedule.value.date ? format(paymentSchedule.value.date, 'PPP') : null));
+const paymentSoon = computed(() => paymentSchedule.value.isSoon);
 const interestRemainingDisplay = computed(() => {
   const interest = props.loan.projection.totalInterestRemaining;
   if (interest === null) return '—';

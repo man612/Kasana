@@ -56,7 +56,7 @@ const accountsStore = useAccountsStore();
 // Loan accounts excluded – money only flows INTO a loan (transfer_to_loan), so they can't be a transfer source.
 const { txTargetableSourceAccountsActiveFirst: txTargetableAccountsActiveFirst, accountsRecord } =
   storeToRefs(useAccountsStore());
-const { currencies } = storeToRefs(useCurrenciesStore());
+const { baseCurrency, currencies } = storeToRefs(useCurrenciesStore());
 const { data: portfolios } = usePortfolios();
 const { formatAmountByCurrencyCode } = useFormatCurrency();
 
@@ -90,7 +90,7 @@ const form = reactive<{
 
 // Portfolio balance data for currency sorting
 const sourcePortfolioId = computed(() => form.fromPortfolio?.id ?? '');
-const { sortedCurrencies, currencyLabel } = usePortfolioCurrencySorting(sourcePortfolioId);
+const { balancesByCurrency, sortedCurrencies, currencyLabel } = usePortfolioCurrencySorting(sourcePortfolioId);
 
 // Computed values for easier access
 const transferType = computed(() => form.transferTypeOption?.value || 'portfolio-to-portfolio');
@@ -239,20 +239,31 @@ const { isFormValid, getFieldErrorMessage, touchField, resetValidation } = useFo
   },
 );
 
-// Auto-set currency based on source.
-// For account-to-portfolio, always lock currency to the account's currency.
-watch(
-  [() => form.fromPortfolio, () => form.fromAccount, () => transferType.value],
-  () => {
-    if (transferType.value === 'account-to-portfolio' && form.fromAccount?.currencyCode) {
-      form.selectedCurrency = currencies.value?.find((c) => c.currencyCode === form.fromAccount!.currencyCode) || null;
-      return;
-    }
+const showCurrencySelection = computed(
+  () =>
+    baseCurrency.value?.currencyCode !== 'IDR' ||
+    [...balancesByCurrency.value.keys()].some((code) => code !== 'IDR') ||
+    !currencies.value?.some(({ currencyCode }) => currencyCode === 'IDR'),
+);
 
-    const sourceCurrencyCode = form.fromPortfolio?.balances?.[0]?.currencyCode || form.fromAccount?.currencyCode;
-    if (sourceCurrencyCode && !form.selectedCurrency) {
-      form.selectedCurrency = currencies.value?.find((c) => c.currencyCode === sourceCurrencyCode) || null;
-    }
+// A linked account always sets its native currency. For an existing portfolio,
+// prefer IDR if present, otherwise use its recorded currency before falling
+// back to the user's base currency for an empty portfolio.
+watch(
+  [
+    sourcePortfolioId,
+    () => form.fromAccount?.currencyCode,
+    () => transferType.value,
+    currencies,
+    balancesByCurrency,
+    baseCurrency,
+  ],
+  () => {
+    const sourceCurrencyCode =
+      form.fromAccount?.currencyCode ??
+      (balancesByCurrency.value.has('IDR') ? 'IDR' : balancesByCurrency.value.keys().next().value) ??
+      baseCurrency.value?.currencyCode;
+    form.selectedCurrency = currencies.value?.find((currency) => currency.currencyCode === sourceCurrencyCode) ?? null;
   },
   { immediate: true },
 );
@@ -558,7 +569,7 @@ defineExpose({ isSubmitting: isAnyMutationPending, isSubmitDisabled });
     <!-- Regular transfer fields (hidden when linking) -->
     <template v-if="!isLinkExistingTx">
       <SelectField
-        v-if="transferType !== 'account-to-portfolio'"
+        v-if="transferType !== 'account-to-portfolio' && showCurrencySelection"
         v-model="form.selectedCurrency"
         :label="$t('forms.portfolioTransfer.currencyLabel')"
         :values="sortedCurrencies"
@@ -588,6 +599,8 @@ defineExpose({ isSubmitting: isAnyMutationPending, isSubmitDisabled });
       />
 
       <TextareaField
+        :rows="1"
+        :max-rows="3"
         v-model="form.description"
         :label="$t('forms.portfolioTransfer.descriptionLabel')"
         :placeholder="$t('forms.portfolioTransfer.descriptionPlaceholder')"

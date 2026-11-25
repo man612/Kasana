@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import type { TrackerModel } from '@bt/shared/types';
 import { PlusIcon, SearchIcon, TargetIcon } from '@lucide/vue';
 import { useQueries, useQuery } from '@tanstack/vue-query';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 import ArchivePromptDialog from './components/archive-prompt-dialog.vue';
 import TrackerRow from './components/tracker-row.vue';
@@ -27,7 +27,7 @@ const GROUP_LABEL_KEYS: Record<TrackerGroup, string> = {
   archived: 'budgets.list.groups.archived',
 };
 
-const emit = defineEmits<{ create: [] }>();
+const emit = defineEmits<{ create: []; hasTrackers: [value: boolean] }>();
 
 const {
   data: trackersList,
@@ -41,6 +41,11 @@ const {
 });
 
 const trackers = computed(() => trackersList.value ?? []);
+watch(
+  () => trackers.value.length > 0,
+  (value) => emit('hasTrackers', value),
+  { immediate: true },
+);
 
 const search = ref('');
 const typeFilter = ref<'all' | 'autoAdd' | 'handPicked'>('all');
@@ -266,16 +271,16 @@ const chipClass = ({ active }: { active: boolean }) =>
           <TransitionGroup
             tag="div"
             :name="group.visible.length <= 40 ? 'kasana-list' : undefined"
-            class="relative divide-border divide-y"
+            class="divide-border relative divide-y"
             data-kasana-motion-list="trackers"
           >
             <TrackerRow
               v-for="tracker in group.visible"
-            :key="tracker.id"
-            :tracker="tracker"
-            :stats="statsById.get(tracker.id)?.data?.summary ?? null"
-            :is-stats-loading="statsById.get(tracker.id)?.isPending ?? true"
-            :is-stats-error="statsById.get(tracker.id)?.isError ?? false"
+              :key="tracker.id"
+              :tracker="tracker"
+              :stats="statsById.get(tracker.id)?.data?.summary ?? null"
+              :is-stats-loading="statsById.get(tracker.id)?.isPending ?? true"
+              :is-stats-error="statsById.get(tracker.id)?.isError ?? false"
               @suggest-archive="openArchivePrompt({ tracker })"
             />
           </TransitionGroup>

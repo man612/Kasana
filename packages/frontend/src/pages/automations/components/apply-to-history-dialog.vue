@@ -9,6 +9,8 @@ import VirtualList from '@/components/common/virtual-list.vue';
 import { useApplyAutomationToHistory, usePreviewAutomation } from '@/composable/data-queries/transaction-automations';
 import { extractApiErrorMessage } from '@/js/errors';
 import { ROUTES_NAMES } from '@/routes';
+import { loadRouteLocation, useRouter } from 'vue-router';
+import { loadChunksForRoute } from '@/i18n';
 import { AUTOMATION_LIMITS, type RecordId, type TransactionAutomationModel } from '@bt/shared/types';
 import { ArrowLeftIcon, ArrowRightIcon, CheckCheckIcon, Loader2Icon, PlusIcon, SearchXIcon } from '@lucide/vue';
 import { computed, ref } from 'vue';
@@ -29,9 +31,22 @@ const props = defineProps<{
   rulesError?: boolean;
   preferLocalizedError?: boolean;
 }>();
-const emit = defineEmits<{ 'retry-rules': []; 'update:open': [value: boolean] }>();
+const emit = defineEmits<{ 'retry-rules': []; 'update:open': [value: boolean]; closed: [] }>();
 
 const { t } = useI18n();
+const router = useRouter();
+let returnFromCreate = false;
+const createRoute = { name: ROUTES_NAMES.automationCreate, query: { from: 'optimizations' } };
+const createAfterClose = () => {
+  if (returnFromCreate) void router.push(createRoute);
+  emit('closed');
+};
+const requestCreate = () => {
+  returnFromCreate = true;
+  const target = router.resolve(createRoute);
+  void Promise.all([loadRouteLocation(target), loadChunksForRoute({ route: target })]).catch(() => {});
+  emit('update:open', false);
+};
 const { addSuccessNotification, addWarningNotification, addErrorNotification } = useNotificationCenter();
 
 provideAutomationRefs();
@@ -49,6 +64,9 @@ const matches = computed(() => preview.data.value?.matches ?? []);
 const chips = computed(() => (activeRule.value ? buildAutomationChips({ rule: activeRule.value }) : null));
 const hasPayeeAction = computed(() => activeRule.value?.actions.some((action) => action.type === 'set_payee') ?? false);
 
+const isEmptyPick = computed(
+  () => step.value === 'pick' && !props.rulesLoading && !props.rulesError && !props.rules?.length,
+);
 const isEmptyReview = computed(() => step.value === 'review' && preview.isSuccess.value && !matches.value.length);
 /** The virtual list needs a definite height, which the dialog's grid row gives it and its flex column does not. */
 const isReviewGrid = computed(() => step.value === 'review');
@@ -134,13 +152,17 @@ const handleApply = () => {
 <template>
   <ResponsiveDialog
     :open="open"
+    :custom-close="isEmptyPick"
+    centered-title
+    intrinsic-height-motion
+    @closed="createAfterClose"
     :dialog-content-class="['max-w-2xl', isReviewGrid && 'grid grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden']"
     :drawer-content-class="isReviewGrid && 'grid grid-rows-[auto_auto_minmax(0,1fr)_auto] overflow-hidden'"
     :no-internal-scroll="isReviewGrid"
     @update:open="(value: boolean) => requestOpenChange({ value })"
   >
     <template #title>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center justify-center gap-1 text-balance">
         <Button
           v-if="step === 'review' && !rule"
           variant="ghost"
@@ -155,11 +177,12 @@ const handleApply = () => {
             ? $t('automations.applyToHistory.pickTitle')
             : $t('automations.applyToHistory.title', { name: activeRule.name })
         }}
-        <slot v-if="step === 'pick'" name="pick-help" />
       </div>
     </template>
 
-    <template v-if="step === 'pick'" #description>{{ $t('automations.applyToHistory.pickHint') }}</template>
+    <template v-if="step === 'pick' && $slots['pick-help']" #header-actions>
+      <slot name="pick-help" />
+    </template>
 
     <template v-if="step === 'pick'">
       <div v-if="rulesLoading" class="flex flex-col gap-2">
@@ -173,14 +196,17 @@ const handleApply = () => {
         </Button>
       </div>
 
-      <div v-else-if="!rules?.length" class="flex flex-col items-center gap-3 py-6 text-center">
-        <p class="text-muted-foreground text-sm">{{ $t('automations.applyToHistory.noRules') }}</p>
-        <router-link :to="{ name: ROUTES_NAMES.automationCreate }">
-          <Button as="span" variant="outline" size="sm">
-            <PlusIcon class="size-4" />
-            {{ $t('automations.emptyState.cta') }}
-          </Button>
-        </router-link>
+      <div v-else-if="isEmptyPick" class="grid justify-items-center gap-2 px-2 py-3 text-center">
+        <p class="text-muted-foreground max-w-xs text-sm text-balance">
+          {{ $t('automations.applyToHistory.noRules') }}
+        </p>
+        <Button size="sm" @click="requestCreate">
+          <PlusIcon class="size-4" />
+          {{ $t('automations.emptyState.cta') }}
+        </Button>
+        <Button variant="ghost" size="sm" @click="requestOpenChange({ value: false })">
+          {{ $t('common.actions.cancel') }}
+        </Button>
       </div>
 
       <div v-else class="divide-border @container/automations divide-y rounded-md border">
@@ -314,7 +340,7 @@ const handleApply = () => {
       </template>
     </div>
 
-    <template #footer>
+    <template v-if="!isEmptyPick" #footer>
       <div class="flex w-full flex-col gap-3">
         <p v-if="step === 'review' && !isEmptyReview" class="text-muted-foreground text-xs">
           {{ $t('automations.applyToHistory.irreversible') }}

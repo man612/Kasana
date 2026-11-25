@@ -236,6 +236,8 @@ const detailParents: Record<string, string> = {
   [ROUTES_NAMES.accountsVehicleDetails]: ROUTES_NAMES.accounts,
   [ROUTES_NAMES.loanDetail]: ROUTES_NAMES.loans,
   [ROUTES_NAMES.investmentAccount]: ROUTES_NAMES.investments,
+  [ROUTES_NAMES.portfolioDetail]: ROUTES_NAMES.investments,
+  [ROUTES_NAMES.analyticsInvestmentContributions]: ROUTES_NAMES.investments,
   [ROUTES_NAMES.budgetPlan]: ROUTES_NAMES.budget,
   [ROUTES_NAMES.plannedSubscriptionDetails]: ROUTES_NAMES.plannedSubscriptions,
   [ROUTES_NAMES.plannedTrackerDetails]: ROUTES_NAMES.plannedTrackers,
@@ -251,7 +253,9 @@ const goBack = () => {
     previous.startsWith('/') &&
     previous !== route.fullPath &&
     router.resolve(previous).matched.some((record) => record.name === ROUTES_NAMES.dashboard);
-  if (previousIsAppPage) {
+  const requiresInvestmentParent = route.name === ROUTES_NAMES.analyticsInvestmentContributions;
+  const isFromInvestments = typeof previous === 'string' && router.resolve(previous).name === ROUTES_NAMES.investments;
+  if (previousIsAppPage && (!requiresInvestmentParent || isFromInvestments)) {
     router.back();
   } else if (backDestination.value) {
     void router.push({ name: backDestination.value });

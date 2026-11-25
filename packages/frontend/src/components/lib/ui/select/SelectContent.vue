@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import MenuScrim from '@/components/common/menu-scrim.vue';
+import OverlayLayer from '@/components/common/overlay-layer.vue';
 import { cn } from '@/lib/utils';
 import {
   SelectContent,
@@ -42,32 +43,36 @@ const select = injectSelectRootContext();
 
 <template>
   <SelectPortal>
-    <MenuScrim :open="select.open.value" :anchor="select.triggerElement.value" />
-    <SelectContent
-      v-bind="{ ...forwarded, ...$attrs }"
-      :collision-padding="12"
-      :style="{ maxHeight: 'min(22rem, calc(100dvh - 2rem), var(--reka-select-content-available-height, 22rem))' }"
-      :class="
-        cn(
-          'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-(--z-over-dialog) flex min-w-32 flex-col overflow-hidden rounded-lg border shadow-md motion-reduce:animate-none!',
-          props.class,
-        )
-      "
-    >
-      <slot name="header" />
-      <SelectScrollUpButton />
-      <SelectViewport
+    <!-- Reka registers option metadata while the list is closed. -->
+    <OverlayLayer :open="select.open.value" keep-closed-slot>
+      <MenuScrim :open="select.open.value" />
+      <SelectContent
+        :inert="!select.open.value"
+        v-bind="{ ...forwarded, ...$attrs }"
+        :collision-padding="12"
+        :style="{ maxHeight: 'min(22rem, calc(100dvh - 2rem), var(--reka-select-content-available-height, 22rem))' }"
         :class="
           cn(
-            'lajur-dialog-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-1 pr-2',
-            position === 'popper' && 'h-(--reka-select-trigger-height) w-full min-w-(--reka-select-trigger-width)',
+            'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-(--z-over-dialog) flex min-w-32 flex-col overflow-hidden rounded-lg border shadow-md duration-200 motion-reduce:animate-none!',
+            props.class,
           )
         "
       >
-        <slot />
-      </SelectViewport>
-      <SelectScrollDownButton />
-      <slot name="footer" />
-    </SelectContent>
+        <slot name="header" />
+        <SelectScrollUpButton />
+        <SelectViewport
+          :class="
+            cn(
+              'lajur-dialog-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain p-1 pr-2',
+              position === 'popper' && 'h-(--reka-select-trigger-height) w-full min-w-(--reka-select-trigger-width)',
+            )
+          "
+        >
+          <slot />
+        </SelectViewport>
+        <SelectScrollDownButton />
+        <slot name="footer" />
+      </SelectContent>
+    </OverlayLayer>
   </SelectPortal>
 </template>

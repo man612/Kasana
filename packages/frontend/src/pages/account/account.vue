@@ -1,12 +1,28 @@
 <template>
   <DefineAccountHistory>
-    <div class="grid min-w-0 gap-3 py-3">
-      <Button as-child variant="outline" size="sm" class="ml-auto">
-        <router-link :to="{ name: ROUTES_NAMES.transactions, query: { accountIds: account?.id } }">
-          <TableIcon class="size-4" aria-hidden="true" />
-          {{ t('pages.account.rightPanel.viewAll') }}
-        </router-link>
-      </Button>
+    <div class="border-border bg-card grid min-w-0 gap-3 rounded-xl border p-3">
+      <div class="flex flex-wrap justify-end gap-2">
+        <Popover v-model:open="isDisplayOpen">
+          <PopoverTrigger as-child>
+            <Button variant="outline" size="sm">{{ $t('transactions.savedViews.trigger') }}</Button>
+          </PopoverTrigger>
+          <PopoverContent dim-backdrop align="end" class="w-64 p-1">
+            <TransactionTimeGroupingOptions
+              :model-value="timeGrouping"
+              v-model:show-time="showTime"
+              v-model:show-checkboxes="showCheckboxes"
+              @update:model-value="setMode"
+              @selected="isDisplayOpen = false"
+            />
+          </PopoverContent>
+        </Popover>
+        <Button as-child variant="outline" size="sm">
+          <router-link :to="{ name: ROUTES_NAMES.transactions, query: { accountIds: account?.id } }">
+            <TableIcon class="size-4" aria-hidden="true" />
+            {{ t('pages.account.rightPanel.viewAll') }}
+          </router-link>
+        </Button>
+      </div>
       <Transition name="lajur-info-reveal" mode="out-in">
         <div v-if="!isFetched" key="loading" aria-busy="true">
           <TransactionRecordSkeleton v-for="row in 3" :key="row" />
@@ -18,24 +34,20 @@
         >
           {{ t('pages.account.rightPanel.noTransactions') }}
         </p>
-        <ScrollArea
+        <TransactionsList
           v-else
           key="rows"
+          animate-changes
+          :time-grouping="timeGrouping"
+          :show-time="showTime"
+          :show-checkboxes="showCheckboxes"
+          compact
+          :hasNextPage="hasNextPage"
+          :transactions="rawTransactionsList"
+          :isFetchingNextPage="isFetchingNextPage"
           :scroll-area-id="SCROLL_AREA_IDS.accountTransactions"
-          class="max-h-[min(60dvh,38rem)]"
-          viewport-class="max-h-[min(60dvh,38rem)] overflow-y-auto"
-        >
-          <TransactionsList
-            animate-changes
-            :time-grouping="timeGrouping"
-            compact
-            :hasNextPage="hasNextPage"
-            :transactions="rawTransactionsList"
-            :isFetchingNextPage="isFetchingNextPage"
-            :scroll-area-id="SCROLL_AREA_IDS.accountTransactions"
-            @fetch-next-page="fetchNextPage"
-          />
-        </ScrollArea>
+          @fetch-next-page="fetchNextPage"
+        />
       </Transition>
     </div>
   </DefineAccountHistory>
@@ -69,53 +81,51 @@
       <div class="text-muted-foreground text-sm">{{ t('pages.account.loading') }}</div>
     </div>
 
-    <div v-else class="flex flex-col justify-start gap-4 p-4 md:p-6 @[800px]/settings:flex-row">
-      <Card.Card class="w-full max-w-150">
+    <div v-else class="lajur-detail-page flex w-full max-w-4xl flex-col gap-2 p-3 md:p-6">
+      <Card.Card class="shrink-0 gap-2 py-1.5 sm:py-3">
         <Header :account="account" />
-
-        <!-- Account re-link warning banner -->
-        <Callout
-          v-if="account.needsRelink"
-          variant="destructive"
-          :title="t('pages.account.relinkWarning.title')"
-          class="mx-6 mb-4"
-        >
-          <p class="text-muted-foreground text-xs">
-            {{ t('pages.account.relinkWarning.description') }}
-            <span class="text-foreground font-medium">"{{ t('pages.account.relinkWarning.connectionValidity') }}"</span>
-            {{ t('pages.account.relinkWarning.in') }}
-            <router-link
-              v-if="account.bankDataProviderConnectionId"
-              :to="{
-                name: ROUTES_NAMES.accountIntegrationDetails,
-                params: { connectionId: account.bankDataProviderConnectionId },
-              }"
-              class="text-primary-text hover:text-primary-text/80 inline-flex items-center gap-0.5 font-medium underline underline-offset-2"
-            >
-              {{ t('pages.account.relinkWarning.connectionSettings') }}
-            </router-link>
-            <template v-else>{{ t('pages.account.relinkWarning.settings') }}</template
-            >{{ t('pages.account.relinkWarning.ifPersists') }}
-            <span class="text-foreground font-medium">"{{ t('pages.account.relinkWarning.unlink') }}"</span>
-            {{ t('pages.account.relinkWarning.belowThenLink') }}
-          </p>
-        </Callout>
-
-        <Separator />
-
-        <Card.CardContent>
-          <template v-if="account.bankDataProviderConnectionId">
-            <BankConnectionView :account="account">
-              <template #history><UseAccountHistory /></template>
-            </BankConnectionView>
-          </template>
-          <template v-else>
-            <SystemAccount :account="account">
-              <template #history><UseAccountHistory /></template>
-            </SystemAccount>
-          </template>
-        </Card.CardContent>
       </Card.Card>
+
+      <!-- Account re-link warning banner -->
+      <Callout
+        v-if="account.needsRelink"
+        variant="destructive"
+        :title="t('pages.account.relinkWarning.title')"
+        class="min-w-0"
+      >
+        <p class="text-muted-foreground text-xs">
+          {{ t('pages.account.relinkWarning.description') }}
+          <span class="text-foreground font-medium">"{{ t('pages.account.relinkWarning.connectionValidity') }}"</span>
+          {{ t('pages.account.relinkWarning.in') }}
+          <router-link
+            v-if="account.bankDataProviderConnectionId"
+            :to="{
+              name: ROUTES_NAMES.accountIntegrationDetails,
+              params: { connectionId: account.bankDataProviderConnectionId },
+            }"
+            class="text-primary-text hover:text-primary-text/80 inline-flex items-center gap-0.5 font-medium underline underline-offset-2"
+          >
+            {{ t('pages.account.relinkWarning.connectionSettings') }}
+          </router-link>
+          <template v-else>{{ t('pages.account.relinkWarning.settings') }}</template
+          >{{ t('pages.account.relinkWarning.ifPersists') }}
+          <span class="text-foreground font-medium">"{{ t('pages.account.relinkWarning.unlink') }}"</span>
+          {{ t('pages.account.relinkWarning.belowThenLink') }}
+        </p>
+      </Callout>
+
+      <div class="flex min-h-0 min-w-0 flex-1 flex-col">
+        <template v-if="account.bankDataProviderConnectionId">
+          <BankConnectionView :account="account">
+            <template #history><UseAccountHistory /></template>
+          </BankConnectionView>
+        </template>
+        <template v-else>
+          <SystemAccount :account="account">
+            <template #history><UseAccountHistory /></template>
+          </SystemAccount>
+        </template>
+      </div>
     </div>
   </div>
 </template>
@@ -126,12 +136,12 @@ import { getVehicles } from '@/api/vehicles';
 import { VUE_QUERY_CACHE_KEYS } from '@/common/const';
 import ResourceNotFound from '@/components/common/resource-not-found.vue';
 import { Button } from '@/components/lib/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/lib/ui/popover';
 import { captureException } from '@/lib/sentry';
 import * as Card from '@/components/lib/ui/card';
 import { Callout } from '@/components/lib/ui/callout';
-import { ScrollArea } from '@/components/lib/ui/scroll-area';
+import TransactionTimeGroupingOptions from '@/pages/records/components/transaction-time-grouping-options.vue';
 import { SCROLL_AREA_IDS } from '@/components/lib/ui/scroll-area/types';
-import { Separator } from '@/components/lib/ui/separator';
 import { createReusableTemplate } from '@vueuse/core';
 import { useTransactionTimeGrouping } from '@/components/transactions-list/use-transaction-time-grouping';
 import TransactionsList from '@/components/transactions-list/transactions-list.vue';
@@ -152,14 +162,16 @@ import BankConnectionView from './types/bank-connection/index.vue';
 import SystemAccount from './types/system/system.vue';
 
 const [DefineAccountHistory, UseAccountHistory] = createReusableTemplate();
-const { mode: timeGrouping } = useTransactionTimeGrouping();
+const isDisplayOpen = ref(false);
+const { mode: timeGrouping, showTime, showCheckboxes, setMode } = useTransactionTimeGrouping();
 
 const { t } = useI18n();
+const props = defineProps<{ id: string }>();
 const route = useRoute();
 const router = useRouter();
 const accountsStore = useAccountsStore();
 const { accounts, accountsRecord, isAccountsFetched } = storeToRefs(accountsStore);
-const account = computed(() => accountsRecord.value[route.params.id as string] ?? null);
+const account = computed(() => accountsRecord.value[props.id] ?? null);
 
 // The accounts store's query has staleTime: Infinity and is only refetched on
 // explicit refetchAccounts() calls (e.g. after connecting a bank). When the
@@ -169,7 +181,7 @@ const account = computed(() => accountsRecord.value[route.params.id as string] ?
 // reload. Try one refetch per id before deciding the account is really gone.
 const refetchAttemptedForId = ref<string | null>(null);
 watch(
-  [() => route.params.id, isAccountsFetched],
+  [() => props.id, isAccountsFetched],
   async ([id, fetched]) => {
     const accountId = id as string;
     if (!fetched || !accountId) return;
@@ -206,7 +218,7 @@ const isVehicleNotFound = computed(
 watch(
   [isVehicleAccount, vehicles],
   ([isVehicle, list]) => {
-    if (!isVehicle) return;
+    if (!isVehicle || route.name !== ROUTES_NAMES.account) return;
     const vehicleId = list?.find((v) => v.accountId === account.value?.id)?.id;
     if (vehicleId) {
       router.replace({ name: ROUTES_NAMES.accountsVehicleDetails, params: { id: vehicleId } });
@@ -245,7 +257,7 @@ const isOwnLoanAccount = computed(
 watch(
   isOwnLoanAccount,
   (isOwnLoan) => {
-    if (isOwnLoan && account.value?.id) {
+    if (isOwnLoan && account.value?.id && route.name === ROUTES_NAMES.account) {
       router.replace({ name: ROUTES_NAMES.loanDetail, params: { id: account.value.id } });
     }
   },

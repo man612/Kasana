@@ -119,6 +119,7 @@
       }
     },
     "editor": {
+      "backToOptimizations": "Back to Optimizations",
       "steps": {
         "conditions": "When the rule matches",
         "actions": "What the rule does",
@@ -226,10 +227,10 @@
     "applyToHistory": {
       "trigger": "Apply to past transactions",
       "saveFirst": "Save your changes first",
-      "pickTitle": "Apply a rule to past transactions",
+      "pickTitle": "Run rules",
       "pickHint": "Pick a rule. You'll review the matching transactions before anything changes.",
       "title": "Apply \"{name}\" to past transactions",
-      "noRules": "You don't have any automations yet.",
+      "noRules": "Create a rule to apply it to earlier transactions.",
       "summary": "{count} past transaction matches this rule | {count} past transactions match this rule",
       "moreMatches": "Only the {shown} most recent matches are listed. Apply these, then run it again.",
       "scanCapped": "Only your {limit} most recent transactions were checked.",
@@ -275,7 +276,8 @@
       "summaryTitle": "Rule summary",
       "secondExampleTitle": "Example: tag an internet bill",
       "secondExample": "Choose the account you use for internet bills and enter “Internet” as a word to look for in the note. Choose Add tags and select Subscriptions. When the next matching bank or imported transaction arrives, open it to see the tag. The Automations list shows when the rule last matched.",
-      "openRecurring": "Open recurring payments"
+      "openRecurring": "Open recurring payments",
+      "trigger": "How it works"
     }
   }
 }

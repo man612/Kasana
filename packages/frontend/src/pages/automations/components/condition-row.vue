@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AccountMultiSelectField from '@/components/fields/account-multi-select-field.vue';
 import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
 import PayeeMultiSelectField from '@/components/fields/payee-multi-select-field.vue';
 import SelectField from '@/components/fields/select-field.vue';
 import { Button } from '@/components/lib/ui/button';
@@ -9,7 +10,6 @@ import { DesktopOnlyTooltip } from '@/components/lib/ui/tooltip';
 import { useCurrenciesStore } from '@/stores';
 import {
   AUTOMATION_LIMITS,
-  type AutomationAmountCurrency,
   type AutomationAmountOperator,
   type AutomationCondition,
   type AutomationConditionField,
@@ -42,10 +42,13 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const { currencies, baseCurrency } = storeToRefs(useCurrenciesStore());
+const { baseCurrency } = storeToRefs(useCurrenciesStore());
 
 const fieldOptions = computed(() =>
-  CONDITION_FIELDS.map((field) => ({ value: field, label: t(`automations.fields.${field}`) })),
+  CONDITION_FIELDS.filter((field) => field !== 'bankConnection' || props.modelValue.field === field).map((field) => ({
+    value: field,
+    label: t(`automations.fields.${field}`),
+  })),
 );
 const operatorOptions = computed(() =>
   CONDITION_REGISTRY[props.modelValue.field].operators.map((operator) => ({
@@ -63,14 +66,18 @@ const typeTabs = computed(() => [
   { value: TRANSACTION_TYPES.expense, label: t('automations.summary.transactionTypeValue.expense') },
 ]);
 
-const currencyOptions = computed(() => [
-  { value: 'transaction', label: t('automations.editor.currency.transaction') },
-  { value: 'base', label: t('automations.editor.currency.base', { code: baseCurrency.value?.currencyCode ?? '' }) },
-  ...currencies.value.map((item) => ({
-    value: item.currencyCode,
-    label: t('automations.editor.currency.specific', { code: item.currencyCode }),
-  })),
-]);
+const amountCurrencyCode = computed(() => {
+  const condition = props.modelValue;
+  if (condition.field !== 'amount') return undefined;
+  if (condition.currency.mode === 'base') return baseCurrency.value?.currencyCode;
+  return condition.currency.mode === 'specific' ? condition.currency.code : undefined;
+});
+const amountBasis = computed(() => {
+  const condition = props.modelValue;
+  if (condition.field !== 'amount') return '';
+  if (condition.currency.mode === 'transaction') return t('automations.editor.currency.transaction');
+  return t(`automations.editor.currency.${condition.currency.mode}`, { code: amountCurrencyCode.value ?? '' });
+});
 
 const patch = (condition: AutomationCondition) => emit('update:modelValue', condition);
 
@@ -93,7 +100,7 @@ const changeOperator = ({ operator }: { operator: string }) => {
 };
 
 const isFieldDisabled = (field: AutomationConditionField) =>
-  field !== props.modelValue.field && (props.disabledFields?.includes(field) ?? false);
+  field !== props.modelValue.field && (field === 'bankConnection' || (props.disabledFields?.includes(field) ?? false));
 
 const setAmountBound = ({
   condition,
@@ -111,15 +118,6 @@ const setAmountBound = ({
       [key]: value === null || value === '' || Number.isNaN(Number(value)) ? undefined : Number(value),
     },
   });
-
-const currencyValue = ({ condition }: { condition: AmountCondition }) =>
-  condition.currency.mode === 'specific' ? condition.currency.code : condition.currency.mode;
-
-const setCurrency = ({ condition, code }: { condition: AmountCondition; code: string }) => {
-  const currency: AutomationAmountCurrency =
-    code === 'transaction' || code === 'base' ? { mode: code } : { mode: 'specific', code };
-  patch({ ...condition, currency });
-};
 
 const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | null }) => {
   const condition = props.modelValue as Extract<AutomationCondition, { field: 'dayOfMonth' }>;
@@ -178,11 +176,10 @@ const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | n
             />
 
             <div v-else-if="modelValue.field === 'amount'" class="flex flex-wrap items-start gap-2">
-              <InputField
+              <FormattedAmountField
                 v-if="modelValue.operator !== 'lte'"
                 :model-value="modelValue.value.min ?? null"
-                type="number"
-                only-positive
+                :currency-code="amountCurrencyCode"
                 class="w-32"
                 :label="
                   modelValue.operator === 'between'
@@ -194,11 +191,10 @@ const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | n
                   (value) => setAmountBound({ condition: modelValue as AmountCondition, key: 'min', value })
                 "
               />
-              <InputField
+              <FormattedAmountField
                 v-if="modelValue.operator === 'lte' || modelValue.operator === 'between'"
                 :model-value="modelValue.value.max ?? null"
-                type="number"
-                only-positive
+                :currency-code="amountCurrencyCode"
                 class="w-32"
                 :label="
                   modelValue.operator === 'between'
@@ -210,22 +206,7 @@ const setDay = ({ key, value }: { key: 'min' | 'max'; value: string | number | n
                   (value) => setAmountBound({ condition: modelValue as AmountCondition, key: 'max', value })
                 "
               />
-              <SelectField
-                :model-value="
-                  currencyOptions.find(
-                    (option) => option.value === currencyValue({ condition: modelValue as AmountCondition }),
-                  ) ?? null
-                "
-                :values="currencyOptions"
-                with-search
-                :search-keys="['label']"
-                class="w-56"
-                :placeholder="$t('automations.editor.currencyPlaceholder')"
-                :trigger-aria-label="$t('automations.editor.currencyPlaceholder')"
-                @update:model-value="
-                  (option) => option && setCurrency({ condition: modelValue as AmountCondition, code: option.value })
-                "
-              />
+              <p class="text-muted-foreground w-full text-xs">{{ amountBasis }}</p>
             </div>
 
             <PillTabs

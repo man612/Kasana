@@ -5,6 +5,8 @@ import { ALL_LOGO_TABS, type LogoSelection, toOptionalLogoPayload } from '@/comp
 import LogoSquareField from '@/components/common/logo-square-field.vue';
 import DateField from '@/components/fields/date-field.vue';
 import InputField from '@/components/fields/input-field.vue';
+import FormattedAmountField from '@/components/fields/formatted-amount-field.vue';
+import { useCurrenciesStore } from '@/stores';
 import Button from '@/components/lib/ui/button/Button.vue';
 import { useNotificationCenter } from '@/components/notification-center';
 import { trackAnalyticsEvent } from '@/lib/posthog';
@@ -12,6 +14,7 @@ import { useOnboardingStore } from '@/stores/onboarding';
 import { TRACKER_LIMIT_KINDS } from '@bt/shared/types';
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { computed, ref } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
 import {
@@ -53,6 +56,7 @@ const { addSuccessNotification } = useNotificationCenter();
 const queryClient = useQueryClient();
 const refreshSmartTrackingAccess = useRefreshSmartTrackingAccess();
 const form = ref({ ...TRACKER_DEFAULT_VALUES });
+const { baseCurrency } = storeToRefs(useCurrenciesStore());
 const rules = ref<TrackerRulesValues>(structuredClone(TRACKER_RULES_DEFAULTS));
 const smartTracking = ref<SmartTrackingValues>(structuredClone(SMART_TRACKING_DEFAULTS));
 const showErrors = ref(false);
@@ -76,7 +80,7 @@ const { isPending: isMutating, mutate: createTrackerItem } = useMutation({
   },
 });
 
-const isSubmitDisabled = computed(() => isMutating.value || !form.value.name);
+const isSubmitDisabled = computed(() => isMutating.value || !form.value.name?.trim());
 
 const submit = () => {
   const { name, startDate, endDate, limitAmount, limitKind, logo } = form.value;
@@ -140,8 +144,9 @@ const submit = () => {
 
     <div class="grid gap-3">
       <LimitKindField v-model="form.limitKind" />
-      <InputField
-        v-model.number="form.limitAmount"
+      <FormattedAmountField
+        v-model="form.limitAmount"
+        :currency-code="baseCurrency?.currencyCode"
         :label="$t(`budgets.limitKind.kinds.${form.limitKind}.amountLabel`)"
         :placeholder="$t('budgets.creation.limitPlaceholder')"
       />
