@@ -22,6 +22,9 @@ done
 # Dedicated backend E2E tests continue to exercise auth/rate-limit security.
 # Never set this flag in a public or operator-owned deployment.
 printf '\nDISABLE_AUTH_RATE_LIMIT=true\n' >> .env
+# The production-mode disposable backend needs the existing E2E fixture gate
+# for synthetic securities (ETEST/ISCRL). Never enable it on operator stacks.
+printf '\nENABLE_TEST_SEEDING_ENDPOINTS=true\n' >> .env
 compose() {
   docker compose -p kasana-browser-ci -f docker-compose.yml -f docker-compose.build.yml -f docker-compose.private.yml "$@"
 }

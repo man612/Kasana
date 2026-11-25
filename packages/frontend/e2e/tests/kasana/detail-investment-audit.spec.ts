@@ -54,14 +54,6 @@ test.describe('Lajur detail pages and investments', () => {
       path: `/api/v1/investments/portfolios/${portfolio.id}/cash-transaction`,
       data: { type: 'withdrawal', amount: '5000', currencyCode: 'IDR', date: '2026-11-25' },
     });
-    await addUserCurrencies({ request: api, currencyCode: 'USD' });
-    const { response: assetPortfolio } = await createPortfolio({ request: api, name: 'Portofolio aset sintetis' });
-    await createHolding({
-      request: api,
-      portfolioId: assetPortfolio.id,
-      symbol: 'ETEST',
-      currencyCode: 'USD',
-    });
   });
 
   test.beforeEach(async ({ context }) => {
@@ -127,6 +119,15 @@ test.describe('Lajur detail pages and investments', () => {
         );
       })
       .toBe(-4_000);
+
+    await addUserCurrencies({ request: api, currencyCode: 'USD' });
+    const { response: assetPortfolio } = await createPortfolio({ request: api, name: 'Portofolio aset sintetis' });
+    await createHolding({
+      request: api,
+      portfolioId: assetPortfolio.id,
+      symbol: 'ETEST',
+      currencyCode: 'USD',
+    });
 
     await page.goto('/investments');
     await page.getByRole('link', { name: /Portofolio aset sintetis/ }).click();
